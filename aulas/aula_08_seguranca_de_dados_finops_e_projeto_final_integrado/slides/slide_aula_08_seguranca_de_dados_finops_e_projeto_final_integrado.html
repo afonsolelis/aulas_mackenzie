@@ -248,6 +248,43 @@
       letter-spacing: 0.06em;
       color: var(--deck-muted);
     }
+
+    /* Pergunta de negócio que o dashboard deve responder */
+    .a08-question {
+      border: 1px solid var(--deck-line);
+      border-left: 6px solid var(--deck-accent);
+      background: var(--deck-panel);
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin-top: 18px;
+    }
+    .a08-question .a08-question-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      margin-bottom: 8px;
+    }
+    .a08-question .a08-question-text {
+      margin: 0;
+      font-size: 1.08em;
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--deck-text);
+    }
+    .a08-question .a08-question-formula {
+      margin: 10px 0 0;
+      font-size: .86em;
+      line-height: 1.5;
+      color: #2a2a2a;
+    }
+    .a08-question .a08-question-formula code {
+      font-family: var(--font-mono);
+      font-size: .92em;
+    }
   </style>
 </head>
 <body>
@@ -412,6 +449,16 @@
             <h3>Commit, push e envio no Forms</h3>
             <p>Subir o trabalho para <code>main</code>, abrir o formulário de entrega e submeter o link do repositório.</p>
           </div>
+        </div>
+        <div class="a08-question">
+          <span class="a08-question-tag">A pergunta &middot; o que o dashboard deve responder</span>
+          <p class="a08-question-text">
+            Quais são os 10 produtos com maior receita líquida acumulada e como essa receita evolui mês a mês ao longo do período do dataset?
+          </p>
+          <p class="a08-question-formula">
+            Receita líquida = &Sigma; (<code>UnitPrice</code> &times; <code>Quantity</code> &times; (1 &minus; <code>Discount</code>)), obtida pelo <em>join</em> de
+            <code>orders</code> e <code>order_details</code> por <code>OrderID</code>, agregada por <code>ProductID</code> (ranking) e por mês de <code>OrderDate</code> (série temporal).
+          </p>
         </div>
         <div class="a08-cta-row">
           <span class="a08-cta-row-label">Pegue os dados &rarr; entregue no Forms</span>
