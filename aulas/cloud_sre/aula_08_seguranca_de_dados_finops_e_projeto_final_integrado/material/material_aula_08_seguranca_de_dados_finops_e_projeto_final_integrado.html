@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Material Aula 08 — Projeto final — desafio entregue no GitHub</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../../assets/slides.css" />
+  <style data-material08-local>
+    /* Material é documento longo — neutraliza height/overflow do slides.css */
+    html, body.material {
+      height: auto !important;
+      min-height: 100%;
+      overflow: visible !important;
+    }
+    body.material .page { max-width: 980px; }
+    body.material pre {
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 16px 18px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: .92rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+    body.material code {
+      background: var(--deck-surface);
+      border: 1px solid var(--deck-line-soft);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: .9em;
+    }
+    body.material pre code { background: transparent; border: none; padding: 0; }
+    body.material table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: .95rem;
+    }
+    body.material thead th {
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .82rem;
+      text-align: left;
+      padding: 10px 12px;
+      border-top: 1px solid #0f0f0f;
+      border-bottom: 1px solid #0f0f0f;
+      background: var(--deck-surface);
+    }
+    body.material tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--deck-line-soft);
+      vertical-align: top;
+    }
+    body.material tbody tr:last-child td { border-bottom: 1px solid #0f0f0f; }
+
+    .m08-callout {
+      border-left: 3px solid #0f0f0f;
+      background: var(--deck-surface);
+      padding: 18px 22px;
+      margin: 18px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .m08-callout strong:first-child { display: block; margin-bottom: 6px; }
+
+    .m08-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      padding: 2px 8px;
+      border: 1px solid var(--deck-line);
+      border-radius: 3px;
+      margin-right: 6px;
+      margin-bottom: 10px;
+    }
+
+    .m08-block {
+      border: 1px solid var(--deck-line);
+      border-left: 3px solid #0f0f0f;
+      padding: 18px 22px;
+      margin: 22px 0;
+      border-radius: 0 4px 4px 0;
+      background: #ffffff;
+    }
+    .m08-block h3 { margin-top: 0; }
+
+    .m08-naming-pill {
+      font-family: var(--font-mono);
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 16px 20px;
+      border-radius: 6px;
+      font-size: 1.02rem;
+      letter-spacing: 0.02em;
+      box-shadow: 0 10px 24px rgba(13, 17, 23, 0.18);
+      word-break: break-all;
+      margin: 14px 0;
+    }
+    .m08-naming-pill strong { color: #ffd479; font-weight: 700; }
+
+    .m08-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 18px 0;
+    }
+    @media (max-width: 720px) {
+      .m08-grid-2 { grid-template-columns: 1fr; }
+    }
+    .m08-grid-2 .m08-card {
+      border: 1px solid var(--deck-line);
+      border-radius: 4px;
+      background: #ffffff;
+      padding: 18px 20px;
+    }
+    .m08-grid-2 .m08-card h4 {
+      margin: 0 0 8px;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--deck-line);
+    }
+    .m08-grid-2 .m08-card ul { margin: 8px 0 0; padding-left: 18px; }
+    .m08-grid-2 .m08-card li { margin-bottom: 6px; }
+
+    /* Roadmap das 5 etapas no material */
+    .m08-roadmap-list {
+      list-style: none;
+      counter-reset: m08step;
+      padding: 0;
+      margin: 18px 0 8px;
+      display: grid;
+      gap: 14px;
+    }
+    .m08-roadmap-list > li {
+      counter-increment: m08step;
+      border: 1px solid var(--deck-line);
+      border-left: 4px solid #0f0f0f;
+      background: #ffffff;
+      padding: 18px 22px 18px 64px;
+      border-radius: 0 4px 4px 0;
+      position: relative;
+    }
+    .m08-roadmap-list > li::before {
+      content: counter(m08step, decimal-leading-zero);
+      position: absolute;
+      left: 18px;
+      top: 16px;
+      font-family: var(--font-mono);
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #0f0f0f;
+      letter-spacing: -0.02em;
+    }
+    .m08-roadmap-list > li h3 {
+      margin: 0 0 6px;
+      font-size: 1.05rem;
+    }
+    .m08-roadmap-list > li p {
+      margin: 0 0 6px;
+      line-height: 1.55;
+    }
+    .m08-roadmap-list > li p:last-child { margin-bottom: 0; }
+
+    /* CTA do Forms no material */
+    .m08-forms-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin: 20px 0 8px;
+    }
+    .m08-forms-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 22px;
+      border: 1px solid #0f0f0f;
+      background: #ffffff;
+      color: #0f0f0f;
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: .9rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-radius: 4px;
+      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+      position: relative;
+    }
+    .m08-forms-cta:hover { background: #0f0f0f; color: #ffffff; transform: translateY(-1px); }
+    .m08-forms-cta:focus { outline: 2px solid var(--deck-accent); outline-offset: 4px; }
+    .m08-forms-cta svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
+    .m08-forms-cta[data-placeholder="true"]::after {
+      content: "placeholder";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--deck-accent);
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+    .m08-forms-cta-note {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      color: var(--deck-muted);
+    }
+  </style>
+</head>
+<body class="material">
+  <main class="page">
+
+    <section class="content-block">
+      <p class="meta">Aula 08 &nbsp;&bull;&nbsp; 11/06/2026</p>
+      <h1>Projeto final — desafio entregue no GitHub</h1>
+      <p class="summary">
+        Este material acompanha a Aula 08 da disciplina <strong>Cloud Computing e SRE &mdash; Visão Prática com AWS</strong>,
+        ofertada no âmbito do MBA em Engenharia de Dados. A presente sessão não contempla a introdução de conteúdo
+        teórico novo: a aula é integralmente dedicada à entrega do projeto final. O artefato de saída da disciplina
+        consolida-se em um <strong>repositório público no GitHub</strong>, criado do zero, com nome fixo de turma
+        (<code>20261sre-projeto-final</code>), contendo modelagens, implementação aplicando táticas arquiteturais e
+        evidências de execução sobre o <em>dataset</em> Northwind. A entrega é submetida via formulário oficial da
+        disciplina ao final da aula.
+      </p>
+      <p>
+        <span class="m08-tag">Pré-requisitos</span> Familiaridade com a stack construída ao longo das Aulas 04 a 07
+        (<code>docker-compose</code> Olist da Aula 04, Bass local da Aula 05, migração para AWS com ATAM da Aula 06
+        e Bass distribuído com estresse sob carga da Aula 07). Conta no GitHub ativa e Codespace ou ambiente Docker
+        local pronto para uso.
+      </p>
+      <p>
+        <span class="m08-tag">Sumário</span>
+        Tese &middot; revisão do arco compreendido entre as Aulas 04 e 07 &middot; convenção do repositório
+        (<code>20261sre-projeto-final</code>) &middot; roadmap das cinco etapas de entrega &middot; critérios de
+        avaliação &middot; orientações para a organização do README de um projeto SRE/Cloud &middot; orientações
+        para a apresentação &middot; desafio Northwind &middot; dinâmica do dia &middot; atividade prática e envio
+        no Forms.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>1. Tese da aula</h2>
+      <p>
+        Ao longo das Aulas 04 a 07 foi construída, de forma colaborativa, uma plataforma de dados que parte do
+        ambiente local e progride em direção à nuvem. Nesta sessão, cada aluno demonstra, de forma autônoma, sua
+        capacidade de replicar e estender esse percurso. O semestre, iniciado como uma sequência de exercícios
+        assistidos, materializa-se em um <strong>repositório versionado</strong>. O critério adotado é objetivo
+        e exigente: <em>caso um colega não consiga colocar a stack em execução, a partir do README, em até quinze
+        minutos, a entrega não está concluída</em>.
+      </p>
+      <div class="m08-callout">
+        <strong>Tese</strong>
+        <p style="margin: 0;">
+          Esta sessão verifica a autonomia dos alunos na operação e evolução da arquitetura proposta, demandando
+          arquitetura claramente documentada, infraestrutura reprodutível, testes automatizados aprovados e
+          evidências reais devidamente versionadas.
+        </p>
+      </div>
+      <p>
+        A aula é, por concepção, isenta de conteúdo teórico novo. Não são previstos <em>slides</em> com conceitos
+        a memorizar nem laboratórios guiados a reproduzir. Propõem-se um desafio individual, três horas de trabalho
+        assistido em sala e um repositório no GitHub contendo a entrega correspondente. Este é o exame prático da
+        disciplina.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>2. Revisão — Aulas 04 a 07</h2>
+      <p>
+        Antes de avançar para a entrega, convém revisitar o arco percorrido por cada aluno. O projeto final não
+        constitui um artefato isolado; representa, antes, a consolidação dos resultados acumulados nas quatro aulas
+        anteriores. Caso algum dos blocos descritos a seguir não esteja consolidado no repositório individual,
+        este é o momento de saná-lo previamente à apresentação.
+      </p>
+      <div class="m08-grid-2">
+        <div class="m08-card">
+          <h4>Aula 04 &middot; 07/05/2026</h4>
+          <p><strong>Stack Docker local Olist.</strong></p>
+          <ul>
+            <li>Ingestão e processamento <em>near real-time</em> em contêineres locais.</li>
+            <li><code>docker-compose.yml</code> como ponto único de partida.</li>
+            <li>Pipeline ponta a ponta executado previamente à adoção de qualquer serviço gerenciado.</li>
+          </ul>
+        </div>
+        <div class="m08-card">
+          <h4>Aula 05 &middot; 14/05/2026</h4>
+          <p><strong>Bass local em Docker.</strong></p>
+          <ul>
+            <li>Avaliação de arquitetura em ambiente local previamente à migração para a nuvem.</li>
+            <li>Identificação de cenários, respostas táticas e <em>trade-offs</em>.</li>
+            <li>Documento Bass devidamente versionado em <code>documents/</code>.</li>
+          </ul>
+        </div>
+        <div class="m08-card">
+          <h4>Aula 06 &middot; 21/05/2026</h4>
+          <p><strong>Migração para AWS com ATAM.</strong></p>
+          <ul>
+            <li>Migração da stack local para a AWS, com IaC versionado.</li>
+            <li>Análise ATAM evidencia pontos de sensibilidade e risco.</li>
+            <li>Decisões de arquitetura documentadas e devidamente justificadas.</li>
+          </ul>
+        </div>
+        <div class="m08-card">
+          <h4>Aula 07 &middot; 28/05/2026</h4>
+          <p><strong>Bass distribuído e estresse do ATAM.</strong></p>
+          <ul>
+            <li>Aplicação do Bass à versão distribuída na AWS.</li>
+            <li>Validação sob carga, submetendo a plataforma a estresse real.</li>
+            <li>Evidências de resiliência versionadas no repositório.</li>
+          </ul>
+        </div>
+      </div>
+      <p>
+        Os quatro blocos compõem, em conjunto, o material constitutivo da entrega. O projeto final requer que sejam
+        apresentados como uma <strong>narrativa única</strong>, integrada ao mesmo repositório, e não como diretórios
+        desconexos.
+      </p>
+    </section>
+
+    <section class="content-block" id="convencao-do-repo">
+      <h2>3. Convenção do repositório</h2>
+      <p>
+        Para esta entrega final, o nome do repositório é <strong>fixo e idêntico para toda a turma</strong>. Não há
+        mais variação por aluno, tampouco <em>fork</em> de um repositório base do curso: cada aluno cria um
+        repositório novo, do zero, na própria conta do GitHub, e adota a nomenclatura padrão da turma 2026/1.
+        Essa padronização tem propósito operacional: facilita a correção da disciplina, permite a busca
+        sistemática dos repositórios e elimina ambiguidades de identificação.
+      </p>
+      <div class="m08-naming-pill">
+        <strong>20261sre-projeto-final</strong>
+      </div>
+      <p>
+        O nome adota o prefixo <code>20261sre</code> (turma 2026/1 de SRE) seguido do sufixo
+        <code>projeto-final</code>. Toda a turma utiliza exatamente esse nome — em minúsculas, sem acentos
+        e sem caracteres especiais. A identificação do aluno é feita pelo proprietário do repositório
+        (<em>owner</em>), e não pelo nome do projeto.
+      </p>
+
+      <h3>3.1 Procedimento de criação do repositório</h3>
+      <ol>
+        <li>Acessar o GitHub autenticado na conta pessoal e clicar em <em>New repository</em>, ou utilizar o GitHub CLI: <code>gh repo create 20261sre-projeto-final --public --add-readme</code>.</li>
+        <li>Definir o nome exatamente como <code>20261sre-projeto-final</code>, sem prefixos, sufixos ou abreviações adicionais.</li>
+        <li>Configurar a visibilidade como <strong>pública</strong>; repositórios privados não são aceitos para fins de avaliação.</li>
+        <li>Inicializar com um <code>README.md</code> mínimo e confirmar que a branch padrão é <code>main</code>.</li>
+        <li>Ativar a <em>branch protection</em> sobre <code>main</code>, em conformidade com o padrão estabelecido nas aulas anteriores.</li>
+      </ol>
+
+      <h3>3.2 Fluxo de trabalho até a entrega</h3>
+      <ul>
+        <li>Trabalhar em <em>branches</em> de funcionalidade (<code>feat/...</code>, <code>fix/...</code>), evitando <em>commits</em> diretos em <code>main</code>.</li>
+        <li>Abrir um <em>pull request</em> em direção à <code>main</code> para cada bloco relevante de modificação.</li>
+        <li>Manter a esteira de CI aprovada antes de efetuar o <em>merge</em>: <em>workflows</em> herdados das aulas anteriores.</li>
+        <li>Antes do envio no Forms, assegurar que o último <em>commit</em> em <code>main</code> contemple a entrega completa, com <em>push</em> efetivado.</li>
+        <li>(Opcional, porém recomendado) Aplicar a tag <code>aula-08-entrega</code> no <em>commit</em> final, demarcando o ponto de avaliação.</li>
+      </ul>
+
+      <div class="m08-callout">
+        <strong>Critérios de conformidade do repositório</strong>
+        <p style="margin: 0;">
+          Repositório público, nomeado exatamente como <code>20261sre-projeto-final</code>, branch <code>main</code>
+          contendo a entrega final, <code>README.md</code> na raiz, modelagens e diagramas presentes e link enviado
+          via Forms da disciplina.
+        </p>
+      </div>
+    </section>
+
+    <section class="content-block" id="roadmap-da-entrega">
+      <h2>4. Roadmap da entrega &mdash; cinco etapas</h2>
+      <p>
+        A entrega da Aula 08 segue cinco etapas sequenciais. As etapas substituem a antiga sequência de
+        <em>fork</em> + renomeação, e refletem o caráter do projeto final como <strong>repositório novo de
+        consolidação</strong>, e não como derivação de um repositório base. Cada etapa deve estar concluída
+        antes da submissão do link no formulário de entrega.
+      </p>
+      <ol class="m08-roadmap-list">
+        <li>
+          <h3>Criar um novo repositório</h3>
+          <p>
+            Criar um repositório totalmente novo no GitHub, pela interface web (<em>New repository</em>) ou pelo
+            GitHub CLI (<code>gh repo create</code>). O repositório deve nascer público, com a branch padrão
+            <code>main</code> e um <code>README.md</code> inicial. Não se trata de <em>fork</em>: não há
+            repositório base a partir do qual derivar a entrega.
+          </p>
+        </li>
+        <li>
+          <h3>Nomear como <code>20261sre-projeto-final</code></h3>
+          <p>
+            O nome do repositório é <strong>fixo</strong> e idêntico para toda a turma. A padronização do nome
+            simplifica a correção pelo professor, permite buscar todos os repositórios da turma com um
+            critério único e elimina a necessidade de manter um mapa de aluno → repositório. A identificação
+            individual é feita pelo <em>owner</em> da conta GitHub.
+          </p>
+        </li>
+        <li>
+          <h3>Criar as modelagens</h3>
+          <p>
+            Antes de codar, modelar o problema. Espera-se: (i) modelo conceitual, lógico e físico das tabelas
+            do <em>dataset</em> Northwind (entidades, atributos, relacionamentos, tipos e chaves); (ii) diagrama
+            de arquitetura da stack adotada (Mermaid no próprio README ou imagem em <code>docs/</code>),
+            mostrando ingestão, armazenamento (MinIO/S3), processamento e camada analítica (ClickHouse,
+            Streamlit); (iii) registro, no <code>README.md</code>, das decisões e <em>trade-offs</em>
+            considerados — quais alternativas foram descartadas e por quê.
+          </p>
+        </li>
+        <li>
+          <h3>Codar e aplicar as técnicas de táticas arquiteturais</h3>
+          <p>
+            Implementar a stack aplicando táticas arquiteturais de Bass e considerações ATAM trabalhadas nas
+            Aulas 05 a 07. Em termos práticos: implementar a ingestão dos CSVs do Northwind, as transformações
+            que alimentam o ClickHouse e a camada analítica do Streamlit, identificando, no código e na
+            documentação, quais táticas (disponibilidade, desempenho, modificabilidade, segurança) foram
+            aplicadas em cada componente. Cenários e <em>trade-offs</em> ATAM devem ser referenciados no README.
+          </p>
+        </li>
+        <li>
+          <h3>Finalizar com commit e push, e enviar no Forms</h3>
+          <p>
+            Concluída a implementação, efetuar o <em>commit</em> final em uma <em>branch</em> de funcionalidade,
+            abrir o <em>pull request</em> contra <code>main</code>, realizar o <em>merge</em> e o <em>push</em>
+            para o repositório remoto. Em seguida, abrir o formulário de entrega da disciplina e submeter o
+            link público do repositório. A entrega só é considerada efetuada após o envio no Forms.
+          </p>
+        </li>
+      </ol>
+
+      <div class="m08-forms-cta-wrap">
+        <a class="m08-forms-cta"
+           href="#"
+           data-placeholder="true"
+           target="_blank"
+           rel="noopener"
+           aria-label="Abrir formulário de entrega (placeholder — link divulgado em sala)">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-2 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
+          Abrir formulário de entrega
+        </a>
+        <span class="m08-forms-cta-note">Link do Forms a ser divulgado em sala no dia 11/06/2026.</span>
+      </div>
+    </section>
+
+    <section class="content-block">
+      <h2>5. Critérios de avaliação (estrutura)</h2>
+      <p>
+        Os critérios apresentados a seguir constituem a estrutura fixa da avaliação. O peso atribuído a cada eixo
+        e os <em>cut-offs</em> precisos serão definidos na semana da entrega, em conjunto com o desafio específico.
+        O conjunto de critérios, no entanto, permanece inalterado: a ausência de repositório em conformidade com
+        o padrão, de <code>README.md</code> ou de evidências de execução impossibilita a atribuição de nota.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Critério</th>
+            <th>O que é avaliado no repositório</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>01</td>
+            <td>Arquitetura documentada</td>
+            <td><code>README.md</code> contendo seção de arquitetura, diagrama (Mermaid ou imagem), descrição dos serviços e justificativa das decisões adotadas.</td>
+          </tr>
+          <tr>
+            <td>02</td>
+            <td>Infraestrutura reprodutível</td>
+            <td><code>docker-compose.yml</code> e/ou <em>templates</em> AWS (CloudFormation) acompanhados de comando único de provisionamento (<code>make up</code>, <code>docker compose up</code>, <code>aws cloudformation deploy</code>).</td>
+          </tr>
+          <tr>
+            <td>03</td>
+            <td>Testes automatizados</td>
+            <td>Suíte de testes em execução na esteira de CI (GitHub Actions), com <em>badge</em> ou captura de tela da última execução aprovada anexada ao README.</td>
+          </tr>
+          <tr>
+            <td>04</td>
+            <td>Evidências de execução</td>
+            <td>Logs, capturas de tela, vídeo de curta duração (até 3 minutos) ou diretório <code>documents/</code> contendo saída real do pipeline, métricas observadas e respostas às falhas induzidas.</td>
+          </tr>
+          <tr>
+            <td>05</td>
+            <td>Histórico de <em>commits</em> consistente</td>
+            <td>Histórico legível, mensagens descritivas, sem ocorrências de <code>WIP</code>, <code>fix fix</code> ou <em>force push</em> destrutivo em <code>main</code>.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Cada eixo apresenta caráter binário em sua versão mínima (presente ou ausente) e admite graduação em sua
+        versão completa. O peso final atribuído a cada eixo será publicado em conjunto com o enunciado do desafio.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>6. Organização do README de um projeto SRE/Cloud</h2>
+      <p>
+        O <code>README.md</code> constitui o documento de apresentação do repositório. Em projetos de SRE e Cloud,
+        espera-se que ele seja capaz de responder a cinco perguntas fundamentais para um leitor que nunca tenha
+        acessado o código anteriormente. Recomenda-se estruturar o README de modo a responder, nesta ordem, às
+        perguntas elencadas a seguir.
+      </p>
+
+      <div class="m08-block">
+        <h3>6.1 Qual é o objeto deste projeto?</h3>
+        <p>
+          Em um parágrafo, identificar o problema abordado, o domínio de aplicação e o <em>dataset</em> utilizado.
+          Recomenda-se evitar <em>buzzwords</em> e adotar um registro acessível, equivalente ao utilizado em
+          comunicações destinadas a um analista de negócio.
+        </p>
+      </div>
+
+      <div class="m08-block">
+        <h3>6.2 Qual é a arquitetura adotada?</h3>
+        <p>
+          Incluir um diagrama (em Mermaid, no próprio README, ou em imagem armazenada em <code>docs/</code>) que
+          represente os componentes principais: fontes de dados, serviços de ingestão, processamento, armazenamento
+          e observabilidade. Cada elemento deve ser descrito em uma frase, com referência explícita às decisões
+          de Bass e ATAM que sustentam o desenho proposto.
+        </p>
+      </div>
+
+      <div class="m08-block">
+        <h3>6.3 Como executar o projeto em ambiente local?</h3>
+        <p>
+          Seção de <em>Quick Start</em> contendo pré-requisitos (Docker, AWS CLI, conta AWS Student), comando único
+          de provisionamento (<code>make up</code> ou equivalente) e estimativa de tempo até <em>up &amp; running</em>.
+          Espera-se que um colega seja capaz de executar todo o ambiente em até quinze minutos, sem necessidade de
+          esclarecimentos adicionais.
+        </p>
+      </div>
+
+      <div class="m08-block">
+        <h3>6.4 Como verificar o funcionamento adequado?</h3>
+        <p>
+          Seção de validação: instruções para execução dos testes (<code>make test</code>), localização das métricas
+          em tempo real (<em>dashboard</em>, CloudWatch, Grafana), exemplos de <em>queries</em> de validação e
+          <em>badges</em> de CI. Recomenda-se incluir uma captura de tela ou trecho de <em>log</em> proveniente de
+          execução real.
+        </p>
+      </div>
+
+      <div class="m08-block">
+        <h3>6.5 Quais foram os aprendizados obtidos?</h3>
+        <p>
+          Seção sintética de <em>trade-offs</em> e decisões: alternativas consideradas e descartadas, dívida técnica
+          conhecida na arquitetura e ajustes que seriam recomendados em ambiente produtivo. Esta seção converte o
+          repositório de exercício didático em peça de portfólio profissional.
+        </p>
+      </div>
+
+      <p>
+        Recomenda-se estruturar a raiz do repositório com diretórios reconhecíveis: <code>infra/</code> (IaC),
+        <code>services/</code> ou <code>src/</code> (código-fonte), <code>tests/</code> (testes),
+        <code>documents/</code> (Bass, ATAM, relatórios) e <code>.github/workflows/</code> (CI). A organização
+        permite que o leitor depreenda a estrutura do projeto antes mesmo de examinar qualquer trecho de prosa.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>7. Orientações para a apresentação em sala</h2>
+      <p>
+        Embora a entrega oficial seja feita por meio do formulário, reserva-se uma janela em sala para
+        breves apresentações entre pares. O objetivo é compartilhar decisões de modelagem e táticas
+        aplicadas, e receber comentários do professor e dos colegas. O tempo individual será calibrado em
+        sala, em função do tamanho da turma. Recomenda-se organizar a apresentação na seguinte ordem:
+      </p>
+      <ol>
+        <li><strong>Acessar o GitHub</strong> &mdash; apresentar o repositório <code>20261sre-projeto-final</code>, a árvore de diretórios e a última execução aprovada na esteira de CI.</li>
+        <li><strong>Apresentar as modelagens</strong> &mdash; mostrar o modelo conceitual/lógico/físico do Northwind e o diagrama de arquitetura da stack.</li>
+        <li><strong>Demonstrar uma evidência de execução</strong> &mdash; exibir um <em>log</em>, um <em>dashboard</em> ou uma captura de tela de execução de teste sob carga.</li>
+        <li><strong>Discutir uma decisão de tática arquitetural</strong> &mdash; identificar qual tática Bass foi aplicada e qual cenário ATAM motivou a decisão.</li>
+        <li><strong>Encerrar com perspectivas futuras</strong> &mdash; indicar o que seria realizado caso houvesse mais uma semana de trabalho.</li>
+      </ol>
+      <p>
+        Não se recomenda o uso de <em>slides</em> em PowerPoint: o próprio repositório cumpre essa função.
+        A apresentação deve ser conduzida diretamente a partir do GitHub, do terminal e do console de
+        observabilidade. Apresentações que se encerram dentro do tempo previsto, com evidências reais exibidas
+        em tela, são consideradas superiores a exposições longas pautadas em promessas.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>8. O desafio específico &mdash; Northwind</h2>
+      <p>
+        O desafio da Aula 08 substitui o <em>dataset</em> Olist, utilizado nas Aulas 04 a 07, pelo
+        <strong>Northwind clássico</strong>: um conjunto relacional de pedidos e itens de pedido, de domínio
+        de distribuição de alimentos e bebidas. A complexidade é equivalente ao Olist, mas o domínio é
+        distinto — o aluno é forçado a repensar a modelagem e os KPIs sem reaproveitar diretamente o que foi
+        feito ao longo do semestre.
+      </p>
+      <p>
+        A stack <strong>MinIO + ClickHouse + ingestor + Streamlit</strong> permanece como referência: o núcleo
+        arquitetural é o mesmo, e o desafio incide sobre as extremidades — fontes de dados de entrada,
+        <em>schemas</em> intermediários, modelos analíticos e camada de apresentação.
+      </p>
+
+      <h3>8.1 Fonte de dados &mdash; Google Drive oficial</h3>
+      <p>
+        Os dois arquivos do Northwind estão disponíveis no Google Drive da disciplina. Faça o <em>download</em>
+        diretamente da pasta abaixo:
+      </p>
+      <p>
+        <a href="https://drive.google.com/drive/folders/14qZXIcAf2HNpu_Ara9RPjB5A6BFFYxoy?usp=sharing" target="_blank" rel="noopener">
+          Pasta oficial no Google Drive &mdash; Northwind CSVs
+        </a>
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Arquivo</th>
+            <th>Tamanho</th>
+            <th>Papel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>northwind_orders.csv</code></td>
+            <td>~96 KB</td>
+            <td>Cabeçalho de pedidos (um registro por pedido).</td>
+          </tr>
+          <tr>
+            <td><code>northwind_order_details.csv</code></td>
+            <td>~40 KB</td>
+            <td>Linhas de itens de pedido (várias por pedido).</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>8.2 O que deve ser entregue no repositório</h3>
+      <ul>
+        <li><strong>Modelagens</strong> &mdash; modelo conceitual, lógico e físico das duas tabelas, com chaves, tipos e cardinalidades documentados no README ou em <code>docs/</code>.</li>
+        <li><strong>Diagrama de arquitetura</strong> &mdash; representação da stack (ingestão, MinIO, ClickHouse, Streamlit) em Mermaid ou imagem.</li>
+        <li><strong>Implementação</strong> &mdash; código de ingestão dos CSVs, transformações para a camada analítica e <em>dashboard</em> Streamlit consumindo o ClickHouse.</li>
+        <li><strong>Táticas aplicadas</strong> &mdash; identificação explícita das táticas Bass utilizadas e dos cenários ATAM endereçados, em uma seção dedicada do README.</li>
+        <li><strong>Evidências</strong> &mdash; capturas de tela, <em>logs</em> ou trechos de saída comprovando execução real sobre os dados do Northwind.</li>
+      </ul>
+
+      <div class="m08-callout">
+        <strong>Padrão de camadas</strong>
+        <p style="margin: 0;">
+          Mantenha o mesmo padrão <code>raw</code> / <code>refined</code> adotado no projeto Olist. Documente,
+          no <code>README.md</code>, as decisões de adaptação, os KPIs reformulados e os <em>trade-offs</em>
+          considerados.
+        </p>
+      </div>
+    </section>
+
+    <section class="content-block">
+      <h2>9. Dinâmica do dia</h2>
+      <p>
+        Distribuição preliminar do tempo. A divisão respeita o intervalo regulamentar entre 19h00 e 22h00 e será
+        calibrada no início da aula, em função do número de alunos presentes e do número de apresentações previstas.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Bloco</th>
+            <th>Duração estimada</th>
+            <th>Atividades previstas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Briefing do desafio</td>
+            <td>~30 min</td>
+            <td>Apresentação do enunciado, regras de entrega, critérios de avaliação e esclarecimento de dúvidas iniciais.</td>
+          </tr>
+          <tr>
+            <td>Trabalho assistido</td>
+            <td>~90 min</td>
+            <td>Cada aluno avança no próprio repositório, com atendimento individual de dúvidas e revisão de README e diagrama pelo professor.</td>
+          </tr>
+          <tr>
+            <td>Apresentações breves</td>
+            <td>~60 min</td>
+            <td>Cada aluno apresenta o repositório, o diagrama e as evidências, recebendo a devolutiva do professor e dos colegas de turma.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="m08-callout">
+        <strong>Calibração em sala</strong>
+        <p style="margin: 0;">
+          O tempo individual de apresentação e a ordem da sequência (por sorteio ou inscrição) serão definidos
+          no início da aula, em função do número de alunos presentes. Já o envio no Forms é individual e ocorre
+          ao final, independentemente da ordem da apresentação.
+        </p>
+      </div>
+    </section>
+
+    <section class="content-block">
+      <h2>10. Atividade prática em sala &mdash; entrega final no GitHub e envio no Forms</h2>
+      <p>
+        Esta é a aula prática de encerramento da disciplina. A atividade prática conduzida em sala corresponde à
+        própria entrega do projeto final. Recomenda-se aproveitar o período de três horas conforme as orientações
+        a seguir:
+      </p>
+      <ol>
+        <li><strong>Antes da aula:</strong> revisar as Aulas 04 a 07 (stack Docker Olist, Bass local, migração AWS com ATAM, Bass distribuído sob estresse), de modo a chegar à aula com o referencial arquitetural fresco. Não é necessário ter um repositório pré-criado — o passo 1 do roadmap é justamente criar o repositório novo.</li>
+        <li><strong>Bloco 1 (briefing):</strong> acompanhar a apresentação do desafio Northwind, do nome fixo do repositório (<code>20261sre-projeto-final</code>) e dos critérios de avaliação. Apresentar dúvidas, uma vez que este é o único momento em que o professor responde a questionamentos sobre o enunciado.</li>
+        <li><strong>Bloco 2 (trabalho assistido):</strong> percorrer as cinco etapas do roadmap descritas na Seção 4 deste material — criar o repositório, nomeá-lo, criar as modelagens, codar aplicando táticas arquiteturais, e preparar o <em>commit</em> final. Pode-se utilizar o Codespace, o ambiente local em Docker, ferramentas de IA para acelerar a modelagem e o AWS Student Lab caso opte-se por demonstrar a versão em nuvem.</li>
+        <li><strong>Bloco 3 (apresentação e envio):</strong> apresentar o repositório de acordo com a ordem estabelecida na Seção 7 deste material e, ao final, abrir o formulário oficial da disciplina e submeter o link público do repositório. A entrega só é considerada efetuada após o envio no Forms.</li>
+        <li><strong>Após a apresentação:</strong> aplicar a tag <code>aula-08-entrega</code> ao <em>commit</em> final e manter o repositório público para fins de avaliação posterior.</li>
+      </ol>
+      <p>
+        Esta aula não contempla uma lista de exercícios escritos. A entrega corresponde ao próprio repositório e o
+        repositório constitui o instrumento de avaliação. Agradecemos aos alunos pela dedicação ao longo do arco
+        completo do semestre e desejamos um bom trabalho na entrega final.
+      </p>
+      <div class="m08-callout">
+        <strong>Encerramento da disciplina</strong>
+        <p style="margin: 0;">
+          Esta é a última aula do curso. O repositório de cada aluno permanece como portfólio público: recomenda-se
+          mantê-lo em evolução após o término da disciplina, utilizá-lo em processos seletivos e demonstrar sua
+          progressão ao longo do tempo. Os fundamentos de Cloud e SRE consolidam-se por meio da prática, e o
+          conteúdo disponível no GitHub constitui a evidência dessa prática.
+        </p>
+      </div>
+    </section>
+
+    <section class="content-block">
+      <nav class="material-nav">
+        <a href="../slides/slide_aula_08_seguranca_de_dados_finops_e_projeto_final_integrado.html">&larr; Ir para os slides da Aula 08</a>
+        <span> &nbsp;&middot;&nbsp; </span>
+        <a href="../../../../pages/home_cloud_sre.html">Voltar ao índice do curso</a>
+      </nav>
+    </section>
+
+  </main>
+</body>
+</html>

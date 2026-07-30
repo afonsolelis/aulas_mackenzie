@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Aula 07 — Táticas Bass para sistemas distribuídos, estressando o ATAM</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style data-aula07-local>
+    /* Tokens e componentes base vêm de assets/slides.css.
+       Aqui ficam apenas utilidades scoped à Aula 07. */
+
+    @media (max-height: 900px) {
+      .deck-shell { min-height: 520px; padding: 32px 44px; margin: 14px; gap: 16px; }
+      .deck-shell .deck-title { font-size: 2.1em; }
+      .deck-shell .deck-year  { font-size: 3em; margin: 4px 0; }
+      .deck-shell .deck-summary { margin-bottom: 6px; }
+    }
+    @media (max-height: 820px) {
+      .deck-shell { min-height: 460px; padding: 24px 36px; margin: 10px; gap: 10px; }
+      .deck-shell .deck-title { font-size: 1.9em; }
+      .deck-shell .deck-year  { font-size: 2.4em; }
+    }
+
+    .a07-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .a07-grid-3 .deck-card { padding: 18px 20px; }
+    .a07-grid-3 .deck-card h3 { font-size: 0.92em; }
+    .a07-grid-3 .deck-card ul { margin: 8px 0 0; }
+    .a07-grid-3 .deck-card li { margin-bottom: 4px; font-size: .94em; line-height: 1.45; }
+    @media (max-width: 1100px) {
+      .a07-grid-3 { grid-template-columns: 1fr; }
+    }
+
+    .a07-compact .deck-card { padding: 16px 18px; }
+    .a07-compact .deck-card h3 { font-size: 0.95em; margin-bottom: 6px; }
+    .a07-compact .deck-card ul { margin: 6px 0 0; padding-left: 16px; }
+    .a07-compact .deck-card li { margin-bottom: 4px; font-size: .92em; line-height: 1.45; }
+    .a07-compact .deck-panel { padding: 16px 18px; }
+    .a07-compact .deck-panel li { margin-bottom: 4px; font-size: .92em; line-height: 1.45; }
+    .a07-compact .deck-summary { margin-bottom: 10px; }
+    .a07-compact .deck-callout { padding: 16px 20px; }
+    .a07-compact .deck-callout li,
+    .a07-compact .deck-callout ol li { margin-bottom: 4px; }
+
+    .a07-pill {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      border: 1px solid var(--deck-line);
+      padding: 2px 8px;
+      border-radius: 3px;
+      margin-right: 6px;
+    }
+    .a07-pill-strong {
+      background: var(--deck-accent);
+      color: #ffffff;
+      border-color: var(--deck-accent);
+    }
+
+    /* Bloco "em construção" — placeholder visível.
+       Composição quadrada, contraste em preto, estilo neutro. */
+    .a07-placeholder-block {
+      border: 1px solid var(--deck-accent);
+      border-left: 4px solid var(--deck-accent);
+      background: var(--deck-surface);
+      padding: 22px 26px;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .a07-placeholder-block .a07-placeholder-kicker {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+    }
+    .a07-placeholder-block .a07-placeholder-title {
+      font-family: var(--font-sans);
+      font-size: 1.05em;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .a07-placeholder-block p { margin: 0; line-height: 1.5; }
+
+    .a07-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .a07-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    /* CTA do repositório no slide final — herda escopo a04-repo-cta
+       mas é uma redeclaração local scoped a Aula 07. */
+    .a07-repo-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      padding: 22px 32px;
+      border: 1px solid var(--deck-accent);
+      border-radius: 4px;
+      background: var(--deck-accent);
+      color: #ffffff;
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06), 0 10px 24px rgba(15, 15, 15, 0.12);
+    }
+    .a07-repo-cta:hover {
+      background: #2a2a2a;
+      transform: translateY(-2px);
+      box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06), 0 16px 32px rgba(15, 15, 15, 0.18);
+    }
+    .a07-repo-cta:focus {
+      outline: 2px solid var(--deck-accent);
+      outline-offset: 4px;
+    }
+    .a07-repo-cta svg {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      fill: currentColor;
+    }
+    .a07-repo-cta .a07-repo-cta-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      line-height: 1.1;
+    }
+    .a07-repo-cta .a07-repo-cta-text .a07-repo-cta-kicker {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: rgba(255, 255, 255, 0.66);
+      font-weight: 500;
+    }
+    .a07-repo-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .a07-repo-url {
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      color: var(--deck-muted);
+      letter-spacing: 0.02em;
+      word-break: break-all;
+      text-align: center;
+      max-width: 60ch;
+    }
+    .a07-cta-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 18px;
+      border: 1px solid var(--deck-line);
+      border-radius: 4px;
+      background: var(--deck-panel);
+      color: var(--deck-text);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.15s ease;
+    }
+    .a07-cta-secondary:hover { background: var(--deck-surface); }
+
+    @media (max-width: 600px) {
+      .a07-repo-cta { padding: 16px 22px; font-size: 0.92rem; gap: 12px; }
+      .a07-repo-cta svg { width: 22px; height: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1 - CAPA                                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="07">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+          <span class="deck-kicker">Cloud Computing e SRE &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Táticas Bass para sistemas distribuídos &mdash; estressando o ATAM</h1>
+          <p class="deck-meta">Aula 07 &nbsp;&bull;&nbsp; 28/05/2026</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">As táticas arquiteturais validadas localmente na Aula 05 devem ser reavaliadas no contexto distribuído da AWS, uma vez que os mesmos <em>sensitivity points</em> apresentam perfil de risco distinto quando a arquitetura é decomposta em EC2, S3 e Lambda.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2 - AGENDA                                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Estrutura da aula</h2>
+          <p class="deck-summary">A sessão compreende um bloco teórico dedicado às táticas arquiteturais de Len Bass aplicadas a sistemas distribuídos, com releitura da análise ATAM elaborada na Aula 05, seguido de um bloco prático no qual serão conduzidos experimentos controlados sobre os <em>sensitivity points</em> identificados, agora avaliados na arquitetura distribuída em AWS migrada na Aula 06.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Bloco teórico &middot; 19h00&ndash;20h30</h3>
+            <ul>
+              <li>Recapitulação das Aulas 04 a 06: Docker, ATAM e Bass no ambiente local, migração para a AWS</li>
+              <li>Tática arquitetural e as implicações específicas dos sistemas distribuídos</li>
+              <li>Os cinco grupos de táticas de Bass aplicados ao contexto da nuvem</li>
+              <li>Releitura da tabela ATAM da Aula 05 sob a perspectiva distribuída</li>
+              <li><em>Sensitivity point</em>, experimento e métrica como tríade metodológica</li>
+              <li>Taxonomia de experimentos: <em>chaos</em>, carga, latência e partição</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Prática AWS Student &middot; 20h30&ndash;22h00</h3>
+            <ul>
+              <li>Abertura da arquitetura distribuída entregue na Aula 06</li>
+              <li>Três experimentos derivados dos <em>sensitivity points</em> da Aula 05</li>
+              <li>Coleta de métricas relativas a latência, erro, MTTR e custo</li>
+              <li>Revisão das táticas aplicadas e identificação das ausentes</li>
+              <li>Relatório de evidências versionado no repositório</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3 - RECAP AULAS 04 -> 06                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a07-compact">
+        <div>
+          <span class="deck-kicker">Recapitulação &middot; Trajetória do curso</span>
+          <h2 class="deck-title">Aulas 04 a 06 &mdash; entregas consolidadas</h2>
+          <p class="deck-summary">A Aula 07 fundamenta-se nas entregas anteriores: a <em>stack</em> local em Docker construída na Aula 04, a tabela ATAM e as táticas de Bass aplicadas ao ambiente local na Aula 05, e a arquitetura migrada para a AWS na Aula 06. Nesta sessão, retomamos a análise ATAM da Aula 05 e reexaminamos cada <em>sensitivity point</em> sob a ótica do ambiente distribuído.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Aula 04 &middot; Docker local</h3>
+            <ul>
+              <li><em>Stack</em> inicial em <code>docker-compose</code></li>
+              <li>S3 simulado, ClickHouse, Streamlit e ingestor</li>
+              <li>Repositório da disciplina consolidado</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Aula 05 &middot; ATAM e Bass no ambiente local</h3>
+            <ul>
+              <li>Tabela ATAM elaborada sobre a <em>stack</em> local</li>
+              <li>Táticas aplicadas em Docker: <em>encapsulation</em>, contratos e monitoramento</li>
+              <li>Entrega: ATAM com <em>sensitivity</em>, <em>tradeoff</em> e <em>risk</em> &mdash; insumo desta aula</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Aula 06 &middot; Migração para a AWS</h3>
+            <ul>
+              <li><em>Lift-and-shift</em> com Gemini CLI: S3, EC2 ClickHouse, EC2 Streamlit e Lambda como ingestor</li>
+              <li>Sem nova análise ATAM &mdash; apenas execução da migração</li>
+              <li>Resultado: a mesma <em>stack</em>, agora distribuída na nuvem</li>
+            </ul>
+          </article>
+        </div>
+        <div class="deck-callout">
+          <strong>Insumos herdados para a presente aula</strong>
+          <p style="margin:0;">A arquitetura distribuída disponível na AWS Learner Lab (entrega da Aula 06), em conjunto com a tabela ATAM construída na Aula 05 contendo de três a cinco <em>sensitivity points</em> catalogados, constitui o ponto de partida. A Aula 07 retoma essa tabela e converte cada ponto identificado em <strong>experimento controlado com métrica</strong>, dado que o perfil de carga, latência e falha na nuvem difere substancialmente daquele observado no ambiente local.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4 - TESE DA AULA                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">Uma tática só pode ser considerada efetiva após validação sob condições controladas de estresse no ambiente distribuído</h2>
+          <p class="deck-summary">As táticas aplicadas na Aula 05 foram validadas em um contexto no qual a rede correspondia a uma abstração virtual e a máquina constituía recurso local. Em arquiteturas distribuídas, cada <em>sensitivity point</em> assume novo perfil de risco: a latência cresce em função da rede, o <em>single point of failure</em> migra de nível (do processo único para EC2, AZ ou região) e o cache local cede lugar à camada de CDN. A análise ATAM permanece, porém o experimento associado deve ser reformulado.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Três princípios orientadores da aula</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li>Toda tática apresentada deve ser acompanhada de experimento que a confirme ou refute <em>na arquitetura distribuída</em>.</li>
+            <li>Todo experimento parte de um <em>sensitivity point</em> registrado na tabela ATAM da Aula 05, relido sob a ótica da nuvem.</li>
+            <li>Toda execução é concluída com métrica mensurada e versionada no repositório &mdash; latência p99, taxa de erro, MTTR, <em>throughput</em> e custo.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5 - BASS PARA DISTRIBUIDO                              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a07-compact">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Bass no contexto distribuído</span>
+          <h2 class="deck-title">Os cinco grupos de táticas em sistemas distribuídos</h2>
+          <p class="deck-summary">Bass organiza as táticas por <em>quality attribute</em>. Em sistemas distribuídos, sua aplicação ganha relevância acentuada, pois o ambiente é intrinsecamente sujeito a falhas: a rede particiona, máquinas tornam-se indisponíveis e filas atingem capacidade. O material complementar detalha cada grupo; neste slide, registram-se os cabeçalhos.</p>
+        </div>
+        <div class="a07-grid-3">
+          <article class="deck-card">
+            <h3>Availability</h3>
+            <ul>
+              <li>Redundância ativa / passiva</li>
+              <li>Failover &amp; leader election</li>
+              <li>Health check / heartbeat</li>
+              <li>Exception detection / retry</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Performance</h3>
+            <ul>
+              <li>Caching multi-camada</li>
+              <li>Sharding / particionamento</li>
+              <li>Lazy load / pré-cálculo</li>
+              <li>Concurrency &amp; back-pressure</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Modifiability</h3>
+            <ul>
+              <li>Encapsulation</li>
+              <li>Interface / contract</li>
+              <li>Defer binding</li>
+              <li>Anti-corruption layer</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Security</h3>
+            <ul>
+              <li>Identity (IAM, OIDC)</li>
+              <li>TLS &amp; segredos</li>
+              <li>Audit trail</li>
+              <li>Least privilege</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Testability</h3>
+            <ul>
+              <li>Sandbox descartável</li>
+              <li>Monitor &amp; trace</li>
+              <li>Input / output records</li>
+              <li>Fault injection</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Observability</h3>
+            <ul>
+              <li>Logs estruturados</li>
+              <li>Métricas com unidade</li>
+              <li>Tracing distribuído</li>
+              <li>Dashboard por SLI</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6 - DO ATAM PARA O EXPERIMENTO                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Método &middot; Da análise ATAM da Aula 05 ao experimento na nuvem</span>
+          <h2 class="deck-title">Roteiro metodológico: cada <em>sensitivity point</em> da Aula 05 origina um experimento na presente sessão</h2>
+          <p class="deck-summary"><em>Sensitivity points</em> não constituem defeitos, mas sim pontos em que uma decisão arquitetural impacta mais de um atributo de qualidade. Em ambientes distribuídos, esses pontos <strong>assumem novo perfil</strong>: a latência cresce com a rede, o <em>single point of failure</em> migra de nível (de EC2 para AZ e, posteriormente, para região), o cache local cede lugar à CDN e o monitoramento por <em>log</em> é substituído por métricas e painéis.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Sensitivity (ATAM Aula 05)</th><th>Perfil distribuído (Aula 07)</th><th>Tática Bass</th><th>Experimento placeholder</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>ClickHouse single-process</td><td>EC2 ClickHouse single-AZ</td><td>Availability &middot; redundância</td><td>Kill EC2 (stop instance)</td></tr>
+            <tr><td>Ingestor timeout local</td><td>Lambda &middot; cold start + payload</td><td>Performance &middot; back-pressure</td><td>Pico de payload + cold start</td></tr>
+            <tr><td>I/O bloqueante no S3 mock</td><td>S3 real &middot; 503 SlowDown</td><td>Availability &middot; retry &amp; backoff</td><td>Carga concorrente sustentada</td></tr>
+            <tr><td>Acoplamento Streamlit &harr; CH</td><td>Rede EC2 &harr; EC2 (cross-host)</td><td>Availability &middot; exception detect</td><td>Latência injetada via <code>tc</code></td></tr>
+            <tr><td>Streamlit como processo único</td><td>Streamlit em EC2 single point</td><td>Availability &middot; failover</td><td>Stop EC2 Streamlit</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:.9em; color: var(--deck-muted); margin-top: 12px;">A tabela apresentada tem caráter <strong>ilustrativo</strong>. Os experimentos efetivamente conduzidos derivam da tabela ATAM elaborada na <strong>Aula 05</strong>, relida sob o perfil distribuído resultante da migração da Aula 06.</p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7 - EM CONSTRUCAO                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Aviso &middot; Em construção</span>
+          <h2 class="deck-title">Definição dos experimentos específicos condicionada aos resultados da Aula 06</h2>
+          <p class="deck-summary">Esta aula constitui, por desenho, um <em>placeholder estruturado</em>. A estrutura conceitual, a metodologia e a análise ATAM de base (proveniente da Aula 05) encontram-se consolidadas. Resta determinar como a migração realizada na Aula 06 alterou o perfil de cada <em>sensitivity point</em>.</p>
+        </div>
+        <div class="a07-placeholder-block">
+          <span class="a07-placeholder-kicker">Placeholder explícito</span>
+          <p class="a07-placeholder-title">Conteúdo detalhado a ser preenchido após a Aula 06 &mdash; depende dos resultados da migração que afetam os <em>sensitivity points</em> listados na Aula 05</p>
+          <p>
+            A tabela ATAM de base corresponde àquela elaborada na <strong>Aula 05</strong>, já versionada no repositório.
+            A alteração introduzida pela Aula 07 reside no <em>perfil</em> de cada <em>sensitivity point</em> após a
+            <em>stack</em> ter sido migrada do Docker local para a nuvem na Aula 06: a latência aumenta em razão da rede,
+            a falha de máquina assume a forma de falha de EC2 ou AZ, a escrita no S3 real apresenta códigos 503 e <em>throttle</em>,
+            e o <em>cold start</em> manifesta-se no Lambda.
+          </p>
+          <p>
+            Os experimentos específicos &mdash; quais instâncias EC2 serão suspensas, qual percentual de <em>payload</em>,
+            qual janela de latência e qual cenário de falha &mdash; serão derivados desses dois insumos (ATAM da Aula 05 e
+            arquitetura distribuída da Aula 06) e detalhados na semana de <strong>28/05/2026</strong>. Cada ponto
+            crítico identificado na tabela (<em>sensitivity</em>, <em>tradeoff</em> ou <em>risk</em>) será convertido em
+            experimento desta aula, com hipótese, execução e métrica associadas.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8 - PLANO DE MEDICAO (PLACEHOLDER)                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a07-compact">
+        <div>
+          <span class="deck-kicker">Plano de medição &middot; Placeholder</span>
+          <h2 class="deck-title">Métricas a serem coletadas em cada experimento</h2>
+          <p class="deck-summary">A escolha criteriosa das métricas distingue a prática da engenharia de meras encenações. Cada experimento da prática contará com métricas mensuradas antes e depois da intervenção, em janela temporal definida. A lista que segue corresponde ao conjunto canônico; os detalhes específicos serão definidos a partir da análise ATAM.</p>
+        </div>
+        <div class="a07-grid-3">
+          <article class="deck-card">
+            <h3>Latência</h3>
+            <ul>
+              <li>Percentis p50, p95 e p99</li>
+              <li>Janela de 5 a 15 minutos</li>
+              <li>Origem: CloudWatch ou cliente externo</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Taxa de erro</h3>
+            <ul>
+              <li>HTTP 5xx, S3 503 e falhas de Lambda</li>
+              <li>Razão entre erros e total na janela</li>
+              <li>Limiar definido por SLI</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>MTTR</h3>
+            <ul>
+              <li>Intervalo entre erro e reconhecimento</li>
+              <li>Intervalo entre reconhecimento e recuperação</li>
+              <li>Comparação entre execução manual e automática</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Throughput</h3>
+            <ul>
+              <li>Requisições por segundo</li>
+              <li>Linhas ingeridas por minuto</li>
+              <li>Degradação em relação ao <em>baseline</em></li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Custo por hora</h3>
+            <ul>
+              <li>EC2, S3 e Lambda</li>
+              <li>Comparativo antes e durante o experimento</li>
+              <li>Dimensão FinOps elementar</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Disponibilidade</h3>
+            <ul>
+              <li>Percentual de <em>uptime</em> na janela</li>
+              <li><em>Health check</em> externo</li>
+              <li>Cobertura de SLO</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9 - ROADMAP AULA 08                                    -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Roteiro &middot; Aula 08</span>
+          <h2 class="deck-title">Próximos passos do curso</h2>
+          <p class="deck-summary">A Aula 07 encerra o ciclo de validação. A Aula 08 integra todo o material em um projeto final, publicado no repositório GitHub de cada aluno.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Aula 08 &middot; 11/06/2026</strong>
+            <ul>
+              <li>Projeto final integrado no GitHub</li>
+              <li>Arquitetura distribuída, evidências das táticas de Bass e relatório ATAM</li>
+              <li>README contendo decisões, <em>tradeoffs</em> e métricas mensuradas nesta aula</li>
+              <li>Repositório nomeado conforme a convenção <code>20261sre-&lt;nome&gt;-&lt;sobrenome&gt;</code></li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Requisitos prévios à Aula 08</strong>
+            <ul>
+              <li>Tabela ATAM da Aula 05 versionada (entrega já realizada)</li>
+              <li>Três experimentos distribuídos com métricas registradas</li>
+              <li>Decisões relativas às táticas justificadas no README</li>
+              <li>Imagens e capturas de tela dos painéis utilizados</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10 - REPO DA AULA (CTA GRANDE) — ÚLTIMO SLIDE           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Encerramento &middot; Código da prática</span>
+          <h2 class="deck-title">Repositório base e referência à Aula 05</h2>
+          <p class="deck-summary">O ponto de partida do código permanece sendo o repositório da Aula 04. A leitura obrigatória corresponde ao slide da <strong>Aula 05</strong>, do qual provém a tabela ATAM que será submetida a estresse na presente aula, agora sobre a <em>stack</em> distribuída entregue na Aula 06.</p>
+        </div>
+        <div class="a07-repo-cta-wrap">
+          <a class="a07-repo-cta"
+             href="https://github.com/afonsolelis/20261sre-primeironome-ultimonome"
+             target="_blank"
+             rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            <span class="a07-repo-cta-text">
+              <span class="a07-repo-cta-kicker">GitHub &middot; Repo base &middot; Aula 04</span>
+              <span>Abrir repositório no GitHub</span>
+            </span>
+          </a>
+          <p class="a07-repo-url">https://github.com/afonsolelis/20261sre-primeironome-ultimonome</p>
+          <a class="a07-cta-secondary"
+             href="../../aula_05_integracao_etl_serverless_e_catalogo_de_dados/slides/slide_aula_05_integracao_etl_serverless_e_catalogo_de_dados.html">
+            &larr; Slide da Aula 05 (ATAM)
+          </a>
+        </div>
+        <p style="margin-top:14px; font-size:.92em; color: var(--deck-muted); text-align:center;">
+          Convenção: deve-se realizar <strong>fork</strong> e renomear o repositório para <code>20261sre-&lt;primeironome&gt;-&lt;ultimonome&gt;</code> antes de versionar as modificações desta aula.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mackenzie mini logo -->
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie" />
+
+  <!-- GLOBAL navigation footer -->
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../pages/home_cloud_sre.html" class="back-home">Índice</a>
+      <a href="../material/material_aula_07_data_reliability_e_sre_aplicados_a_pipelines_de_dados.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <!-- Navigation script -->
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    document.getElementById('total-slides').textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(s => s.classList.remove('active'));
+      slides[i].classList.add('active');
+      currentSlide = i;
+      document.getElementById('current-slide').textContent = i + 1;
+      document.getElementById('prev-btn').disabled = i === 0;
+      document.getElementById('next-btn').disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); previousSlide(); }
+      else if (e.key.toLowerCase() === 'f') toggleFullScreen();
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

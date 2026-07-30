@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Aula 06 — Migração para AWS Student Lab via Gemini CLI</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style data-aula06-local>
+    /* Estilos scoped da Aula 06. Tokens vêm de assets/slides.css. */
+
+    @media (max-height: 900px) {
+      .deck-shell { min-height: 520px; padding: 32px 44px; margin: 14px; gap: 16px; }
+      .deck-shell .deck-title { font-size: 2.1em; }
+      .deck-shell .deck-year  { font-size: 3em; margin: 4px 0; }
+      .deck-shell .deck-summary { margin-bottom: 6px; }
+    }
+    @media (max-height: 820px) {
+      .deck-shell { min-height: 480px; padding: 26px 40px; margin: 10px; gap: 12px; }
+      .deck-shell .deck-title { font-size: 1.95em; }
+      .deck-shell .deck-year  { font-size: 2.6em; }
+    }
+
+    /* Grid de 3 colunas (recap, mapping, etc). */
+    .a06-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .a06-grid-3 .deck-card { padding: 18px 20px; }
+    .a06-grid-3 .deck-card h3 { font-size: 1.05em; }
+    .a06-grid-3 .deck-card ul { margin: 8px 0 0; }
+    .a06-grid-3 .deck-card li { margin-bottom: 4px; font-size: .95em; }
+    @media (max-width: 1100px) {
+      .a06-grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* Versão compacta de cards/painéis. */
+    .a06-compact .deck-card { padding: 16px 18px; }
+    .a06-compact .deck-card h3 { font-size: 1em; margin-bottom: 6px; }
+    .a06-compact .deck-card ul { margin: 6px 0 0; }
+    .a06-compact .deck-card li { margin-bottom: 4px; font-size: .92em; line-height: 1.45; }
+    .a06-compact .deck-panel { padding: 16px 18px; }
+    .a06-compact .deck-panel li { margin-bottom: 4px; font-size: .92em; line-height: 1.45; }
+    .a06-compact .deck-summary { margin-bottom: 10px; }
+    .a06-compact .deck-callout { padding: 16px 20px; }
+    .a06-compact .deck-callout li,
+    .a06-compact .deck-callout ol li { margin-bottom: 4px; }
+
+    /* Tabela compacta. */
+    .a06-table-compact .deck-table th,
+    .a06-table-compact .deck-table td {
+      padding: 7px 10px;
+      font-size: .9em;
+      line-height: 1.4;
+    }
+
+    /* Tabela 2-colunas (Hoje em Docker / Amanhã em AWS) com kicker mono. */
+    .a06-map-table .deck-table { font-size: .95em; }
+    .a06-map-table .deck-table th { width: 36%; }
+    .a06-map-table .deck-table td.docker {
+      font-family: var(--font-mono);
+      font-size: .88em;
+      color: var(--deck-muted);
+      letter-spacing: -0.005em;
+    }
+    .a06-map-table .deck-table td.aws strong {
+      font-family: var(--font-mono);
+      font-size: .92em;
+      letter-spacing: 0.02em;
+    }
+
+    /* Card de referência cruzada para Aula 05 (ATAM já feita). */
+    .a06-atam-link {
+      border-left: 3px solid var(--deck-border);
+      background: var(--deck-surface);
+      padding: 12px 18px;
+      margin-top: 14px;
+      font-size: .88em;
+      line-height: 1.5;
+    }
+    .a06-atam-link strong { display: block; margin-bottom: 2px; }
+
+    /* Wrapper de Mermaid alinhado ao design system. */
+    .a06-mermaid {
+      background: var(--deck-panel);
+      border: 1px solid var(--deck-line);
+      border-radius: 4px;
+      padding: 18px;
+      margin-top: 8px;
+      overflow: auto;
+    }
+    .a06-mermaid pre.mermaid {
+      background: transparent !important;
+      color: var(--deck-text) !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      overflow: visible;
+    }
+    .a06-mermaid pre.mermaid::before { display: none !important; }
+    .a06-mermaid svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      background: transparent;
+    }
+
+    /* Code snippets compactos para slide. */
+    .a06-snippet {
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 16px 18px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      line-height: 1.55;
+      overflow-x: auto;
+      margin: 8px 0 0;
+      border: 1px solid #1f242d;
+      box-shadow: 0 10px 24px rgba(13, 17, 23, 0.18);
+      position: relative;
+    }
+    .a06-snippet::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 14px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3b424d;
+      box-shadow: 12px 0 0 #3b424d, 24px 0 0 #3b424d;
+    }
+    .a06-snippet pre {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 14px 0 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+    }
+    .a06-snippet-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    /* CTA do repositório no slide final.
+       Square-leaning, alto contraste, segue tokens do design system. */
+    .a06-repo-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      padding: 22px 32px;
+      border: 1px solid var(--deck-accent);
+      border-radius: 4px;
+      background: var(--deck-accent);
+      color: #ffffff;
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06), 0 10px 24px rgba(15, 15, 15, 0.12);
+    }
+    .a06-repo-cta:hover {
+      background: #2a2a2a;
+      transform: translateY(-2px);
+      box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06), 0 16px 32px rgba(15, 15, 15, 0.18);
+    }
+    .a06-repo-cta:focus {
+      outline: 2px solid var(--deck-accent);
+      outline-offset: 4px;
+    }
+    .a06-repo-cta svg {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      fill: currentColor;
+    }
+    .a06-repo-cta .a06-repo-cta-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      line-height: 1.1;
+    }
+    .a06-repo-cta .a06-repo-cta-text .a06-repo-cta-kicker {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: rgba(255, 255, 255, 0.66);
+      font-weight: 500;
+    }
+    .a06-repo-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .a06-repo-url {
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      color: var(--deck-muted);
+      letter-spacing: 0.02em;
+      word-break: break-all;
+      text-align: center;
+      max-width: 60ch;
+    }
+
+    /* CTA secundário (AWS Academy Learner Lab). */
+    .a06-lab-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      border: 1px solid var(--deck-accent);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--deck-accent);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+    .a06-lab-cta:hover { background: var(--deck-accent); color: #fff; }
+
+    /* CTA pequeno do GitHub no recap (slide 3). */
+    .a06-recap-repo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border: 1px solid var(--deck-border);
+      border-radius: 4px;
+      background: var(--deck-border);
+      color: #fff;
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+    .a06-recap-repo:hover { background: #2a2a2a; }
+    .a06-recap-repo svg { width: 14px; height: 14px; fill: currentColor; }
+
+    @media (max-width: 600px) {
+      .a06-repo-cta { padding: 16px 22px; font-size: 0.92rem; gap: 12px; }
+      .a06-repo-cta svg { width: 22px; height: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1 - CAPA                                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="06">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+          <span class="deck-kicker">Cloud Computing e SRE &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Migração para AWS Student Lab via Gemini CLI</h1>
+          <p class="deck-meta">Aula 06 &nbsp;&bull;&nbsp; 21/05/2026 &nbsp;&bull;&nbsp; Aula presencial</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Migração da stack Docker local para uma arquitetura distribuída na nuvem, contemplando as etapas de lift-and-shift e decomposição, com utilização do Gemini CLI como assistente para o provisionamento via AWS CLI.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2 - AGENDA                                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Estrutura da aula</h2>
+          <p class="deck-summary">A aula divide-se em dois blocos. O bloco teórico apresenta a arquitetura alvo, o mapeamento entre os serviços Docker e os serviços AWS correspondentes e uma introdução ao Gemini CLI. O bloco prático é dedicado à execução das etapas de lift-and-shift e decomposição, conduzidas por meio do AWS CLI gerado pelo agente.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Bloco teórico &middot; 19h00 &ndash; 20h30</h3>
+            <ul>
+              <li>Recap da stack local (Aula 04) e da análise ATAM + táticas Bass locais (Aula 05).</li>
+              <li>Mapeamento Docker &rarr; AWS.</li>
+              <li>Diagrama da arquitetura alvo (S3, EC2, Lambda, Secrets Manager).</li>
+              <li>AWS Student Lab &mdash; credenciais rotativas, <code>LabRole</code>, <code>us-east-1</code>.</li>
+              <li>Gemini CLI 101 &mdash; instalar, autenticar, loop esperado.</li>
+              <li>Restrições do Learner Lab.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Prática guiada &middot; 20h30 &ndash; 22h00</h3>
+            <ul>
+              <li><strong>Etapa 1 &mdash; lift-and-shift</strong> do <code>docker-compose</code> para dentro de uma EC2.</li>
+              <li>Renovar credenciais, provisionar EC2 com Gemini, SSH, <code>compose up</code>, validar dashboard.</li>
+              <li><strong>Etapa 2 &mdash; decomposição</strong>: S3 + EC2 ClickHouse + EC2 Streamlit + Lambda ingestor.</li>
+              <li>IAM, Security Groups, Secrets Manager.</li>
+              <li>Validação end-to-end e checklist final.</li>
+            </ul>
+          </article>
+        </div>
+        <p style="margin-top:10px; font-size:.84em; color: var(--deck-muted);"><strong>Tese:</strong> a migração consiste na execução da arquitetura previamente planejada. Recomenda-se priorizar a continuidade operacional na primeira etapa (lift-and-shift) e introduzir a decomposição arquitetural em uma segunda etapa controlada, com o objetivo de obter os benefícios associados aos sistemas distribuídos.</p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3 - RECAP AULA 04/05                                    -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Recap &middot; Onde paramos</span>
+          <h2 class="deck-title">Stack Olist resiliente, ATAM mapeada, ainda em ambiente local</h2>
+          <p class="deck-summary">A Aula 04 conduziu o provisionamento integral da stack em Docker Compose. A Aula 05 desenvolveu a análise arquitetural por meio do método ATAM e aplicou as táticas de Bass em escopo local, incluindo testes e ensaios de carga. Na presente aula, essa stack é portada para a nuvem.</p>
+        </div>
+        <div class="a06-grid-3">
+          <article class="deck-card">
+            <h3>Aula 04 &middot; Bootstrap Docker</h3>
+            <ul>
+              <li>4 containers: MinIO, ClickHouse, ingestor, dashboard.</li>
+              <li>Schema-on-read em <code>olist_raw.ingestion(unixtime, data JSON, tag)</code>.</li>
+              <li>View <code>v_top_products</code> idempotente por <code>max(unixtime)</code>.</li>
+              <li>Streamlit em <code>localhost:8501</code>.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Aula 05 &middot; ATAM + Bass local</h3>
+            <ul>
+              <li>Tabela ATAM completa do sistema: QAs, sensitivity points, risks.</li>
+              <li>Táticas de Len Bass aplicadas na stack <em>local</em>: healthchecks, retry, isolamento.</li>
+              <li>Testes por componente + stress por ponto fraco.</li>
+              <li>Stack endurecida, pronta para sair do laptop.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Aula 06 &middot; Atual</h3>
+            <ul>
+              <li>Migração para o AWS Student Lab.</li>
+              <li>Utilização do Gemini CLI como assistente de provisionamento.</li>
+              <li>Etapas de lift-and-shift seguidas de decomposição.</li>
+              <li>Não há nova análise arquitetural; aproveita-se a ATAM elaborada na Aula 05.</li>
+            </ul>
+          </article>
+        </div>
+        <div class="a06-atam-link">
+          <strong>ATAM como insumo, não como conteúdo</strong>
+          Os <em>sensitivity points</em> registrados na Aula 05 constituem o roteiro arquitetural desta migração: serão observados durante o provisionamento e novamente avaliados na Aula 07, quando o sistema for submetido a ensaios no ambiente em nuvem.
+        </div>
+        <p style="margin-top:14px; font-size:.84em; color: var(--deck-muted); display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+          Repositório base da prática:
+          <a class="a06-recap-repo" href="https://github.com/afonsolelis/20261sre-primeironome-ultimonome" target="_blank" rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            GitHub &middot; repo da aula
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4 - TESE DA AULA                                        -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">A migração como execução da arquitetura planejada</h2>
+          <p class="deck-summary">A análise arquitetural foi conduzida previamente, por meio da ATAM elaborada na Aula 05. A presente aula concentra-se na execução: realiza-se primeiramente o <strong>lift-and-shift</strong>, com o objetivo de assegurar a continuidade operacional, e em seguida a <strong>decomposição</strong>, que permite obter os benefícios próprios de uma arquitetura distribuída.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Três princípios orientadores desta aula</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li><strong>Lift-and-shift antes da redesenhar a arquitetura</strong> &mdash; o <code>compose</code> integral é executado dentro de uma única EC2 antes de ser decomposto em serviços individuais.</li>
+            <li><strong>Restrição ao uso do console</strong> &mdash; todas as operações são realizadas via AWS CLI, sendo os comandos gerados pelo Gemini CLI e submetidos à revisão humana antes da execução.</li>
+            <li><strong>Observância dos sensitivity points da Aula 05</strong> &mdash; cada decisão de provisionamento é avaliada à luz dos pontos de sensibilidade identificados na análise ATAM.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5 - MAPEAMENTO DOCKER -> AWS                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-map-table">
+        <div>
+          <span class="deck-kicker">Arquitetura alvo &middot; Mapeamento</span>
+          <h2 class="deck-title">Equivalência entre componentes Docker e serviços AWS</h2>
+          <p class="deck-summary">Realiza-se uma tradução direta dos componentes do <code>compose</code> para os serviços AWS correspondentes, respeitando-se os limites estabelecidos pelo Student Lab. O conjunto utilizado restringe-se a EC2, S3, Lambda, IAM, Security Groups e Secrets Manager.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Hoje em Docker</th><th>Amanhã em AWS</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="docker"><code>minio</code> &middot; bucket <code>olist</code></td>
+              <td class="aws"><strong>S3 bucket</strong> <code>olist-&lt;aluno&gt;-raw</code>, com mesma API e sem necessidade de endpoint customizado.</td>
+            </tr>
+            <tr>
+              <td class="docker"><code>clickhouse</code> &middot; container <code>olist_analytics</code></td>
+              <td class="aws"><strong>EC2 dedicada</strong> Amazon Linux 2023 t3.medium executando o ClickHouse Server, com a porta 8123 restrita à VPC.</td>
+            </tr>
+            <tr>
+              <td class="docker"><code>dashboard</code> &middot; Streamlit em 8501</td>
+              <td class="aws"><strong>EC2 dedicada</strong> servindo o Streamlit na porta 8501, exposta à internet por meio de Security Group.</td>
+            </tr>
+            <tr>
+              <td class="docker"><code>ingestor</code> &middot; worker idle Python</td>
+              <td class="aws"><strong>Lambda event-driven</strong> acionada por <code>S3:PutObject</code>. Como alternativa, há um <em>fallback</em> baseado em cron via <code>systemd</code> hospedado em uma das instâncias EC2.</td>
+            </tr>
+            <tr>
+              <td class="docker"><code>.env</code> com credenciais MinIO/CH</td>
+              <td class="aws"><strong>IAM role</strong> <code>LabRole</code> para o acesso ao S3, complementada pelo <strong>AWS Secrets Manager</strong> para a custódia da senha do ClickHouse.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6 - DIAGRAMA DA ARQUITETURA ALVO                       -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="aws-diagram">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Arquitetura alvo &middot; Visão</span>
+          <h2 class="deck-title">A stack do Olist na AWS após a decomposição</h2>
+          <p class="deck-summary">Os arquivos CSV são depositados no S3, o que aciona a Lambda responsável pela ingestão. Os dados são então persistidos no ClickHouse, hospedado em uma EC2 privada, e consumidos pelo Streamlit em uma EC2 pública. A topologia utiliza a VPC default, com Security Groups encadeados e controle de acesso por IAM.</p>
+        </div>
+        <div class="a06-mermaid">
+<pre class="mermaid">
+flowchart LR
+  user((Usuario))
+  subgraph aws[AWS Student Lab - us-east-1]
+    direction LR
+    s3[(S3 olist-aluno-raw<br/>CSVs Olist + gold)]
+    lambda[Lambda ingestor<br/>S3:PutObject trigger<br/>LabRole]
+    subgraph vpc[VPC default]
+      direction LR
+      ec2ch[EC2 ClickHouse<br/>t3.medium<br/>SG: 8123 privado]
+      ec2st[EC2 Streamlit<br/>t3.small<br/>SG: 8501 publico]
+    end
+    secrets[Secrets Manager<br/>senha do ClickHouse]
+  end
+  s3 -->|PutObject| lambda
+  lambda -->|INSERT NDJSON| ec2ch
+  ec2st -->|HTTP :8123 privado| ec2ch
+  ec2ch -.->|get senha| secrets
+  ec2st -.->|get senha| secrets
+  user -->|HTTP :8501| ec2st
+</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7 - AWS STUDENT LAB                                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Ambiente &middot; AWS Academy</span>
+          <h2 class="deck-title">AWS Student Lab &mdash; Learner Lab</h2>
+          <p class="deck-summary">Trata-se do sandbox gratuito disponibilizado pela AWS Academy, caracterizado por sessões de curta duração, credenciais rotativas, uma única região disponível e uma role pré-configurada. O ambiente é suficiente para a realização integral da aula, desde que sejam observados os limites estabelecidos.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Procedimento para obtenção das credenciais</strong>
+            <ul>
+              <li>Realizar o login em <code>awsacademy.instructure.com</code>.</li>
+              <li>Acionar o botão <em>Start Lab</em>, que inicia uma sessão com duração aproximada de quatro horas.</li>
+              <li>Em <em>AWS Details</em> &gt; <em>AWS CLI</em>, recuperar as variáveis <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code> e <code>AWS_SESSION_TOKEN</code>.</li>
+              <li>Em <em>SSH key</em>, efetuar o download do arquivo <code>labsuser.pem</code> e aplicar <code>chmod 400</code>.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Limites estabelecidos</strong>
+            <ul>
+              <li>Região única disponível: <code>us-east-1</code>.</li>
+              <li>Role pré-configurada: <code>LabRole</code>. Não é permitida a criação de IAM personalizada.</li>
+              <li><em>Instance profile</em> fixo: <code>LabInstanceProfile</code>.</li>
+              <li>As credenciais expiram em aproximadamente quatro horas e devem ser renovadas por meio de novo acionamento do <em>Start Lab</em>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8 - GEMINI CLI 101                                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Ferramenta &middot; Gemini CLI</span>
+          <h2 class="deck-title">Gemini CLI como assistente de provisionamento</h2>
+          <p class="deck-summary">O Gemini CLI é o agente de linha de comando do Google, que dispõe de um <em>free tier</em> com cota generosa, configurando-se como alternativa ao Claude Code e ao AIOX para os alunos que não possuem assinatura paga. O fluxo de uso compreende as seguintes etapas: formulação do prompt, geração do comando AWS CLI pelo agente, revisão humana, execução e validação do resultado.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">instalar e autenticar</span>
+<pre># 1. instalar (precisa Node 18+)
+npm install -g @google/gemini-cli
+
+# 2. autenticar (abre navegador para login Google)
+gemini auth
+
+# 3. confirmar que esta funcionando
+gemini "diga ola em uma linha"</pre>
+        </div>
+        <p style="margin-top:14px; font-size:.9em; color: var(--deck-muted);">
+          <strong>Fluxo esperado:</strong> o aluno descreve a intenção em linguagem natural; o Gemini gera o comando <code>aws ec2 run-instances ...</code>; o aluno revisa o comando integralmente; executa o procedimento; e, em seguida, o Gemini auxilia na validação por meio de um comando <code>describe-*</code>. Recomenda-se que nenhum comando destrutivo (a exemplo de <code>terminate</code>, <code>delete</code> ou <code>force</code>) seja executado sem revisão prévia.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9 - RESTRIÇÕES DO LEARNER LAB                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Ambiente &middot; Limites</span>
+          <h2 class="deck-title">Restrições do Learner Lab a serem observadas</h2>
+          <p class="deck-summary">O ambiente, embora amplo em recursos, apresenta limitações específicas. O conhecimento prévio dessas restrições evita interrupções durante a etapa prática.</p>
+        </div>
+        <div class="a06-grid-3">
+          <article class="deck-card">
+            <h3>Região e IAM</h3>
+            <ul>
+              <li>Apenas <code>us-east-1</code> está disponível.</li>
+              <li>Não é possível criar roles personalizadas.</li>
+              <li>Utiliza-se sempre a <code>LabRole</code>.</li>
+              <li>As EC2 são instanciadas com <code>LabInstanceProfile</code>.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Serviços</h3>
+            <ul>
+              <li>EC2, S3, Lambda e Secrets Manager estão habilitados.</li>
+              <li>A VPC default já está provisionada; não se deve criar uma nova.</li>
+              <li>Redshift, Glue e Athena não são utilizados nesta aula.</li>
+              <li>A Lambda pode encontrar-se limitada; recomenda-se manter o <em>fallback</em> baseado em cron.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Operação</h3>
+            <ul>
+              <li>A sessão tem duração aproximada de quatro horas, com credenciais rotativas.</li>
+              <li>As instâncias EC2 devem ser desligadas ao final para evitar o consumo desnecessário de créditos.</li>
+              <li>O acesso SSH utiliza o key pair gerado no próprio Lab.</li>
+              <li>Não há suporte a domínios personalizados nem ao ACM.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10 - ETAPA 1: TESE                                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Lift-and-shift</span>
+          <h2 class="deck-title">Priorização da continuidade na primeira etapa</h2>
+          <p class="deck-summary">O <code>compose</code> integral será executado dentro de uma única EC2, preservando-se a estrutura original, agora hospedada em uma instância AWS. Trata-se de uma configuração provisória, cuja função é estabelecer uma <em>baseline</em> migrada antes do início da decomposição arquitetural.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Razões para a precedência do lift-and-shift</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li>Permite validar credenciais, região e Security Groups sem a complexidade adicional de serviços distintos.</li>
+            <li>Mantém o sistema em operação com o mesmo comportamento, viabilizando uma decomposição incremental e controlada.</li>
+            <li>Estabelece o ponto de comparação a ser utilizado ao término da Etapa 2.</li>
+            <li>Em cenários reais de produção, este é o caminho que minimiza o tempo de indisponibilidade durante a migração.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11 - PASSO 1.1 RENOVAR CREDENCIAIS                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Passo 1.1</span>
+          <h2 class="deck-title">Renovação das credenciais do Student Lab</h2>
+          <p class="deck-summary">No painel do Lab, acessa-se a sequência <em>AWS Details</em> &rarr; <em>AWS CLI</em> &rarr; <em>Show</em>. Recomenda-se copiar os três valores apresentados e exportá-los para a sessão atual do terminal.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">terminal / Codespace</span>
+<pre>export AWS_ACCESS_KEY_ID="ASIA..."
+export AWS_SECRET_ACCESS_KEY="..."
+export AWS_SESSION_TOKEN="..."
+export AWS_DEFAULT_REGION="us-east-1"
+
+aws sts get-caller-identity
+# Esperado: Account, Arn com user voclabs/...</pre>
+        </div>
+        <p style="margin-top:14px; font-size:.92em; color: var(--deck-muted);">As credenciais possuem validade aproximada de quatro horas. Caso ocorra interrupção com erro <code>ExpiredToken</code>, retorna-se a esta etapa e procede-se à renovação.</p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12 - PASSO 1.2 PROVISIONAR EC2 VIA GEMINI               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Passo 1.2</span>
+          <h2 class="deck-title">Provisionamento da EC2 mediante uso do Gemini CLI</h2>
+          <p class="deck-summary">O aluno formula a intenção em linguagem natural. O Gemini gera o comando AWS CLI correspondente. O aluno realiza a revisão e procede à execução.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">prompt para o Gemini CLI</span>
+<pre>gemini "gere um comando aws ec2 run-instances que:
+- usa AMI Amazon Linux 2023 mais recente em us-east-1
+- t3.medium
+- instance profile LabInstanceProfile
+- security group abrindo 22 e 8501
+- user-data que instale docker, docker-compose-plugin, git
+- key pair vockey
+- tag Name=olist-monolito"</pre>
+        </div>
+        <div class="a06-snippet" style="margin-top:14px;">
+          <span class="a06-snippet-label">comando gerado (revisar antes de rodar)</span>
+<pre>aws ec2 run-instances \
+  --image-id $(aws ec2 describe-images \
+    --owners amazon \
+    --filters "Name=name,Values=al2023-ami-2023.*-x86_64" \
+    --query 'sort_by(Images, &amp;CreationDate)[-1].ImageId' --output text) \
+  --instance-type t3.medium \
+  --key-name vockey \
+  --iam-instance-profile Name=LabInstanceProfile \
+  --security-group-ids $SG_ID \
+  --user-data file://userdata-monolito.sh \
+  --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=olist-monolito}]'</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13 - USER-DATA DA EC2 MONOLITO                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Passo 1.3 &middot; user-data</span>
+          <h2 class="deck-title">userdata-monolito.sh &mdash; operações executadas no boot da EC2</h2>
+          <p class="deck-summary">O script realiza o bootstrap de forma autônoma: instala o Docker, habilita o serviço, adiciona o usuário <code>ec2-user</code> ao grupo correspondente e efetua o clone do repositório. No momento em que o acesso SSH é disponibilizado, a stack encontra-se pronta para a execução de <code>compose up</code>.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">userdata-monolito.sh</span>
+<pre>#!/bin/bash
+set -euxo pipefail
+
+dnf update -y
+dnf install -y docker git
+systemctl enable --now docker
+usermod -aG docker ec2-user
+
+# Plugin compose v2 oficial
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -SL "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+# Repo da aula
+cd /home/ec2-user
+sudo -u ec2-user git clone https://github.com/&lt;aluno&gt;/20261sre-primeironome-ultimonome.git
+chown -R ec2-user:ec2-user /home/ec2-user/20261sre-primeironome-ultimonome</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 14 - PASSO 1.4 SSH + COMPOSE UP                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Passo 1.4</span>
+          <h2 class="deck-title">Acesso SSH à EC2 e inicialização do compose</h2>
+          <p class="deck-summary">A partir da EC2 com IP público, estabelece-se a conexão SSH utilizando a chave <code>labsuser.pem</code> obtida no Lab, e procede-se à execução de <code>docker compose up -d</code>. Em aproximadamente um a dois minutos, os quatro contêineres encontram-se em estado saudável.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">terminal local</span>
+<pre>EC2_IP=$(aws ec2 describe-instances \
+  --filters "Name=tag:Name,Values=olist-monolito" \
+            "Name=instance-state-name,Values=running" \
+  --query 'Reservations[0].Instances[0].PublicIpAddress' --output text)
+
+chmod 400 ~/labsuser.pem
+ssh -i ~/labsuser.pem ec2-user@$EC2_IP
+
+# Dentro da EC2:
+cd ~/20261sre-primeironome-ultimonome
+cp .env.example .env
+docker compose up -d --build
+docker compose ps   # 4 containers healthy</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 15 - PASSO 1.5 UPLOAD CSVs + VALIDAR                    -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Passo 1.5</span>
+          <h2 class="deck-title">População do MinIO interno, execução do ingestor e validação do dashboard</h2>
+          <p class="deck-summary">O fluxo operacional é idêntico ao apresentado na Aula 04, com a particularidade de que a execução ocorre, agora, dentro de uma instância EC2.</p>
+        </div>
+        <div class="a06-grid-3">
+          <article class="deck-card">
+            <h3>Upload dos CSVs</h3>
+            <ul>
+              <li>Acessar o console MinIO em <code>http://&lt;ec2-public-ip&gt;:9003</code>.</li>
+              <li>Criar o bucket <code>olist</code>.</li>
+              <li>Realizar o upload dos arquivos CSV armazenados na pasta <code>data/</code>.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Execução do ingestor</h3>
+            <ul>
+              <li><code>docker exec olist_ingestor python /app/ingest_minio.py</code></li>
+              <li>Aplicar o schema e a view correspondentes.</li>
+              <li>Validar com <code>SELECT count() FROM olist_raw.ingestion</code>.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Dashboard</h3>
+            <ul>
+              <li>Acessar <code>http://&lt;ec2-public-ip&gt;:8501</code>.</li>
+              <li>Confirmar a renderização do ranking top-N de produtos.</li>
+              <li><strong>Procede-se ao próximo slide.</strong></li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 16 - CRITÉRIO DE PRONTO DA ETAPA 1                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Critério de pronto</span>
+          <h2 class="deck-title">Dashboard servindo a partir do IP público da EC2</h2>
+          <p class="deck-summary">Antes do avanço para a etapa de decomposição, verifica-se que o monolito encontra-se operacional no ambiente em nuvem.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Lista de verificação da Etapa 1</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li>EC2 identificada pela tag <code>olist-monolito</code> e em estado <code>running</code>.</li>
+            <li>Acesso SSH operacional com <code>labsuser.pem</code>.</li>
+            <li>O comando <code>docker compose ps</code> apresenta quatro contêineres em estado <em>healthy</em>.</li>
+            <li>A consulta <code>SELECT count() FROM olist_raw.ingestion</code> retorna valor superior a zero.</li>
+            <li><strong>O endereço <code>http://&lt;ec2-public-ip&gt;:8501</code> exibe o ranking de produtos mais vendidos.</strong></li>
+            <li>O screenshot do dashboard encontra-se salvo no fork do repositório.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 17 - ETAPA 2: DECOMPOSICAO (TESE)                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Decomposição</span>
+          <h2 class="deck-title">Decomposição do monolito em serviços AWS apropriados a cada responsabilidade</h2>
+          <p class="deck-summary">Nesta etapa, cada serviço da stack é alocado em um recurso AWS dedicado. As interfaces são preservadas (S3 API, HTTP e SQL); apenas os provedores subjacentes mudam. Cada passo é independente e pode ser conduzido de forma incremental.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Os oito passos da decomposição</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li>Substituição do MinIO pelo S3.</li>
+            <li>Provisionamento de EC2 dedicada para o ClickHouse.</li>
+            <li>Configuração do user-data do ClickHouse com integração ao Secrets Manager.</li>
+            <li>Provisionamento de EC2 dedicada para o Streamlit, executado via systemd.</li>
+            <li>Conversão do ingestor em função Lambda event-driven.</li>
+            <li>Implementação do handler Python da Lambda.</li>
+            <li>Configuração de IAM e dos Security Groups encadeados.</li>
+            <li>Validação end-to-end.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 18 - PASSO 2.1 S3 SUBSTITUI MINIO                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Passo 2.1</span>
+          <h2 class="deck-title">Substituição do MinIO pelo S3</h2>
+          <p class="deck-summary">A API S3 é preservada, alterando-se apenas o provedor que responde às requisições. Não há necessidade de um <code>endpoint_url</code> customizado no boto3; as credenciais são herdadas da IAM role atribuída à EC2 ou à Lambda.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">criar bucket e subir os CSVs</span>
+<pre>BUCKET="olist-${USER}-raw"
+aws s3 mb "s3://${BUCKET}" --region us-east-1
+
+aws s3 cp data/ "s3://${BUCKET}/olist/" --recursive \
+  --exclude "*" --include "*.csv"
+
+aws s3 ls "s3://${BUCKET}/olist/"</pre>
+        </div>
+        <p style="margin-top:14px; font-size:.92em; color: var(--deck-muted);">No código do ingestor, recomenda-se a remoção do parâmetro <code>endpoint_url</code> e das variáveis <code>AWS_ACCESS_KEY_ID</code> e <code>SECRET</code>, deixando-se que o boto3 herde as credenciais do <em>instance profile</em>.</p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 19 - PASSO 2.2 EC2 CLICKHOUSE                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Passo 2.2</span>
+          <h2 class="deck-title">Provisionamento de EC2 dedicada ao ClickHouse</h2>
+          <p class="deck-summary">Provisiona-se uma nova instância EC2 t3.medium. O Security Group <code>sg-clickhouse</code> autoriza tráfego na porta 8123 unicamente a partir dos Security Groups associados ao Streamlit e à Lambda. A senha do ClickHouse é armazenada no Secrets Manager e deve ser criada previamente à subida da EC2.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">criar SG e secret antes da instância</span>
+<pre>VPC_ID=$(aws ec2 describe-vpcs --filters Name=is-default,Values=true \
+  --query 'Vpcs[0].VpcId' --output text)
+
+SG_CH=$(aws ec2 create-security-group \
+  --group-name sg-clickhouse \
+  --description "ClickHouse - 8123 interno" \
+  --vpc-id "$VPC_ID" --query 'GroupId' --output text)
+
+# senha forte vai para o Secrets Manager
+CH_PASSWORD=$(openssl rand -base64 24)
+aws secretsmanager create-secret \
+  --name olist/clickhouse \
+  --secret-string "{\"password\":\"${CH_PASSWORD}\"}"</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 20 - PASSO 2.3 USER-DATA CLICKHOUSE                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Passo 2.3 &middot; user-data</span>
+          <h2 class="deck-title">userdata-clickhouse.sh &mdash; bootstrap autônomo</h2>
+          <p class="deck-summary">Durante o boot, a EC2 obtém a senha junto ao Secrets Manager por meio da <code>LabRole</code>, instala o ClickHouse, cria o usuário <code>dashboard</code> e inicializa o serviço.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">userdata-clickhouse.sh</span>
+<pre>#!/bin/bash
+set -euxo pipefail
+dnf install -y curl jq
+
+curl https://clickhouse.com/ | sh
+./clickhouse install --noninteractive
+
+CH_PASSWORD=$(aws secretsmanager get-secret-value \
+  --secret-id olist/clickhouse \
+  --query SecretString --output text | jq -r .password)
+
+cat &gt; /etc/clickhouse-server/users.d/dashboard.xml &lt;&lt;EOF
+&lt;clickhouse&gt;
+  &lt;users&gt;
+    &lt;dashboard&gt;
+      &lt;password&gt;${CH_PASSWORD}&lt;/password&gt;
+      &lt;networks&gt;&lt;ip&gt;10.0.0.0/8&lt;/ip&gt;&lt;/networks&gt;
+      &lt;profile&gt;default&lt;/profile&gt;
+    &lt;/dashboard&gt;
+  &lt;/users&gt;
+&lt;/clickhouse&gt;
+EOF
+
+systemctl enable --now clickhouse-server
+clickhouse-client -q "CREATE DATABASE IF NOT EXISTS olist_raw"</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 21 - PASSO 2.4 EC2 STREAMLIT                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Passo 2.4</span>
+          <h2 class="deck-title">Provisionamento de EC2 dedicada ao Streamlit, executado via systemd</h2>
+          <p class="deck-summary">Provisiona-se uma instância EC2 t3.small. O Security Group <code>sg-streamlit</code> autoriza tráfego na porta 8501 a partir da internet e na porta 22 unicamente a partir do IP do aluno. A conexão com o ClickHouse utiliza o IP privado, e a senha é recuperada no Secrets Manager. O serviço é executado por meio de unidade <code>systemd</code>.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">userdata-streamlit.sh</span>
+<pre>#!/bin/bash
+set -euxo pipefail
+dnf install -y python3-pip git jq
+
+cd /home/ec2-user
+sudo -u ec2-user git clone \
+  https://github.com/&lt;aluno&gt;/20261sre-primeironome-ultimonome.git app
+cd app
+pip3 install -r requirements.txt
+
+CH_PASSWORD=$(aws secretsmanager get-secret-value \
+  --secret-id olist/clickhouse \
+  --query SecretString --output text | jq -r .password)
+
+cat &gt; .env &lt;&lt;EOF
+CLICKHOUSE_HOST=&lt;ip-privado-do-ch&gt;
+CLICKHOUSE_USER=dashboard
+CLICKHOUSE_PASSWORD=${CH_PASSWORD}
+EOF
+
+cat &gt; /etc/systemd/system/streamlit.service &lt;&lt;EOF
+[Unit] Description=Streamlit dashboard
+[Service]
+WorkingDirectory=/home/ec2-user/app
+EnvironmentFile=/home/ec2-user/app/.env
+ExecStart=/usr/bin/streamlit run streamlit_app.py --server.address=0.0.0.0
+Restart=always
+User=ec2-user
+[Install] WantedBy=multi-user.target
+EOF
+systemctl enable --now streamlit</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 22 - PASSO 2.5 LAMBDA INGESTOR                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Passo 2.5</span>
+          <h2 class="deck-title">Conversão do ingestor em função Lambda event-driven</h2>
+          <p class="deck-summary">Uma operação PUT no S3 aciona a Lambda, que efetua a leitura do CSV, sua conversão para NDJSON e a inserção no ClickHouse via HTTP. Caso o Lab apresente limitação ao serviço Lambda, o <em>fallback</em> consiste em um cron <code>systemd</code>, hospedado em uma das instâncias EC2, que invoca o mesmo script.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">criar a Lambda + trigger S3</span>
+<pre># empacotar
+mkdir -p build
+pip install -r lambda/requirements.txt -t build/
+cp lambda/lambda_handler.py build/
+cd build &amp;&amp; zip -r ../olist-ingestor.zip . &amp;&amp; cd ..
+
+# criar funcao
+LAB_ROLE=$(aws iam get-role --role-name LabRole --query Role.Arn --output text)
+aws lambda create-function \
+  --function-name olist-ingestor \
+  --runtime python3.11 \
+  --role "$LAB_ROLE" \
+  --handler lambda_handler.handler \
+  --timeout 300 --memory-size 1024 \
+  --zip-file fileb://olist-ingestor.zip \
+  --environment "Variables={CLICKHOUSE_HOST=&lt;ip-ch&gt;,CLICKHOUSE_PASSWORD=$CH_PASSWORD}"
+
+# permitir s3 chamar
+aws lambda add-permission --function-name olist-ingestor \
+  --action lambda:InvokeFunction --principal s3.amazonaws.com \
+  --statement-id s3-trigger --source-arn "arn:aws:s3:::${BUCKET}"
+
+# trigger S3:PutObject
+aws s3api put-bucket-notification-configuration --bucket "$BUCKET" \
+  --notification-configuration '{
+    "LambdaFunctionConfigurations": [{
+      "LambdaFunctionArn": "ARN_DA_LAMBDA",
+      "Events": ["s3:ObjectCreated:*"],
+      "Filter":{"Key":{"FilterRules":[{"Name":"suffix","Value":".csv"}]}}
+    }]
+  }'</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 23 - PASSO 2.6 LAMBDA HANDLER                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Passo 2.6</span>
+          <h2 class="deck-title">Lambda handler &mdash; <code>lambda_handler.py</code></h2>
+          <p class="deck-summary">Trata-se de uma adaptação direta do <code>ingest_minio.py</code> apresentado na Aula 04: o handler recebe um <em>event</em> S3, realiza a leitura do objeto e procede à inserção no ClickHouse em lotes de cinquenta mil registros, por meio do <code>clickhouse_connect</code>.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">lambda/lambda_handler.py</span>
+<pre>import os, json, time, urllib.parse, boto3
+import pandas as pd, clickhouse_connect
+
+s3 = boto3.client("s3")
+ch = clickhouse_connect.get_client(
+    host=os.environ["CLICKHOUSE_HOST"],
+    username="dashboard",
+    password=os.environ["CLICKHOUSE_PASSWORD"],
+)
+
+def handler(event, context):
+    unixtime = int(time.time())
+    total = 0
+    for rec in event["Records"]:
+        bucket = rec["s3"]["bucket"]["name"]
+        key = urllib.parse.unquote_plus(rec["s3"]["object"]["key"])
+        obj = s3.get_object(Bucket=bucket, Key=key)
+        df = pd.read_csv(obj["Body"], dtype=str).where(pd.notnull, None)
+        rows = [(unixtime, json.dumps(r.to_dict()), key) for _, r in df.iterrows()]
+        for i in range(0, len(rows), 50_000):
+            ch.insert("olist_raw.ingestion", rows[i:i+50_000],
+                      column_names=["unixtime","data","tag"])
+        total += len(rows)
+    return {"ok": True, "rows": total}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 24 - PASSO 2.7 IAM + SG                                  -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Passo 2.7</span>
+          <h2 class="deck-title">IAM e Security Groups encadeados</h2>
+          <p class="deck-summary">No Lab, a role utilizada é a <code>LabRole</code>. Os Security Groups operam como elementos de conexão entre os três componentes principais. O princípio orientador é o de que cada SG admite apenas o tráfego estritamente necessário, na porta correspondente, proveniente da origem autorizada.</p>
+        </div>
+        <div class="a06-grid-3">
+          <article class="deck-card">
+            <h3>SG &middot; ClickHouse</h3>
+            <ul>
+              <li>Inbound 8123 &larr; <code>sg-streamlit</code>.</li>
+              <li>Inbound 8123 &larr; <code>sg-lambda</code>.</li>
+              <li>Inbound 22 &larr; IP do aluno.</li>
+              <li>Outbound livre.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>SG &middot; Streamlit</h3>
+            <ul>
+              <li>Inbound 8501 &larr; <code>0.0.0.0/0</code>.</li>
+              <li>Inbound 22 &larr; IP do aluno.</li>
+              <li>Outbound livre.</li>
+              <li>Permissão de acesso ao <code>sg-clickhouse</code>.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>IAM</h3>
+            <ul>
+              <li>Todas as operações são realizadas via <code>LabRole</code>.</li>
+              <li>As EC2 são instanciadas com <code>LabInstanceProfile</code>.</li>
+              <li>A Lambda também utiliza a <code>LabRole</code>.</li>
+              <li>Secrets Manager: a permissão <code>secretsmanager:GetSecretValue</code> já se encontra atribuída à role.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 25 - PASSO 2.8 VALIDACAO END-TO-END                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Etapa 2 &middot; Passo 2.8</span>
+          <h2 class="deck-title">Validação end-to-end</h2>
+          <p class="deck-summary">Procede-se ao upload de um arquivo CSV; a Lambda é automaticamente acionada; o volume de dados do ClickHouse é incrementado; e o dashboard reflete a atualização. Todo o pipeline é reativo de ponta a ponta, sem intervenção manual no console.</p>
+        </div>
+        <div class="a06-snippet">
+          <span class="a06-snippet-label">teste de fluxo reativo</span>
+<pre># 1. Subir um CSV novo no S3
+aws s3 cp data/olist_orders_dataset.csv \
+  "s3://${BUCKET}/olist/olist_orders_dataset.csv"
+
+# 2. Lambda dispara automaticamente (logs no CloudWatch)
+aws logs tail /aws/lambda/olist-ingestor --since 2m
+
+# 3. Conferir no ClickHouse via Streamlit EC2
+ssh -i ~/labsuser.pem ec2-user@$ST_EC2_IP \
+  "curl -s http://&lt;ch-private&gt;:8123/?query=SELECT+count()+FROM+olist_raw.ingestion"
+
+# 4. Abrir o dashboard
+echo "http://${ST_EC2_IP}:8501"</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 26 - CRITERIO DE PRONTO DA AULA 06                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a06-compact">
+        <div>
+          <span class="deck-kicker">Encerramento &middot; Pronto</span>
+          <h2 class="deck-title">Critério de conclusão da Aula 06</h2>
+          <p class="deck-summary">A presente seção enumera as entregas esperadas de cada aluno ao final da aula. A submissão é realizada por meio do fork do repositório da Aula 04.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Saídas técnicas</strong>
+            <ul>
+              <li>EC2 monolito em execução, acompanhada do screenshot do dashboard servindo a partir do IP público (Etapa 1).</li>
+              <li>Decomposição realizada, contemplando S3, EC2 do ClickHouse, EC2 do Streamlit e Lambda (ou cron como <em>fallback</em>).</li>
+              <li>Dashboard servindo dados atualizados a partir do conjunto S3 e EC2 (Etapa 2).</li>
+              <li>Infraestrutura versionada em <code>infra/userdata-*.sh</code> e <code>lambda/lambda_handler.py</code>.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Procedimentos de limpeza obrigatórios</strong>
+            <ul>
+              <li>Recomenda-se, como boa prática, a remoção de todos os recursos ao final da aula.</li>
+              <li><code>aws ec2 terminate-instances --instance-ids ...</code></li>
+              <li><code>aws lambda delete-function</code> e <code>aws s3 rb --force</code>.</li>
+              <li><code>aws secretsmanager delete-secret --force-delete-without-recovery</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 27 - ROADMAP AULAS 07 e 08                              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Roadmap &middot; Próximas aulas</span>
+          <h2 class="deck-title">Desdobramentos posteriores à migração</h2>
+          <p class="deck-summary">A Aula 06 finaliza a migração do sistema. Na Aula 07, o sistema distribuído é submetido a ensaios de stress orientados pelos <em>sensitivity points</em> da ATAM elaborada na Aula 05. A Aula 08, por sua vez, consolida o conjunto no projeto final integrado.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Aula 07 &middot; 28/05/2026</strong>
+            <ul>
+              <li>Aplicação das táticas de Bass para sistemas distribuídos na stack AWS.</li>
+              <li>Realização de ensaios sobre os <em>sensitivity points</em> da ATAM da Aula 05, agora em ambiente em nuvem.</li>
+              <li>Cenários de caos: indisponibilidade de EC2, throttling de Lambda, respostas HTTP 503 do S3 e excesso de exposição em Security Group.</li>
+              <li>Mitigações: <em>redundancy</em>, <em>idempotency</em>, <em>retry</em>, <em>circuit breaker</em> e <em>least privilege</em>.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Aula 08 &middot; 11/06/2026</strong>
+            <ul>
+              <li>Projeto final integrado.</li>
+              <li>Repositório contendo: stack local, ATAM (Aula 05), infraestrutura AWS (Aula 06) e testes de stress (Aula 07).</li>
+              <li>Entrega realizada via GitHub.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 28 - REPO DA AULA (CTA GRANDE) + LAB                    -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Encerramento &middot; Código da prática</span>
+          <h2 class="deck-title">Repositório da aula</h2>
+          <p class="deck-summary">Utiliza-se o mesmo repositório das Aulas 04 e 05, acrescido dos novos artefatos referentes à migração: <code>infra/userdata-*.sh</code>, <code>infra/sg.json</code> e <code>lambda/lambda_handler.py</code>.</p>
+        </div>
+        <div class="a06-repo-cta-wrap">
+          <a class="a06-repo-cta"
+             href="https://github.com/afonsolelis/20261sre-primeironome-ultimonome"
+             target="_blank"
+             rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            <span class="a06-repo-cta-text">
+              <span class="a06-repo-cta-kicker">GitHub &middot; Aula 06</span>
+              <span>Abrir repositório no GitHub</span>
+            </span>
+          </a>
+          <p class="a06-repo-url">https://github.com/afonsolelis/20261sre-primeironome-ultimonome</p>
+          <a class="a06-lab-cta"
+             href="https://awsacademy.instructure.com/"
+             target="_blank"
+             rel="noopener">
+            <span>AWS Academy Learner Lab &nbsp;&rarr;</span>
+          </a>
+        </div>
+        <p style="margin-top:18px; font-size:.92em; color: var(--deck-muted); text-align:center;">
+          Antes de versionar as alterações, recomenda-se realizar o <strong>fork</strong> do repositório e renomeá-lo para o padrão <code>20261sre-&lt;primeironome&gt;-&lt;ultimonome&gt;</code>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mackenzie mini logo -->
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie" />
+
+  <!-- GLOBAL navigation footer -->
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../pages/home_cloud_sre.html" class="back-home">Índice</a>
+      <a href="../material/material_aula_06_data_warehousing_na_nuvem_de_alta_performance.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <!-- Navigation script -->
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    document.getElementById('total-slides').textContent = totalSlides;
+    function showSlide(i) { slides.forEach(s => s.classList.remove('active')); slides[i].classList.add('active'); currentSlide = i; document.getElementById('current-slide').textContent = i + 1; document.getElementById('prev-btn').disabled = i === 0; document.getElementById('next-btn').disabled = i === totalSlides - 1; }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); previousSlide(); } else if (e.key.toLowerCase() === 'f') toggleFullScreen(); });
+    showSlide(0);
+  </script>
+
+  <!-- Mermaid v11 — aws-diagram (slide 6, lazy render on activation) -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'neutral',
+      securityLevel: 'loose',
+      flowchart: { htmlLabels: true, curve: 'basis' },
+      themeVariables: {
+        fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+        primaryColor: '#ffffff',
+        primaryBorderColor: '#0f0f0f',
+        primaryTextColor: '#0f0f0f',
+        lineColor: '#5c5c5c',
+        clusterBkg: '#fafaf7',
+        clusterBorder: '#d6d6d1'
+      }
+    });
+
+    const target = document.querySelector('[data-slide="aws-diagram"]');
+    let rendered = false;
+    async function renderIfNeeded() {
+      if (rendered) return;
+      if (!target || !target.classList.contains('active')) return;
+      rendered = true;
+      try {
+        await mermaid.run({ nodes: target.querySelectorAll('pre.mermaid') });
+      } catch (e) {
+        rendered = false;
+        console.warn('Mermaid render falhou:', e);
+      }
+    }
+    if (target) {
+      const obs = new MutationObserver(renderIfNeeded);
+      obs.observe(target, { attributes: true, attributeFilter: ['class'] });
+      renderIfNeeded();
+    }
+  </script>
+</body>
+</html>

@@ -1,31 +1,39 @@
 # GEMINI.md - Diretrizes para o Gemini
 
-Este arquivo fornece as diretrizes para o Gemini ao interagir com o repositório **CLOUD COMPUTING E SRA - VISÃO PRÁTICA COM AWS** (MBA em Engenharia de Dados).
+Este arquivo fornece as diretrizes para o Gemini ao interagir com o repositório **Hub de Disciplinas MBA em Engenharia de Dados & Cloud** (Universidade Presbiteriana Mackenzie).
 
 ## Visão Geral do Repositório
 
-Trata-se de um repositório web estático contendo o material de 8 aulas (slides e materiais de apoio). O foco da disciplina é a construção de Arquiteturas de Dados, Data Lakes, Modern Data Stack na AWS e Observabilidade de Dados.
-Não existem processos de build, gerenciadores de dependências corporativos ou suítes de teste. O repositório usa HTML estático, CSS compartilhado e a biblioteca `reveal.js` para os slides.
+Trata-se de um repositório web estático atuando como **Hub de Disciplinas** contendo o material das disciplinas:
+1. **Cloud Computing e SRE — Visão Prática com AWS**
+2. **Data Collection and Storage**
+
+Não existem processos de build ou gerenciadores de dependências corporativos. O repositório usa HTML estático e CSS compartilhado (`assets/styles.css` e `assets/slides.css`).
 
 ### Especificações Autorizativas
 
 Sempre consulte a pasta `specs/` como fonte da verdade:
-1. `specs/estrutura_curso.md`: Define a estrutura de pastas e nomenclatura canônica (`snake_case`, prefixo `aula_`).
-2. `specs/repositorio_de_aulas.md`: Define as regras de conteúdo e navegação (links obrigatórios, integração com `reveal.js`).
-3. `specs/design_system.md`: Define as regras visuais (alto contraste, composição quadrada, coesão entre páginas).
+1. `specs/estrutura_curso.md`: Define a estrutura de pastas do Hub e convenções de nomenclatura (`snake_case`, prefixo `aula_`).
+2. `specs/repositorio_de_aulas.md`: Define as regras de conteúdo e navegação entre Hub, homes das disciplinas, slides e materiais.
+3. `specs/design_system.md`: Define as regras visuais "editorial-técnico" (off-white, preto, tipografia Inter + JetBrains Mono, raios de 4px).
 
 ## Estrutura do Projeto
 
 ```text
 /
-├── index.html                          # Índice principal listando as aulas
-├── GEMINI.md                           # Você está aqui
-├── assets/styles.css                   # CSS global obrigatório
+├── index.html                          # Hub Central (seletor de disciplinas)
+├── estudios.html                       # Biblioteca de autoestudo
+├── professor.html                      # Perfil do professor
+├── pages/
+│   ├── home_cloud_sre.html             # Home da disciplina Cloud Computing e SRE
+│   └── home_data_collection.html       # Home da disciplina Data Collection and Storage
+├── assets/
+│   ├── styles.css                      # CSS global de hub, homes e materiais
+│   └── slides.css                      # CSS dos slides HTML nativos
 ├── specs/                              # Especificações (fonte da verdade)
 └── aulas/
-    └── aula_xx_nome_da_aula/           # Pastas em snake_case com dois dígitos numéricos
-        ├── slides/slide_aula_xx_nome.html
-        └── material/material_aula_xx_nome.html
+    ├── cloud_sre/                      # Aulas de Cloud Computing e SRE
+    └── data_collection_and_storage/    # Aulas de Data Collection and Storage
 ```
 
 ## Dinâmica Obrigatória da Aula

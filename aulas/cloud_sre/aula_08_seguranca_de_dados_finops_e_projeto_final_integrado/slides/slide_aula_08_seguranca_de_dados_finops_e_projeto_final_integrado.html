@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Aula 08 — Projeto final — desafio Northwind</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style data-aula08-local>
+    /* Tokens e componentes base vêm de assets/slides.css.
+       Aqui ficam apenas utilitários scoped à Aula 08:
+       - compactação para viewport baixo;
+       - grid de 4 colunas para recap de Aulas 04→07;
+       - roadmap de etapas numeradas;
+       - par de CTAs (dataset de entrada + canal de entrega). */
+
+    @media (max-height: 900px) {
+      .deck-shell { min-height: 520px; padding: 32px 44px; margin: 14px; gap: 16px; }
+      .deck-shell .deck-title { font-size: 2.1em; }
+      .deck-shell .deck-year  { font-size: 3em; margin: 4px 0; }
+      .deck-shell .deck-summary { margin-bottom: 6px; }
+      .deck-shell h2.deck-title { margin-bottom: 4px; }
+    }
+    @media (max-height: 820px) {
+      .deck-shell { min-height: 480px; padding: 26px 40px; margin: 10px; gap: 12px; }
+      .deck-shell .deck-title { font-size: 1.95em; }
+      .deck-shell .deck-year  { font-size: 2.6em; }
+    }
+
+    /* Grid de 4 colunas para recap das aulas anteriores */
+    .a08-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .a08-grid-4 .deck-card { padding: 16px 18px; }
+    .a08-grid-4 .deck-card h3 { font-size: .92em; margin-bottom: 6px; }
+    .a08-grid-4 .deck-card p { margin: 0; font-size: .9em; line-height: 1.45; color: #2a2a2a; }
+    .a08-grid-4 .a08-card-step {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: var(--deck-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    @media (max-width: 1100px) {
+      .a08-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .a08-grid-4 { grid-template-columns: 1fr; }
+    }
+
+    .a08-compact .deck-card { padding: 16px 18px; }
+    .a08-compact .deck-card h3 { font-size: 1em; margin-bottom: 6px; }
+    .a08-compact .deck-card ul { margin: 6px 0 0; }
+    .a08-compact .deck-card li { margin-bottom: 4px; font-size: .92em; line-height: 1.45; }
+
+    /* Roadmap horizontal de etapas numeradas */
+    .a08-roadmap {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0;
+      position: relative;
+    }
+    .a08-roadmap-step {
+      position: relative;
+      padding: 16px 18px 16px 20px;
+      background: var(--deck-panel);
+      border: 1px solid var(--deck-line);
+      border-right: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 150px;
+    }
+    .a08-roadmap-step:first-child { border-radius: 4px 0 0 4px; }
+    .a08-roadmap-step:last-child  { border-radius: 0 4px 4px 0; border-right: 1px solid var(--deck-line); }
+    .a08-roadmap-step::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -10px;
+      transform: translateY(-50%) rotate(45deg);
+      width: 18px;
+      height: 18px;
+      background: var(--deck-panel);
+      border-top: 1px solid var(--deck-line);
+      border-right: 1px solid var(--deck-line);
+      z-index: 2;
+    }
+    .a08-roadmap-step:last-child::after { display: none; }
+    .a08-roadmap-step .a08-roadmap-num {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: var(--deck-muted);
+      text-transform: uppercase;
+    }
+    .a08-roadmap-step .a08-roadmap-num strong {
+      display: inline-block;
+      color: var(--deck-text);
+      font-weight: 800;
+      font-size: 1.6rem;
+      letter-spacing: 0;
+      line-height: 1;
+      margin-right: 6px;
+      vertical-align: -2px;
+    }
+    .a08-roadmap-step h3 {
+      margin: 0;
+      font-size: .92em;
+      font-weight: 700;
+      line-height: 1.25;
+      letter-spacing: -0.005em;
+    }
+    .a08-roadmap-step p {
+      margin: 0;
+      font-size: .82em;
+      line-height: 1.45;
+      color: #2a2a2a;
+    }
+    @media (max-width: 1100px) {
+      .a08-roadmap { grid-template-columns: repeat(3, 1fr); }
+      .a08-roadmap-step:nth-child(3) { border-right: 1px solid var(--deck-line); border-radius: 0 4px 4px 0; }
+      .a08-roadmap-step:nth-child(3)::after { display: none; }
+      .a08-roadmap-step:nth-child(4) { border-left: 1px solid var(--deck-line); border-radius: 4px 0 0 4px; margin-top: -1px; }
+      .a08-roadmap-step:nth-child(5) { border-radius: 0 4px 4px 0; }
+    }
+    @media (max-width: 600px) {
+      .a08-roadmap { grid-template-columns: 1fr; }
+      .a08-roadmap-step,
+      .a08-roadmap-step:first-child,
+      .a08-roadmap-step:last-child,
+      .a08-roadmap-step:nth-child(3),
+      .a08-roadmap-step:nth-child(4),
+      .a08-roadmap-step:nth-child(5) {
+        border: 1px solid var(--deck-line);
+        border-radius: 4px;
+        margin: 0;
+      }
+      .a08-roadmap-step::after { display: none; }
+    }
+
+    /* Par de CTAs — dataset de entrada + canal de entrega */
+    .a08-cta-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .a08-cta-row-label {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+    }
+    .a08-cta-pair {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .a08-cta-pair .a08-forms-cta-wrap { margin-top: 0; }
+
+    /* CTA do Forms (entrega) — variante clara */
+    .a08-forms-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .a08-forms-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      border: 1px solid var(--deck-text);
+      background: #ffffff;
+      color: var(--deck-text);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-radius: 4px;
+      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+      position: relative;
+    }
+    .a08-forms-cta:hover { background: var(--deck-text); color: #ffffff; transform: translateY(-1px); }
+    .a08-forms-cta:focus { outline: 2px solid var(--deck-accent); outline-offset: 4px; }
+    .a08-forms-cta svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+    .a08-forms-cta[data-placeholder="true"]::after {
+      content: "placeholder";
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: var(--deck-accent);
+      color: #ffffff;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+    .a08-forms-cta-note {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: var(--deck-muted);
+    }
+
+    /* CTA do Drive (dataset) — variante escura */
+    .a08-drive-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .a08-drive-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 18px;
+      border: 1px solid var(--deck-text);
+      background: var(--deck-text);
+      color: #ffffff;
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-weight: 700;
+      border-radius: 4px;
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+    .a08-drive-cta:hover { background: #2a2a2a; transform: translateY(-1px); }
+    .a08-drive-cta:focus { outline: 2px solid var(--deck-accent); outline-offset: 4px; }
+    .a08-drive-cta svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
+    .a08-drive-cta-note {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      color: var(--deck-muted);
+    }
+
+    /* Pergunta de negócio que o dashboard deve responder */
+    .a08-question {
+      border: 1px solid var(--deck-line);
+      border-left: 6px solid var(--deck-accent);
+      background: var(--deck-panel);
+      padding: 16px 20px;
+      border-radius: 4px;
+      margin-top: 18px;
+    }
+    .a08-question .a08-question-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      margin-bottom: 8px;
+    }
+    .a08-question .a08-question-text {
+      margin: 0;
+      font-size: 1.08em;
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--deck-text);
+    }
+    .a08-question .a08-question-formula {
+      margin: 10px 0 0;
+      font-size: .86em;
+      line-height: 1.5;
+      color: #2a2a2a;
+    }
+    .a08-question .a08-question-formula code {
+      font-family: var(--font-mono);
+      font-size: .92em;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1 — CAPA                                                -->
+    <!-- ============================================================ -->
+    <div class="slide active">
+      <div class="deck-shell" data-aula-number="08">
+        <div>
+          <span class="deck-kicker">Aula 08 &middot; 11/06/2026</span>
+          <h1 class="deck-title">Projeto final — desafio Northwind</h1>
+          <p class="deck-subtitle">
+            Última sessão do semestre: cada aluno entrega, em repositório público no GitHub, a adaptação da
+            stack construída ao longo das Aulas 04 a 07 para um novo conjunto de dados. O artefato avaliado
+            é o próprio repositório.
+          </p>
+        </div>
+        <div>
+          <p class="deck-year">2026</p>
+          <p class="deck-meta">Cloud Computing e SRE &middot; MBA em Engenharia de Dados &middot; Mackenzie</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2 — AGENDA                                              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda do dia</span>
+          <h2 class="deck-title">Dois blocos em uma única sessão de entrega</h2>
+          <p class="deck-summary">
+            A aula é integralmente dedicada à entrega final, sem conteúdo teórico novo. Um recap rápido
+            do semestre e o roadmap do que precisa ser feito hoje, com <em>dataset</em> de entrada e canal
+            de entrega no mesmo painel.
+          </p>
+        </div>
+        <div class="deck-grid a08-compact">
+          <div class="deck-card">
+            <h3>Bloco 1 &middot; Recap</h3>
+            <ul>
+              <li>O arco do semestre, das Aulas 04 a 07, consolidado em um único painel visual.</li>
+              <li>Tese: a stack está pronta para receber um <em>dataset</em> novo.</li>
+            </ul>
+          </div>
+          <div class="deck-card">
+            <h3>Bloco 2 &middot; Roadmap &amp; entrega</h3>
+            <ul>
+              <li>Cinco etapas para criar o repositório, modelar, codar e entregar.</li>
+              <li>Troca do <em>dataset</em> Olist pelo <strong>Northwind</strong>, com link do Drive e do Forms no mesmo slide.</li>
+              <li>Repositório único de turma: <code>20261sre-projeto-final</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3 — TESE                                                -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">O semestre consolidado em repositório</h2>
+        </div>
+        <div class="deck-callout" style="font-size: 1.15em; line-height: 1.55;">
+          <strong>Esta é a sessão de entrega final.</strong>
+          <p style="margin: 0;">
+            Cada aluno recebe um <em>dataset</em> novo e demonstra, em código versionado, a capacidade
+            de adaptar a arquitetura construída ao longo do semestre. O artefato avaliado é o repositório:
+            stack reprodutível, modelos analíticos coerentes com a nova fonte e evidências reais de execução
+            sobre os dados do Northwind.
+          </p>
+        </div>
+        <p class="deck-note">
+          Não há apresentação institucional em PowerPoint nem demonstração conduzida pelo professor. O artefato
+          de saída é o <code>README.md</code> de cada aluno e o conjunto de <em>commits</em> presentes na branch
+          <code>main</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4 — RECAP DO CURSO (AULAS 04 → 07) — SLIDE ÚNICO        -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Revisão &middot; Aulas 04 a 07</span>
+          <h2 class="deck-title">O arco que sustenta o projeto final</h2>
+          <p class="deck-summary">
+            Quatro aulas construíram, de forma incremental, a stack que será adaptada hoje. Os cartões abaixo,
+            em ordem cronológica, sintetizam a trajetória da turma ao longo do semestre.
+          </p>
+        </div>
+        <div class="a08-grid-4">
+          <div class="deck-card">
+            <span class="a08-card-step">Aula 04 &middot; 07/05</span>
+            <h3>Stack Docker local Olist</h3>
+            <p>Ingestão e processamento <em>near real-time</em> executados em contêineres locais, constituindo a base do <em>pipeline</em>.</p>
+          </div>
+          <div class="deck-card">
+            <span class="a08-card-step">Aula 05 &middot; 14/05</span>
+            <h3>Bass local em Docker</h3>
+            <p>Avaliação arquitetural em ambiente local, com cenários e respostas táticas mapeados previamente à migração para a nuvem.</p>
+          </div>
+          <div class="deck-card">
+            <span class="a08-card-step">Aula 06 &middot; 21/05</span>
+            <h3>Migração para AWS com ATAM</h3>
+            <p>Transição da stack para a nuvem, com <em>trade-offs</em> analisados sob a perspectiva do ATAM (riscos e sensibilidade).</p>
+          </div>
+          <div class="deck-card">
+            <span class="a08-card-step">Aula 07 &middot; 28/05</span>
+            <h3>Bass distribuído e estresse ATAM</h3>
+            <p>Aplicação do Bass à versão distribuída e validação sob carga, submetendo a plataforma a estresse real.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5 — ROADMAP DA ENTREGA + CTAs (DADOS E ENTREGA)         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Roadmap da entrega &middot; o que fazer hoje</span>
+          <h2 class="deck-title">Cinco etapas, do repositório novo ao envio no Forms</h2>
+          <p class="deck-summary">
+            A entrega final segue uma sequência fixa. O repositório é criado do zero, com nome padronizado
+            de turma, recebe o <em>dataset</em> Northwind como nova fonte e é submetido por formulário ao final
+            da sessão.
+          </p>
+        </div>
+        <div class="a08-roadmap">
+          <div class="a08-roadmap-step">
+            <span class="a08-roadmap-num"><strong>01</strong> Etapa</span>
+            <h3>Criar um novo repositório</h3>
+            <p>Criar um repositório do zero no GitHub (público, <code>main</code> padrão). Não há <em>fork</em> de base.</p>
+          </div>
+          <div class="a08-roadmap-step">
+            <span class="a08-roadmap-num"><strong>02</strong> Etapa</span>
+            <h3>Nomear como <code>20261sre-projeto-final</code></h3>
+            <p>Nome <strong>fixo</strong> e idêntico para toda a turma. Padroniza a correção e a busca dos repositórios.</p>
+          </div>
+          <div class="a08-roadmap-step">
+            <span class="a08-roadmap-num"><strong>03</strong> Etapa</span>
+            <h3>Criar as modelagens</h3>
+            <p>Modelo conceitual/lógico/físico do Northwind e diagrama de arquitetura da <em>stack</em>, ambos no repositório.</p>
+          </div>
+          <div class="a08-roadmap-step">
+            <span class="a08-roadmap-num"><strong>04</strong> Etapa</span>
+            <h3>Codar e aplicar táticas arquiteturais</h3>
+            <p>Implementar ingestão, transformações e camada analítica aplicando Bass e considerações ATAM.</p>
+          </div>
+          <div class="a08-roadmap-step">
+            <span class="a08-roadmap-num"><strong>05</strong> Etapa</span>
+            <h3>Commit, push e envio no Forms</h3>
+            <p>Subir o trabalho para <code>main</code>, abrir o formulário de entrega e submeter o link do repositório.</p>
+          </div>
+        </div>
+        <div class="a08-question">
+          <span class="a08-question-tag">A pergunta &middot; o que o dashboard deve responder</span>
+          <p class="a08-question-text">
+            Quais são os 10 produtos com maior receita líquida acumulada e como essa receita evolui mês a mês ao longo do período do dataset?
+          </p>
+          <p class="a08-question-formula">
+            Receita líquida = &Sigma; (<code>UnitPrice</code> &times; <code>Quantity</code> &times; (1 &minus; <code>Discount</code>)), obtida pelo <em>join</em> de
+            <code>orders</code> e <code>order_details</code> por <code>OrderID</code>, agregada por <code>ProductID</code> (ranking) e por mês de <code>OrderDate</code> (série temporal).
+          </p>
+        </div>
+        <div class="a08-cta-row">
+          <span class="a08-cta-row-label">Pegue os dados &rarr; entregue no Forms</span>
+          <div class="a08-cta-pair">
+            <div class="a08-drive-cta-wrap">
+              <a class="a08-drive-cta"
+                 href="https://drive.google.com/drive/folders/14qZXIcAf2HNpu_Ara9RPjB5A6BFFYxoy?usp=sharing"
+                 target="_blank"
+                 rel="noopener"
+                 aria-label="Abrir pasta do dataset Northwind no Google Drive">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M7.71 3.5 1.15 15l3.42 6 6.57-11.5L7.71 3.5zm8.58 0H9.07L15.64 15h6.57L16.29 3.5zM10.93 16 7.5 22h9l3.43-6h-9z"/>
+                </svg>
+                Abrir dataset no Google Drive
+              </a>
+              <span class="a08-drive-cta-note">Dataset Northwind &middot; <code>orders</code> + <code>order_details</code>.</span>
+            </div>
+            <div class="a08-forms-cta-wrap">
+              <a class="a08-forms-cta"
+                 href="https://docs.google.com/forms/d/e/1FAIpQLSeYAFOIg08CGkwj2ZPg1jqv1p6_dD7FrYIGImbRxN7l4xDqAA/viewform?usp=dialog"
+                 target="_blank"
+                 rel="noopener"
+                 aria-label="Abrir formulário de entrega do projeto final">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-2 14H7v-2h10v2zm0-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+                Abrir formulário de entrega
+              </a>
+              <span class="a08-forms-cta-note">Google Forms &middot; entrega do projeto final.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mackenzie mini logo -->
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie" />
+
+  <!-- GLOBAL navigation footer -->
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../pages/home_cloud_sre.html" class="back-home">Índice</a>
+      <a href="../material/material_aula_08_seguranca_de_dados_finops_e_projeto_final_integrado.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <!-- Navigation script -->
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    document.getElementById('total-slides').textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(s => s.classList.remove('active'));
+      slides[i].classList.add('active');
+      currentSlide = i;
+      document.getElementById('current-slide').textContent = i + 1;
+      document.getElementById('prev-btn').disabled = i === 0;
+      document.getElementById('next-btn').disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); previousSlide(); }
+      else if (e.key.toLowerCase() === 'f') toggleFullScreen();
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

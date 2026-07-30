@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Aula 01 — Fundamentos de Cloud para Dados e Governança de Acessos</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1 - CAPA                                                -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="01">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+          <span class="deck-kicker">Cloud Computing e SRE &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Fundamentos de Cloud para Dados e Governança de Acessos</h1>
+          <p class="deck-meta">Aula 01 &nbsp;&bull;&nbsp; 16/04/2026 &nbsp;&bull;&nbsp; 19h00 &ndash; 22h00</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Ponto de partida da disciplina: arquitetura de dados na nuvem e controle de acesso com AWS IAM.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2 - AGENDA                                              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">O que vai acontecer nesta aula</h2>
+          <p class="deck-summary">Aula 01 tem dinâmica excepcional: duas horas de teoria expositiva e uma hora de setup técnico no AWS Student, preparando a infraestrutura que usaremos nas próximas sete aulas.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>19h00 &ndash; 21h00 &middot; Teoria</h3>
+            <ul>
+              <li>Apresentação da disciplina e das 8 aulas</li>
+              <li>O engenheiro de dados em 2026 e o contexto histórico</li>
+              <li>Cloud Computing para engenharia de dados</li>
+              <li>Data Lake, Data Warehouse, Lakehouse, Data Mesh</li>
+              <li>Panorama AWS e responsabilidade compartilhada</li>
+              <li>Governança de acessos com AWS IAM</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>21h00 &ndash; 22h00 &middot; Setup AWS Student</h3>
+            <ul>
+              <li>Acesso ao AWS Academy Learner Lab</li>
+              <li>Console AWS em us-east-1</li>
+              <li>Reconhecimento do IAM e do LabRole</li>
+              <li>Criação dos 3 buckets do Data Lake</li>
+              <li>Checklist de ambiente pronto para Aula 02</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3 - MAPA DA DISCIPLINA                                  -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Disciplina &middot; Visão geral</span>
+          <h2 class="deck-title">Mapa das 8 aulas</h2>
+          <p class="deck-summary">A disciplina constrói um pipeline completo de dados na AWS: da fundação do Data Lake até FinOps e entrega final. Cada aula depende da anterior.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Data</th>
+              <th>Tema</th>
+              <th>O que entregamos</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>01</td><td>16/04</td><td>Fundamentos de Cloud e IAM</td><td>Conta AWS e buckets prontos</td></tr>
+            <tr><td>02</td><td>23/04</td><td>Data Lake com S3 e Parquet</td><td>Olist convertido para Parquet e armazenado no S3</td></tr>
+            <tr><td>03</td><td>30/04</td><td>Bancos relacionais e NoSQL</td><td>Fontes conectadas ao pipeline</td></tr>
+            <tr><td>04</td><td>07/05</td><td>Ingestão near real-time</td><td>Streaming com Kinesis</td></tr>
+            <tr><td>05</td><td>14/05</td><td>ETL com PySpark em EC2</td><td>Jobs PySpark e catálogo self-hosted</td></tr>
+            <tr><td>06</td><td>21/05</td><td>Data Warehousing com ClickHouse em EC2</td><td>Camada de BI</td></tr>
+            <tr><td>07</td><td>28/05</td><td>Data Reliability e SRE</td><td>Observabilidade e SLOs</td></tr>
+            <tr><td>08</td><td>11/06</td><td>Segurança, FinOps e projeto final</td><td>Entrega do pipeline ponta a ponta</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4 - NARRATIVA OLIST                                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fio condutor do semestre</span>
+          <h2 class="deck-title">Olist: o dataset que atravessa o curso</h2>
+          <p class="deck-summary">Usaremos o <strong>Olist Brazilian E-commerce</strong> (Kaggle) como dado real para sustentar todas as práticas da disciplina. A cada aula, o dataset avança uma camada no pipeline.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que é o Olist</strong>
+            <ul>
+              <li>Conjunto público com ~100 mil pedidos reais feitos no marketplace brasileiro Olist entre 2016 e 2018.</li>
+              <li>Tabelas de pedidos, itens, clientes, produtos, pagamentos, reviews e geolocalização.</li>
+              <li>Dados brutos em CSV, prontos para simular ingestão realista.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Como ele evolui no curso</strong>
+            <ul>
+              <li><strong>Aula 02:</strong> entra no bucket Raw como CSV original.</li>
+              <li><strong>Aulas 03-05:</strong> vira Parquet no Trusted, processado com PySpark em EC2.</li>
+              <li><strong>Aula 06:</strong> agregações no Refined alimentam o ClickHouse em EC2.</li>
+              <li><strong>Aula 08:</strong> camada Gold consumida por dashboards e APIs.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="deck-callout">
+          <strong>Hoje:</strong> ainda não carregamos dados. Estamos construindo a <em>estrutura vazia</em> das 3 camadas que receberão o Olist na Aula 02.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5 - ENGENHEIRO DE DADOS EM 2026                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Contexto &middot; Papel profissional</span>
+          <h2 class="deck-title">Quem é o engenheiro de dados em 2026</h2>
+          <p class="deck-summary">A função expandiu nos últimos anos. Hoje o engenheiro de dados cobre quatro frentes simultâneas, bem além de escrever ETL.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Pipeline</h3>
+            <ul>
+              <li>Ingere, transforma e entrega dados com qualidade.</li>
+              <li>Escolhe entre batch e streaming.</li>
+              <li>Define contratos entre produtor e consumidor.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Governança</h3>
+            <ul>
+              <li>Catálogo, linhagem e classificação de dados.</li>
+              <li>Controle de acesso por domínio.</li>
+              <li>Conformidade com LGPD e políticas internas.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Reliability</h3>
+            <ul>
+              <li>SLOs de frescor e qualidade.</li>
+              <li>Observabilidade, alertas e runbooks.</li>
+              <li>Postmortems e cultura de incidente.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Custo</h3>
+            <ul>
+              <li>Quanto custa cada pipeline por mês.</li>
+              <li>Escolha de storage class e formato.</li>
+              <li>FinOps e previsibilidade de gasto.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6 - LINHA DO TEMPO: DO MAINFRAME AO SERVERLESS          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Contexto &middot; Linha do tempo</span>
+          <h2 class="deck-title">Do mainframe ao serverless</h2>
+          <p class="deck-summary">A cloud não surgiu do nada. É o resultado de seis décadas de mudança no modelo de computação e de operação.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Marco</th>
+              <th>Período</th>
+              <th>O que mudou</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Mainframe</td><td>Anos 60</td><td>Computação centralizada, acesso por terminais, processamento em lote.</td></tr>
+            <tr><td>Cliente-servidor</td><td>Anos 80</td><td>PCs na ponta, bancos relacionais, primeiros ETLs e data warehouses.</td></tr>
+            <tr><td>Virtualização</td><td>Anos 2000</td><td>Hypervisors consolidam servidores físicos e viabilizam multi-tenant.</td></tr>
+            <tr><td>Nascimento da AWS</td><td>2006</td><td>S3 e EC2 lançam a cloud pública sob demanda e pay-per-use.</td></tr>
+            <tr><td>Serverless e cloud-nativa</td><td>2015 em diante</td><td>Lambda, Athena, Kinesis &mdash; computação granular, sem gerenciar servidor.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7 - POR QUE CLOUD MUDOU ENGENHARIA DE DADOS             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Contexto &middot; Impacto na prática</span>
+          <h2 class="deck-title">Por que a cloud mudou engenharia de dados</h2>
+          <p class="deck-summary">Quatro ganhos concretos que redefinem o que dá para construir e em quanto tempo.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Elasticidade</h3>
+            <ul>
+              <li>Escala sob demanda, sem comprar hardware.</li>
+              <li>Ex.: Black Friday consome mais cluster e depois encolhe.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>OpEx em vez de CapEx</h3>
+            <ul>
+              <li>Paga-se pelo consumo, não por capacidade ociosa.</li>
+              <li>Ex.: Athena cobra por TB escaneado, sem servidor fixo.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Serviços gerenciados</h3>
+            <ul>
+              <li>Menos operação, mais foco em lógica de negócio.</li>
+              <li>Ex.: RDS cuida do backup e patch do Postgres.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Time-to-market</h3>
+            <ul>
+              <li>Do zero ao MVP de pipeline em dias, não meses.</li>
+              <li>Ex.: S3 + Athena geram BI básico no mesmo dia.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8 - CASOS REAIS BRASILEIROS                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Contexto &middot; Mercado brasileiro</span>
+          <h2 class="deck-title">Casos reais brasileiros</h2>
+          <p class="deck-summary">Quatro empresas de grande porte no Brasil e uma escolha técnica publicamente divulgada de cada uma. Todas apostam em cloud e em stack de dados aberta.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Empresa</th>
+              <th>Escolha técnica divulgada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Nubank</strong></td><td>É público que o banco usa Apache Kafka e Apache Spark em larga escala para processar eventos e dados analíticos.</td></tr>
+            <tr><td><strong>iFood</strong></td><td>É público que a plataforma roda sobre AWS como nuvem principal, com pipelines de dados e ML em serviços gerenciados.</td></tr>
+            <tr><td><strong>Magazine Luiza</strong></td><td>É público que o grupo conduziu migração de workloads para cloud pública nos últimos anos, parte da estratégia de digitalização.</td></tr>
+            <tr><td><strong>Mercado Livre</strong></td><td>É público que a empresa mantém Data Lake próprio em cloud e investe pesadamente em plataforma de dados multi-produto.</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout">
+          Repare: stack aberta, cloud como padrão, plataforma de dados como ativo estratégico. Esse é o pano de fundo do curso.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9 - O QUE NAO E ENGENHARIA DE DADOS                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Contexto &middot; Fronteiras do papel</span>
+          <h2 class="deck-title">O que NÃO é engenharia de dados</h2>
+          <p class="deck-summary">Desmistificar ajuda a calibrar expectativa. Engenharia de dados conversa com vários papéis, mas não é nenhum deles isoladamente.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Não é DBA clássico</h3>
+            <ul>
+              <li>DBA cuida de tuning, backup e alta disponibilidade de um banco.</li>
+              <li>Engenheiro de dados move dado entre sistemas e prepara para análise.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Não é cientista de dados</h3>
+            <ul>
+              <li>Cientista constrói modelos e investiga hipóteses.</li>
+              <li>Engenheiro de dados entrega o dataset confiável que o cientista consome.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Não é analytics / BI</h3>
+            <ul>
+              <li>Analista de dados faz dashboards e respostas de negócio.</li>
+              <li>Engenheiro de dados garante que o dado chegue limpo ao BI.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Não é DevOps puro</h3>
+            <ul>
+              <li>DevOps entrega aplicações e infraestrutura genérica.</li>
+              <li>Engenheiro de dados aplica as mesmas práticas ao mundo de dados.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10 - GLOSSARIO INICIAL                                  -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Contexto &middot; Vocabulário</span>
+          <h2 class="deck-title">Glossário inicial</h2>
+          <p class="deck-summary">Dez termos que vão atravessar as oito aulas. Vale voltar aqui quando algum aparecer sem contexto.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Termo</th>
+              <th>Ideia central</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Data Lake</strong></td><td>Repositório central de dados brutos em formatos abertos.</td></tr>
+            <tr><td><strong>Data Warehouse</strong></td><td>Armazém analítico otimizado para consultas de BI.</td></tr>
+            <tr><td><strong>Lakehouse</strong></td><td>Data Lake com garantias de transação e schema.</td></tr>
+            <tr><td><strong>ETL vs ELT</strong></td><td>Transformar antes ou depois de carregar no destino.</td></tr>
+            <tr><td><strong>Batch vs streaming</strong></td><td>Processar em lotes periódicos ou evento a evento.</td></tr>
+            <tr><td><strong>Schema</strong></td><td>Contrato de formato entre produtor e consumidor.</td></tr>
+            <tr><td><strong>Catálogo</strong></td><td>Inventário de tabelas, colunas e metadados.</td></tr>
+            <tr><td><strong>IaC</strong></td><td>Infraestrutura descrita em código versionado.</td></tr>
+            <tr><td><strong>IAM</strong></td><td>Quem pode fazer o quê em qual recurso.</td></tr>
+            <tr><td><strong>FinOps</strong></td><td>Disciplina de gestão de custos em cloud.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10B - 8 EIXOS DE REQUISITOS NAO FUNCIONAIS (SWEBOK)     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fundação &middot; SWEBOK</span>
+          <h2 class="deck-title">Os 8 eixos de requisitos não funcionais</h2>
+          <p class="deck-summary">A disciplina inteira é conduzida sob a lente do <strong>SWEBOK</strong>. Toda decisão de arquitetura, pipeline e serviço deve responder aos 8 eixos de requisitos não funcionais. Eles voltarão em cada aula como critério de avaliação.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Eixo</th>
+              <th>O que significa no pipeline de dados</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>1. Desempenho</strong></td><td>Latência de leitura, throughput de ingestão, tempo de resposta de query.</td></tr>
+            <tr><td><strong>2. Confiabilidade</strong></td><td>Tolerância a falhas, retries idempotentes, garantias de entrega de dados.</td></tr>
+            <tr><td><strong>3. Disponibilidade</strong></td><td>SLA da plataforma, multi-AZ, contingência para falha regional.</td></tr>
+            <tr><td><strong>4. Escalabilidade</strong></td><td>Crescer de GB para TB sem reescrever pipeline. Elasticidade sob demanda.</td></tr>
+            <tr><td><strong>5. Segurança</strong></td><td>IAM, criptografia em repouso e em trânsito, privilégio mínimo, auditoria.</td></tr>
+            <tr><td><strong>6. Manutenibilidade</strong></td><td>Código legível, schemas evolutivos, IaC, testes automatizados.</td></tr>
+            <tr><td><strong>7. Usabilidade</strong></td><td>Dashboards claros, APIs documentadas, experiência do consumidor de dados.</td></tr>
+            <tr><td><strong>8. Portabilidade</strong></td><td>Evitar lock-in excessivo. Formatos abertos (Parquet), SQL ANSI, infra replicável.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11 - O QUE E CLOUD COMPUTING                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Cloud</span>
+          <h2 class="deck-title">O que é Cloud Computing?</h2>
+          <p class="deck-summary">Entrega de recursos computacionais sob demanda pela internet, com pagamento por uso. Definição do NIST (SP 800-145).</p>
+        </div>
+        <div class="deck-callout">
+          <strong>5 características essenciais (NIST)</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li><strong>On-demand self-service</strong> &mdash; provisionar recursos sem intervenção humana.</li>
+            <li><strong>Broad network access</strong> &mdash; acesso via rede por qualquer dispositivo.</li>
+            <li><strong>Resource pooling</strong> &mdash; recursos compartilhados entre múltiplos clientes.</li>
+            <li><strong>Rapid elasticity</strong> &mdash; escalar para cima ou para baixo conforme demanda.</li>
+            <li><strong>Measured service</strong> &mdash; uso monitorado e cobrado por consumo.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12 - HISTORICO E DEVOPS                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Contexto</span>
+          <h2 class="deck-title">Como chegamos aqui: do mainframe à cloud</h2>
+          <p class="deck-summary">A cloud não nasceu do nada. Ela é a culminação de décadas de mudança cultural e técnica, com o DevOps como ponte essencial.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Era</th><th>Período</th><th>Modelo dominante</th><th>Legado para dados</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Mainframe</td><td>1960&ndash;1980</td><td>Centralizado, batch</td><td>Processamento em lotes</td></tr>
+            <tr><td>Cliente-servidor</td><td>1980&ndash;2000</td><td>DBs relacionais, ETL</td><td>Modelagem dimensional</td></tr>
+            <tr><td>Virtualização</td><td>2000&ndash;2010</td><td>VMware, hypervisors</td><td>Consolidação de cargas</td></tr>
+            <tr><td>DevOps</td><td>2009&ndash;hoje</td><td>Automação e CI/CD</td><td>Infra como código</td></tr>
+            <tr><td>Cloud</td><td>2006&ndash;hoje</td><td>Serviços gerenciados</td><td>Data Lake e serverless</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout">
+          <strong>DevOps como precursor:</strong> sem automação de infra e cultura de colaboração entre dev e ops, a cloud seria só um data center alugado. É DevOps que destrava o self-service e a elasticidade reais.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13 - BENEFICIOS E DESAFIOS                              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Trade-offs</span>
+          <h2 class="deck-title">Benefícios e desafios da cloud para dados</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Benefícios</strong>
+            <ul>
+              <li>Elasticidade real: picos de ingestão sem replanejar hardware.</li>
+              <li>OpEx: paga-se pelo consumido, sem CapEx de data center.</li>
+              <li>Tempo de provisionamento em minutos.</li>
+              <li>Serviços gerenciados (Athena, Lambda) reduzem operação.</li>
+              <li>Acesso a tecnologias de ponta (GPUs, ML, streaming).</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Desafios</strong>
+            <ul>
+              <li>Custo variável exige disciplina de FinOps.</li>
+              <li>Segurança passa a ser responsabilidade do cliente.</li>
+              <li>Lock-in de serviços proprietários.</li>
+              <li>Latência de rede para cargas híbridas.</li>
+              <li>Curva de aprendizado constante (serviços novos todo mês).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 14 - MODELOS DE SERVICO                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Modelos de serviço</span>
+          <h2 class="deck-title">IaaS, PaaS e SaaS para dados</h2>
+          <p class="deck-summary">Cada modelo define o nível de responsabilidade entre você e o provedor. Escolher o modelo certo impacta custo, agilidade e operação.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Modelo</th>
+              <th>Você gerencia</th>
+              <th>AWS gerencia</th>
+              <th>Exemplos AWS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>IaaS</strong></td>
+              <td>SO, runtime, aplicação, dados</td>
+              <td>Hardware, rede, virtualização</td>
+              <td>EC2, EBS, VPC</td>
+            </tr>
+            <tr>
+              <td><strong>PaaS</strong></td>
+              <td>Aplicação e dados</td>
+              <td>SO, runtime, middleware</td>
+              <td>RDS, EMR, Elastic Beanstalk</td>
+            </tr>
+            <tr>
+              <td><strong>SaaS</strong></td>
+              <td>Configuração e uso</td>
+              <td>Tudo o mais</td>
+              <td>Athena, QuickSight</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="deck-callout">
+          <strong>Atenção &middot; restrição do lab:</strong> no AWS Academy Learner Lab usado na disciplina, <strong>Glue e Redshift não estão disponíveis</strong>. Quando precisarmos dessas capacidades, rodaremos alternativas em EC2: <strong>PySpark</strong> para ETL e <strong>ClickHouse</strong> para Data Warehouse.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 15 - DATA LAKE                                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Arquiteturas</span>
+          <h2 class="deck-title">Data Lake</h2>
+          <p class="deck-summary">Repositório centralizado para armazenar dados brutos em qualquer formato. Princípio: schema-on-read.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>3 camadas clássicas</strong>
+            <ul>
+              <li><strong>Raw / Bronze</strong> &mdash; dados originais, sem transformação.</li>
+              <li><strong>Trusted / Silver</strong> &mdash; dados limpos, validados, deduplicados.</li>
+              <li><strong>Refined / Gold</strong> &mdash; dados prontos para consumo analítico.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Stack da disciplina (AWS Learner Lab)</strong>
+            <ul>
+              <li><strong>S3</strong> &mdash; armazenamento das 3 camadas.</li>
+              <li><strong>Athena</strong> &mdash; consultas SQL e catálogo de tabelas externas (substitui o Glue Catalog no lab).</li>
+              <li><strong>PySpark em EC2</strong> &mdash; ETL que promove Raw &rarr; Trusted &rarr; Refined.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 16 - DATA WAREHOUSE E LAKEHOUSE                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Arquiteturas</span>
+          <h2 class="deck-title">Data Warehouse e Data Lakehouse</h2>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Aspecto</th>
+              <th>Data Warehouse</th>
+              <th>Data Lakehouse</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Schema</td><td>Schema-on-write</td><td>Schema-on-read + ACID</td></tr>
+            <tr><td>Armazenamento</td><td>Colunar proprietário</td><td>Aberto (Parquet/ORC em S3)</td></tr>
+            <tr><td>Performance</td><td>MPP, otimizado para BI</td><td>Combina DL + DW</td></tr>
+            <tr><td>Formatos abertos</td><td>Não</td><td>Iceberg, Delta Lake, Hudi</td></tr>
+            <tr><td>AWS</td><td>Amazon Redshift &middot; ClickHouse em EC2 no lab</td><td>S3 + Athena + PySpark em EC2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 17 - DATA MESH                                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Arquiteturas</span>
+          <h2 class="deck-title">Data Mesh</h2>
+          <p class="deck-summary">Paradigma de descentralização proposto por Zhamak Dehghani. Quatro princípios fundamentais.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>1. Domain Ownership</h3>
+            <ul><li>Cada domínio de negócio é responsável pelos seus dados.</li></ul>
+          </article>
+          <article class="deck-card">
+            <h3>2. Data as a Product</h3>
+            <ul><li>Dados tratados com qualidade, SLA e documentação como um produto.</li></ul>
+          </article>
+          <article class="deck-card">
+            <h3>3. Self-Serve Platform</h3>
+            <ul><li>Infraestrutura compartilhada que reduz fricção para os domínios.</li></ul>
+          </article>
+          <article class="deck-card">
+            <h3>4. Federated Governance</h3>
+            <ul><li>Padrões globais com autonomia local. AWS: Lake Formation, EventBridge.</li></ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 18 - NUVENS 1 (ARMAZENAMENTO E ETL)                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Panorama multi-cloud</span>
+          <h2 class="deck-title">Serviços de dados nas principais nuvens (1/2)</h2>
+          <p class="deck-summary">Armazenamento, Data Warehouse, Data Lake e ETL nas quatro maiores nuvens. A <strong>Alibaba Cloud</strong> cresce rápido na Ásia e merece atenção.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Categoria</th>
+              <th>AWS</th>
+              <th>Azure</th>
+              <th>Google Cloud</th>
+              <th>Alibaba Cloud</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Object Storage</strong></td><td>S3</td><td>Blob Storage</td><td>Cloud Storage</td><td>OSS</td></tr>
+            <tr><td><strong>Data Warehouse</strong></td><td>Redshift</td><td>Synapse Analytics</td><td>BigQuery</td><td>MaxCompute / AnalyticDB</td></tr>
+            <tr><td><strong>Data Lake</strong></td><td>S3 + Lake Formation</td><td>ADLS Gen2 + Synapse</td><td>BigLake + GCS</td><td>OSS + DataWorks</td></tr>
+            <tr><td><strong>ETL / Integração</strong></td><td>Glue</td><td>Data Factory</td><td>Dataflow / Dataproc</td><td>DataWorks</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 19 - NUVENS 2 (BANCOS, STREAMING, CATALOGO)             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Panorama multi-cloud</span>
+          <h2 class="deck-title">Serviços de dados nas principais nuvens (2/2)</h2>
+          <p class="deck-summary">Bancos, streaming e governança. Os conceitos são portáveis &mdash; o que muda é o nome do serviço gerenciado.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Categoria</th>
+              <th>AWS</th>
+              <th>Azure</th>
+              <th>Google Cloud</th>
+              <th>Alibaba Cloud</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Relacional gerenciado</strong></td><td>RDS / Aurora</td><td>Azure SQL Database</td><td>Cloud SQL / AlloyDB</td><td>RDS / PolarDB</td></tr>
+            <tr><td><strong>NoSQL</strong></td><td>DynamoDB</td><td>Cosmos DB</td><td>Bigtable / Firestore</td><td>Tablestore</td></tr>
+            <tr><td><strong>Streaming</strong></td><td>Kinesis / MSK</td><td>Event Hubs</td><td>Pub/Sub</td><td>DataHub / LogHub</td></tr>
+            <tr><td><strong>Catálogo / Governança</strong></td><td>Glue Catalog + Lake Formation</td><td>Microsoft Purview</td><td>Dataplex</td><td>DataWorks Governance</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 20 - AWS INFRAESTRUTURA GLOBAL                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; AWS</span>
+          <h2 class="deck-title">AWS: Infraestrutura Global</h2>
+          <p class="deck-summary">Entender a infraestrutura física da AWS é essencial para decidir onde hospedar dados e serviços.</p>
+        </div>
+        <div class="deck-placeholder">
+          <div class="deck-panel">
+            <strong>Componentes</strong>
+            <ul>
+              <li><strong>Regions</strong> &mdash; áreas geográficas isoladas (ex.: us-east-1).</li>
+              <li><strong>Availability Zones</strong> &mdash; data centers independentes dentro de uma região.</li>
+              <li><strong>Edge Locations</strong> &mdash; pontos de presença para CDN e DNS.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Serviços da disciplina</strong>
+            <ul>
+              <li>S3, Athena</li>
+              <li>EC2 (PySpark, ClickHouse)</li>
+              <li>Kinesis, Lambda</li>
+              <li>RDS, DynamoDB</li>
+              <li>IAM, CloudWatch, Step Functions</li>
+            </ul>
+            <p style="margin:14px 0 0;"><strong>Região recomendada:</strong> us-east-1</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 21 - RESPONSABILIDADE COMPARTILHADA                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Segurança</span>
+          <h2 class="deck-title">Modelo de Responsabilidade Compartilhada</h2>
+          <p class="deck-summary">A AWS protege a infraestrutura DA nuvem. Você protege o que coloca NA nuvem.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>AWS é responsável por (OF the cloud)</strong>
+            <ul>
+              <li>Hardware físico e data centers</li>
+              <li>Rede global e hypervisors</li>
+              <li>Patches do sistema operacional gerenciado</li>
+              <li>Disponibilidade da infraestrutura</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Você é responsável por (IN the cloud)</strong>
+            <ul>
+              <li>Configuração de IAM e permissões</li>
+              <li>Criptografia de dados (em trânsito e em repouso)</li>
+              <li>Configuração de security groups e ACLs</li>
+              <li>Proteção e classificação dos seus dados</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 22 - POR QUE GOVERNANCA IMPORTA                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Governança</span>
+          <h2 class="deck-title">Por que governança de acessos é crítica?</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Riscos reais</strong>
+            <ul>
+              <li>Buckets S3 públicos por configuração errada</li>
+              <li>Credenciais expostas em repositórios Git</li>
+              <li>Crypto mining em contas comprometidas</li>
+              <li>Usuários com permissão de administrador sem necessidade</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Consequências</strong>
+            <ul>
+              <li>Vazamento de dados sensíveis de clientes</li>
+              <li>Violação de LGPD e GDPR</li>
+              <li>Custos inesperados de milhares de dólares</li>
+              <li>Perda de confiança e danos reputacionais</li>
+            </ul>
+          </div>
+        </div>
+        <div class="deck-callout">
+          <strong>Princípio fundamental:</strong> menor privilégio &mdash; conceda apenas o acesso estritamente necessário para a função. Revise e revogue regularmente.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 23 - IAM IDENTIDADES                                    -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; AWS IAM</span>
+          <h2 class="deck-title">IAM: identidades e entidades</h2>
+          <p class="deck-summary">Identity and Access Management controla quem pode chamar quais APIs da AWS e em quais condições.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Users (usuários)</h3>
+            <ul>
+              <li>Credenciais de longo prazo (senha, access key).</li>
+              <li>Representam pessoas ou sistemas.</li>
+              <li>Nunca use a conta root no dia a dia.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Groups (grupos)</h3>
+            <ul>
+              <li>Coleção de usuários com permissões compartilhadas.</li>
+              <li>Simplifica gestão de equipes.</li>
+              <li>Ex.: DataEngineers, DataAnalysts.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Roles (papéis)</h3>
+            <ul>
+              <li>Credenciais temporárias, rotacionadas automaticamente.</li>
+              <li>Usadas por serviços AWS (EC2, Lambda).</li>
+              <li>Preferência sobre access keys.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Policies (políticas)</h3>
+            <ul>
+              <li>Documento JSON que define permissões.</li>
+              <li>Atachadas a users, groups ou roles.</li>
+              <li>Gerenciadas (AWS) ou customizadas.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 24 - ANATOMIA DE POLITICA IAM                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; IAM Policies</span>
+          <h2 class="deck-title">Anatomia de uma política IAM</h2>
+          <p class="deck-summary">Toda decisão de acesso é avaliada contra documentos JSON. Entender a estrutura é obrigatório.</p>
+        </div>
+        <div class="deck-placeholder">
+          <div class="deck-panel">
+            <strong>Estrutura do Statement</strong>
+            <ul>
+              <li><strong>Effect</strong> &mdash; Allow ou Deny.</li>
+              <li><strong>Action</strong> &mdash; operações permitidas (ex.: s3:GetObject).</li>
+              <li><strong>Resource</strong> &mdash; ARN do recurso alvo.</li>
+              <li><strong>Condition</strong> &mdash; restrições adicionais (IP, MFA, tags).</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Regras de avaliação</strong>
+            <ul>
+              <li>Deny explícito sempre prevalece.</li>
+              <li>Sem Allow = negado por padrão (implicit deny).</li>
+              <li>Todas as políticas ativas são avaliadas em conjunto.</li>
+              <li>Evite wildcards (*) em Action e Resource.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 25 - LABROLE DO LEARNER LAB                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; AWS Student</span>
+          <h2 class="deck-title">O LabRole do AWS Academy Learner Lab</h2>
+          <p class="deck-summary">No ambiente estudantil, quase todos os serviços assumem uma role pré-configurada chamada <strong>LabRole</strong>. Entender suas limitações agora evita surpresas nas próximas aulas.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que o LabRole entrega</strong>
+            <ul>
+              <li>Permissões amplas em EC2, S3, Athena, Lambda, Kinesis, IAM (read), CloudWatch.</li>
+              <li>É passada automaticamente a serviços gerenciados no lab.</li>
+              <li>Evita que você gaste tempo criando roles de serviço.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>O que o LabRole não permite</strong>
+            <ul>
+              <li>Acesso a AWS Glue e Amazon Redshift (bloqueados no Learner Lab).</li>
+              <li>Criar usuários IAM persistentes entre sessões.</li>
+              <li>Operações de billing e organizações.</li>
+              <li>Instâncias de alta classe (GPUs, r5.24xlarge).</li>
+              <li>O ambiente é reinicializado ao expirar a sessão.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="deck-callout">
+          <strong>Em produção não faríamos assim:</strong> em vez do LabRole com permissões amplas, criaríamos uma role dedicada por serviço com menor privilégio. Aqui usamos o LabRole só para reduzir atrito didático.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 26 - LAB OVERVIEW                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 21h00 &ndash; 22h00 &middot; AWS Student</span>
+          <h2 class="deck-title">Setup do ambiente AWS Student</h2>
+          <p class="deck-summary">Em 1 hora deixamos sua conta AWS Student pronta para todas as próximas aulas: acesso, reconhecimento do IAM e estrutura de buckets do Data Lake.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>O que vamos configurar</h3>
+            <ul>
+              <li>Login no AWS Academy Learner Lab</li>
+              <li>Confirmação da região <strong>us-east-1</strong></li>
+              <li>Tour guiado pelo console (IAM, S3, CloudWatch)</li>
+              <li>3 buckets S3 (raw, trusted, refined)</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Pré-requisitos</h3>
+            <ul>
+              <li>Acesso ao AWS Academy ativo</li>
+              <li>Chrome ou Firefox atualizado</li>
+              <li>Material da aula aberto em outra aba</li>
+              <li>Bloco de notas para Account ID e URL</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 27 - LAB PASSO 1: ACESSO E REGIAO                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Lab &middot; Passo 1</span>
+          <h2 class="deck-title">Acesso ao AWS Student e região</h2>
+          <p class="deck-summary">Entrar no Learner Lab, iniciar o laboratório, abrir o console e confirmar a região correta.</p>
+        </div>
+        <div class="deck-panel">
+          <strong>Passo a passo</strong>
+          <ol>
+            <li>Acesse o portal <strong>AWS Academy &middot; Learner Lab</strong>.</li>
+            <li>Clique em <strong>Start Lab</strong> e aguarde o indicador ficar verde.</li>
+            <li>Clique em <strong>AWS</strong> para abrir o AWS Management Console.</li>
+            <li>No canto superior direito, confirme a região: <strong>US East (N. Virginia) us-east-1</strong>.</li>
+            <li>Na barra de busca, digite <strong>IAM</strong> e abra o dashboard.</li>
+            <li>Anote o <strong>Account ID</strong> exibido no topo &mdash; será usado nos próximos passos.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 28 - LAB PASSO 2: RECONHECER IAM                        -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Lab &middot; Passo 2</span>
+          <h2 class="deck-title">Reconhecendo o IAM do Learner Lab</h2>
+          <p class="deck-summary">Antes de criar recursos, entenda o que já existe na conta de laboratório.</p>
+        </div>
+        <div class="deck-panel">
+          <strong>Passo a passo</strong>
+          <ol>
+            <li>Em <strong>IAM &gt; Users</strong>, observe os usuários pré-criados pelo lab.</li>
+            <li>Em <strong>IAM &gt; Roles</strong>, localize a <strong>LabRole</strong> e abra a aba <em>Permissions</em>.</li>
+            <li>Anote as políticas atachadas: ela combina acessos a EC2, S3, Athena, Lambda, Kinesis, IAM read e CloudWatch.</li>
+            <li>Abra a aba <em>Trust relationships</em> e identifique quais serviços podem assumi-la.</li>
+            <li>Em <strong>IAM &gt; Policies</strong>, observe a diferença entre políticas AWS (gerenciadas) e customizadas.</li>
+          </ol>
+        </div>
+        <div class="deck-callout">
+          <strong>Observação:</strong> o lab não permite criar usuários IAM adicionais nem habilita <strong>Glue</strong> ou <strong>Redshift</strong> &mdash; por isso eles não aparecem na LabRole. Usaremos a LabRole e a conta principal do Learner Lab durante toda a disciplina.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 29 - LAB PASSO 3: BUCKETS S3                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Lab &middot; Passo 3</span>
+          <h2 class="deck-title">Criar os 3 buckets do Data Lake</h2>
+          <p class="deck-summary">Cada aluno cria suas 3 camadas. Substitua <code>&lt;iniciais&gt;</code> por suas iniciais em minúsculo (ex.: <code>jps</code>).</p>
+        </div>
+        <div class="deck-panel">
+          <strong>Passo a passo</strong>
+          <ol>
+            <li>No console, acesse <strong>S3 &gt; Create bucket</strong>.</li>
+            <li>Região: <strong>us-east-1</strong>. Crie os 3 buckets abaixo:</li>
+          </ol>
+          <ul style="margin:12px 0 0; padding-left:44px;">
+            <li><strong>olist-raw-&lt;iniciais&gt;</strong> &mdash; dados brutos (CSV, JSON)</li>
+            <li><strong>olist-trusted-&lt;iniciais&gt;</strong> &mdash; dados validados (Parquet)</li>
+            <li><strong>olist-refined-&lt;iniciais&gt;</strong> &mdash; dados prontos para BI/ML</li>
+          </ul>
+          <p style="margin:14px 0 0;">Mantenha <strong>Block Public Access</strong> habilitado e habilite <strong>Bucket Versioning</strong>. Demais opções no padrão.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 30 - LAB PASSO 4: UPLOAD DE TESTE                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Lab &middot; Passo 4</span>
+          <h2 class="deck-title">Upload de arquivo de teste</h2>
+          <p class="deck-summary">Valide que você consegue escrever no Raw. Ainda não é o Olist &mdash; é apenas um smoke test.</p>
+        </div>
+        <div class="deck-panel">
+          <strong>Passo a passo</strong>
+          <ol>
+            <li>Abra o bucket <strong>olist-raw-&lt;iniciais&gt;</strong>.</li>
+            <li>Clique em <strong>Upload &gt; Add files</strong>.</li>
+            <li>Selecione qualquer arquivo pequeno (um .txt ou .csv).</li>
+            <li>Clique em <strong>Upload</strong> e aguarde o sucesso.</li>
+            <li>Abra o objeto carregado e confira tamanho, storage class (Standard) e versão.</li>
+            <li>Em <strong>Permissions</strong> do bucket, confirme que <em>Block all public access</em> está ativo.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 31 - CHECKLIST DO AMBIENTE                              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Lab &middot; Checklist</span>
+          <h2 class="deck-title">Ambiente configurado</h2>
+          <p class="deck-summary">Confirme cada item antes de encerrar o laboratório &mdash; tudo isso será usado nas próximas sete aulas.</p>
+        </div>
+        <div class="deck-panel">
+          <strong>Verificação final</strong>
+          <ul>
+            <li>Learner Lab iniciado e com indicador verde</li>
+            <li>Console AWS em <strong>us-east-1</strong></li>
+            <li><strong>Account ID</strong> anotado</li>
+            <li><strong>LabRole</strong> identificada e revisada</li>
+            <li>Buckets <strong>olist-raw</strong>, <strong>olist-trusted</strong> e <strong>olist-refined</strong> criados</li>
+            <li>Block Public Access e Versioning habilitados</li>
+            <li>Smoke test: upload e leitura de um arquivo pequeno</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 31B - ROADMAP AULA 02: MODELAGEM COM IA                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Roadmap &middot; Aula 02</span>
+          <h2 class="deck-title">Próxima aula: modelar o sistema distribuído com IA</h2>
+          <p class="deck-summary">A Aula 02, em 23/04/2026, será inteiramente dedicada a projetar a arquitetura do sistema distribuído de dados do semestre, usando ferramentas de IA como copiloto de design e validação.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que vamos fazer juntos</strong>
+            <ul>
+              <li>Definir os casos de uso do pipeline Olist ponta a ponta.</li>
+              <li>Mapear componentes, responsabilidades e contratos entre camadas.</li>
+              <li>Modelar as zonas Raw, Trusted e Refined no S3.</li>
+              <li>Gerar diagramas e documentação viva da arquitetura.</li>
+              <li>Usar IA para antecipar trade-offs e revisar decisões.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Amarrar com os 8 eixos</strong>
+            <ul>
+              <li>Cada decisão de modelagem é avaliada contra os RNFs do SWEBOK.</li>
+              <li>IA como assistente para cruzar impacto entre eixos.</li>
+              <li>Entrega da Aula 02: desenho defensável que guia todas as próximas aulas.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 32 - PONTE PARA AULA 02                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; ponte para Aula 02</span>
+          <h2 class="deck-title">Na próxima aula o Olist chega</h2>
+          <p class="deck-summary">Hoje preparamos a casa vazia. Na Aula 02, o dataset Olist entra no Raw e começamos a consultar com Athena.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que vamos fazer em 23/04</strong>
+            <ul>
+              <li>Download do Olist (Kaggle) e upload estruturado no <strong>olist-raw</strong>.</li>
+              <li>Criação de tabelas externas diretamente no Athena sobre os CSVs.</li>
+              <li>Primeiras consultas SQL com <strong>Amazon Athena</strong>.</li>
+              <li>Conversão seletiva Raw &rarr; Trusted em Parquet.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Chegue preparado</strong>
+            <ul>
+              <li>Garanta que seu Learner Lab volta a abrir.</li>
+              <li>Releia o material com calma durante a semana.</li>
+              <li>Crie uma conta no Kaggle se ainda não tiver.</li>
+              <li>Opcional: explore o Olist no Kaggle antes da aula.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 33 - FECHAMENTO: RESUMO                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; 1/2</span>
+          <h2 class="deck-title">Resumo da aula</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>O que vimos hoje</h3>
+            <ul>
+              <li>Mapa das 8 aulas e narrativa Olist.</li>
+              <li>Papel do engenheiro de dados em 2026 e histórico da cloud.</li>
+              <li>Cloud Computing (NIST) e modelos IaaS/PaaS/SaaS.</li>
+              <li>Arquiteturas: Data Lake, DW, Lakehouse, Data Mesh.</li>
+              <li>Panorama multi-cloud e AWS como plataforma.</li>
+              <li>Responsabilidade compartilhada e IAM.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>O que ficou pronto no lab</h3>
+            <ul>
+              <li>Learner Lab iniciado em us-east-1.</li>
+              <li>LabRole identificada e compreendida.</li>
+              <li>3 buckets S3 (raw, trusted, refined).</li>
+              <li>Smoke test de upload bem-sucedido.</li>
+              <li>Checklist de ambiente validado.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 34 - FECHAMENTO: ESTUDO E LINKS                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; 2/2</span>
+          <h2 class="deck-title">Estudo complementar e referências</h2>
+          <p class="deck-summary">Use o material escrito como guia principal. Os links abaixo complementam o que discutimos.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Leituras recomendadas</h3>
+            <ul>
+              <li>NIST SP 800-145 (definição de Cloud).</li>
+              <li>AWS Well-Architected &ndash; Security Pillar.</li>
+              <li>Dehghani, Z. &mdash; artigos originais sobre Data Mesh.</li>
+              <li>Kleppmann, M. &mdash; Designing Data-Intensive Applications (cap. 1 e 10).</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Documentação</h3>
+            <ul>
+              <li>docs.aws.amazon.com/iam, /s3, /athena, /ec2</li>
+              <li>Guia do AWS Academy Learner Lab</li>
+              <li>spark.apache.org &mdash; PySpark</li>
+              <li>clickhouse.com/docs</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mackenzie mini logo -->
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie" />
+
+  <!-- GLOBAL navigation footer -->
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../pages/home_cloud_sre.html" class="back-home">Índice</a>
+      <a href="../material/material_aula_01_fundamentos_de_cloud_para_dados_e_governanca_de_acessos.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <!-- Navigation script -->
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    document.getElementById('total-slides').textContent = totalSlides;
+    function showSlide(i) { slides.forEach(s => s.classList.remove('active')); slides[i].classList.add('active'); currentSlide = i; document.getElementById('current-slide').textContent = i + 1; document.getElementById('prev-btn').disabled = i === 0; document.getElementById('next-btn').disabled = i === totalSlides - 1; }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); previousSlide(); } else if (e.key.toLowerCase() === 'f') toggleFullScreen(); });
+    showSlide(0);
+  </script>
+</body>
+</html>

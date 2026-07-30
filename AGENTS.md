@@ -1,4 +1,4 @@
-# AGENTS.md — cloud_sre
+# AGENTS.md — aulas_mackenzie
 
 ## Project Type
 
@@ -8,21 +8,31 @@ Static course site (HTML/CSS, no build pipeline, no test suite).
 
 ```
 /
-├── index.html              # Central navigation — lists all lessons with slide/material links
+├── index.html              # Hub Central — seletor de disciplinas
+├── estudios.html           # Biblioteca de autoestudo
+├── professor.html          # Perfil do professor
 ├── assets/
-│   ├── styles.css          # Shared styles: index + materials (editorial design system)
-│   └── slides.css          # Shared slide styles: tokens, shell, cards, tables, footer
+│   ├── styles.css          # Estilos compartilhados: hub, homes e materiais
+│   └── slides.css          # Estilos dos slides: tokens, shell, cards, tabelas, footer
+├── pages/
+│   ├── home_cloud_sre.html       # Home da disciplina Cloud Computing e SRE
+│   └── home_data_collection.html # Home da disciplina Data Collection and Storage
 ├── specs/
-│   ├── repositorio_de_aulas.md   # Canonical structure, naming, content rules
-│   ├── estrutura_curso.md        # Lesson schedule, folder/file conventions
-│   └── design_system.md          # Visual design tokens, components, typography
+│   ├── repositorio_de_aulas.md   # Estrutura canônica, regras de navegação e conteúdo
+│   ├── estrutura_curso.md        # Cronogramas e convenções de nomenclatura
+│   └── design_system.md          # Tokens visuais, tipografia e componentes
 └── aulas/
-    └── aula_XX_nome_da_aula/
-        ├── slides/slide_aula_XX_*.html
-        └── material/material_aula_XX_*.html
+    ├── cloud_sre/
+    │   └── aula_XX_nome_da_aula/
+    │       ├── slides/slide_aula_XX_*.html
+    │       └── material/material_aula_XX_*.html
+    └── data_collection_and_storage/
+        └── aula_XX_nome_da_aula/
+            ├── slides/slide_aula_XX_*.html
+            └── material/material_aula_XX_*.html
 ```
 
-Only 2 active surfaces: `index.html` and lesson HTML files.
+Surfaces principais: Hub principal (`index.html`), homes das disciplinas em `pages/` e arquivos HTML de aulas em `aulas/`.
 
 ## Naming Conventions (mandatory)
 

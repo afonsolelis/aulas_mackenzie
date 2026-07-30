@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Aula 01 — Introdução à Coleta e Armazenamento de Dados na Nuvem</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="01">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Introdução à Coleta e Armazenamento de Dados na Nuvem</h1>
+          <p class="deck-meta">Aula 01 &nbsp;&bull;&nbsp; 10/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Fontes de dados, estratégias de coleta (batch vs streaming) e camadas de armazenamento na AWS.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">O que vai acontecer nesta aula</h2>
+          <p class="deck-summary">Primeira hora (8h30&ndash;9h30) focada nos conceitos e fundamentos teóricos; três horas seguintes (9h30&ndash;12h10) dedicadas à prática no ambiente AWS Student Lab.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h30 &middot; Teoria</h3>
+            <p>Panorama de Fontes (APIs, RDBMS, NoSQL, Files), Padrões Push vs Pull, Camadas do Storage (Landing/Bronze, Raw, Processed).</p>
+          </article>
+          <article class="deck-card">
+            <h3>9h30 &ndash; 12h10 &middot; Prática AWS Student</h3>
+            <p>Setup do AWS Student Lab, criação do bucket S3 raw e ingestão inicial via AWS CLI/Python Script.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - PLACEHOLDER CONTEÚDO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Visão Geral &middot; Tópicos Principais</span>
+          <h2 class="deck-title">Estrutura do Aprendizado</h2>
+          <p class="deck-summary">Esta aula estabelece os pilares técnicos para a coleta e persistência eficiente de dados no ecossistema moderno de Engenharia de Dados.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Conceito e Arquitetura</h3>
+            <p>Compreensão dos padrões de design, protocolos de transferência e estratégias de particionamento.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Hands-on na AWS</h3>
+            <p>Construção prática utilizando serviços gerenciados e scripts de integração com AWS Student Lab.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie" />
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_01_introducao_a_coleta_e_armazenamento_de_dados.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) { slides.forEach(s => s.classList.remove("active")); slides[i].classList.add("active"); currentSlide = i; document.getElementById("current-slide").textContent = i + 1; document.getElementById("prev-btn").disabled = i === 0; document.getElementById("next-btn").disabled = i === totalSlides - 1; }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    document.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); nextSlide(); } else if (e.key === "ArrowLeft") { e.preventDefault(); previousSlide(); } else if (e.key.toLowerCase() === "f") toggleFullScreen(); });
+    showSlide(0);
+  </script>
+</body>
+</html>

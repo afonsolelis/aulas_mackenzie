@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Aula 05 — ATAM e Táticas Bass aplicadas à stack Docker local</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style data-aula05-local>
+    /* Estilos scoped da Aula 05. Tokens vem de assets/slides.css. */
+
+    @media (max-height: 900px) {
+      .deck-shell { min-height: 520px; padding: 32px 44px; margin: 14px; gap: 16px; }
+      .deck-shell .deck-title { font-size: 2.1em; }
+      .deck-shell .deck-year  { font-size: 3em; margin: 4px 0; }
+      .deck-shell .deck-summary { margin-bottom: 6px; }
+    }
+    @media (max-height: 820px) {
+      .deck-shell { min-height: 480px; padding: 26px 40px; margin: 10px; gap: 12px; }
+      .deck-shell .deck-title { font-size: 1.95em; }
+      .deck-shell .deck-year  { font-size: 2.6em; }
+    }
+
+    /* Grids responsivas. */
+    .a05-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .a05-grid-3 .deck-card { padding: 18px 20px; }
+    .a05-grid-3 .deck-card h3 { font-size: 1.05em; }
+    .a05-grid-3 .deck-card ul { margin: 8px 0 0; }
+    .a05-grid-3 .deck-card li { margin-bottom: 4px; font-size: .95em; }
+    @media (max-width: 1100px) {
+      .a05-grid-3 { grid-template-columns: 1fr; }
+    }
+
+    .a05-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .a05-grid-4 .deck-card { padding: 14px 16px; }
+    .a05-grid-4 .deck-card h3 { font-size: .95em; margin-bottom: 6px; }
+    .a05-grid-4 .deck-card p  { font-size: .85em; line-height: 1.45; margin: 0; }
+    @media (max-width: 1100px) {
+      .a05-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .a05-grid-4 { grid-template-columns: 1fr; }
+    }
+
+    /* Versao compacta de cards/paineis. */
+    .a05-compact .deck-card { padding: 16px 18px; }
+    .a05-compact .deck-card h3 { font-size: 1em; margin-bottom: 6px; }
+    .a05-compact .deck-card ul { margin: 6px 0 0; }
+    .a05-compact .deck-card li { margin-bottom: 4px; font-size: .92em; line-height: 1.45; }
+    .a05-compact .deck-panel { padding: 16px 18px; }
+    .a05-compact .deck-panel li { margin-bottom: 4px; font-size: .92em; line-height: 1.45; }
+    .a05-compact .deck-summary { margin-bottom: 10px; }
+    .a05-compact .deck-callout { padding: 16px 20px; }
+    .a05-compact .deck-callout li,
+    .a05-compact .deck-callout ol li { margin-bottom: 4px; }
+
+    /* Tabela compacta. */
+    .a05-table-compact .deck-table th,
+    .a05-table-compact .deck-table td {
+      padding: 7px 9px;
+      font-size: .9em;
+      line-height: 1.4;
+      vertical-align: top;
+    }
+
+    /* Tabela ATAM com scroll horizontal. */
+    .a05-atam-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--deck-line);
+      border-radius: 4px;
+      background: var(--deck-panel);
+    }
+    .a05-atam-scroll .deck-table {
+      min-width: 1080px;
+      margin: 0;
+    }
+    .a05-atam-scroll .deck-table th,
+    .a05-atam-scroll .deck-table td {
+      padding: 8px 10px;
+      font-size: .82em;
+      line-height: 1.42;
+      vertical-align: top;
+    }
+    .a05-atam-scroll .deck-table th {
+      white-space: nowrap;
+      font-family: var(--font-mono);
+      font-size: .72em;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .a05-atam-scroll .deck-table td:first-child {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .a05-atam-scroll .deck-table td:nth-child(2) {
+      font-style: italic;
+      min-width: 180px;
+    }
+
+    /* Code snippets compactos para slide. */
+    .a05-snippet {
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 16px 18px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      line-height: 1.55;
+      overflow-x: auto;
+      margin: 8px 0 0;
+      border: 1px solid #1f242d;
+      box-shadow: 0 10px 24px rgba(13, 17, 23, 0.18);
+      position: relative;
+    }
+    .a05-snippet::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 14px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #3b424d;
+      box-shadow: 12px 0 0 #3b424d, 24px 0 0 #3b424d;
+    }
+    .a05-snippet pre {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 14px 0 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+    }
+    .a05-snippet pre::before { display: none !important; }
+    .a05-snippet-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    /* Pill / badge para destacar quality attribute em slides de tatica. */
+    .a05-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border: 1px solid var(--deck-line);
+      border-radius: 999px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      background: var(--deck-surface);
+      margin-right: 6px;
+    }
+    .a05-pill.solid {
+      background: var(--deck-accent);
+      color: #fff;
+      border-color: var(--deck-accent);
+    }
+
+    /* CTA do repositorio. */
+    .a05-repo-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      padding: 22px 32px;
+      border: 1px solid var(--deck-accent);
+      border-radius: 4px;
+      background: var(--deck-accent);
+      color: #ffffff;
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: background 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06), 0 10px 24px rgba(15, 15, 15, 0.12);
+    }
+    .a05-repo-cta:hover {
+      background: #2a2a2a;
+      transform: translateY(-2px);
+      box-shadow: 0 1px 2px rgba(15, 15, 15, 0.06), 0 16px 32px rgba(15, 15, 15, 0.18);
+    }
+    .a05-repo-cta:focus {
+      outline: 2px solid var(--deck-accent);
+      outline-offset: 4px;
+    }
+    .a05-repo-cta svg {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      fill: currentColor;
+    }
+    .a05-repo-cta .a05-repo-cta-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      line-height: 1.1;
+    }
+    .a05-repo-cta .a05-repo-cta-text .a05-repo-cta-kicker {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: rgba(255, 255, 255, 0.66);
+      font-weight: 500;
+    }
+    .a05-repo-cta-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .a05-repo-cta-wrap.compact {
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .a05-repo-cta-wrap.compact .a05-repo-cta {
+      padding: 14px 22px;
+      font-size: .92rem;
+      gap: 14px;
+    }
+    .a05-repo-cta-wrap.compact .a05-repo-cta svg { width: 22px; height: 22px; }
+    .a05-repo-url {
+      font-family: var(--font-mono);
+      font-size: 0.84rem;
+      color: var(--deck-muted);
+      letter-spacing: 0.02em;
+      word-break: break-all;
+      text-align: center;
+      max-width: 60ch;
+    }
+    .a05-repo-cta-wrap.compact .a05-repo-url {
+      text-align: left;
+      font-size: .76rem;
+    }
+    @media (max-width: 600px) {
+      .a05-repo-cta { padding: 16px 22px; font-size: 0.92rem; gap: 12px; }
+      .a05-repo-cta svg { width: 22px; height: 22px; }
+    }
+
+    /* Cards de roadmap. */
+    .a05-roadmap-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .a05-roadmap-grid .deck-card { padding: 16px 18px; }
+    .a05-roadmap-grid .deck-card h3 { font-size: 1em; margin-bottom: 6px; }
+    .a05-roadmap-grid .deck-card .a05-roadmap-date {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .a05-roadmap-grid .deck-card p { font-size: .9em; line-height: 1.5; margin: 0; }
+    @media (max-width: 1000px) {
+      .a05-roadmap-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Lista numerada com destaque para passos da pratica. */
+    .a05-step-list {
+      counter-reset: a05step;
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+    }
+    .a05-step-list li {
+      counter-increment: a05step;
+      padding: 10px 14px 10px 50px;
+      position: relative;
+      border-bottom: 1px solid var(--deck-line-soft);
+      font-size: .94em;
+      line-height: 1.5;
+    }
+    .a05-step-list li:last-child { border-bottom: none; }
+    .a05-step-list li::before {
+      content: counter(a05step, decimal-leading-zero);
+      position: absolute;
+      left: 12px;
+      top: 10px;
+      font-family: var(--font-mono);
+      font-size: .82em;
+      color: var(--deck-muted);
+      letter-spacing: .05em;
+    }
+
+    /* Caixa de evidencia. */
+    .a05-evidence {
+      background: var(--deck-surface);
+      border: 1px solid var(--deck-line);
+      border-left: 3px solid var(--deck-accent);
+      padding: 14px 18px;
+      margin-top: 12px;
+      font-size: .92em;
+    }
+    .a05-evidence strong { display: block; margin-bottom: 4px; font-family: var(--font-mono); font-size: .78em; text-transform: uppercase; letter-spacing: .12em; color: var(--deck-muted); }
+
+    /* Prompt para IA - variante do a05-snippet com label e cor de borda destacados. */
+    .a05-prompt {
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 20px 22px 18px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      line-height: 1.55;
+      overflow-y: auto;
+      max-height: 380px;
+      margin: 10px 0 0;
+      border: 1px solid #1f242d;
+      border-left: 3px solid var(--deck-accent);
+      box-shadow: 0 10px 24px rgba(13, 17, 23, 0.18);
+      position: relative;
+      white-space: pre-wrap;
+    }
+    .a05-prompt-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      margin: 0 0 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .a05-prompt-label::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--deck-accent);
+      border-radius: 50%;
+    }
+    .a05-prompt pre {
+      background: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .a05-prompt pre::before { display: none !important; }
+    .a05-tactic-meta {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      margin-top: 6px;
+    }
+    .a05-tactic-meta code {
+      font-family: inherit;
+      font-size: inherit;
+      background: var(--deck-surface);
+      border: 1px solid var(--deck-line);
+      padding: 2px 8px;
+      border-radius: 3px;
+      letter-spacing: .04em;
+      text-transform: none;
+      color: var(--deck-fg);
+    }
+  </style>
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1 - CAPA                                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="05">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+          <span class="deck-kicker">Cloud Computing e SRE &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">ATAM e Táticas Bass aplicadas à stack Docker local</h1>
+          <p class="deck-meta">Aula 05 &nbsp;&bull;&nbsp; 14/05/2026 &nbsp;&bull;&nbsp; Aula presencial</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Antes de migrar uma arquitetura para a nuvem, é necessário identificar seus pontos de fragilidade. A análise ATAM caracteriza os sensitivity points, tradeoffs e riscos da solução; em seguida, aplicam-se as táticas propostas por Len Bass para mitigá-los, ainda em ambiente Docker local.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2 - AGENDA                                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a05-compact">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Estrutura da aula</h2>
+          <p class="deck-summary">O bloco teórico apresenta a fundamentação do ATAM, a tabela completa do sistema Olist, a teoria das táticas de Bass e o mapeamento entre sensitivity points e táticas. O bloco prático conduz a refatoração da stack, a escrita de testes automatizados e a execução de cenários de estresse sobre cada ponto identificado.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Bloco teórico &middot; 19h00 &ndash; 20h30</h3>
+            <ul>
+              <li>Retomada da Aula 04 &mdash; stack Docker do Olist</li>
+              <li>Fundamentos do ATAM &mdash; método, colunas e saídas</li>
+              <li>Tabela ATAM completa do Olist (7 QAs)</li>
+              <li>Consolidação dos sensitivity points</li>
+              <li>Fundamentos de Bass &mdash; distinção entre tática e padrão</li>
+              <li>Mapeamento entre sensitivity points e táticas</li>
+              <li>Detalhamento do catálogo de táticas</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Prática guiada &middot; 20h30 &ndash; 22h00</h3>
+            <ul>
+              <li>Refatoração do ingestor com retry e idempotência</li>
+              <li>Ajuste fino dos healthchecks dos serviços</li>
+              <li>Implementação de circuit breaker no acesso ao S3</li>
+              <li>Testes unitários e de integração com pytest</li>
+              <li>Estresse: encerramento abrupto de container durante a ingestão</li>
+              <li>Estresse: injeção de latência, sobrecarga e exaustão de disco</li>
+              <li>Atualização da tabela ATAM com as evidências coletadas</li>
+            </ul>
+          </article>
+        </div>
+        <p style="margin-top:10px; font-size:.84em; color: var(--deck-muted);"><strong>Tese:</strong> a stack já se encontra implementada (Aula 04). Nesta sessão, identificam-se seus pontos frágeis por meio do ATAM, aplicam-se táticas propostas por Bass e validam-se as intervenções com testes e cenários de estresse. O ambiente permanece integralmente local.</p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3 - RECAP AULA 04                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Continuidade &middot; Ponto de partida</span>
+          <h2 class="deck-title">Retomada da Aula 04 &mdash; a stack base do curso</h2>
+          <p class="deck-summary">A arquitetura é composta por quatro serviços orquestrados via <code>docker compose</code>: MinIO (object storage S3-compatível), ClickHouse (warehouse colunar), ingestor em Python e dashboard Streamlit. O dataset adotado é o Olist, com ingestão idempotente e estratégia de schema-on-read. Esse ambiente constitui o objeto de avaliação e fortalecimento desta aula.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Elementos já implementados</strong>
+            <ul>
+              <li>Quatro serviços orquestrados via Compose com healthchecks configurados.</li>
+              <li>Ingestão append-only com idempotência assegurada por <code>max(unixtime)</code>.</li>
+              <li>View <code>v_top_products</code> agregando três arquivos CSV.</li>
+              <li>Dashboard Streamlit consumindo a view com cache de 60 segundos.</li>
+              <li>Procedimento de reinicialização por meio de <code>docker compose down -v</code>.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Questões em aberto</strong>
+            <ul>
+              <li>Qual componente apresenta menor tolerância sob condições adversas?</li>
+              <li>Onde se localizam os sensitivity points da arquitetura?</li>
+              <li>Quais decisões representam tradeoffs ainda não explicitados?</li>
+              <li>Que riscos arquiteturais permanecem ignorados por omissão?</li>
+              <li>Onde devem ser aplicadas táticas antes da migração para a nuvem?</li>
+            </ul>
+          </div>
+        </div>
+        <div class="a05-repo-cta-wrap compact">
+          <a class="a05-repo-cta"
+             href="https://github.com/afonsolelis/20261sre-primeironome-ultimonome"
+             target="_blank"
+             rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            <span class="a05-repo-cta-text">
+              <span class="a05-repo-cta-kicker">Stack base &middot; Aula 04</span>
+              <span>Abrir repositório no GitHub</span>
+            </span>
+          </a>
+          <p class="a05-repo-url">https://github.com/afonsolelis/20261sre-primeironome-ultimonome</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4 - TESE DA AULA                                        -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">Identificação dos pontos de falha antes da migração</h2>
+          <p class="deck-summary">A análise ATAM produz o inventário de sensitivity points, tradeoffs, riscos e non-risks da arquitetura atual; o catálogo de táticas proposto por Bass fornece as intervenções concretas que mitigam esses pontos. Cada tática é materializada no código, validada por teste automatizado e submetida a um cenário de estresse que busca demonstrar sua efetividade.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Quatro princípios orientadores desta aula</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li>O ambiente permanece <strong>integralmente local</strong>, baseado em Docker Compose, sem qualquer interação com consoles de nuvem.</li>
+            <li>A <strong>tabela ATAM</strong> produzida nesta Aula 05 será o instrumento utilizado para reavaliar a arquitetura na nuvem durante a Aula 07.</li>
+            <li>Cada tática aplicada deve ser acompanhada de <strong>teste automatizado</strong> e <strong>cenário de estresse</strong> reproduzível.</li>
+            <li>A aula encerra-se com a tabela ATAM atualizada e enriquecida com evidências comparativas entre o estado anterior e o estado posterior à intervenção.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5 - ATAM 101                                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Fundamentos do ATAM</span>
+          <h2 class="deck-title">Architecture Tradeoff Analysis Method</h2>
+          <p class="deck-summary">O método foi proposto por Kazman, Klein e Clements no <strong>SEI/CMU</strong> e avalia uma arquitetura em face de cenários de quality attribute, com o propósito de evidenciar <em>sensitivity points</em>, <em>tradeoffs</em>, <em>riscos</em> e <em>non-risks</em>. Distingue-se de checklists e revisões de código por seu foco estrutural sobre as decisões arquiteturais.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Caracterização do ATAM</strong>
+            <ul>
+              <li>Constitui um método formal de revisão arquitetural.</li>
+              <li>É conduzido em formato de workshop com a participação dos stakeholders.</li>
+              <li>Tem como saída central uma <strong>tabela analítica</strong>.</li>
+              <li>Concentra-se na identificação de <em>tradeoffs</em>, e não na emissão de juízos absolutos sobre correção.</li>
+              <li>É aplicável em diferentes escalas, de equipes reduzidas a sistemas críticos.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Delimitações do método</strong>
+            <ul>
+              <li>Não consiste em revisão de código.</li>
+              <li>Não atribui pontuações nem produz veredictos de aprovação ou reprovação.</li>
+              <li>Não substitui testes automatizados ou benchmarks.</li>
+              <li>Não impõe soluções; sua função é tornar explícitas as escolhas arquiteturais.</li>
+              <li>Não se encerra em uma única sessão, configurando-se como exercício iterativo.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6 - AS 7 COLUNAS DA TABELA ATAM                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a05-table-compact">
+        <div>
+          <span class="deck-kicker">ATAM &middot; Estrutura</span>
+          <h2 class="deck-title">As sete colunas da tabela ATAM</h2>
+          <p class="deck-summary">Cada linha representa um quality attribute e cada coluna corresponde a uma dimensão de análise. A leitura vertical da tabela permite identificar onde a arquitetura é sensível, em que pontos incorre em tradeoffs e onde se concentram os riscos.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Coluna</th><th>Significado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Quality Attribute</strong></td><td>O atributo de qualidade sob análise (availability, performance, security, entre outros).</td></tr>
+            <tr><td><strong>Scenario</strong></td><td>Caso concreto composto por estímulo, ambiente, resposta e medida.</td></tr>
+            <tr><td><strong>Architectural Decisions</strong></td><td>Escolhas estruturais que afetam o cenário em questão (cache, broker, schema).</td></tr>
+            <tr><td><strong>Sensitivity Points</strong></td><td>Pontos em que a decisão influencia diretamente a resposta observada e que devem ser objeto de validação por estresse.</td></tr>
+            <tr><td><strong>Tradeoffs</strong></td><td>Situações em que a melhoria de um QA implica a degradação de outro; correspondem a sensitivity points compartilhados por dois ou mais QAs.</td></tr>
+            <tr><td><strong>Risks</strong></td><td>Decisões cujas consequências ainda não podem ser previstas ou mensuradas.</td></tr>
+            <tr><td><strong>Non-risks</strong></td><td>Decisões conscientemente fundamentadas que foram retiradas do radar de preocupações.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7 - TABELA ATAM COMPLETA DO OLIST                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">ATAM &middot; Olist em ambiente Docker local</span>
+          <h2 class="deck-title">Tabela ATAM completa &mdash; sete quality attributes</h2>
+          <p class="deck-summary">Cada linha articula o atributo de qualidade considerado, o cenário descrito, as decisões arquiteturais adotadas e os pontos em que a arquitetura tende a falhar primeiro. A tabela constitui a saída central desta aula e está disponível para consulta integral por meio de rolagem horizontal.</p>
+        </div>
+        <div class="a05-atam-scroll">
+          <table class="deck-table">
+            <thead>
+              <tr>
+                <th>QA</th>
+                <th>Scenario</th>
+                <th>Architectural Decisions</th>
+                <th>Sensitivity Points</th>
+                <th>Tradeoffs</th>
+                <th>Risks</th>
+                <th>Non-risks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Availability</td>
+                <td>Dashboard sobrevive ao crash do ingestor; ClickHouse fora do ar por 30s, dashboard responde com cache.</td>
+                <td>Streamlit com <code>@st.cache_data(ttl=60)</code>; ingestor sem retomada; Compose orquestra startup.</td>
+                <td>Cache TTL do Streamlit; ausencia de retry no ingestor; healthcheck timing.</td>
+                <td>Cache longo vs frescor (Perf).</td>
+                <td>Sem dead-letter no ingestor falho; sem retomada de checkpoint.</td>
+                <td>Crash do dashboard nao corrompe ClickHouse (volume separado).</td>
+              </tr>
+              <tr>
+                <td>Performance / Latencia</td>
+                <td>Query <code>v_top_products</code> Top 100 responde em &lt; 2s sob carga normal de leitura.</td>
+                <td>ClickHouse MergeTree ordenado por <code>(tag, unixtime)</code>; view sem materializacao.</td>
+                <td>Ordem do <code>ORDER BY</code>; cache do Streamlit; numero de execucoes acumuladas.</td>
+                <td>Cache longo (Perf) vs visibilidade real-time (Avail).</td>
+                <td>Latencia da view degrada se <code>max(unixtime)</code> percorrer muitas execucoes.</td>
+                <td>Dataset Olist cabe na RAM &mdash; nao precisamos de particionamento agora.</td>
+              </tr>
+              <tr>
+                <td>Performance / Throughput</td>
+                <td>Ingestor processa 1M de linhas em &lt; 5min em laptop com 8GB RAM.</td>
+                <td>Insercao em batches de 50k; pandas em memoria; NDJSON; sem paralelismo.</td>
+                <td>Tamanho do batch; memoria do pandas; rede MinIO -> ingestor.</td>
+                <td>Batch maior (Throughput) vs uso de RAM (Avail).</td>
+                <td>Sem back-pressure; ingestor pode estourar RAM em CSV grande.</td>
+                <td>50k linhas/batch foi medido &mdash; cabe confortavel em 8GB.</td>
+              </tr>
+              <tr>
+                <td>Modifiability</td>
+                <td>Trocar fonte de CSV para Parquet sem reescrever view nem dashboard.</td>
+                <td>Landing como <code>JSON</code> em <code>olist_raw.ingestion</code>; schema-on-read na view.</td>
+                <td>Formato da coluna <code>data</code>; estrutura do <code>tag</code>; codigo do ingestor.</td>
+                <td>Schema-on-read (Modif) vs validacao tardia de tipo (Reliab).</td>
+                <td>Ingestor hoje assume CSV &mdash; trocar para Parquet exige refactor da camada de leitura.</td>
+                <td>View nao precisa mudar se a chave <code>data.product_id</code> existir em qualquer formato.</td>
+              </tr>
+              <tr>
+                <td>Security</td>
+                <td>Credenciais do ClickHouse/MinIO nao vazam para dashboard nem logs.</td>
+                <td><code>minioadmin/minioadmin</code> em <code>.env</code>; usuario <code>dashboard</code> read-only; rede interna do Compose.</td>
+                <td>Variaveis em <code>.env</code>; nivel de log do ingestor; usuario do dashboard.</td>
+                <td>Log detalhado (Debugability) vs vazamento de credencial (Security).</td>
+                <td>Credenciais hardcoded em compose se aluno commitar <code>.env</code>; sem rotacao.</td>
+                <td>Rede do Compose isola portas internas do host (so 8501 e console exposto).</td>
+              </tr>
+              <tr>
+                <td>Deployability</td>
+                <td>Subir a stack em outra maquina em &lt; 30min sem perda de dados.</td>
+                <td>Tudo descrito em <code>docker-compose.yaml</code>; volumes nomeados; <code>.env.example</code>.</td>
+                <td>Imagem do ClickHouse; tag <code>latest</code>; volumes do MinIO/ClickHouse.</td>
+                <td>Tag <code>latest</code> (Deploy facil) vs reprodutibilidade (Modif).</td>
+                <td>Imagem <code>latest</code> pode quebrar entre maquinas; sem lockfile de imagem.</td>
+                <td>Compose roda em Linux/macOS/Windows com Docker Desktop &mdash; testado em sala.</td>
+              </tr>
+              <tr>
+                <td>Cost</td>
+                <td>Custo previsivel em capacidade local (CPU/RAM/disco) &mdash; nao explodir laptop.</td>
+                <td>Sem limites de recurso no Compose; volumes locais; reingestoes acumulativas.</td>
+                <td>Falta de <code>mem_limit</code>/<code>cpus</code>; reingestoes acumulam parts no MergeTree.</td>
+                <td>Append-only (Audit) vs uso de disco (Cost).</td>
+                <td>Disco enche em demos longas; sem TTL nas parts antigas.</td>
+                <td>Custo monetario e zero local &mdash; so capacidade de hardware do aluno conta.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:10px; font-size:.78em; color: var(--deck-muted);">Utilize as setas do teclado para avançar entre os slides ou role horizontalmente para consultar a totalidade das colunas.</p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8 - SENSITIVITY POINTS CONSOLIDADOS                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a05-compact">
+        <div>
+          <span class="deck-kicker">ATAM &middot; Saídas</span>
+          <h2 class="deck-title">Cinco sensitivity points a serem submetidos a estresse</h2>
+          <p class="deck-summary">A partir da tabela apresentada, cinco pontos emergem como prioritários. Sobre cada um deles serão aplicadas táticas específicas, elaborados testes automatizados e executados cenários de estresse. Cada intervenção dará origem a uma branch própria no fork da Aula 04.</p>
+        </div>
+        <div class="a05-grid-3">
+          <article class="deck-card">
+            <h3>SP-01 &middot; Healthcheck do ClickHouse</h3>
+            <ul>
+              <li>O timing depende da carga de inicialização do serviço.</li>
+              <li>Parâmetros <code>interval/timeout/retries</code> não foram ajustados.</li>
+              <li>Risco identificado: o dashboard inicia antes que o ClickHouse esteja apto a responder.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>SP-02 &middot; Ingestor como single point of failure</h3>
+            <ul>
+              <li>Não há mecanismo de retry nem retomada por checkpoint.</li>
+              <li>Falhas de rede interrompem a execução em sua totalidade.</li>
+              <li>A reingestão é viável, porém custosa.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>SP-03 &middot; Ausência de circuit breaker no boto3</h3>
+            <ul>
+              <li>O boto3 efetua novas tentativas indefinidamente diante de respostas <code>SlowDown</code>.</li>
+              <li>Não há timeout explícito por chamada.</li>
+              <li>O problema assumirá proporções relevantes no acesso ao S3 real (Aula 07).</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>SP-04 &middot; Latência da view sob concorrência</h3>
+            <ul>
+              <li>A subconsulta <code>max(unixtime)</code> percorre todas as execuções acumuladas.</li>
+              <li>O cache do Streamlit oferece auxílio, porém é local por sessão.</li>
+              <li>O throughput é degradado quando cinquenta sessões concorrem simultaneamente.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>SP-05 &middot; Credenciais em <code>.env</code></h3>
+            <ul>
+              <li>Não há política de rotação tampouco utilização de secret manager.</li>
+              <li>Existe risco de commit acidental de credenciais no repositório.</li>
+              <li>O dashboard requer acesso read-only, atualmente inexistente.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9 - BASS 101                                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; Fundamentos de Bass</span>
+          <h2 class="deck-title">Bass &mdash; distinção entre tática e padrão arquitetural</h2>
+          <p class="deck-summary">Em <em>Software Architecture in Practice</em> (4ª edição), Len Bass define a <strong>tática</strong> como uma decisão de design que afeta diretamente a resposta de um quality attribute. O <strong>padrão</strong> é compreendido como a combinação coerente de múltiplas táticas voltadas à resolução de um problema recorrente.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Estrutura conceitual proposta por Bass</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li><strong>Quality Attribute</strong> &mdash; availability, performance, security, modifiability, entre outros.</li>
+            <li><strong>Cenário</strong> &mdash; estímulo, ambiente, resposta e medida.</li>
+            <li><strong>Tática</strong> &mdash; a menor unidade de decisão arquitetural capaz de alterar a resposta do QA. Exemplos típicos incluem <em>retry</em>, <em>cache</em>, <em>circuit breaker</em> e <em>ping/echo</em>.</li>
+            <li><strong>Padrão</strong> &mdash; conjunto coerente de táticas (por exemplo, o padrão <em>resilient client</em>, que articula timeout, retry, circuit breaker e fallback).</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10 - MAPEAMENTO SENSITIVITY -> TATICA                   -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a05-table-compact">
+        <div>
+          <span class="deck-kicker">Bass &middot; Mapeamento</span>
+          <h2 class="deck-title">Sensitivity point e tática aplicada</h2>
+          <p class="deck-summary">Cada sensitivity point é associado a uma tática do catálogo de Bass. A tática é materializada em commits, organizada em branches específicas e validada por meio de testes automatizados e cenários de estresse. O quadro abaixo apresenta a versão sintética do catálogo; o detalhamento é desenvolvido nos slides subsequentes.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Sensitivity</th><th>Tática de Bass</th><th>Grupo (QA)</th><th>Local de aplicação no código</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>SP-01 &middot; Healthcheck do ClickHouse</td>
+              <td><strong>Ping/Echo + Heartbeat</strong></td>
+              <td>Availability</td>
+              <td><code>docker-compose.yaml</code>: ajuste de <code>interval/timeout/retries</code> e endpoint <code>/health</code> customizado no dashboard.</td>
+            </tr>
+            <tr>
+              <td>SP-02 &middot; Ingestor SPOF</td>
+              <td><strong>Retry + Exception Handling + Idempotency</strong></td>
+              <td>Availability</td>
+              <td><code>ingest_minio.py</code>: aplicação de <code>@tenacity.retry</code> nas chamadas a S3 e ClickHouse, complementada por logging estruturado.</td>
+            </tr>
+            <tr>
+              <td>SP-03 &middot; Ausência de circuit breaker</td>
+              <td><strong>Circuit Breaker</strong></td>
+              <td>Availability + Performance</td>
+              <td>Wrapper sobre o boto3 com <code>tenacity</code>: utilização de <code>stop_after_attempt</code> e <code>wait_exponential</code>.</td>
+            </tr>
+            <tr>
+              <td>SP-04 &middot; Latência da view</td>
+              <td><strong>Cache (reforçado)</strong></td>
+              <td>Performance</td>
+              <td>O Streamlit já dispõe de <code>@st.cache_data(ttl=60)</code>; recomenda-se medir hits e misses e avaliar a adoção de materialized view.</td>
+            </tr>
+            <tr>
+              <td>SP-05 &middot; Credenciais</td>
+              <td><strong>Limit Exposure + Authenticate Actors</strong></td>
+              <td>Security</td>
+              <td>Criação do usuário <code>dashboard</code> com acesso read-only no ClickHouse, rotação via <code>.env.example</code> e configuração rigorosa do <code>.gitignore</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11 - TATICA EM DETALHE: PING/ECHO + HEARTBEAT           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="a05-pill solid">Availability</span>
+          <span class="deck-kicker" style="margin-top:8px;">Tática &middot; SP-01</span>
+          <h2 class="deck-title">Ping/Echo e Heartbeat &mdash; healthcheck robusto</h2>
+          <p class="deck-summary">A tática Ping/Echo é ativa: um componente formula a verificação e o outro responde. O Heartbeat, por sua vez, opera em sentido inverso: o componente comunica seu estado periodicamente, sem requisição prévia. O Compose já implementa Ping/Echo nativamente; cabe aqui o ajuste fino do timing e a adição de um endpoint customizado.</p>
+        </div>
+        <div class="a05-snippet">
+          <span class="a05-snippet-label">docker-compose.yaml (patch)</span>
+<pre>clickhouse:
+  healthcheck:
+    test: ["CMD", "wget", "--spider", "-q", "http://localhost:8123/ping"]
+    interval: 5s        # mais frequente
+    timeout: 3s         # corta cedo
+    retries: 6          # tolera startup lento de mergetree
+    start_period: 20s   # nao reporta unhealthy nos primeiros 20s
+
+dashboard:
+  depends_on:
+    clickhouse: { condition: service_healthy }
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+    interval: 10s
+    timeout: 3s
+    retries: 3</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12 - TATICA: RETRY + IDEMPOTENCY                        -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="a05-pill solid">Availability</span>
+          <span class="deck-kicker" style="margin-top:8px;">Tática &middot; SP-02</span>
+          <h2 class="deck-title">Retry, Exception Handling e Idempotency</h2>
+          <p class="deck-summary">No cenário formulado por Bass, o ingestor depara-se com throttling ou desconexão temporária e procede a novas tentativas com backoff exponencial. A propriedade de idempotência preexistente assegura que a reexecução não compromete a integridade do estado.</p>
+        </div>
+        <div class="a05-snippet">
+          <span class="a05-snippet-label">app/ingest_minio.py (refactor)</span>
+<pre>from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+import botocore.exceptions, clickhouse_connect.driver.exceptions as cherr
+
+@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=2, max=30),
+    retry=retry_if_exception_type((
+        botocore.exceptions.ClientError,
+        botocore.exceptions.EndpointConnectionError,
+        cherr.OperationalError,
+    )),
+    reraise=True,
+)
+def insert_batch(ch, rows):
+    ch.insert("olist_raw.ingestion", rows,
+              column_names=["unixtime", "data", "tag"])</pre>
+        </div>
+        <p style="margin-top:12px; font-size:.88em; color: var(--deck-muted);">
+          A idempotência já estava assegurada por <code>max(unixtime)</code> e <code>tag</code> desde a Aula 04. Nesta sessão, a propriedade é apenas <em>nomeada</em> formalmente e <em>validada</em> por testes automatizados.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13 - TATICA: CIRCUIT BREAKER                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="a05-pill solid">Availability + Performance</span>
+          <span class="deck-kicker" style="margin-top:8px;">Tática &middot; SP-03</span>
+          <h2 class="deck-title">Circuit Breaker no acesso ao S3</h2>
+          <p class="deck-summary">Após um número predefinido de falhas consecutivas, a tática interrompe novas tentativas. Sem esse mecanismo, o ingestor sobrecarrega continuamente o downstream indisponível, amplificando o problema. A implementação adotada consiste em um wrapper apoiado em <code>tenacity</code> com estado persistido em memória.</p>
+        </div>
+        <div class="a05-snippet">
+          <span class="a05-snippet-label">app/breakers.py</span>
+<pre>import time
+from dataclasses import dataclass
+
+@dataclass
+class CircuitBreaker:
+    failure_threshold: int = 5
+    recovery_seconds: int = 30
+    fail_count: int = 0
+    opened_at: float | None = None
+
+    def call(self, fn, *args, **kwargs):
+        if self.opened_at and time.time() - self.opened_at &lt; self.recovery_seconds:
+            raise RuntimeError("Circuit open &mdash; downstream provavelmente fora")
+        try:
+            result = fn(*args, **kwargs)
+            self.fail_count = 0; self.opened_at = None
+            return result
+        except Exception:
+            self.fail_count += 1
+            if self.fail_count >= self.failure_threshold:
+                self.opened_at = time.time()
+            raise</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 14 - TATICA: CACHE + LIMIT EXPOSURE                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <div style="margin-bottom:6px;">
+            <span class="a05-pill solid">Performance</span>
+            <span class="a05-pill solid" style="margin-left:4px;">Security</span>
+          </div>
+          <span class="deck-kicker">Táticas &middot; SP-04 e SP-05</span>
+          <h2 class="deck-title">Cache (reforçado) e Limit Exposure</h2>
+          <p class="deck-summary">No SP-04, o cache do Streamlit já se encontra implementado, mas requer instrumentação que permita sua mensuração. No SP-05, as credenciais utilizadas pelo dashboard devem observar o princípio do menor privilégio, contemplando usuário com acesso read-only e exclusão sistemática do arquivo <code>.env</code> do versionamento.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Cache instrumentado no Streamlit</strong>
+            <ul>
+              <li><code>@st.cache_data(ttl=60, show_spinner=False)</code></li>
+              <li>Registro em log de cada execução de <code>cache.clear()</code>.</li>
+              <li>Endpoint customizado <code>/metrics</code> com contadores de hit e miss.</li>
+              <li>Tradeoff explícito: TTL prolongado reduz carga ao custo de maior staleness.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Limit Exposure</strong>
+            <ul>
+              <li>Criação de usuário <code>dashboard</code> com acesso read-only no ClickHouse.</li>
+              <li>Inclusão de <code>.env</code> no <code>.gitignore</code>; somente <code>.env.example</code> é versionado.</li>
+              <li>Console do MinIO (porta 9003) restrito a desenvolvedores por meio do mecanismo <code>profiles</code> do Compose.</li>
+              <li>Mascaramento de segredos nos logs produzidos pelo ingestor.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 15 - ABERTURA DA PRATICA                                -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Abertura</span>
+          <h2 class="deck-title">Início do bloco prático &mdash; verificação assistida por IA</h2>
+          <p class="deck-summary">Cada uma das cinco táticas é introduzida por meio de um <strong>prompt fechado</strong>, destinado a um assistente de codificação (Claude Code, Cursor, GitHub Copilot ou Gemini CLI). O assistente é responsável pela aplicação efetiva da refatoração; o aluno conduz a verificação, valida o diff produzido, executa os testes correspondentes e realiza o merge da branch de tática. Os quatro cenários de estresse subsequentes submetem o artefato resultante a estresse controlado.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Pré-requisitos</strong>
+            <ul>
+              <li>Fork pessoal da Aula 04 devidamente clonado e aberto no editor integrado ao assistente.</li>
+              <li>Execução de <code>docker compose up -d</code>, com os quatro contêineres em estado <em>healthy</em>.</li>
+              <li>Assistente de IA com acesso de leitura e escrita ao repositório (modo agente).</li>
+              <li>Python 3.9+, <code>pip install tenacity pytest pytest-mock locust</code>.</li>
+              <li>Acesso ao utilitário <code>tc</code> ou contêiner com capacidade <code>NET_ADMIN</code>, ou alternativamente toxiproxy.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Disciplina de uso da IA</strong>
+            <ul>
+              <li>Copiar o prompt na íntegra; <em>não</em> reescrever.</li>
+              <li>Revisar o diff produzido linha a linha antes do commit.</li>
+              <li>Executar a verificação descrita ao final de cada prompt.</li>
+              <li>Rejeitar inclusões fora do escopo do prompt.</li>
+              <li>Cada tática equivale a uma branch <code>tactic/...</code> mesclada no fork pessoal.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 16 - PASSO 1 - PROMPT RETRY + IDEMPOTENCIA              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Tática 1 &middot; Retry + Idempotência</span>
+          <h2 class="deck-title">Prompt 1 &mdash; tornar o ingestor resiliente a falhas transitórias</h2>
+          <div class="a05-tactic-meta">
+            <span>Branch <code>tactic/availability-retry</code></span>
+            <span>Quality attribute: <code>Availability</code></span>
+            <span>Sensitivity point: <code>SP-02</code></span>
+          </div>
+        </div>
+        <p class="a05-prompt-label">Prompt para o assistente de IA &mdash; copiar na íntegra</p>
+        <div class="a05-prompt"><pre>Você vai aplicar a tática Bass "Retry + Exception Handling + Idempotency" no
+ingestor desta stack Olist (Docker compose: clickhouse, minio, ingestor,
+dashboard). O ingestor está em app/ingest_minio.py.
+
+Branch: tactic/availability-retry
+
+Checklist obrigatório:
+1. Adicionar tenacity==8.2.3 ao requirements.txt.
+2. Decorar insert_batch e a chamada s3.get_object com:
+     @retry(stop=stop_after_attempt(5),
+            wait=wait_exponential(multiplier=1, min=2, max=30),
+            reraise=True)
+3. Comentar no topo de ingest_minio.py que a idempotência é garantida pelo
+   par (unixtime, tag) somado ao filtro max(unixtime) por tag na view
+   v_top_products. Não introduzir MERGE nem UPSERT.
+4. Substituir prints por logging JSON estruturado, incluindo
+   extra={"unixtime": ..., "tag": ..., "rows": ...}.
+5. NÃO alterar docker-compose.yaml, schema SQL nem dependências adicionais.
+6. Commit final: "feat(tactic): retry exponencial + idempotencia no ingestor".
+
+Verificação (executar e mostrar a saída):
+  docker compose build ingestor
+  docker exec olist_ingestor python /app/ingest_minio.py   # 1a execução
+  docker exec olist_ingestor python /app/ingest_minio.py   # 2a execução
+  docker exec olist_analytics clickhouse-client \
+    -q "SELECT tag, count() FROM olist_raw.ingestion GROUP BY tag"
+A contagem por tag deve permanecer constante entre as duas execuções.</pre></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 17 - PASSO 2 - PROMPT HEALTHCHECK                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Tática 2 &middot; Ping/Echo + Heartbeat</span>
+          <h2 class="deck-title">Prompt 2 &mdash; healthchecks granulares por serviço</h2>
+          <div class="a05-tactic-meta">
+            <span>Branch <code>tactic/availability-healthcheck</code></span>
+            <span>Quality attribute: <code>Availability</code></span>
+            <span>Sensitivity point: <code>SP-01</code></span>
+          </div>
+        </div>
+        <p class="a05-prompt-label">Prompt para o assistente de IA &mdash; copiar na íntegra</p>
+        <div class="a05-prompt"><pre>Você vai aplicar a tática Bass "Ping/Echo + Heartbeat" no docker-compose.yaml
+desta stack Olist (clickhouse, minio, ingestor, dashboard).
+
+Branch: tactic/availability-healthcheck
+
+Checklist obrigatório:
+1. Padronizar, em CADA serviço, o bloco healthcheck:
+     interval: 5s
+     timeout: 3s
+     retries: 12
+     start_period: 15s
+2. Comandos de teste por serviço:
+     clickhouse → wget --spider -q http://localhost:8123/ping
+     minio      → curl -f http://localhost:9000/minio/health/live
+     ingestor   → pgrep -f ingest_minio.py || exit 0
+     dashboard  → wget --spider -q http://localhost:8501/_stcore/health
+3. Manter depends_on com condition: service_healthy em todos os
+   serviços dependentes.
+4. NÃO alterar portas, volumes, redes ou variáveis de ambiente.
+5. Criar docs/healthcheck-baseline.md com tabela markdown:
+     | serviço | tempo até healthy (antes) | tempo após patch |
+6. Commit final: "feat(tactic): healthchecks granulares por servico".
+
+Verificação (executar e mostrar a saída):
+  docker compose down -v
+  time docker compose up -d --wait
+  docker compose ps --format json | jq '.[] | {name, state: .State, health: .Health}'
+Preencher a coluna "tempo após patch" com o resultado.</pre></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 18 - PASSO 3 - PROMPT CIRCUIT BREAKER                   -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Tática 3 &middot; Circuit Breaker</span>
+          <h2 class="deck-title">Prompt 3 &mdash; proteger chamadas S3 contra fan-out de retries</h2>
+          <div class="a05-tactic-meta">
+            <span>Branch <code>tactic/availability-circuit-breaker</code></span>
+            <span>Quality attribute: <code>Availability</code></span>
+            <span>Sensitivity point: <code>SP-03</code></span>
+          </div>
+        </div>
+        <p class="a05-prompt-label">Prompt para o assistente de IA &mdash; copiar na íntegra</p>
+        <div class="a05-prompt"><pre>Você vai aplicar a tática Bass "Circuit Breaker" às chamadas s3.get_object
+do ingestor. O retry exponencial (tarefa anterior) deve ser preservado.
+
+Branch: tactic/availability-circuit-breaker
+
+Checklist obrigatório:
+1. Criar app/breakers.py com a classe CircuitBreaker usando APENAS stdlib
+   (sem dependências externas):
+   - Estados: CLOSED, OPEN, HALF_OPEN.
+   - Construtor: CircuitBreaker(failure_threshold=5, recovery_seconds=30).
+   - call(fn):
+       em CLOSED, executa fn(); exceção incrementa contador; ao atingir
+         o threshold transita para OPEN e registra opened_at = time().
+       em OPEN, levanta RuntimeError("Circuit open") sem chamar fn,
+         até que recovery_seconds tenham decorrido; então transita
+         para HALF_OPEN.
+       em HALF_OPEN, executa fn(); sucesso → CLOSED e zera contador;
+         falha → volta para OPEN com novo opened_at.
+2. Em app/ingest_minio.py, instanciar no escopo do módulo:
+     cb = CircuitBreaker(failure_threshold=5, recovery_seconds=30)
+   Envolver s3.get_object com cb.call(lambda: s3.get_object(...)).
+   Manter o decorador @retry da tática anterior antes do uso do breaker.
+3. Emitir log JSON estruturado em cada transição de estado:
+     {"event": "circuit_state", "from": "...", "to": "..."}
+4. NÃO acrescentar dependências externas. NÃO alterar a view.
+5. Commit final: "feat(tactic): circuit breaker stdlib para chamadas S3".
+
+Verificação manual:
+  docker compose up -d
+  docker stop olist_minio   # durante a ingestão
+  docker exec olist_ingestor python /app/ingest_minio.py
+Após 5 falhas, o log deve registrar transição CLOSED → OPEN e o ingestor
+deve parar de tentar até recovery_seconds.</pre></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 19 - PASSO 4 - PROMPT TESTES UNITARIOS                  -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Tática 4 &middot; Testability (unidade)</span>
+          <h2 class="deck-title">Prompt 4 &mdash; testes unitários que comprovam retry, idempotência e breaker</h2>
+          <div class="a05-tactic-meta">
+            <span>Branch <code>tactic/testability-pytest</code></span>
+            <span>Quality attribute: <code>Testability</code></span>
+            <span>Sensitivity points: <code>SP-02 / SP-03</code></span>
+          </div>
+        </div>
+        <p class="a05-prompt-label">Prompt para o assistente de IA &mdash; copiar na íntegra</p>
+        <div class="a05-prompt"><pre>Você vai aplicar a tática Bass "Testability" via componentes de teste,
+escrevendo testes unitários que comprovam o comportamento das três
+táticas implementadas anteriormente (retry, idempotência, circuit breaker).
+
+Branch: tactic/testability-pytest
+
+Checklist obrigatório:
+1. Adicionar ao requirements.txt:
+     pytest==7.4.0
+     pytest-mock==3.11.1
+2. Criar pytest.ini na raiz:
+     [pytest]
+     testpaths = tests
+     python_files = test_*.py
+3. Criar tests/unit/test_breakers.py com 3 testes:
+   - test_circuit_opens_after_threshold_failures
+       (failure_threshold=3; 3 falhas; a 4a chamada deve lançar
+        RuntimeError com mensagem "Circuit open").
+   - test_circuit_blocks_calls_when_open
+       (verifica que, com circuito aberto, fn que normalmente sucederia
+        NÃO é chamada e a exceção "Circuit open" é levantada).
+   - test_circuit_half_opens_after_recovery_seconds
+       (recovery_seconds=0; sucesso na chamada de teste volta o estado
+        para CLOSED e zera o contador).
+4. Criar tests/unit/test_ingestor.py com 2 testes (usar mocker.patch
+   do pytest-mock; NÃO usar unittest.mock direto):
+   - test_ingestor_retries_on_s3_throttle
+       (mock de s3.get_object com side_effect=[Exception, Exception,
+        valor_ok]; espera exatamente 3 chamadas no mock).
+   - test_idempotency_by_max_unixtime
+       (mock do clickhouse client; após duas execuções de ingestão do
+        mesmo CSV, max(unixtime) cresce mas count via view permanece).
+5. NÃO subir Docker nos testes unitários. Apenas mocks.
+6. Commit final: "test(tactic): testes unitarios para breakers e ingestor".
+
+Verificação:
+  pytest tests/unit -v
+Saída esperada: 5 testes passam.</pre></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 20 - PASSO 5 - PROMPT TESTES INTEGRACAO                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Tática 5 &middot; Testability (integração)</span>
+          <h2 class="deck-title">Prompt 5 &mdash; suíte de integração end-to-end com Makefile</h2>
+          <div class="a05-tactic-meta">
+            <span>Branch <code>tactic/testability-integration</code></span>
+            <span>Quality attribute: <code>Testability</code></span>
+            <span>Sensitivity points: <code>SP-01 a SP-05</code></span>
+          </div>
+        </div>
+        <p class="a05-prompt-label">Prompt para o assistente de IA &mdash; copiar na íntegra</p>
+        <div class="a05-prompt"><pre>Você vai aplicar a tática Bass "Testability" no nível end-to-end,
+exercitando a stack real e validando o pipeline completo.
+
+Branch: tactic/testability-integration
+
+Checklist obrigatório:
+1. Criar Makefile na raiz com os alvos:
+     stack-up    → docker compose up -d e loop em docker inspect até
+                   todos os 4 serviços ficarem healthy.
+     seed        → popula o bucket MinIO com os CSVs do dataset Olist
+                   (usar mc ou aws-cli com endpoint http://localhost:9000).
+     ingest      → docker exec olist_ingestor python /app/ingest_minio.py
+     test-int    → pytest tests/integration -v
+     stack-down  → docker compose down -v
+     all         → encadeia: stack-up seed ingest test-int stack-down
+2. Adicionar clickhouse-connect==0.7.0 ao requirements.txt (cliente do host).
+3. Criar tests/integration/test_pipeline.py com 3 testes (conectar em
+   localhost:8123 via clickhouse-connect):
+   - test_landing_has_expected_row_count
+       (após ingestão, SELECT count() FROM olist_raw.ingestion > 0).
+   - test_view_top_products_returns_rows
+       (SELECT * FROM v_top_products LIMIT 5 retorna 5 linhas; o
+        schema bate com tests/baselines/v_top_products.json).
+   - test_ingestion_is_idempotent
+       (executa a ingestão duas vezes; o count por tag permanece igual).
+4. Salvar o baseline em tests/baselines/v_top_products.json na primeira
+   execução bem-sucedida e commitar junto.
+5. Commit final: "test(tactic): testes de integracao end-to-end com makefile".
+
+Verificação:
+  make all
+Saída esperada: stack sobe healthy, ingestão roda, 3 testes passam,
+stack é desligada limpamente.</pre></div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 21 - PASSO 6 - STRESS KILL CONTAINER                    -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Estresse 1</span>
+          <h2 class="deck-title">Estresse 1 &mdash; encerramento abrupto durante a ingestão</h2>
+          <p class="deck-summary">Branch <code>stress/kill-clickhouse</code>. O procedimento prevê iniciar a ingestão em um terminal; em outro terminal, executar <code>docker kill olist_clickhouse</code>; observar o comportamento do mecanismo de retry; reativar o ClickHouse; verificar a retomada da ingestão; e confirmar que o dashboard recupera o estado sem perda de dados.</p>
+        </div>
+        <div class="a05-snippet">
+          <span class="a05-snippet-label">stress/01_kill_clickhouse.sh</span>
+<pre>#!/usr/bin/env bash
+set -euo pipefail
+docker exec -d olist_ingestor python /app/ingest_minio.py
+sleep 8
+echo "Matando ClickHouse..."
+docker kill olist_clickhouse
+sleep 5
+echo "Subindo ClickHouse..."
+docker compose start clickhouse
+echo "Aguardando healthy..."
+until docker inspect -f '{{.State.Health.Status}}' olist_clickhouse | grep -q healthy; do sleep 2; done
+echo "Esperando ingestor terminar..."
+docker wait olist_ingestor || true
+docker exec olist_analytics clickhouse-client \
+  -q "SELECT tag, count() FROM olist_raw.ingestion GROUP BY tag"</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 22 - PASSO 7 - STRESS LATENCIA INJETADA                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Estresse 2</span>
+          <h2 class="deck-title">Estresse 2 &mdash; injeção de latência</h2>
+          <p class="deck-summary">Branch <code>stress/network-delay</code>. O cenário consiste em injetar 300ms de latência e 1% de perda no link entre o ingestor e o MinIO, por meio de <code>tc qdisc</code> (que requer a capacidade <code>NET_ADMIN</code>) ou de <code>toxiproxy</code>; mensurar os percentis p95 e p99 do <code>insert_batch</code>; e confirmar que o mecanismo de retry absorve o jitter introduzido.</p>
+        </div>
+        <div class="a05-snippet">
+          <span class="a05-snippet-label">stress/02_network_delay.sh</span>
+<pre># Opcao A &mdash; tc dentro do container ingestor (cap_add NET_ADMIN)
+docker exec olist_ingestor \
+  tc qdisc add dev eth0 root netem delay 300ms loss 1%
+
+time docker exec olist_ingestor python /app/ingest_minio.py
+
+# limpar
+docker exec olist_ingestor tc qdisc del dev eth0 root
+
+# Opcao B &mdash; toxiproxy entre ingestor e minio
+docker run -d --network olist_default --name toxi shopify/toxiproxy
+docker exec toxi /toxiproxy-cli create -l 0.0.0.0:9000 \
+  -u minio:9000 minio_proxy
+docker exec toxi /toxiproxy-cli toxic add -t latency \
+  -a latency=300 -a jitter=50 minio_proxy</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 23 - PASSO 8 - STRESS SOBRECARGA LOCUST                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Estresse 3</span>
+          <h2 class="deck-title">Estresse 3 &mdash; sobrecarga no dashboard</h2>
+          <p class="deck-summary">Branch <code>stress/dashboard-overload</code>. A atividade consiste em executar o <code>locust</code> apontado para o dashboard, com cinquenta usuários virtuais concorrentes, mensurando o tempo de resposta, a taxa de erro e a taxa de acerto do cache, com vistas a identificar o limiar a partir do qual o ClickHouse passa a ser degradado.</p>
+        </div>
+        <div class="a05-snippet">
+          <span class="a05-snippet-label">stress/locustfile.py</span>
+<pre>from locust import HttpUser, task, between
+
+class DashboardUser(HttpUser):
+    host = "http://localhost:8501"
+    wait_time = between(1, 3)
+
+    @task(3)
+    def home(self):
+        self.client.get("/")
+
+    @task(1)
+    def health(self):
+        self.client.get("/_stcore/health")
+
+# rodar:
+# locust -f stress/locustfile.py --users 50 \
+#        --spawn-rate 5 --run-time 5m --headless</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 24 - PASSO 9 - STRESS DISCO CHEIO                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Estresse 4</span>
+          <h2 class="deck-title">Estresse 4 &mdash; exaustão de disco</h2>
+          <p class="deck-summary">Branch <code>stress/disk-full</code>. O procedimento consiste em preencher artificialmente o volume do ClickHouse por meio do utilitário <code>dd</code>, tentar realizar a ingestão, observar o comportamento do MergeTree diante da indisponibilidade de espaço, registrar a mensagem de erro retornada e, ao final, restaurar o estado original do volume.</p>
+        </div>
+        <div class="a05-snippet">
+          <span class="a05-snippet-label">stress/04_disk_full.sh</span>
+<pre>#!/usr/bin/env bash
+# atencao: simule em um tmpfs ou volume separado; nao no /
+docker exec olist_analytics bash -c '
+  df -h /var/lib/clickhouse
+  dd if=/dev/zero of=/var/lib/clickhouse/_fill bs=1M count=500
+  df -h /var/lib/clickhouse
+'
+docker exec olist_ingestor python /app/ingest_minio.py || true
+docker exec olist_analytics clickhouse-client \
+  -q "SELECT count() FROM olist_raw.ingestion"
+# restaurar
+docker exec olist_analytics rm -f /var/lib/clickhouse/_fill</pre>
+        </div>
+        <p style="margin-top:10px; font-size:.84em; color: var(--deck-muted);">
+          Saída esperada: o ClickHouse retorna a mensagem <code>Cannot reserve ... bytes</code>; o <code>tenacity</code> efetua novas tentativas; ao final, opera-se a estratégia de fail-fast. Recomenda-se documentar integralmente o ocorrido.
+        </p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 25 - PASSO 10 - COLETAR EVIDENCIAS                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Fechamento</span>
+          <h2 class="deck-title">Coleta de evidências e revisão da tabela ATAM</h2>
+          <p class="deck-summary">Cada cenário de estresse produz um conjunto de artefatos, incluindo logs, capturas de tela do dashboard, métricas de p95 e p99, taxa de erro e MTTR. Esses artefatos são documentados em <code>docs/stress-evidence.md</code> e, em seguida, <strong>a tabela ATAM construída no bloco teórico é revisitada</strong>, com a adição de uma nova coluna destinada a registrar as alterações observadas após a aplicação das táticas.</p>
+        </div>
+        <div class="a05-evidence">
+          <strong>Evidências por sensitivity point</strong>
+          <ul style="margin:6px 0 0;">
+            <li><strong>SP-01 healthcheck:</strong> o tempo médio até o estado <em>healthy</em> reduziu-se de 35 para 12 segundos.</li>
+            <li><strong>SP-02 ingestor:</strong> a ingestão passa a tolerar o encerramento abrupto do ClickHouse durante a execução, ao contrário do comportamento anterior, que resultava em aborto.</li>
+            <li><strong>SP-03 circuit breaker:</strong> após cinco falhas consecutivas, o ingestor interrompe novas tentativas, deixando de sobrecarregar o downstream.</li>
+            <li><strong>SP-04 cache:</strong> o p95 do dashboard regrediu de 1,8s para 230ms sob carga de cinquenta sessões concorrentes.</li>
+            <li><strong>SP-05 credenciais:</strong> o usuário <code>dashboard</code> deixa de dispor de permissão para executar DDL no ClickHouse.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 26 - CRITERIO DE PRONTO                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a05-compact">
+        <div>
+          <span class="deck-kicker">Encerramento &middot; Definição de pronto</span>
+          <h2 class="deck-title">Critérios de conclusão da Aula 05</h2>
+          <p class="deck-summary">A entrega da aula é caracterizada por cinco itens consolidados no fork pessoal: commits, branches, testes, cenários de estresse e documentação. Esse conjunto constitui o insumo direto da Aula 06.</p>
+        </div>
+        <div class="a05-grid-4">
+          <article class="deck-card">
+            <h3>1. ATAM preenchida</h3>
+            <p>Sete linhas e sete colunas registradas em <code>docs/atam.md</code>.</p>
+          </article>
+          <article class="deck-card">
+            <h3>2. Cinco táticas aplicadas</h3>
+            <p>Cinco branches do tipo <code>tactic/...</code> mescladas na <code>main</code>.</p>
+          </article>
+          <article class="deck-card">
+            <h3>3. Suíte pytest aprovada</h3>
+            <p>Cobertura mínima de seis testes, contemplando unidade e integração, executados em CI ou localmente.</p>
+          </article>
+          <article class="deck-card">
+            <h3>4. Quatro cenários de estresse executados</h3>
+            <p>Encerramento abrupto, injeção de latência, sobrecarga e exaustão de disco, com os respectivos logs preservados em <code>stress/</code>.</p>
+          </article>
+        </div>
+        <div class="a05-evidence" style="margin-top:14px;">
+          <strong>Recomendação complementar</strong>
+          O README do fork pessoal deve incorporar uma seção intitulada "ATAM Aula 05", contendo o link para a tabela e para os quatro scripts de estresse. Esse documento constitui o insumo direto da Aula 06.
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 27 - ROADMAP AULAS SEGUINTES                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell a05-compact">
+        <div>
+          <span class="deck-kicker">Roadmap &middot; Continuidade do curso</span>
+          <h2 class="deck-title">A Aula 05 como insumo das aulas subsequentes</h2>
+          <p class="deck-summary">A tabela ATAM elaborada nesta aula constitui a base de avaliação das três próximas. Na Aula 06 ocorre a migração para a nuvem; na Aula 07, os sensitivity points são reavaliados sob estresse em ambiente AWS; na Aula 08 ocorre a entrega do projeto final.</p>
+        </div>
+        <div class="a05-roadmap-grid">
+          <article class="deck-card">
+            <span class="a05-roadmap-date">Aula 06 &middot; 21/05/2026</span>
+            <h3>Migração para AWS via Gemini CLI</h3>
+            <p>Não há produção de nova tabela ATAM, sendo utilizada aquela produzida nesta aula. A execução compreende uma migração no formato <em>lift-and-shift</em> em EC2 e a posterior decomposição em S3, EC2 Streamlit e EC2 ClickHouse. As táticas previamente aplicadas são preservadas no novo contexto.</p>
+          </article>
+          <article class="deck-card">
+            <span class="a05-roadmap-date">Aula 07 &middot; 28/05/2026</span>
+            <h3>Bass aplicado a sistemas distribuídos na nuvem</h3>
+            <p>Os sensitivity points SP-01 a SP-05 são submetidos novamente a cenários de estresse, agora em condições reais de rede instável, reciclagem de instâncias EC2 e respostas <code>SlowDown</code> retornadas pelo S3. A análise verifica a efetividade das táticas implementadas.</p>
+          </article>
+          <article class="deck-card">
+            <span class="a05-roadmap-date">Aula 08 &middot; 11/06/2026</span>
+            <h3>Entrega do projeto final no GitHub</h3>
+            <p>Cada participante entrega um projeto que integra ATAM, Bass, AWS e práticas de SRE. A avaliação ocorre com base em evidências, contemplando tabela, testes, cenários de estresse e justificativas de custo.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 28 - REPO CTA FINAL                                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Encerramento &middot; Código da prática</span>
+          <h2 class="deck-title">Repositório da Aula 04 &mdash; base das atividades práticas</h2>
+          <p class="deck-summary">A refatoração, os testes automatizados e os scripts de estresse têm como origem o repositório indicado a seguir. O fluxo de trabalho contempla o fork pessoal, a criação de branches por tática, a abertura de pull requests internos e o merge na branch <code>main</code>. Ao final do encontro, o fork pessoal constitui o entregável da Aula 05.</p>
+        </div>
+        <div class="a05-repo-cta-wrap">
+          <a class="a05-repo-cta"
+             href="https://github.com/afonsolelis/20261sre-primeironome-ultimonome"
+             target="_blank"
+             rel="noopener">
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+            </svg>
+            <span class="a05-repo-cta-text">
+              <span class="a05-repo-cta-kicker">Stack base &middot; Aula 04 &middot; ponto de partida da refatoração</span>
+              <span>Abrir repositório no GitHub</span>
+            </span>
+          </a>
+          <p class="a05-repo-url">https://github.com/afonsolelis/20261sre-primeironome-ultimonome</p>
+        </div>
+        <p style="margin-top:18px; font-size:.92em; color: var(--deck-muted); text-align:center;">
+          Convenção adotada: realizar o <strong>fork</strong> e renomear o repositório para <code>20261sre-&lt;primeironome&gt;-&lt;ultimonome&gt;</code>. Cada tática é desenvolvida em uma branch <code>tactic/...</code> e cada cenário de estresse em uma branch <code>stress/...</code>.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mackenzie mini logo -->
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie" />
+
+  <!-- GLOBAL navigation footer -->
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../pages/home_cloud_sre.html" class="back-home">Índice</a>
+      <a href="../material/material_aula_05_integracao_etl_serverless_e_catalogo_de_dados.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <!-- Navigation script -->
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    document.getElementById('total-slides').textContent = totalSlides;
+    function showSlide(i) { slides.forEach(s => s.classList.remove('active')); slides[i].classList.add('active'); currentSlide = i; document.getElementById('current-slide').textContent = i + 1; document.getElementById('prev-btn').disabled = i === 0; document.getElementById('next-btn').disabled = i === totalSlides - 1; }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); previousSlide(); } else if (e.key.toLowerCase() === 'f') toggleFullScreen(); });
+    showSlide(0);
+  </script>
+</body>
+</html>

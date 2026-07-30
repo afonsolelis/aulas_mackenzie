@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Material Aula 03 — Modelagem da arquitetura com IA: RF, RNF, RTM e planos de teste</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css" />
+  <link rel="stylesheet" href="../../../../assets/slides.css" />
+  <style data-material03-local>
+    /* Material is a long-form document — neutralize the height/overflow rules
+       that slides.css applies to html, body. */
+    html, body.material {
+      height: auto !important;
+      min-height: 100%;
+      overflow: visible !important;
+    }
+    body.material .page { max-width: 980px; }
+    body.material pre {
+      background: #0d1117;
+      color: #e6edf3;
+      padding: 16px 18px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: .92rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      margin: 14px 0;
+    }
+    body.material code {
+      background: var(--deck-surface);
+      border: 1px solid var(--deck-line-soft);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: .9em;
+    }
+    body.material pre code { background: transparent; border: none; padding: 0; }
+    body.material table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: .95rem;
+    }
+    body.material thead th {
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: .82rem;
+      text-align: left;
+      padding: 10px 12px;
+      border-top: 1px solid #0f0f0f;
+      border-bottom: 1px solid #0f0f0f;
+      background: var(--deck-surface);
+    }
+    body.material tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--deck-line-soft);
+      vertical-align: top;
+    }
+    body.material tbody tr:last-child td { border-bottom: 1px solid #0f0f0f; }
+    .m03-callout {
+      border-left: 3px solid #0f0f0f;
+      background: var(--deck-surface);
+      padding: 18px 22px;
+      margin: 18px 0;
+      border-radius: 0 4px 4px 0;
+    }
+    .m03-callout strong:first-child { display: block; margin-bottom: 6px; }
+    .m03-mermaid {
+      background: var(--deck-panel, #ffffff);
+      border: 1px solid var(--deck-line, #d6d6d1);
+      border-radius: 4px;
+      padding: 18px;
+      margin: 18px 0;
+      overflow: auto;
+    }
+    .m03-mermaid pre.mermaid {
+      background: transparent !important;
+      color: var(--deck-text, #0f0f0f) !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      overflow: visible;
+    }
+    .m03-mermaid pre.mermaid::before { display: none !important; }
+    .m03-mermaid svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      background: transparent;
+    }
+    .m03-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      padding: 2px 8px;
+      border: 1px solid var(--deck-line);
+      border-radius: 3px;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body class="material">
+  <main class="page">
+
+    <section class="content-block">
+      <p class="meta">Aula 03 &nbsp;&bull;&nbsp; 30/04/2026 &nbsp;&bull;&nbsp; 19h00 &ndash; 22h00</p>
+      <h1>Modelagem da arquitetura com IA: RF, RNF, RTM e planos de teste</h1>
+      <p class="summary">
+        Este material acompanha a Aula 03 da disciplina <strong>Cloud Computing e SRE &mdash; Visão Prática com AWS</strong>
+        do MBA em Engenharia de Dados. A aula é um dia de modelagem &mdash; nada será provisionado na AWS hoje. A entrega é
+        a arquitetura desenhada, validada e rastreada em <code>/documents</code>, com a IA como copiloto.
+        Ao final, o AWS CLI é conectado ao Codespace via session token do Student Lab, deixando o ambiente armado para a Aula 04.
+      </p>
+      <p>
+        <span class="m03-tag">Pré-requisitos</span> Aula 02 entregue: <code>spec/00_problem.md</code> commitado, Codespace com OpenCode
+        e Gemini CLI funcionando, repo <code>olist-sre-pipeline</code> sincronizado.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>1. Do problema à arquitetura</h2>
+      <p>
+        Na Aula 02 modelamos o problema. Tínhamos um pipeline imaginário do Olist e listamos stakeholders, fluxos críticos,
+        modos de falha conhecidos e propriedades emergentes desejadas. Esse arquivo &mdash; <code>spec/00_problem.md</code> &mdash; é o input desta aula.
+        A pergunta agora muda: <em>com qual estrutura responderemos a esse problema?</em>
+      </p>
+      <p>
+        A modelagem da arquitetura tem uma armadilha clássica: pular para o desenho de caixinhas antes de ter requisitos escritos.
+        O resultado é uma arquitetura sedutora visualmente, porém sem critério de aceitação. Para escapar da armadilha, seguimos
+        uma cadeia rígida: <strong>problema &rarr; RF &rarr; RNF &rarr; arquitetura &rarr; testes &rarr; RTM &rarr; system design</strong>.
+        A IA acelera cada etapa, mas a coerência entre etapas é responsabilidade humana.
+      </p>
+
+      <h3>1.1 As cinco regras da modelagem com IA</h3>
+      <div class="m03-callout">
+        <strong>Não-negociáveis nesta aula</strong>
+        <ol>
+          <li>Nada de código antes de ter RF, RNF e arquitetura escritos.</li>
+          <li>Nada conectado à AWS antes do system design estar completo no markdown.</li>
+          <li>A IA propõe; você decide. Toda saída entra como diff revisável no git.</li>
+          <li>Cada componente da arquitetura aponta para ao menos um RF ou RNF &mdash; senão sai do desenho.</li>
+          <li>Cada RF/RNF aponta para ao menos um teste &mdash; senão é decoração.</li>
+        </ol>
+      </div>
+
+      <h3>1.2 A cadeia da modelagem</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th>Artefato</th><th>Pergunta que responde</th><th>Arquivo no repo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0</td><td>Spec do problema</td><td>Por que existimos?</td><td><code>spec/00_problem.md</code></td></tr>
+          <tr><td>1</td><td>Requisitos funcionais</td><td>O que o sistema faz?</td><td><code>documents/01_functional_requirements.md</code></td></tr>
+          <tr><td>2</td><td>Requisitos não funcionais</td><td>Com qual qualidade?</td><td><code>documents/02_non_functional_requirements.md</code></td></tr>
+          <tr><td>3</td><td>Arquitetura</td><td>Como está estruturado?</td><td><code>documents/03_architecture.md</code></td></tr>
+          <tr><td>4</td><td>RTM</td><td>Tudo está rastreado?</td><td><code>documents/04_rtm.md</code></td></tr>
+          <tr><td>5</td><td>Planos de teste</td><td>Como validamos?</td><td><code>documents/05_*.md</code> a <code>07_*.md</code></td></tr>
+          <tr><td>6</td><td>System design</td><td>Como mostro o todo?</td><td><code>documents/08_system_design.md</code></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="content-block">
+      <h2>2. Requisitos funcionais como contrato</h2>
+      <p>
+        Um requisito funcional descreve <em>o que</em> o sistema faz, observável de fora pelo ator que o aciona.
+        Ele não descreve implementação. Ele não descreve "como". Ele descreve o comportamento contratado.
+      </p>
+
+      <h3>2.1 Anatomia de um RF</h3>
+      <p>Cada requisito funcional precisa de:</p>
+      <ul>
+        <li><strong>Identificador estável</strong> &mdash; <code>RF-NN</code>, nunca renumerado.</li>
+        <li><strong>Título curto</strong> &mdash; verbo + objeto.</li>
+        <li><strong>Descrição em EARS</strong> &mdash; sintaxe controlada (ver 2.2).</li>
+        <li><strong>Atores</strong> &mdash; quem dispara o comportamento.</li>
+        <li><strong>Pré e pós-condições</strong> &mdash; estado antes e depois.</li>
+        <li><strong>Critério de aceitação em Gherkin</strong> &mdash; <code>Given / When / Then</code>.</li>
+        <li><strong>Prioridade MoSCoW</strong> &mdash; Must, Should, Could, Won't.</li>
+        <li><strong>Origem</strong> &mdash; stakeholder ou doc anterior que motivou o RF.</li>
+        <li><strong>Vinculado a</strong> &mdash; referência cruzada para componentes (Aula 04+) e casos de teste.</li>
+      </ul>
+
+      <h3>2.2 EARS &mdash; cinco padrões pragmáticos</h3>
+      <p>
+        EARS (Easy Approach to Requirements Syntax) foi criado por Alistair Mavin na Rolls-Royce
+        para escrever requisitos em linguagem natural controlada, sem cair em ambiguidade.
+        Cada requisito é uma das cinco formas:
+      </p>
+      <ul>
+        <li><strong>Ubíquo:</strong> <em>"O sistema deve&hellip;"</em> &mdash; comportamento sempre verdadeiro.</li>
+        <li><strong>Estado:</strong> <em>"Enquanto &lt;estado&gt;, o sistema deve&hellip;"</em> &mdash; vale só num modo.</li>
+        <li><strong>Evento:</strong> <em>"Quando &lt;gatilho&gt;, o sistema deve&hellip;"</em> &mdash; reage a um evento.</li>
+        <li><strong>Opcional:</strong> <em>"Onde &lt;feature&gt;, o sistema deve&hellip;"</em> &mdash; depende de configuração.</li>
+        <li><strong>Indesejado:</strong> <em>"Se &lt;condição&gt;, então o sistema deve&hellip;"</em> &mdash; reage a anomalia.</li>
+      </ul>
+      <p>
+        Para o pipeline Olist, o uso é direto: ingestão é evento (<em>quando o agendador disparar&hellip;</em>),
+        idempotência é opcional (<em>onde houver re-execução&hellip;</em>) e quarentena é indesejado
+        (<em>se uma linha falhar a validação&hellip;</em>).
+      </p>
+
+      <h3>2.3 Amostra mínima viável de RFs &mdash; pipeline Olist</h3>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>RF</th><th>Ator</th><th>Prioridade</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>RF-01</td><td>Quando o agendador disparar às 03h, o ETL deve ingerir o arquivo CSV diário do Olist.</td><td>Agendador</td><td>Must</td></tr>
+          <tr><td>RF-02</td><td>O ETL deve aplicar normalização de schema antes de carregar no Postgres.</td><td>ETL</td><td>Must</td></tr>
+          <tr><td>RF-03</td><td>Se uma linha falhar a validação, o ETL deve persistir o registro em quarentena com motivo.</td><td>ETL</td><td>Must</td></tr>
+          <tr><td>RF-04</td><td>O sistema deve expor um banco analítico em Postgres com modelo dimensional mínimo.</td><td>Postgres</td><td>Must</td></tr>
+          <tr><td>RF-05</td><td>O Grafana deve exibir os KPIs de growth e operação para a diretoria.</td><td>Grafana</td><td>Must</td></tr>
+          <tr><td>RF-06</td><td>Onde houver re-execução, o ETL deve ser idempotente sem duplicar linhas.</td><td>ETL</td><td>Must</td></tr>
+          <tr><td>RF-07</td><td>O ETL deve emitir logs estruturados em CloudWatch Logs.</td><td>ETL</td><td>Should</td></tr>
+          <tr><td>RF-08</td><td>Quando o SLO de frescor for violado, o controlador deve congelar deploy de novas mudanças.</td><td>Controlador SRE</td><td>Should</td></tr>
+          <tr><td>RF-09</td><td>Se ocorrerem 3 falhas consecutivas no Postgres, o controlador deve abrir circuit breaker.</td><td>Controlador SRE</td><td>Should</td></tr>
+        </tbody>
+      </table>
+      <p>Esta amostra é o ponto de partida. Em sala, a IA expande para ~15 RFs após análise da spec do problema.</p>
+    </section>
+
+    <section class="content-block">
+      <h2>3. RNF mensuráveis &mdash; ISO/IEC 25010</h2>
+      <p>
+        RNF não é "ser confiável". RNF é <strong>número, unidade, janela e fonte de medição</strong>. Sem essas quatro
+        coisas, ele vira aspiração e ninguém é capaz de testar. A norma ISO/IEC 25010 organiza qualidade em oito atributos &mdash;
+        os mesmos oito eixos que conduzem o curso desde a Aula 01.
+      </p>
+
+      <h3>3.1 Os oito atributos da ISO 25010</h3>
+      <table>
+        <thead>
+          <tr><th>Atributo</th><th>O que medir no Olist</th><th>Meta de exemplo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Functional suitability</td><td>Cobertura dos KPIs do dashboard</td><td>100% dos 12 KPIs entregues</td></tr>
+          <tr><td>Performance efficiency</td><td>Tempo de carga diária</td><td>p95 &lt; 30 min em 100k linhas</td></tr>
+          <tr><td>Reliability</td><td>Frescor do dashboard</td><td>99% dos dias prontos &le; 06h</td></tr>
+          <tr><td>Security</td><td>Acesso ao Postgres</td><td>0 conexões fora do SG dedicado</td></tr>
+          <tr><td>Maintainability</td><td>Tempo de onboarding</td><td>Dev novo sobe ETL em &le; 1 dia</td></tr>
+          <tr><td>Portability</td><td>Formatos abertos</td><td>0 dependências proprietárias</td></tr>
+          <tr><td>Compatibility</td><td>Versão Postgres</td><td>&ge; 14.x suportada por 24 meses</td></tr>
+          <tr><td>Usability</td><td>Tempo até insight</td><td>Diretor encontra KPI em &le; 3 cliques</td></tr>
+        </tbody>
+      </table>
+
+      <h3>3.2 SLI, SLO, SLA e error budget</h3>
+      <p>
+        Confiabilidade vira contrato operacional quando atravessa três camadas: <strong>SLI</strong> (Service Level Indicator,
+        o que medimos), <strong>SLO</strong> (Service Level Objective, a meta interna) e <strong>SLA</strong> (Service Level Agreement,
+        o compromisso externo). Confundir as três é perder a referência do que é negociável.
+      </p>
+      <ul>
+        <li><strong>SLI</strong> &mdash; é a métrica. Ex.: <em>% de dias com dashboard pronto até 06h</em>. Coletado pela observabilidade.</li>
+        <li><strong>SLO</strong> &mdash; é a meta. Ex.: <em>SLI &ge; 99% por trimestre</em>. Define o budget de erro.</li>
+        <li><strong>SLA</strong> &mdash; é o contrato. Ex.: <em>diretoria recebe crédito se SLI &lt; 95%</em>. Sempre &lt; SLO.</li>
+        <li><strong>Error budget</strong> &mdash; é o complemento de 1. Se SLO = 99%, error budget = 1% no trimestre.</li>
+      </ul>
+      <p>
+        O error budget é a régua que define quando o time pode experimentar e quando precisa parar para corrigir.
+        Quando o budget esgota, o pipeline congela mudanças. Esse "freeze" é uma das peças do closed loop que veremos em 7.
+      </p>
+
+      <h3>3.3 Utility tree &mdash; o que merece atenção primeiro</h3>
+      <p>
+        Utility tree é a ferramenta clássica do método ATAM para priorizar atributos de qualidade. Cada folha recebe um par
+        <strong>(impacto no negócio, dificuldade técnica)</strong> em escala alta/média/baixa. O canto superior-esquerdo
+        &mdash; alto impacto e alta dificuldade &mdash; é onde a arquitetura ganha ou perde.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Atributo</th><th>Cenário concreto</th><th>(Negócio, Técnico)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Reliability</td><td>Fonte cai por 1h durante a janela; pipeline retoma sem dado perdido.</td><td>(Alto, Alto)</td></tr>
+          <tr><td>Performance</td><td>Volume dobra para 200k linhas; ETL ainda termina em &lt; 30 min.</td><td>(Alto, Médio)</td></tr>
+          <tr><td>Security</td><td>Credenciais não vivem em código nem em buckets públicos.</td><td>(Alto, Médio)</td></tr>
+          <tr><td>Maintainability</td><td>Novo dev entrega ajuste em ETL em &le; 1 dia.</td><td>(Médio, Médio)</td></tr>
+          <tr><td>Cost</td><td>Custo mensal &le; teto definido pelo Learner Lab.</td><td>(Alto, Baixo)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="content-block">
+      <h2>4. RTM &mdash; rastreabilidade ponta a ponta</h2>
+      <p>
+        A Requirements Traceability Matrix é a costura entre todos os artefatos. Ela liga cada RF/RNF a um
+        componente da arquitetura e a um caso de teste. Se a coluna "Componente" estiver vazia, o requisito não tem onde
+        ser realizado &mdash; é arquitetura faltando. Se a coluna "Caso de teste" estiver vazia, ninguém vai validar &mdash; é teste faltando.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Req</th><th>Tipo</th><th>Componente</th><th>Caso de teste</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>RF-01</td><td>Funcional</td><td>ETL Python &middot; scheduler</td><td>TC-LOAD-01</td><td>Coberto</td></tr>
+          <tr><td>RF-06</td><td>Funcional</td><td>ETL Python &middot; upsert</td><td>TC-INT-03</td><td>Coberto</td></tr>
+          <tr><td>RF-08</td><td>Funcional</td><td>Controlador SRE</td><td>TC-CHAOS-04</td><td>Aberto</td></tr>
+          <tr><td>RNF-REL-01</td><td>Não-fun.</td><td>Pipeline + observabilidade</td><td>TC-CHAOS-02</td><td>Aberto</td></tr>
+          <tr><td>RNF-PERF-01</td><td>Não-fun.</td><td>EC2 ETL &middot; sizing</td><td>TC-LOAD-02</td><td>Coberto</td></tr>
+          <tr><td>RNF-SEC-01</td><td>Não-fun.</td><td>Postgres &middot; SG</td><td>TC-SEC-04</td><td>Aberto</td></tr>
+          <tr><td>RNF-SAFE-01</td><td>Não-fun.</td><td>Closed loop CW &rarr; Controlador</td><td>TC-CHAOS-05</td><td>Aberto</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Critério prático: RTM com mais de 30% das linhas em "Aberto" significa que a arquitetura ou os planos de teste
+        ainda estão imaturos. Voltar um passo na cadeia é mais barato do que seguir adiante com dívida estrutural.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>5. Plano de testes &mdash; pirâmide do pipeline</h2>
+      <p>
+        A pirâmide de testes tradicional foi pensada para aplicações OLTP. Para um pipeline de dados, ela ganha
+        camadas adicionais: contrato (validação de schema), carga (performance e escala), segurança (STRIDE/OWASP),
+        caos (resiliência sistêmica) e modelagem (coerência arquitetural). Hoje desenhamos os planos &mdash; nas próximas aulas eles ganham automação.
+      </p>
+      <table>
+        <thead>
+          <tr><th>Camada</th><th>Defende</th><th>Ferramenta sugerida</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Unitário</td><td>Lógica isolada do ETL</td><td>pytest</td></tr>
+          <tr><td>Integração</td><td>ETL + Postgres reais</td><td>pytest + testcontainers</td></tr>
+          <tr><td>Contrato</td><td>Schema do dashboard</td><td>JSON Schema, Great Expectations</td></tr>
+          <tr><td>Carga</td><td>Performance e escala</td><td>k6, Locust</td></tr>
+          <tr><td>Segurança</td><td>STRIDE / OWASP</td><td>Bandit, Trivy, OWASP ZAP, gitleaks</td></tr>
+          <tr><td>Caos</td><td>Resiliência sistêmica</td><td>Toxiproxy, scripts SSM</td></tr>
+          <tr><td>Modelagem</td><td>Coerência arquitetural</td><td>ATAM workshop, FMEA leve</td></tr>
+        </tbody>
+      </table>
+
+      <h3>5.1 Carga &mdash; Load, Soak, Spike, Stress (LISA)</h3>
+      <p>
+        Quatro perfis distintos respondem a perguntas diferentes. Modelar os quatro evita a armadilha do "passou no benchmark e morreu na produção".
+      </p>
+      <ul>
+        <li><strong>Load</strong> &mdash; volume típico esperado. Pergunta: <em>aguenta o dia normal?</em> Olist: 100k linhas, p95 &lt; 30 min.</li>
+        <li><strong>Soak</strong> &mdash; carga estendida por horas. Pergunta: <em>vaza memória? cresce backlog?</em> Olist: 6h consecutivas no Codespace.</li>
+        <li><strong>Spike</strong> &mdash; subida súbita. Pergunta: <em>recupera ou trava?</em> Olist: rajada 5x em 60s no Postgres.</li>
+        <li><strong>Stress</strong> &mdash; vai até quebrar. Pergunta: <em>onde é o teto?</em> Olist: dobra volume até falhar.</li>
+      </ul>
+      <p>
+        Cada cenário precisa de hipótese, ferramenta, volume, duração, métrica de sucesso e <strong>RNF coberto</strong>. A última
+        coluna é a costura com a RTM &mdash; sem ela, o teste de carga fica órfão de propósito.
+      </p>
+
+      <h3>5.2 Segurança &mdash; STRIDE + OWASP + camadas</h3>
+      <p>
+        Modelar segurança é saber quais ameaças importam. STRIDE classifica por categoria; OWASP fornece cenários concretos;
+        SAST/DAST/SCA automatizam a verificação. As seis categorias STRIDE são:
+      </p>
+      <ul>
+        <li><strong>S</strong>poofing &mdash; identidade falsa (ex.: falsificar conexão ao Postgres).</li>
+        <li><strong>T</strong>ampering &mdash; alteração não autorizada (ex.: modificar CSV antes da ingestão).</li>
+        <li><strong>R</strong>epudiation &mdash; ação sem rastro (ex.: ETL sem log estruturado).</li>
+        <li><strong>I</strong>nformation disclosure &mdash; vazamento (ex.: bucket S3 público).</li>
+        <li><strong>D</strong>enial of service &mdash; ex.: rajada que derruba Grafana.</li>
+        <li><strong>E</strong>levation of privilege &mdash; ex.: ETL com role excessiva.</li>
+      </ul>
+      <p>Por camada, o pipeline Olist é coberto por:</p>
+      <table>
+        <thead><tr><th>Camada</th><th>Ferramenta</th><th>O que verifica</th></tr></thead>
+        <tbody>
+          <tr><td>SAST</td><td>Bandit</td><td>Antipadrões no código Python</td></tr>
+          <tr><td>SCA</td><td>Trivy</td><td>Dependências vulneráveis</td></tr>
+          <tr><td>Secret scan</td><td>gitleaks</td><td>Tokens em commit ou histórico</td></tr>
+          <tr><td>DAST</td><td>OWASP ZAP</td><td>Endpoints expostos do Grafana</td></tr>
+          <tr><td>Cloud posture</td><td>Prowler</td><td>Configuração da conta AWS</td></tr>
+          <tr><td>IAM</td><td>Revisão LabRole</td><td>Permissões mínimas necessárias</td></tr>
+        </tbody>
+      </table>
+
+      <h3>5.3 Modelagem &mdash; o desenho passa em revisão?</h3>
+      <p>
+        Antes de qualquer linha de código, o desenho passa por dois testes de modelagem: <strong>ATAM</strong> (atributos vs cenários)
+        e <strong>FMEA leve</strong> (modos de falha por componente). É barato falhar no markdown.
+      </p>
+      <ul>
+        <li><strong>ATAM por cenários</strong> &mdash; os cenários da utility tree são "exercitados" no desenho. Cada cenário recebe um rótulo: <em>risco</em>, <em>sensibilidade</em> ou <em>trade-off</em>. Saída: lista de pontos sensíveis a monitorar.</li>
+        <li><strong>FMEA leve</strong> &mdash; para cada componente, lista-se modo de falha, efeito e detecção. Severidade &times; ocorrência &times; detecção = RPN. Componentes com RPN alto puxam mitigação na arquitetura.</li>
+        <li><strong>Walkthrough do papel</strong> &mdash; ler em voz alta o fluxo ponta a ponta, pedir à IA que faça o devil's advocate, anotar cada "e se?" como caso de teste novo.</li>
+      </ul>
+    </section>
+
+    <section class="content-block">
+      <h2>6. RM-ODP &mdash; cinco viewpoints da arquitetura</h2>
+      <p>
+        Para evitar arquiteturas que viram diagramas de caixinhas sem direção, separamos a descrição em
+        cinco viewpoints, padrão ITU-T X.901 / ISO/IEC 10746. Cada um olha o mesmo sistema sob uma lente diferente,
+        e cada um vira uma seção em <code>documents/03_architecture.md</code>.
+      </p>
+      <table>
+        <thead><tr><th>Viewpoint</th><th>Pergunta</th><th>Saída esperada</th></tr></thead>
+        <tbody>
+          <tr><td>Enterprise</td><td>Quem se beneficia e por quê?</td><td>Stakeholders, objetivos, políticas</td></tr>
+          <tr><td>Information</td><td>Que informação flui?</td><td>Modelo de dados, entidades, eventos</td></tr>
+          <tr><td>Computational</td><td>Que serviços expomos?</td><td>Componentes, interfaces, contratos</td></tr>
+          <tr><td>Engineering</td><td>Onde roda? Como se distribui?</td><td>Topologia, deploy, rede, segurança</td></tr>
+          <tr><td>Technology</td><td>Quais tecnologias concretas?</td><td>Postgres, EC2, Grafana, AWS CLI, Mermaid</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Para cada componente proposto em qualquer viewpoint, anotamos quais RF e RNF ele atende. Isso já alimenta a RTM.
+        Decisões controversas viram <strong>ADRs</strong> (Architecture Decision Records) curtos: contexto, decisão, consequências.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>7. Closed loops &mdash; malha fechada como sistema de segurança</h2>
+      <p>
+        Em <strong>malha aberta</strong>, o pipeline executa, gera log e segue. Em <strong>malha fechada</strong>, a observação volta
+        a influenciar a próxima execução. Confiabilidade séria nasce de loops fechados &mdash; é controle clássico
+        aplicado à confiabilidade de software. Cada SLO importa nada se o sistema não age sobre o desvio.
+      </p>
+
+      <h3>7.1 Anatomia de um closed loop em SRE</h3>
+      <ul>
+        <li><strong>Sensor</strong> &mdash; SLI medido continuamente (frescor, lag, contagem, taxa de erro).</li>
+        <li><strong>Comparador</strong> &mdash; compara SLI com SLO; a diferença é o erro de controle.</li>
+        <li><strong>Controlador</strong> &mdash; decide a ação corretiva (retry, scale, freeze, quarentena, breaker).</li>
+        <li><strong>Atuador</strong> &mdash; aplica a ação no componente correspondente (ETL, Postgres, scheduler).</li>
+        <li><strong>Reobservação</strong> &mdash; mede de novo após a ação e fecha o ciclo.</li>
+      </ul>
+
+      <h3>7.2 Por que isso é segurança operacional</h3>
+      <p>
+        Sistemas em malha fechada falham de forma <em>contida</em>. A perturbação não se propaga porque o controlador
+        intervém antes do dano agregado. Em SRE, isso se traduz em quatro ganhos diretos:
+      </p>
+      <ul>
+        <li><strong>Bloqueia propagação de falha</strong> &mdash; falha em um nó vira sinal, não cascata.</li>
+        <li><strong>Reduz dependência humana</strong> &mdash; MTTR cai porque a primeira reação é automática.</li>
+        <li><strong>Transforma alerta passivo em ação garantida</strong> &mdash; "Slack pingando às 3h" deixa de ser único recurso.</li>
+        <li><strong>Exige idempotência</strong> &mdash; reforça RF-06; se o atuador é idempotente, retries são seguros.</li>
+        <li><strong>Fornece evidência auditável</strong> &mdash; logs do controlador mostram o que foi decidido e quando.</li>
+      </ul>
+
+      <h3>7.3 Cinco closed loops do Olist a modelar hoje</h3>
+      <ol>
+        <li><strong>Backpressure de ingestão</strong> &mdash; se a fila do ETL passar do limiar, o scheduler trava o próximo run até drenar.</li>
+        <li><strong>Circuit breaker do Postgres</strong> &mdash; 3 falhas consecutivas &rarr; ETL pausa; após health-check ok, retoma.</li>
+        <li><strong>Quarentena auto-reentrante</strong> &mdash; linhas em quarentena entram no próximo ciclo após correção do schema.</li>
+        <li><strong>Freeze por error budget</strong> &mdash; SLO de frescor abaixo de 95% &rarr; pipeline congela mudanças até budget se recuperar.</li>
+        <li><strong>Drift de dados</strong> &mdash; contagem fora de banda histórica &rarr; alerta + dashboard marca dado como suspeito.</li>
+      </ol>
+
+      <div class="m03-callout">
+        <strong>Cuidado &middot; loops mal projetados</strong>
+        <p>Closed loops sem limites se transformam em "fugas térmicas": o controlador agita o sistema mais do que estabiliza.
+        Por isso, todo loop precisa de <em>limite de atuação</em> (tentativas máx., janela mínima, kill switch manual)
+        e <em>backoff exponencial</em>. A IA tende a propor loops agressivos &mdash; questione os limites em cada review.</p>
+      </div>
+    </section>
+
+    <section class="content-block">
+      <h2>8. A IA na modelagem &mdash; copiloto, nunca piloto</h2>
+      <p>
+        A IA acelera redação técnica, encontra ângulos esquecidos e revisa decisões. Mas autoridade arquitetural
+        continua no engenheiro &mdash; é ele quem assina o desenho. Para que a IA renda no projeto, ela precisa
+        de instruções persistentes (não prompts gigantes a cada sessão) e de skills focadas.
+      </p>
+
+      <h3>8.1 Arquivos canônicos de instrução</h3>
+      <ul>
+        <li><strong><code>AGENTS.md</code></strong> &mdash; padrão emergente, lido por OpenCode e similares na raiz do repo.</li>
+        <li><strong><code>GEMINI.md</code> ou <code>.gemini/system.md</code></strong> &mdash; carregado pelo Gemini CLI.</li>
+        <li><strong><code>CLAUDE.md</code></strong> &mdash; equivalente para o Claude Code.</li>
+        <li><strong><code>documents/agents/skills/*.md</code></strong> &mdash; skills focadas, chamadas por nome.</li>
+      </ul>
+
+      <h3>8.2 O que entra em <code>AGENTS.md</code></h3>
+      <ul>
+        <li>Contexto do projeto (Olist, SRE, AWS Student Lab).</li>
+        <li>Restrições duras (sem Glue, sem Redshift, sem secrets em código).</li>
+        <li>Padrões de saída (markdown, EARS, tabelas RTM).</li>
+        <li>Ordem de leitura dos artefatos.</li>
+        <li>Comportamento esperado: criticar, autocriticar, listar premissas.</li>
+      </ul>
+
+      <h3>8.3 Skills &mdash; comportamentos focados e composáveis</h3>
+      <p>
+        Skill é uma instrução pequena, com escopo único, que a IA carrega quando o contexto bate. Em vez de prompts
+        gigantes que carregam todo o projeto a cada chamada, mantemos um catálogo curto de skills nomeadas. A IA é
+        instruída a "rodar a skill X usando o arquivo Y como entrada".
+      </p>
+      <p>Cada skill tem seis seções obrigatórias:</p>
+      <ol>
+        <li><strong>Quando usar</strong> &mdash; gatilho de aplicação.</li>
+        <li><strong>Entrada esperada</strong> &mdash; arquivos lidos.</li>
+        <li><strong>Passos rígidos</strong> &mdash; sequência determinística.</li>
+        <li><strong>Critérios de aceitação</strong> &mdash; o que torna a saída válida.</li>
+        <li><strong>Formato de saída</strong> &mdash; markdown, tabela, ou seção específica.</li>
+        <li><strong>Anti-padrões</strong> &mdash; o que a skill nunca deve fazer.</li>
+      </ol>
+
+      <h3>8.4 Catálogo das skills da Aula 03</h3>
+      <ul>
+        <li><code>elicit_rf</code> &mdash; extrai RFs do problema, em EARS.</li>
+        <li><code>elicit_rnf</code> &mdash; extrai RNFs mensuráveis cobrindo as 8 dimensões da ISO 25010.</li>
+        <li><code>build_rtm</code> &mdash; gera a tabela de rastreabilidade.</li>
+        <li><code>review_architecture</code> &mdash; aplica ATAM enxuto e devolve riscos/sensibilidades/trade-offs.</li>
+        <li><code>plan_load_test</code> &mdash; gera Load/Soak/Spike/Stress com hipótese, ferramenta, volume, duração e RNF coberto.</li>
+        <li><code>plan_security_test</code> &mdash; aplica STRIDE em cada componente e mapeia camadas SAST/DAST/SCA.</li>
+      </ul>
+
+      <h3>8.5 Requisitos não-negociáveis para a IA na modelagem</h3>
+      <div class="m03-callout">
+        <strong>Regras duras &mdash; entram em <code>AGENTS.md</code></strong>
+        <ol>
+          <li>Toda saída em markdown válido, com cabeçalhos hierárquicos e identificadores estáveis (<code>RF-NN</code>, <code>RNF-NN</code>, <code>TC-NN</code>, <code>ADR-NN</code>).</li>
+          <li>Toda afirmação tem fonte &mdash; cita stakeholder, doc anterior ou marca explicitamente como "premissa".</li>
+          <li>Toda decisão técnica vira ADR curto: contexto, decisão, consequências.</li>
+          <li>Toda RNF é mensurável &mdash; valor, unidade, janela, fonte de medição.</li>
+          <li>Sem código pronto nesta aula. Apenas descrição estrutural e diagramas Mermaid.</li>
+          <li>"Premissas e questões em aberto" obrigatório ao final de cada arquivo.</li>
+          <li>Sem inventar serviços AWS bloqueados (Glue, Redshift, SageMaker estão fora).</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="content-block">
+      <h2>9. Estrutura de <code>/documents</code> e prompts de referência</h2>
+
+      <h3>9.1 Layout final</h3>
+<pre>documents/
+├── 00_index.md                          # mapa do diretório
+├── 01_functional_requirements.md        # RF-01..RF-NN
+├── 02_non_functional_requirements.md    # RNF + SLO/SLI
+├── 03_architecture.md                   # RM-ODP 5 viewpoints
+├── 04_rtm.md                            # matriz RF/RNF -&gt; componente -&gt; teste
+├── 05_test_plan_load.md                 # Load, Soak, Spike, Stress
+├── 06_test_plan_security.md             # STRIDE, OWASP, SAST/DAST
+├── 07_test_plan_modeling.md             # ATAM, FMEA, walkthrough
+├── 08_system_design.md                  # diagrama Mermaid + narrativa
+├── 09_aws_cli_session.md                # como conectar AWS CLI no Codespace
+└── agents/
+    ├── AGENTS.md                        # instruções base para IAs
+    ├── GEMINI.md                        # ajustes específicos do Gemini CLI
+    └── skills/
+        ├── elicit_rf.md
+        ├── elicit_rnf.md
+        ├── build_rtm.md
+        ├── review_architecture.md
+        ├── plan_load_test.md
+        └── plan_security_test.md</pre>
+
+      <h3>9.2 Recipe &mdash; Gemini CLI</h3>
+      <p>Padrão de chamada não-interativa: a IA lê arquivos do repo, escreve markdown novo na <code>/documents</code> e nada além disso.</p>
+<pre>gemini --yolo &lt;&lt;'EOF'
+Leia spec/00_problem.md e documents/01_functional_requirements.md.
+Aplique a skill documents/agents/skills/elicit_rnf.md.
+Produza documents/02_non_functional_requirements.md cobrindo
+todos os 8 atributos da ISO/IEC 25010, com SLI/SLO mensuráveis.
+Liste premissas ao final.
+Não rode comandos shell. Apenas escreva markdown.
+EOF</pre>
+      <p>Para revisão de arquitetura:</p>
+<pre>gemini -p "Aplique documents/agents/skills/review_architecture.md
+em documents/03_architecture.md. Liste 5 riscos, 3 trade-offs
+e 2 perguntas que ainda preciso responder."</pre>
+
+      <h3>9.3 Recipe &mdash; OpenCode</h3>
+      <p>OpenCode é interativo por padrão. O fluxo abaixo é colado dentro da sessão. A skill é chamada por nome.</p>
+<pre>opencode
+
+&gt; Carregue AGENTS.md, depois rode a skill elicit_rf
+&gt; usando spec/00_problem.md como entrada.
+&gt; Produza documents/01_functional_requirements.md.
+
+&gt; Agora rode build_rtm e ligue cada RF a um componente
+&gt; do documents/03_architecture.md e a um TC do
+&gt; documents/05_test_plan_load.md ou 06.
+
+&gt; Critique o resultado: onde a rastreabilidade está fraca?</pre>
+
+      <h3>9.4 Workflow iterativo &mdash; cinco passos por artefato</h3>
+      <table>
+        <thead><tr><th>#</th><th>Passo</th><th>Saída</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Brief</strong> &mdash; enunciar problema e restrições</td><td>Prompt curto + arquivos referenciados</td></tr>
+          <tr><td>2</td><td><strong>Draft</strong> &mdash; deixa a IA propor</td><td>Markdown rascunho na <code>/documents</code></td></tr>
+          <tr><td>3</td><td><strong>Critique</strong> &mdash; pede autocrítica</td><td>Lista de riscos, ambiguidades, premissas</td></tr>
+          <tr><td>4</td><td><strong>Cross-check</strong> &mdash; roda o mesmo brief nas duas IAs</td><td>Diff entre Gemini e OpenCode</td></tr>
+          <tr><td>5</td><td><strong>Commit</strong> &mdash; revisa, edita, comita</td><td>Diff humano no git</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="content-block">
+      <h2>10. Roteiro prático &mdash; 21h00 &ndash; 22h00</h2>
+      <p>
+        A última hora é guiada. A turma trabalha no Codespace ao mesmo ritmo. Ao final, todos têm o repo
+        completo e o AWS CLI conectado ao Student Lab. Nenhum recurso AWS é provisionado &mdash; este é dia de modelagem.
+      </p>
+
+      <h3>10.1 Passo 1 &mdash; reabrir o Codespace e criar a estrutura</h3>
+<pre>cd ~/olist-sre-pipeline
+git pull origin main
+
+mkdir -p documents/agents/skills
+
+cd documents
+touch 00_index.md \
+      01_functional_requirements.md \
+      02_non_functional_requirements.md \
+      03_architecture.md \
+      04_rtm.md \
+      05_test_plan_load.md \
+      06_test_plan_security.md \
+      07_test_plan_modeling.md \
+      08_system_design.md \
+      09_aws_cli_session.md
+touch agents/AGENTS.md agents/GEMINI.md
+touch agents/skills/elicit_rf.md \
+      agents/skills/elicit_rnf.md \
+      agents/skills/build_rtm.md \
+      agents/skills/review_architecture.md \
+      agents/skills/plan_load_test.md \
+      agents/skills/plan_security_test.md
+cd ..</pre>
+
+      <h3>10.2 Passo 2 &mdash; escrever <code>AGENTS.md</code></h3>
+<pre># AGENTS.md &middot; olist-sre-pipeline
+
+## Contexto
+Pipeline de dados Olist em AWS Academy Learner Lab (us-east-1).
+ETL Python -&gt; Postgres -&gt; Grafana. SRE-first.
+
+## Restrições duras
+- Sem Glue, Redshift, SageMaker (Learner Lab nao habilita).
+- Sem secrets em codigo. Tudo via SSM Parameter Store.
+- Sem provisionar nada nesta aula. Apenas markdown e Mermaid.
+
+## Saida esperada
+- Markdown valido com cabecalhos hierarquicos.
+- IDs estaveis: RF-NN, RNF-NN, TC-NN, ADR-NN.
+- RNF mensuravel: valor, unidade, janela, fonte.
+- Premissas e questoes em aberto ao final.
+
+## Comportamento
+- Critique sua saida antes de entregar.
+- Liste 3 riscos e 2 ambiguidades por arquivo.
+- Use as skills em documents/agents/skills/.
+- Nao invente nomes de servico AWS.</pre>
+
+      <h3>10.3 Passo 3 &mdash; escrever uma skill (<code>elicit_rnf</code>)</h3>
+      <p>Use o template abaixo como referência para todas as outras cinco skills.</p>
+<pre># skills/elicit_rnf.md
+
+## Quando usar
+Quando o usuario pedir RNFs e ja existir spec/00_problem.md
+e/ou documents/01_functional_requirements.md.
+
+## Entrada
+- spec/00_problem.md (obrigatorio)
+- documents/01_functional_requirements.md (opcional)
+
+## Passos
+1. Ler stakeholders e fluxos criticos do problema.
+2. Mapear cada fluxo aos 8 atributos da ISO 25010.
+3. Para cada atributo, propor 1 a 3 RNFs com SLI mensuravel.
+4. Marcar prioridade MoSCoW.
+5. Listar premissas e fontes de medicao.
+
+## Saida
+Arquivo documents/02_non_functional_requirements.md com:
+- secao por atributo ISO 25010
+- IDs RNF-NN unicos
+- tabela final com (ID, atributo, SLI, SLO, fonte, prioridade)
+
+## Criterios de aceitacao
+- 8 atributos cobertos.
+- Todo RNF tem unidade e janela.
+- Nenhum RNF aspiracional ("ser confiavel" e proibido).
+
+## Anti-padroes
+- RNF sem unidade ou sem janela.
+- Atributo ISO 25010 ausente.
+- Resposta com codigo Python pronto.</pre>
+
+      <h3>10.4 Passo 4 &mdash; gerar RF e RNF com a IA</h3>
+<pre># Gemini CLI
+gemini -p "Aplique documents/agents/skills/elicit_rf.md.
+Entrada: spec/00_problem.md.
+Escreva documents/01_functional_requirements.md."
+
+gemini -p "Aplique documents/agents/skills/elicit_rnf.md.
+Entrada: spec/00_problem.md e
+documents/01_functional_requirements.md.
+Escreva documents/02_non_functional_requirements.md."
+
+# OpenCode
+opencode
+&gt; Aplique elicit_rf usando spec/00_problem.md.
+&gt; Em seguida elicit_rnf.
+&gt; Compare seu draft com o que esta no git;
+&gt; aponte 3 divergencias relevantes.</pre>
+
+      <h3>10.5 Passo 5 &mdash; gerar a arquitetura RM-ODP</h3>
+<pre>gemini -p "Leia 01_functional_requirements.md e
+02_non_functional_requirements.md.
+Escreva documents/03_architecture.md com 5 secoes RM-ODP:
+- Enterprise viewpoint
+- Information viewpoint
+- Computational viewpoint
+- Engineering viewpoint
+- Technology viewpoint
+
+Para cada componente proposto, identifique quais RF e RNF
+ele atende. Liste 3 ADRs (Architecture Decision Records)
+curtos: contexto, decisao, consequencias.
+Modele explicitamente os closed loops (sensor, controlador, atuador).
+Restricoes: AWS Academy Learner Lab, sem Glue, sem Redshift."</pre>
+      <p>
+        Critério de pronto deste passo: cada RF e cada RNF aparecem ao menos uma vez no arquivo;
+        cada componente aponta para ao menos um RF ou RNF; closed loops descritos com sensor, controlador e atuador.
+        Componentes sem vínculo saem do desenho.
+      </p>
+
+      <h3>10.6 Passo 6 &mdash; costurar a RTM</h3>
+<pre>gemini -p "Aplique documents/agents/skills/build_rtm.md.
+Entrada: 01_functional_requirements.md,
+02_non_functional_requirements.md,
+03_architecture.md.
+Escreva documents/04_rtm.md como tabela markdown
+com colunas: Req | Tipo | Origem | Componente | Caso de teste | Status.
+Marque como 'Aberto' qualquer requisito que ainda nao tem
+componente OU nao tem caso de teste.
+Conte ao final: quantos requisitos abertos? quantos cobertos?"</pre>
+
+      <h3>10.7 Passo 7 &mdash; gerar os três planos de teste</h3>
+<pre># Carga
+gemini -p "Aplique plan_load_test.md sobre
+03_architecture.md e 02_non_functional_requirements.md.
+Saida: documents/05_test_plan_load.md com Load, Soak, Spike, Stress.
+Cada cenario deve ter: hipotese, ferramenta (k6), volume, duracao,
+metrica de sucesso, RNF coberto."
+
+# Seguranca
+gemini -p "Aplique plan_security_test.md sobre 03_architecture.md.
+Aplique STRIDE em cada componente. Liste OWASP Top 10 aplicaveis.
+Defina TC-SEC-NN para SAST (Bandit), SCA (Trivy), DAST (ZAP),
+secret scan (gitleaks), cloud posture (Prowler).
+Saida: documents/06_test_plan_security.md."
+
+# Modelagem (incluindo closed loops)
+opencode
+&gt; Faca um ATAM enxuto sobre 03_architecture.md usando os
+&gt; cenarios da utility tree em 02_non_functional_requirements.md.
+&gt; Para cada cenario, classifique como risco / sensibilidade /
+&gt; trade-off. Inclua TC-CHAOS-NN para cada closed loop:
+&gt; backpressure, circuit breaker, freeze por error budget,
+&gt; quarentena auto-reentrante e drift de dados.
+&gt; Saida: documents/07_test_plan_modeling.md.</pre>
+
+      <h3>10.8 Passo 8 &mdash; system design final em Mermaid</h3>
+      <p>
+        O <code>08_system_design.md</code> contém narrativa de uma página seguida do diagrama abaixo.
+        Cada aresta carrega o ID do RF; cada componente, os RNFs que precisa atender. As setas duplas formam o closed loop.
+      </p>
+      <div class="m03-mermaid">
+        <pre class="mermaid">
+flowchart LR
+  subgraph SOURCE["Origem (fora do controle)"]
+    CSV["CSV Olist (Kaggle)"]
+  end
+  subgraph DEV["Camada de desenvolvimento"]
+    CS["GitHub Codespace"]
+    GH["GitHub Repo + CI"]
+  end
+  subgraph AWS["AWS Student Lab us-east-1"]
+    EC2APP["EC2 ETL Python<br/>RNF-PERF-01<br/>RNF-REL-01"]
+    EC2DB["EC2 Postgres<br/>RNF-SEC-01<br/>RNF-MAINT-01"]
+    EC2OBS["EC2 Grafana<br/>RNF-USAB-01"]
+    S3RAW["S3 raw / trusted / refined<br/>RNF-PORT-01"]
+    CW["CloudWatch + Logs<br/>RNF-REL-02"]
+    SSM["SSM Parameter Store<br/>RNF-SEC-02"]
+    CTRL["Controlador SRE<br/>(EventBridge + SSM Run)<br/>RNF-SAFE-01"]
+  end
+  subgraph CONS["Consumidores"]
+    DIR["Diretoria Olist"]
+  end
+
+  CSV -->|RF-01 ingestao| EC2APP
+  EC2APP -->|RF-02 normaliza| EC2DB
+  EC2APP -->|RF-03 raw| S3RAW
+  EC2APP -.->|RF-07 logs| CW
+  EC2DB -.->|RNF-REL-02 metrics| CW
+  EC2APP -.->|RNF-SEC-02 secrets| SSM
+  EC2DB -->|RF-04 query| EC2OBS
+  EC2OBS -->|RF-05 dashboard| DIR
+  CS --> GH --> EC2APP
+  EC2APP -->|RF-06 idempotencia| EC2DB
+
+  %% Closed loop / malha fechada de seguranca operacional
+  CW ==>|"alerta SLO violado"| CTRL
+  CTRL ==>|"RF-08 freeze / retry"| EC2APP
+  CTRL ==>|"RF-09 circuit breaker"| EC2DB
+  CTRL -.->|"audit trail"| S3RAW
+        </pre>
+      </div>
+      <p>
+        As arestas grossas formam o closed loop: <strong>sensor</strong> (CW) &rarr; <strong>controlador</strong>
+        (EventBridge + SSM Run) &rarr; <strong>atuadores</strong> (ETL e Postgres) &rarr; <strong>nova medição</strong> (CW).
+        Esse loop é o sistema de segurança operacional do pipeline.
+      </p>
+
+      <h3>10.9 Passo 9 &mdash; conectar o AWS CLI com session token</h3>
+      <p>
+        Última peça da aula. O Codespace passa a falar com a conta do Student Lab. Nenhum recurso AWS é provisionado hoje &mdash;
+        validamos apenas o handshake.
+      </p>
+<pre># 1) No AWS Academy Learner Lab: Start Lab -&gt; AWS Details -&gt;
+#    Show -&gt; copiar bloco "AWS CLI" (3 linhas com tokens).
+
+# 2) No Codespace, criar o arquivo de credenciais
+mkdir -p ~/.aws
+cat &gt; ~/.aws/credentials &lt;&lt;'EOF'
+[default]
+aws_access_key_id=ASIA...
+aws_secret_access_key=...
+aws_session_token=...
+EOF
+chmod 600 ~/.aws/credentials
+
+cat &gt; ~/.aws/config &lt;&lt;'EOF'
+[default]
+region = us-east-1
+output = json
+EOF
+
+# 3) Validar o handshake (so leitura, sem custo)
+aws sts get-caller-identity
+aws s3 ls
+aws ec2 describe-regions --query "Regions[0].RegionName"</pre>
+      <div class="m03-callout">
+        <strong>Cuidado &middot; o token expira</strong>
+        <p>O session token do Learner Lab é curto (~3h). Quando expirar, basta refazer o passo 2 com o bloco novo.
+        Nunca comite <code>~/.aws/credentials</code>. Garanta que <code>.gitignore</code> inclui <code>.aws/</code> e <code>.env</code>.</p>
+      </div>
+
+      <h3>10.10 Passo 10 &mdash; critério de pronto e commit</h3>
+      <p>Antes do <code>git push</code>, cada item desta lista precisa estar verde:</p>
+      <ul>
+        <li><code>documents/01..07</code> preenchidos com IDs estáveis.</li>
+        <li>RTM (<code>04_rtm.md</code>) com menos de 30% de "Aberto".</li>
+        <li><code>08_system_design.md</code> com Mermaid renderizando.</li>
+        <li>Cada componente do diagrama referencia um RF ou RNF.</li>
+        <li>Premissas listadas em todos os arquivos.</li>
+        <li>Closed loops descritos em <code>03_architecture.md</code> e <code>07_test_plan_modeling.md</code>.</li>
+        <li><code>aws sts get-caller-identity</code> retorna ARN.</li>
+        <li><code>~/.aws/credentials</code> fora do git.</li>
+      </ul>
+<pre>git add documents/ AGENTS.md
+git commit -m "feat(aula-03): modelagem completa - RF, RNF, arquitetura, RTM, planos de teste e system design"
+git tag aula-03
+git push origin main --tags</pre>
+    </section>
+
+    <section class="content-block">
+      <h2>11. Hands-on em sala</h2>
+      <p>
+        Esta aula é 100% prática &mdash; o material acima orienta a execução. Em sala você roda o roteiro do bloco 10 lado a lado
+        com o Codespace, alterna entre Gemini CLI e OpenCode para comparar saídas e termina com o repo armado para a Aula 04.
+        Não há lista de exercícios escritos: a entrega é o conjunto de arquivos commitados em <code>documents/</code> e o
+        AWS CLI respondendo ao <code>aws sts get-caller-identity</code>.
+      </p>
+      <p>
+        Saímos hoje com <strong>arquitetura desenhada, testada no papel e pronta para virar código nas próximas semanas</strong>.
+        Saímos com a infraestrutura mental do projeto. Aula 04 começa a materializar isso na AWS.
+      </p>
+    </section>
+
+    <section class="content-block">
+      <h2>12. Glossário de siglas</h2>
+      <p>
+        Toda sigla usada na aula, organizada por tema. Use como referência rápida durante a leitura ou
+        ao escrever os artefatos em <code>/documents</code>. Quando uma sigla aparece em prompts da IA, mantenha
+        a forma escrita (preferir <em>"Service Level Indicator"</em> a <em>"SLI"</em>) na primeira ocorrência de cada arquivo.
+      </p>
+
+      <h3>12.1 Requisitos e modelagem</h3>
+      <table>
+        <thead><tr><th style="width:18%;">Sigla</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><strong>RF</strong></td><td>Requisito Funcional &mdash; o que o sistema faz, observável de fora.</td></tr>
+          <tr><td><strong>RNF</strong></td><td>Requisito Não-Funcional &mdash; com qual qualidade o sistema faz (performance, segurança, etc.).</td></tr>
+          <tr><td><strong>RTM</strong></td><td>Requirements Traceability Matrix &mdash; matriz que liga RF/RNF a componentes e testes.</td></tr>
+          <tr><td><strong>TC</strong></td><td>Test Case &mdash; identificador estável de caso de teste (<code>TC-LOAD-01</code>, <code>TC-SEC-04</code>).</td></tr>
+          <tr><td><strong>ADR</strong></td><td>Architecture Decision Record &mdash; documento curto com contexto, decisão e consequências.</td></tr>
+          <tr><td><strong>EARS</strong></td><td>Easy Approach to Requirements Syntax &mdash; sintaxe controlada para escrever RFs.</td></tr>
+          <tr><td><strong>BDD</strong></td><td>Behavior-Driven Development &mdash; cenários no formato Given/When/Then.</td></tr>
+          <tr><td><strong>MoSCoW</strong></td><td>Must &middot; Should &middot; Could &middot; Won't &mdash; escala de prioridade.</td></tr>
+          <tr><td><strong>RM-ODP</strong></td><td>Reference Model for Open Distributed Processing (ITU-T X.901) &mdash; cinco viewpoints de arquitetura.</td></tr>
+          <tr><td><strong>arc42</strong></td><td>Template aberto e amplamente adotado para descrição de arquitetura de software.</td></tr>
+          <tr><td><strong>ATAM</strong></td><td>Architecture Tradeoff Analysis Method &mdash; análise por cenários (utility tree).</td></tr>
+          <tr><td><strong>FMEA</strong></td><td>Failure Mode and Effects Analysis &mdash; modo de falha &middot; efeito &middot; detecção, por componente.</td></tr>
+          <tr><td><strong>RPN</strong></td><td>Risk Priority Number &mdash; severidade &times; ocorrência &times; detecção.</td></tr>
+          <tr><td><strong>SDD</strong></td><td>Spec-Driven Development &mdash; loop semanal proposto na Aula 02 (spec antes de código).</td></tr>
+          <tr><td><strong>SoS</strong></td><td>System of Systems &mdash; agregação de sistemas com governança e ciclos de vida independentes.</td></tr>
+          <tr><td><strong>ETL</strong></td><td>Extract, Transform, Load &mdash; processo de ingestão e transformação de dados.</td></tr>
+          <tr><td><strong>ELT</strong></td><td>Extract, Load, Transform &mdash; variante que carrega antes de transformar.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>12.2 SRE e confiabilidade</h3>
+      <table>
+        <thead><tr><th style="width:18%;">Sigla</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><strong>SRE</strong></td><td>Site Reliability Engineering &mdash; disciplina que aplica engenharia ao problema de operação.</td></tr>
+          <tr><td><strong>SLI</strong></td><td>Service Level Indicator &mdash; métrica medida continuamente (ex.: % de dias com dashboard pronto até 06h).</td></tr>
+          <tr><td><strong>SLO</strong></td><td>Service Level Objective &mdash; meta interna para o SLI (ex.: SLI &ge; 99% por trimestre).</td></tr>
+          <tr><td><strong>SLA</strong></td><td>Service Level Agreement &mdash; compromisso externo, sempre menor que o SLO.</td></tr>
+          <tr><td><strong>Error budget</strong></td><td>1 &minus; SLO em uma janela. Quando esgota, freeze de mudanças; quando sobra, dá para experimentar.</td></tr>
+          <tr><td><strong>MTTR</strong></td><td>Mean Time To Recovery &mdash; tempo médio até recuperação após falha.</td></tr>
+          <tr><td><strong>MTBF</strong></td><td>Mean Time Between Failures &mdash; tempo médio entre falhas consecutivas.</td></tr>
+          <tr><td><strong>KPI</strong></td><td>Key Performance Indicator &mdash; indicador-chave de negócio (não confundir com SLI técnico).</td></tr>
+          <tr><td><strong>USL</strong></td><td>Universal Scalability Law &mdash; modelo matemático de escalabilidade (Gunther).</td></tr>
+          <tr><td><strong>p95 / p99</strong></td><td>Percentil 95 / 99 da distribuição (ex.: latência p95 = valor abaixo do qual cabem 95% das medições).</td></tr>
+          <tr><td><strong>BI</strong></td><td>Business Intelligence &mdash; consumidor analítico do pipeline (dashboards, relatórios).</td></tr>
+          <tr><td><strong>ML</strong></td><td>Machine Learning &mdash; consumidor preditivo do pipeline.</td></tr>
+          <tr><td><strong>CI / CD</strong></td><td>Continuous Integration / Continuous Delivery &mdash; integração e entrega contínuas via GitHub Actions ou similar.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>12.3 Segurança e testes</h3>
+      <table>
+        <thead><tr><th style="width:18%;">Sigla</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><strong>STRIDE</strong></td><td>Spoofing &middot; Tampering &middot; Repudiation &middot; Information disclosure &middot; Denial of service &middot; Elevation of privilege &mdash; categorias de ameaças (Microsoft).</td></tr>
+          <tr><td><strong>OWASP</strong></td><td>Open Worldwide Application Security Project &mdash; comunidade que mantém o Top 10 e o ASVS.</td></tr>
+          <tr><td><strong>ASVS</strong></td><td>Application Security Verification Standard &mdash; checklist OWASP por nível de maturidade.</td></tr>
+          <tr><td><strong>SAST</strong></td><td>Static Application Security Testing &mdash; análise estática do código (ex.: Bandit).</td></tr>
+          <tr><td><strong>DAST</strong></td><td>Dynamic Application Security Testing &mdash; análise dinâmica via tráfego HTTP (ex.: OWASP ZAP).</td></tr>
+          <tr><td><strong>SCA</strong></td><td>Software Composition Analysis &mdash; verificação de dependências vulneráveis (ex.: Trivy).</td></tr>
+          <tr><td><strong>DoS</strong></td><td>Denial of Service &mdash; categoria do STRIDE: tornar serviço indisponível.</td></tr>
+          <tr><td><strong>LGPD</strong></td><td>Lei Geral de Proteção de Dados &mdash; legislação brasileira de privacidade.</td></tr>
+          <tr><td><strong>GDPR</strong></td><td>General Data Protection Regulation &mdash; regulamento europeu equivalente à LGPD.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>12.4 AWS, dev e infraestrutura</h3>
+      <table>
+        <thead><tr><th style="width:18%;">Sigla</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><strong>AWS</strong></td><td>Amazon Web Services &mdash; provedor de cloud usado no Learner Lab.</td></tr>
+          <tr><td><strong>CLI</strong></td><td>Command Line Interface &mdash; aqui referindo a <code>aws</code>, <code>gemini</code>, <code>opencode</code>, <code>git</code>.</td></tr>
+          <tr><td><strong>ARN</strong></td><td>Amazon Resource Name &mdash; identificador único de recurso AWS (ex.: <code>arn:aws:iam::1234:role/LabRole</code>).</td></tr>
+          <tr><td><strong>IAM</strong></td><td>Identity and Access Management &mdash; controle de identidades e políticas na AWS.</td></tr>
+          <tr><td><strong>EC2</strong></td><td>Elastic Compute Cloud &mdash; máquinas virtuais gerenciadas.</td></tr>
+          <tr><td><strong>S3</strong></td><td>Simple Storage Service &mdash; object storage; base do Data Lake do curso.</td></tr>
+          <tr><td><strong>SG</strong></td><td>Security Group &mdash; firewall stateful que envolve recursos AWS (EC2, RDS).</td></tr>
+          <tr><td><strong>SSM</strong></td><td>AWS Systems Manager &mdash; agrega Parameter Store (segredos), Run Command, Session Manager.</td></tr>
+          <tr><td><strong>CW</strong></td><td>Amazon CloudWatch &mdash; logs, métricas, alarmes da AWS.</td></tr>
+          <tr><td><strong>STS</strong></td><td>AWS Security Token Service &mdash; emissor das credenciais temporárias (session token) do Learner Lab.</td></tr>
+          <tr><td><strong>EventBridge</strong></td><td>Bus de eventos AWS; usado no controlador SRE do system design.</td></tr>
+          <tr><td><strong>VPC</strong></td><td>Virtual Private Cloud &mdash; rede virtual isolada na AWS.</td></tr>
+          <tr><td><strong>CSV</strong></td><td>Comma-Separated Values &mdash; formato textual do dataset Olist na origem.</td></tr>
+          <tr><td><strong>SVG</strong></td><td>Scalable Vector Graphics &mdash; saída do Mermaid no system design.</td></tr>
+          <tr><td><strong>SDK</strong></td><td>Software Development Kit &mdash; bibliotecas oficiais (ex.: <code>boto3</code> para AWS em Python).</td></tr>
+          <tr><td><strong>API</strong></td><td>Application Programming Interface &mdash; interface programática entre componentes.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>12.5 Normas e organizações</h3>
+      <table>
+        <thead><tr><th style="width:18%;">Sigla</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><strong>ISO</strong></td><td>International Organization for Standardization &mdash; emite normas globais (ex.: ISO 25010).</td></tr>
+          <tr><td><strong>IEC</strong></td><td>International Electrotechnical Commission &mdash; co-publica normas com a ISO.</td></tr>
+          <tr><td><strong>IEEE</strong></td><td>Institute of Electrical and Electronics Engineers &mdash; mantém SWEBOK e padrões de engenharia.</td></tr>
+          <tr><td><strong>ITU-T</strong></td><td>International Telecommunication Union &mdash; Telecommunication Standardization Sector. Publica RM-ODP (X.901).</td></tr>
+          <tr><td><strong>NIST</strong></td><td>National Institute of Standards and Technology (EUA) &mdash; SP 800-145 (cloud), framework de cybersecurity.</td></tr>
+          <tr><td><strong>SWEBOK</strong></td><td>Software Engineering Body of Knowledge (IEEE) &mdash; referência consolidada da Aula 02.</td></tr>
+          <tr><td><strong>SEBoK</strong></td><td>Systems Engineering Body of Knowledge (BKCASE) &mdash; equivalente para systems engineering.</td></tr>
+          <tr><td><strong>INCOSE</strong></td><td>International Council on Systems Engineering &mdash; co-mantém o SEBoK.</td></tr>
+          <tr><td><strong>BKCASE</strong></td><td>Body of Knowledge and Curriculum to Advance Systems Engineering &mdash; consórcio mantenedor do SEBoK.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="content-block">
+      <h2>13. Referências</h2>
+      <ul>
+        <li>ISO/IEC 25010:2023 &mdash; Systems and software Quality Requirements and Evaluation.</li>
+        <li>IEEE/ISO/IEC 29148 &mdash; Systems and software engineering &mdash; Life cycle processes &mdash; Requirements engineering.</li>
+        <li>Mavin, A.; Wilkinson, P. &mdash; <em>Big Ears (The Return of "Easy Approach to Requirements Syntax")</em>, 2010.</li>
+        <li>ITU-T X.901 / ISO/IEC 10746 &mdash; Reference Model for Open Distributed Processing (RM-ODP).</li>
+        <li>Bass, L.; Clements, P.; Kazman, R. &mdash; <em>Software Architecture in Practice</em> (4th ed.).</li>
+        <li>Beyer et al. &mdash; <em>Site Reliability Engineering &mdash; How Google Runs Production Systems</em>, O'Reilly.</li>
+        <li>Microsoft &mdash; <em>The STRIDE Threat Model</em>, Microsoft Learn.</li>
+        <li>OWASP &mdash; <em>Top 10:2021</em> e <em>Application Security Verification Standard</em>.</li>
+        <li>Mermaid &mdash; <code>mermaid.js.org</code>.</li>
+        <li>GitHub Spec Kit &middot; AGENTS.md spec &middot; Gemini CLI docs &middot; OpenCode docs.</li>
+        <li>Hellerstein, J.; Diao, Y.; Parekh, S.; Tilbury, D. &mdash; <em>Feedback Control of Computing Systems</em> (closed loops em SRE).</li>
+      </ul>
+    </section>
+
+    <section class="content-block">
+      <nav class="material-nav">
+        <a href="../slides/slide_aula_03_fontes_de_dados_bancos_relacionais_e_nosql.html">&larr; Ir para os slides da Aula 03</a>
+        <span> &nbsp;&middot;&nbsp; </span>
+        <a href="../../../../pages/home_cloud_sre.html">Voltar ao índice do curso</a>
+      </nav>
+    </section>
+
+  </main>
+
+  <!-- Mermaid v11 — system design diagram -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'neutral',
+      securityLevel: 'loose',
+      flowchart: { htmlLabels: true, curve: 'basis' },
+      themeVariables: {
+        fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+        primaryColor: '#ffffff',
+        primaryBorderColor: '#0f0f0f',
+        primaryTextColor: '#0f0f0f',
+        lineColor: '#5c5c5c',
+        clusterBkg: '#fafaf7',
+        clusterBorder: '#d6d6d1'
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
-# Especificação do Repositório de Aulas
+# Especificação do Repositório de Aulas e Hub de Disciplinas
 
 ## Objetivo
 
-Organizar o conteúdo da disciplina em um repositório estático com uma página inicial `index.html` e uma pasta `aulas/` contendo, para cada aula, um arquivo de slide e um arquivo de material escrito.
+Organizar o conteúdo do curso em um repositório estático Hub com a página inicial `index.html` (seletor de disciplinas), páginas dedicadas por disciplina em `pages/` e pastas por disciplina em `aulas/` contendo, para cada aula, um arquivo de slide e um arquivo de material escrito.
 
 ## Referências obrigatórias
 
@@ -13,41 +13,57 @@ Organizar o conteúdo da disciplina em um repositório estático com uma página
 
 ```text
 /
-├── index.html
+├── index.html                           # Hub Central de Disciplinas
+├── estudios.html                        # Biblioteca de autoestudo
+├── professor.html                       # Perfil do professor
 ├── assets/
-│   └── styles.css
+│   ├── styles.css
+│   └── slides.css
+├── pages/
+│   ├── home_cloud_sre.html              # Home da disciplina Cloud Computing e SRE
+│   └── home_data_collection.html        # Home da disciplina Data Collection and Storage
 ├── specs/
 │   └── repositorio_de_aulas.md
 └── aulas/
-    └── aula_xx_nome_da_aula/
-        ├── slides/
-        │   └── slide_aula_xx_nome_da_aula.html
-        └── material/
-            └── material_aula_xx_nome_da_aula.html
+    ├── cloud_sre/
+    │   └── aula_xx_nome_da_aula/
+    │       ├── slides/
+    │       │   └── slide_aula_xx_nome_da_aula.html
+    │       └── material/
+    │           └── material_aula_xx_nome_da_aula.html
+    └── data_collection_and_storage/
+        └── aula_xx_nome_da_aula/
+            ├── slides/
+            │   └── slide_aula_xx_nome_da_aula.html
+            └── material/
+                └── material_aula_xx_nome_da_aula.html
 ```
 
 ## Convenções de nomenclatura
 
 - Todo nome de pasta e arquivo deve usar `snake_case`.
-- Toda pasta de aula deve começar com `aula_`.
+- Toda pasta de disciplina em `aulas/` deve ser descritiva (ex: `cloud_sre`, `data_collection_and_storage`).
+- Toda pasta de aula deve começar com `aula_` e dois dígitos (ex: `aula_01_...`).
 - Todo arquivo de slide deve começar com `slide_`.
 - Todo arquivo de material deve começar com `material_`.
 - Os nomes devem evitar espaços, hífens e caracteres especiais.
 
 ## Regras de conteúdo
 
-- `index.html` deve listar todas as aulas com links para slide e material.
+- `index.html` deve atuar como o Hub Principal, exibindo os cards das disciplinas ativas, perfil do professor e autoestudo.
+- Cada `pages/home_<disciplina>.html` deve listar todas as aulas daquela disciplina específica com links para slide e material.
 - Cada slide deve conter:
   - título da aula;
   - data da aula;
   - resumo do tema;
-  - link para o material escrito;
-  - link de volta para `index.html`.
+  - link para o material escrito da aula;
+  - link de volta para a Home da Disciplina e para o Hub (`index.html`).
 - Cada material deve conter:
   - título da aula;
   - data da aula;
   - resumo do conteúdo;
-  - link para o slide;
+  - link para o slide da aula;
+  - link de volta para a Home da Disciplina e para o Hub (`index.html`).
   - link de volta para `index.html`.
 
 ## Regra obrigatória de dinâmica da aula

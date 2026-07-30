@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Aula 02 — Modelagem do problema SRE: SWEBOK, SEBoK e bootstrap do Spec-Driven Development</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style data-aula02-local>
+    /* ============================================================
+       Aula 02 - estilos scoped: apenas o diagrama do SDD Loop.
+       Tokens e design system base vem de assets/slides.css.
+       ============================================================ */
+
+    /* --- SDD Loop (slide 17) -------------------------------- */
+    .sdd-loop {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      margin-top: 4px;
+    }
+    .sdd-loop-svg {
+      width: 100%;
+      max-width: 780px;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+    .sdd-loop-track { stroke-linecap: round; }
+    .sdd-node circle {
+      fill: #ffffff;
+      stroke: #0f0f0f;
+      stroke-width: 1.5;
+      filter: drop-shadow(0 2px 6px rgba(15,15,15,0.08));
+    }
+    .sdd-node text {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      fill: #0f0f0f;
+      pointer-events: none;
+    }
+    .sdd-node-label .label-main {
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 700;
+      fill: #0f0f0f;
+    }
+    .sdd-node-label .label-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      fill: #5c5c5c;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .sdd-loop-center-title {
+      font-family: var(--font-mono);
+      font-size: 44px;
+      font-weight: 800;
+      fill: #0f0f0f;
+      letter-spacing: -0.02em;
+    }
+    .sdd-loop-center-sub {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      fill: #5c5c5c;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .sdd-loop-comet {
+      filter: drop-shadow(0 0 8px rgba(15,15,15,0.45));
+    }
+    .sdd-node.is-hot circle {
+      fill: #0f0f0f;
+      stroke: #0f0f0f;
+    }
+    .sdd-node.is-hot text { fill: #ffffff; }
+
+    /* --- Responsivo (apenas SDD) ---------------------------- */
+    @media (max-width: 900px) {
+      .sdd-node-label .label-main { font-size: 13px; }
+      .sdd-node-label .label-sub  { font-size: 9.5px; }
+      .sdd-loop-center-title { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1 - CAPA                                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="02">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+          <span class="deck-kicker">Cloud Computing e SRE — MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Modelagem do problema SRE: SWEBOK, SEBoK e bootstrap do Spec-Driven Development</h1>
+          <p class="deck-meta">Aula 02 &nbsp;&bull;&nbsp; 23/04/2026 &nbsp;&bull;&nbsp; 19h00 – 22h00</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Da ferramenta ao problema — como engenheiros de dados modelam confiabilidade antes de codar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2 - AGENDA                                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">O que vai acontecer nesta aula</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>19h00 – 20h30 &middot; Teoria</h3>
+            <ul>
+              <li>Recap Aula 01 e posicionamento no novo arco do curso</li>
+              <li>Por que modelar antes de codar</li>
+              <li>SWEBOK V4: Quality, Models &amp; Methods, Professional Practice</li>
+              <li>SEBoK: systems thinking e propriedades emergentes</li>
+              <li>System of Systems aplicado ao pipeline Olist</li>
+              <li>Spec-Driven Development: o loop SDD</li>
+              <li>Pesquisa em grupos sobre guias de especificação</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>20h30 – 22h00 &middot; Prática</h3>
+            <ul>
+              <li>Bootstrap do GitHub Codespace</li>
+              <li>Instalação do OpenCode e Gemini CLI</li>
+              <li>Criação do repositório <code>olist-sre-pipeline</code></li>
+              <li>Estrutura de pastas segundo o roadmap</li>
+              <li>Primeiro commit com <code>spec/00_problem.md</code></li>
+              <li>Adoção provisória de template de spec</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3 - RECAP AULA 01                                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Abertura &middot; Recap</span>
+          <h2 class="deck-title">De onde viemos — Aula 01</h2>
+          <p class="deck-summary">Na aula passada preparamos o terreno operacional: conta AWS Student, identidade e governança de acesso. Hoje saímos do tour de ferramentas e entramos no coração do curso.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que já está no lugar</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Conta AWS Student em us-east-1</li>
+              <li>LabRole disponível para serviços AWS</li>
+              <li>Três buckets iniciais do projeto</li>
+              <li>Familiaridade com o console AWS</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>O que muda a partir de hoje</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Deixamos de catalogar serviços</li>
+              <li>Entramos em engenharia de confiabilidade</li>
+              <li>Teoria vira spec executável</li>
+              <li>Spec alimenta IA que gera código</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4 - O NOVO ARCO DO CURSO                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Contexto &middot; Arco do curso</span>
+          <h2 class="deck-title">Sete aulas, uma progressão única</h2>
+          <p class="deck-summary">Cada aula produz um artefato de spec (conceitual) e um incremento do projeto (engenharia). A aula seguinte consome os dois.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Aula</th>
+              <th>Tema</th>
+              <th>Framework</th>
+              <th>Artefato</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>02</td><td>Definir o problema</td><td>SWEBOK + SEBoK</td><td><code>00_problem.md</code></td></tr>
+            <tr><td>03</td><td>Contratar confiabilidade</td><td>ISO 25010 &rarr; SLI/SLO</td><td><code>01_nfr.md</code></td></tr>
+            <tr><td>04</td><td>Modelar a arquitetura</td><td>RM-ODP (5 viewpoints)</td><td><code>02_architecture.md</code></td></tr>
+            <tr><td>05</td><td>Dominar concorrência</td><td>CAP / idempotência</td><td><code>03_concurrency.md</code></td></tr>
+            <tr><td>06</td><td>Dominar escalabilidade</td><td>Little, Amdahl, USL</td><td><code>04_scalability.md</code></td></tr>
+            <tr><td>07</td><td>Simular o sistema</td><td>FMEA, chaos, gêmeos digitais</td><td><code>05_chaos.md</code></td></tr>
+            <tr><td>08</td><td>Validar por análise</td><td>ATAM</td><td><code>06_atam.md</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5 - POR QUE MODELAR ANTES DE CODAR                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">Por que modelar antes de codar</h2>
+          <p class="deck-summary">A ferramenta já foi vista. Agora o foco é o problema. Confiabilidade não se programa depois — ela se modela antes.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>A armadilha do código prematuro</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li>Abrir o editor antes de entender os stakeholders leva a retrabalho sistemático.</li>
+            <li>Sem problema bem definido, nenhuma solução pode ser correta — só "funcional".</li>
+            <li>IA codifica muito rápido o problema errado. A spec é o freio de qualidade.</li>
+            <li>Confiabilidade é propriedade <strong>emergente</strong>: aparece no todo, não em componentes isolados.</li>
+            <li>Modelar é mais barato que reescrever; especificar é mais barato que depurar.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6 - SWEBOK VISAO GERAL                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SWEBOK V4</span>
+          <h2 class="deck-title">Software Engineering Body of Knowledge</h2>
+          <p class="deck-summary">Guia consolidado pelo IEEE Computer Society. Define os blocos de conhecimento que um engenheiro de software competente domina. Versão 4 publicada em 2024.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que é o SWEBOK</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Knowledge Areas (KAs) organizadas por ciclo de vida.</li>
+              <li>Referência para certificações e currículos.</li>
+              <li>Linguagem comum entre praticantes e academia.</li>
+              <li>Não é um método — é um inventário de conhecimentos.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>15 áreas de conhecimento (V4)</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Requirements, Architecture, Design, Construction, Testing</li>
+              <li>Operations, Maintenance, Configuration Management</li>
+              <li>Engineering Management, Process, <strong>Models &amp; Methods</strong></li>
+              <li><strong>Quality</strong>, Security, <strong>Professional Practice</strong>, Economics</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7 - SWEBOK: SOFTWARE QUALITY                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SWEBOK KA 1</span>
+          <h2 class="deck-title">Software Quality</h2>
+          <p class="deck-summary">Qualidade não é sinônimo de "código bonito". É o grau em que o software atende requisitos declarados e expectativas implícitas de seus stakeholders.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Pilares da KA Quality no SWEBOK</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li><strong>Fundamentals</strong> — cultura, ética, custo da não-qualidade.</li>
+            <li><strong>Quality Models</strong> — modelos como ISO/IEC 25010 que decompõem qualidade em atributos (reliability, performance efficiency, security, maintainability).</li>
+            <li><strong>Quality Management Processes</strong> — V&amp;V, auditoria, revisão, inspeção estática.</li>
+            <li><strong>Software Quality Tools</strong> — análise estática, testes automatizados, code review, observabilidade.</li>
+          </ol>
+        </div>
+        <p style="margin-top:14px;"><em>Liga direta com a Aula 03:</em> qualidade se concretiza em RNFs mensuráveis (SLIs/SLOs).</p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8 - SWEBOK: MODELS AND METHODS                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SWEBOK KA 2</span>
+          <h2 class="deck-title">Software Engineering Models and Methods</h2>
+          <p class="deck-summary">Métodos dão disciplina a decisões que seriam, de outro modo, arbitrárias. Modelos reduzem a complexidade do sistema ao necessário para decidir.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Tipos de modelo</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Informacionais (entidades, relações, fluxos)</li>
+              <li>Comportamentais (estados, sequências)</li>
+              <li>Estruturais (componentes, conectores)</li>
+              <li>Domínio (regras de negócio)</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Métodos aplicáveis ao curso</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Modelos formais leves: EARS para requisitos</li>
+              <li>RM-ODP para arquitetura (Aula 04)</li>
+              <li>FMEA para falhas (Aula 07)</li>
+              <li>ATAM para validação arquitetural (Aula 08)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9 - SWEBOK: PROFESSIONAL PRACTICE                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SWEBOK KA 3</span>
+          <h2 class="deck-title">Software Engineering Professional Practice</h2>
+          <p class="deck-summary">Conhecimentos, habilidades e atitudes de um engenheiro responsável. O que o separa de alguém que apenas escreve código.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Componentes</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li><strong>Professionalism</strong> — códigos de conduta, responsabilidade sobre impactos sistêmicos.</li>
+            <li><strong>Group dynamics &amp; psychology</strong> — colaboração, decisões por consenso, revisão de pares.</li>
+            <li><strong>Communication skills</strong> — escrever specs compreensíveis, documentar decisões, apresentar trade-offs.</li>
+          </ol>
+        </div>
+        <p style="margin-top:14px;"><em>Nesta aula:</em> a pesquisa em grupo sobre guias de spec é exercício direto de Professional Practice.</p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10 - SEBoK INTRO                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SEBoK</span>
+          <h2 class="deck-title">Systems Engineering Body of Knowledge</h2>
+          <p class="deck-summary">Mantido pelo BKCASE (INCOSE + IEEE-CS + Stevens Institute). Enquanto o SWEBOK olha o software, o SEBoK olha o sistema — o todo do qual o software é parte.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Por que engenheiros de dados precisam disso</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Pipeline de dados é um sistema composto (ETL + DB + obs + rede).</li>
+              <li>Cada parte pode estar correta e o todo falhar mesmo assim.</li>
+              <li>Reliability, availability e performance são <strong>propriedades do sistema</strong>, não de módulos.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Conceitos centrais que vamos usar</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Systems thinking</li>
+              <li>Propriedades emergentes</li>
+              <li>System of Systems (SoS)</li>
+              <li>Interfaces e fronteiras</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11 - SYSTEMS THINKING                                  -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SEBoK</span>
+          <h2 class="deck-title">Systems thinking — partes vs todo</h2>
+          <p class="deck-summary">Pensamento sistêmico: olhar para as relações e feedbacks entre componentes, não apenas para os componentes em si.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Cinco movimentos do raciocínio sistêmico</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li><strong>Identificar o sistema de interesse</strong> — onde começam e terminam suas fronteiras?</li>
+            <li><strong>Mapear os componentes e suas interfaces</strong> — o que passa entre eles?</li>
+            <li><strong>Rastrear fluxos</strong> — de dados, de controle, de valor, de falha.</li>
+            <li><strong>Detectar loops de feedback</strong> — onde o sistema se auto-regula ou se auto-amplifica?</li>
+            <li><strong>Observar o comportamento emergente</strong> — o que o todo faz que nenhuma parte faz sozinha?</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12 - PROPRIEDADES EMERGENTES                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SEBoK</span>
+          <h2 class="deck-title">Propriedades emergentes</h2>
+          <p class="deck-summary">Propriedade emergente é aquela que existe no sistema e não em nenhum de seus componentes isolados. É o coração da Engenharia de Confiabilidade.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Propriedade</th>
+              <th>Do componente isolado?</th>
+              <th>Do sistema?</th>
+              <th>Como surge</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Reliability</td><td>Não tem sentido</td><td>Sim</td><td>Da composição correta, redundância, tratamento de falhas</td></tr>
+            <tr><td>Availability</td><td>Limitada</td><td>Sim</td><td>Da topologia, do failover, do MTTR</td></tr>
+            <tr><td>Performance</td><td>Parcial</td><td>Sim</td><td>Da coordenação, do caminho crítico, dos gargalos</td></tr>
+            <tr><td>Segurança</td><td>Parcial</td><td>Sim</td><td>Do controle nas fronteiras e entre componentes</td></tr>
+            <tr><td>Escalabilidade</td><td>Raramente</td><td>Sim</td><td>Das decisões de concorrência, sharding, estado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13 - SYSTEM OF SYSTEMS                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SEBoK</span>
+          <h2 class="deck-title">System of Systems aplicado ao Olist ETL</h2>
+          <p class="deck-summary">Um pipeline moderno não é um sistema — é um sistema de sistemas. Cada subsistema tem seu próprio ciclo de vida, governança e falhas independentes.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Subsistemas do Olist Pipeline</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Fonte de dados (Kaggle / CSVs)</li>
+              <li>Codespace (dev + IA)</li>
+              <li>GitHub (repo, CI)</li>
+              <li>AWS (EC2 app, EC2 data, rede)</li>
+              <li>Observabilidade (CloudWatch, Grafana)</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Características de um SoS</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Independência operacional de cada parte</li>
+              <li>Independência gerencial (times/fornecedores distintos)</li>
+              <li>Distribuição geográfica</li>
+              <li>Evolução assíncrona</li>
+              <li>Comportamento emergente no todo</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 14 - APLICANDO AO OLIST                                -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Aplicação</span>
+          <h2 class="deck-title">Do genérico ao concreto — problema SRE do Olist</h2>
+          <p class="deck-summary">A aula agora aterrissa no projeto real. Vamos modelar o problema antes de escrever uma linha de código.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Contexto do problema</strong>
+          <p style="margin:10px 0 0;">O negócio Olist precisa processar ~100 mil pedidos do marketplace, carregar em um banco analítico e gerar dashboards diários. O ETL deve ser <em>confiável</em>: idempotente, observável e resiliente a falhas parciais. Não podemos perder dados, nem duplicá-los, nem sofrer silenciosamente.</p>
+        </div>
+        <p style="margin-top:14px;"><em>Pergunta orientadora:</em> <strong>o que o sistema precisa garantir para que o negócio confie nos números do dashboard?</strong></p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 15 - CANVAS DE MODELAGEM                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Aplicação &middot; Canvas</span>
+          <h2 class="deck-title">Canvas de modelagem do problema</h2>
+          <p class="deck-summary">Estrutura mínima para produzir a primeira versão de <code>spec/00_problem.md</code>. Preenchido em grupo durante a aula.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>1. Stakeholders</h3>
+            <ul>
+              <li>Operação Olist (negócio)</li>
+              <li>Time de dados</li>
+              <li>Clientes internos do dashboard</li>
+              <li>Plataforma / SRE</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>2. Fluxos críticos</h3>
+            <ul>
+              <li>Ingestão diária CSV &rarr; Postgres</li>
+              <li>Consulta de dashboards Grafana</li>
+              <li>Observação de SLA</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>3. Modos de falha</h3>
+            <ul>
+              <li>Arquivo corrompido ou parcial</li>
+              <li>Reprocesso duplicando linhas</li>
+              <li>Queda de EC2 durante o run</li>
+              <li>Banco indisponível</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>4. Riscos sistêmicos</h3>
+            <ul>
+              <li>Perda silenciosa de linhas</li>
+              <li>Dashboard mostrando dado stale</li>
+              <li>Custo AWS explodindo</li>
+              <li>Dívida técnica de IA mal revisada</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 16 - POR QUE SPEC                                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SDD</span>
+          <h2 class="deck-title">Spec-Driven Development — por que especificar é o novo "codar"</h2>
+          <p class="deck-summary">IAs generativas invertem o custo relativo das atividades: escrever código ficou barato; escrever o <em>problema certo</em> virou o gargalo.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Antes das IAs</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Codificar era lento e caro</li>
+              <li>Spec era documento burocrático</li>
+              <li>Revisão focava no código</li>
+              <li>Dívida nascia no teclado</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Com IAs produtivas</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Código é commodity barata</li>
+              <li>Spec vira contrato e input primário</li>
+              <li>Revisão foca na intenção e no <em>fit</em></li>
+              <li>Dívida nasce em specs ruins</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 17 - O LOOP SDD                                        -->
+    <!-- ============================================================ -->
+    <div class="slide" data-slide="sdd-loop">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Teoria &middot; SDD</span>
+          <h2 class="deck-title">O loop Spec-Driven Development</h2>
+          <p class="deck-summary">Este loop se repete em cada aula do curso. A qualidade da spec é a qualidade do sistema &mdash; o comet orbita porque cada iteração realimenta a próxima.</p>
+        </div>
+        <div class="sdd-loop">
+          <svg class="sdd-loop-svg" viewBox="0 0 820 600" role="img" aria-labelledby="sdd-loop-title">
+            <title id="sdd-loop-title">Loop Spec-Driven Development</title>
+            <path id="sdd-loop-path" class="sdd-loop-track"
+                  d="M 410,100 A 200,200 0 1,1 410,500 A 200,200 0 1,1 410,100 Z"
+                  fill="none" stroke="#d6d6d1" stroke-width="1.5" stroke-dasharray="4 8"/>
+            <g class="sdd-loop-center">
+              <text x="410" y="292" text-anchor="middle" class="sdd-loop-center-title">SDD</text>
+              <text x="410" y="320" text-anchor="middle" class="sdd-loop-center-sub">LOOP SEMANAL</text>
+            </g>
+            <circle class="sdd-loop-comet" cx="0" cy="0" r="8" fill="#0f0f0f"/>
+            <g class="sdd-loop-nodes"></g>
+            <g class="sdd-loop-labels"></g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 18 - PESQUISA DE GUIAS DE SPEC                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Atividade em grupo</span>
+          <h2 class="deck-title">Pesquisa de guias de especificação</h2>
+          <p class="deck-summary">A turma não recebe um template pronto — pesquisa, apresenta e decide. É exercício de Professional Practice (SWEBOK).</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr>
+              <th>Guia</th>
+              <th>Origem</th>
+              <th>Foco</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>IEEE 830 / ISO 29148</td><td>IEEE</td><td>Requisitos clássicos (SRS)</td></tr>
+            <tr><td>Volere</td><td>Robertson &amp; Robertson</td><td>Template de requisitos com atomicidade e rationale</td></tr>
+            <tr><td>EARS</td><td>Alistair Mavin / Rolls-Royce</td><td>Sintaxe pragmática de requisitos em linguagem natural controlada</td></tr>
+            <tr><td>Gherkin / BDD</td><td>Cucumber</td><td>Cenários Given-When-Then</td></tr>
+            <tr><td>ARC42</td><td>Starke &amp; Hruschka</td><td>Template de arquitetura</td></tr>
+            <tr><td>GitHub Spec Kit / Kiro</td><td>GitHub / AWS</td><td>Spec orientada a geração por IA</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 19 - REGRAS DA PESQUISA                                -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Atividade em grupo</span>
+          <h2 class="deck-title">Regras da pesquisa</h2>
+          <p class="deck-summary">Entrega até o fim da aula. Na Aula 03 cada grupo apresenta e a turma consolida o template definitivo.</p>
+        </div>
+        <div class="deck-panel">
+          <strong>Formato</strong>
+          <ol style="margin:0; padding-left:22px;">
+            <li>Grupos de 3 a 4 pessoas.</li>
+            <li>Cada grupo sorteia um guia da lista do slide anterior.</li>
+            <li>Produzir uma ficha curta (1 página) respondendo: origem, quando usar, estrutura proposta, prós, contras, exemplo mínimo.</li>
+            <li>Avaliar explicitamente a adequação à geração por IA.</li>
+            <li>Comitar a ficha em <code>spec/research/&lt;nome-do-guia&gt;.md</code>.</li>
+            <li>Na Aula 03, cada grupo apresenta em 5 minutos; a turma vota o template adotado.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE NOVO A - O CASE: DASHBOARD ANALITICO DO OLIST          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Case do curso</span>
+          <h2 class="deck-title">O que vamos construir juntos até a Aula 08</h2>
+          <p class="deck-summary">A diretoria da Olist precisa tomar decisões de growth e operação baseadas em dados confiáveis. Ao longo das aulas 02 &ndash; 08, a turma entrega um dashboard Grafana alimentado por um pipeline Python. SRE é o que torna isso digno de produção.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns: repeat(4, 1fr); gap:10px;">
+          <article class="deck-card">
+            <h3>1. CSV Olist</h3>
+            <ul>
+              <li>Dataset Brazilian E-commerce</li>
+              <li>~100k pedidos históricos</li>
+              <li>Fonte fora do nosso controle</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>2. ETL Python</h3>
+            <ul>
+              <li>Extração, transformação, carga</li>
+              <li>Idempotente e observável</li>
+              <li>Orquestrado em EC2</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>3. Postgres</h3>
+            <ul>
+              <li>Banco analítico</li>
+              <li>Modelo dimensional mínimo</li>
+              <li>Contrato de dados estável</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>4. Grafana &rarr; Diretoria</h3>
+            <ul>
+              <li>Entregável visível ao negócio</li>
+              <li>KPIs de growth e operação</li>
+              <li>SLOs de frescor e disponibilidade</li>
+            </ul>
+          </article>
+        </div>
+        <div class="deck-panel" style="margin-top:14px;">
+          <strong>O ângulo SRE &mdash; por que isso é mais do que BI</strong>
+          <ul style="margin:6px 0 0; padding-left:22px;">
+            <li><strong>Frescor:</strong> dados prontos todo dia às 06h (SLO de frescor).</li>
+            <li><strong>Disponibilidade:</strong> dashboard no ar durante o horário comercial.</li>
+            <li><strong>Completude/Unicidade:</strong> zero duplicatas e zero gaps entre execuções.</li>
+            <li><strong>MTTR:</strong> pipeline se recupera sozinho de falhas transitórias da fonte.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE NOVO B - PERGUNTAS QUE O DASHBOARD PRECISA RESPONDER   -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Case do curso</span>
+          <h2 class="deck-title">O que a diretoria quer ver</h2>
+          <p class="deck-summary">O dashboard Grafana precisa responder a estas perguntas de negócio. Elas são o input do problema e, portanto, o input da modelagem com IA.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Growth e receita</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Receita mensal e tendência &mdash; total, por estado, por categoria, por vendedor.</li>
+              <li>Top produtos e categorias por receita e volume.</li>
+              <li>Métodos de pagamento e taxa de parcelamento.</li>
+              <li>Taxa de recompra e comportamento de clientes.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Operação e qualidade</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Volume de pedidos por status (delivered, shipped, canceled, unavailable).</li>
+              <li>Tempo médio de entrega vs SLA prometido &mdash; onde estamos atrasando?</li>
+              <li>Score de avaliação por vendedor e categoria &mdash; quem está arrastando o NPS?</li>
+              <li>Análise geográfica: concentração por estado, cobertura por CEP.</li>
+            </ul>
+          </div>
+        </div>
+        <p style="margin-top:14px;"><em>Suas decisões de modelagem na IA devem começar aqui. O problema tem forma porque o produto tem forma.</em></p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 20 - TRANSICAO PARA A PRATICA                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 20h30 – 22h00</span>
+          <h2 class="deck-title">Da teoria para o laboratório</h2>
+          <p class="deck-summary">Hoje a prática é leve de infraestrutura e pesada de fundação. Montamos o ambiente de desenvolvimento que acompanhará o resto do curso.</p>
+        </div>
+        <div class="deck-panel">
+          <strong>Fluxo do laboratório</strong>
+          <ol style="margin:0; padding-left:22px;">
+            <li>Abrir um GitHub Codespace a partir de repositório vazio.</li>
+            <li>Instalar OpenCode e Gemini CLI.</li>
+            <li>Autenticar cada CLI com seu modelo gratuito.</li>
+            <li>Criar a estrutura de pastas do projeto segundo o roadmap.</li>
+            <li>Escrever a primeira versão do <code>spec/00_problem.md</code>.</li>
+            <li>Comitar e subir para o GitHub.</li>
+            <li>Validar que as IAs leem a spec e respondem no terminal.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 21 - PASSO 1 CODESPACE                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Passo 1</span>
+          <h2 class="deck-title">Bootstrap do GitHub Codespace</h2>
+          <p class="deck-summary">Codespace é o ambiente oficial da turma. Mesmo quem tem máquina potente usa o Codespace para garantir paridade entre alunos.</p>
+        </div>
+        <div class="deck-panel">
+          <strong>Passo a passo</strong>
+          <ol style="margin:0; padding-left:22px;">
+            <li>Entrar em <code>github.com</code> e criar um novo repositório: <code>olist-sre-pipeline</code>, privado, com README.</li>
+            <li>Na página do repo: <strong>Code &rarr; Codespaces &rarr; Create codespace on main</strong>.</li>
+            <li>Aguardar o container subir (imagem default Ubuntu 22.04 com Node 20).</li>
+            <li>No terminal do Codespace, validar as versões instaladas: <code>node -v</code>, <code>npm -v</code>, <code>git --version</code>.</li>
+            <li>Configurar identidade git: <code>git config --global user.email "..."</code> e <code>user.name "..."</code>.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 22 - PASSO 2 INSTALAR AS IAS                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Passo 2</span>
+          <h2 class="deck-title">Instalar OpenCode e Gemini CLI</h2>
+          <p class="deck-summary">Dois agentes gratuitos para o terminal. O aluno comparará saídas entre eles ao longo do curso.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Comandos no terminal do Codespace</strong>
+          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.92rem; margin-top:10px; overflow-x:auto;"># OpenCode (agente CLI open-source)
+npm i -g opencode-ai@latest
+opencode --version
+
+# Gemini CLI oficial do Google
+npm i -g @google/gemini-cli
+gemini --version
+
+# Primeira execução pede autenticação via navegador
+opencode
+gemini</pre>
+        </div>
+        <p style="margin-top:14px;"><em>Ambos suportam o modelo gratuito padrão. Copilot é opcional se o aluno já tiver acesso.</em></p>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 23 - PASSO 3 ESTRUTURA DE PASTAS                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Passo 3</span>
+          <h2 class="deck-title">Criar a estrutura de pastas do projeto</h2>
+          <p class="deck-summary">A estrutura segue o roadmap e será preenchida aula a aula. Esqueletos vazios já no commit inicial.</p>
+        </div>
+        <div class="deck-callout">
+          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.9rem; margin-top:10px; overflow-x:auto;">mkdir -p spec spec/research iac src src/etl src/tests \
+  observability observability/grafana/dashboards \
+  observability/cloudwatch chaos chaos/experiments reports
+
+touch spec/00_problem.md
+touch spec/research/.gitkeep
+touch iac/.gitkeep src/etl/.gitkeep src/tests/.gitkeep
+touch observability/grafana/dashboards/.gitkeep
+touch observability/cloudwatch/.gitkeep
+touch chaos/experiments/.gitkeep reports/.gitkeep
+
+tree -L 2</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 24 - PASSO 4 PRIMEIRA SPEC                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Passo 4</span>
+          <h2 class="deck-title">Rascunho do <code>spec/00_problem.md</code></h2>
+          <p class="deck-summary">Primeira versão preenchida em aula, com base no canvas. Vai ser refinada nas próximas semanas.</p>
+        </div>
+        <div class="deck-callout">
+          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.88rem; margin-top:10px; overflow-x:auto;"># Problema — Olist SRE Pipeline
+
+## Contexto
+Marketplace Olist precisa de ETL diário confiavel para ~100k pedidos.
+
+## Stakeholders
+- Operação Olist (negócio)
+- Time de dados
+- Consumidores dos dashboards
+- Plataforma / SRE
+
+## Fluxos críticos
+1. Ingestão CSV -&gt; transformação -&gt; Postgres
+2. Atualização de dashboards Grafana
+3. Observação contínua de SLA
+
+## Modos de falha conhecidos
+- Arquivo parcial / corrompido
+- Reprocesso duplicando linhas
+- EC2 derrubada durante run
+- Banco indisponível
+
+## Propriedades emergentes alvo
+- Reliability, Availability, Observabilidade
+
+## Fora de escopo (hoje)
+- RNFs mensuráveis (Aula 03)
+- Arquitetura concreta (Aula 04)</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 25 - PASSO 5 PRIMEIRO COMMIT                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Passo 5</span>
+          <h2 class="deck-title">Primeiro commit e push</h2>
+          <p class="deck-summary">Registra o marco zero do projeto. A partir daqui toda decisão vira diff revisável.</p>
+        </div>
+        <div class="deck-callout">
+          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.92rem; margin-top:10px; overflow-x:auto;">git add .
+git status
+
+git commit -m "chore: bootstrap olist-sre-pipeline com spec 00_problem"
+
+git push origin main</pre>
+        </div>
+        <div class="deck-panel">
+          <strong>Critério de pronto</strong>
+          <ul style="margin:0; padding-left:22px;">
+            <li>Repositório aparece no GitHub com a árvore de pastas.</li>
+            <li><code>spec/00_problem.md</code> preenchido e versionado.</li>
+            <li>OpenCode e Gemini respondem no terminal.</li>
+            <li>Aluno consegue pedir à IA para "ler <code>spec/00_problem.md</code> e resumir".</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 26 - VALIDACAO COM IA                                  -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Passo 6</span>
+          <h2 class="deck-title">Validar que a IA consome a spec</h2>
+          <p class="deck-summary">Exercício de fechamento: a IA precisa ser capaz de ler a spec e propor questionamentos. Isso já é o início da revisão.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Prompt de validação</strong>
+          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.9rem; margin-top:10px; overflow-x:auto;">opencode
+
+&gt; Leia spec/00_problem.md e liste:
+&gt; 1) três riscos que eu não mencionei
+&gt; 2) duas propriedades emergentes que deveriam ser
+&gt;    tornadas mensuráveis na Aula 03
+&gt; 3) uma ambiguidade no texto
+
+# repetir com gemini para comparar saídas
+gemini</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 27 - RESUMO E PROXIMA AULA                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento</span>
+          <h2 class="deck-title">Resumo e ponte para a Aula 03</h2>
+          <p class="deck-summary">O que levamos desta aula e o que precisa estar pronto em 30/04/2026.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>O que fica desta aula</h3>
+            <ul>
+              <li>SWEBOK V4: Quality, Models &amp; Methods, Professional Practice.</li>
+              <li>SEBoK: systems thinking, propriedades emergentes, SoS.</li>
+              <li>Confiabilidade como propriedade do sistema.</li>
+              <li>Loop SDD instalado como rotina semanal.</li>
+              <li>Codespace com OpenCode e Gemini CLI operando.</li>
+              <li>Repo <code>olist-sre-pipeline</code> com <code>spec/00_problem.md</code> comitado.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Aula 03 — 30/04/2026 — RNFs como contrato</h3>
+            <ul>
+              <li>ISO/IEC 25010 e qualidade mensurável.</li>
+              <li>SLI / SLO / SLA e error budget.</li>
+              <li>Utility tree priorizada para o Olist.</li>
+              <li>IA gera esqueleto de testes de SLO.</li>
+            </ul>
+            <p style="margin-top:10px;"><strong>Tarefa até lá:</strong> concluir a ficha em <code>spec/research/</code>, preparar 5 minutos de apresentação e ler survey curto sobre ISO 25010.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 28 - REFERENCIAS                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bibliografia</span>
+          <h2 class="deck-title">Referências e leituras</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Primárias</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>IEEE Computer Society. <em>SWEBOK V4</em> (2024).</li>
+              <li>BKCASE. <em>SEBoK — Guide to the Systems Engineering Body of Knowledge</em> (versão vigente).</li>
+              <li>GitHub. <em>Spec Kit</em> — repositório público de templates para SDD.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Complementares</strong>
+            <ul style="margin:0; padding-left:22px;">
+              <li>Mavin, A. <em>EARS — Easy Approach to Requirements Syntax</em>.</li>
+              <li>Robertson &amp; Robertson. <em>Mastering the Requirements Process</em>.</li>
+              <li>Beyer et al. <em>Site Reliability Engineering</em>, Google.</li>
+              <li>Starke &amp; Hruschka. <em>ARC42</em> (arc42.org).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 29 - HANDS-ON: ABRA O CODESPACE E INSTALE AS IAS       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Hands-on em sala &middot; Agora</span>
+          <h2 class="deck-title">Abra o Codespace e instale as IAs</h2>
+          <p class="deck-summary">Agora é com vocês. Dez minutos para toda a turma estar com as duas IAs rodando no terminal.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Os três passos, em ordem</strong>
+          <pre style="background:#111; color:#f6f6f6; padding:18px; border-radius:6px; font-size:1.05rem; line-height:1.6; margin-top:12px; overflow-x:auto;"># 1) Abrir Codespace no repo olist-sre-pipeline
+#    github.com &rarr; repo &rarr; Code &rarr; Codespaces &rarr;
+#    Create codespace on main
+
+# 2) Instalar o OpenCode
+npm i -g opencode-ai@latest
+
+# 3) Instalar o Gemini CLI
+npm i -g @google/gemini-cli
+
+# Validar que as duas IAs estão vivas
+opencode --version
+gemini  --version
+
+# Abrir sessão interativa (autentica via OAuth no navegador)
+opencode
+gemini</pre>
+        </div>
+        <div class="deck-panel" style="margin-top:14px;">
+          <strong>Critério de pronto &middot; 10 min</strong>
+          <ul style="margin:0; padding-left:22px;">
+            <li>Codespace ativo e terminal aberto.</li>
+            <li><code>opencode</code> e <code>gemini</code> respondem a um <em>hello</em> curto.</li>
+            <li>Professor circula na sala para destravar autenticação.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 30 - HANDS-ON: BRAINSTORMING DO PROBLEMA OLIST COM IA  -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Hands-on em sala &middot; Fechamento</span>
+          <h2 class="deck-title">Brainstorming e modelagem do problema Olist com IA</h2>
+          <p class="deck-summary">Objetivo: cada grupo sai da aula com a primeira versão de <code>spec/00_problem.md</code> comitada no repo — construída em diálogo com as duas IAs.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Prompt inicial sugerido (adapte com sua voz)</strong>
+          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.92rem; margin-top:10px; overflow-x:auto;">&gt; Estou modelando o problema de confiabilidade de um ETL
+&gt; Python que processa o dataset Olist Brazilian E-commerce.
+&gt; Me ajude a listar stakeholders, fluxos críticos, modos de
+&gt; falha e riscos emergentes usando a ótica do SEBoK
+&gt; (systems thinking + propriedades emergentes + SoS).
+&gt; Em seguida, critique sua própria resposta: o que ficou
+&gt; ambíguo? o que está faltando?</pre>
+        </div>
+        <div class="deck-columns" style="margin-top:12px;">
+          <div class="deck-panel">
+            <strong>Roteiro da atividade</strong>
+            <ol style="margin:0; padding-left:22px;">
+              <li>Rodar o prompt inicial no <code>opencode</code>.</li>
+              <li>Iterar: questionar suposições e pedir autocrítica.</li>
+              <li>Repetir o mesmo prompt no <code>gemini</code>.</li>
+              <li>Comparar divergências entre as duas saídas.</li>
+              <li>Consolidar em <code>spec/00_problem.md</code> e commitar.</li>
+            </ol>
+          </div>
+          <div class="deck-panel">
+            <strong>Regra de ouro do SDD</strong>
+            <p style="margin:8px 0 0;">A IA é ferramenta; o responsável pela qualidade da spec é você. Se algo soar certo demais, desconfie. Se algo soar vago, reescreva. A spec é contrato.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mackenzie mini logo -->
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie" />
+
+  <!-- GLOBAL navigation footer -->
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../pages/home_cloud_sre.html" class="back-home">Índice</a>
+      <a href="../material/material_aula_02_a_fundacao_do_data_lake_armazenamento_escalavel_s3_e_athena.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <!-- Navigation script -->
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    document.getElementById('total-slides').textContent = totalSlides;
+    function showSlide(i) { slides.forEach(s => s.classList.remove('active')); slides[i].classList.add('active'); currentSlide = i; document.getElementById('current-slide').textContent = i + 1; document.getElementById('prev-btn').disabled = i === 0; document.getElementById('next-btn').disabled = i === totalSlides - 1; }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    document.addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); } else if (e.key === 'ArrowLeft') { e.preventDefault(); previousSlide(); } else if (e.key.toLowerCase() === 'f') toggleFullScreen(); });
+    showSlide(0);
+  </script>
+
+  <!-- ============================================================ -->
+  <!-- Anime.js v4 - SDD loop diagram (slide 17)                    -->
+  <!-- ============================================================ -->
+  <script type="module">
+    import {
+      animate,
+      stagger,
+      createTimeline,
+      createMotionPath,
+      utils
+    } from 'https://cdn.jsdelivr.net/npm/animejs@4/+esm';
+
+    const stages = [
+      { n: '01', label: 'Conceito',   sub: 'framework da aula' },
+      { n: '02', label: 'Spec',       sub: 'spec/XX_*.md' },
+      { n: '03', label: 'Geracao',    sub: 'OpenCode / Gemini' },
+      { n: '04', label: 'Revisao',    sub: 'aluno critica' },
+      { n: '05', label: 'Testes',     sub: 'pytest' },
+      { n: '06', label: 'Deploy',     sub: 'CloudFormation / SSM' },
+      { n: '07', label: 'Observacao', sub: 'Grafana / CloudWatch' }
+    ];
+
+    const CX = 410, CY = 300, R = 200;
+    const N  = stages.length;
+    const NS = 'http://www.w3.org/2000/svg';
+
+    const nodesG  = document.querySelector('.sdd-loop-nodes');
+    const labelsG = document.querySelector('.sdd-loop-labels');
+    const slide   = document.querySelector('[data-slide="sdd-loop"]');
+
+    if (nodesG && labelsG && slide) {
+      // ---- Build nodes + labels on the circle -----------------
+      // IMPORTANT: outer <g> holds the SVG transform attribute (positioning).
+      // Inner <g> is what anime.js animates via CSS transforms (scale/translate).
+      // Mixing the two on the same element collapses everything to (0,0).
+      stages.forEach((s, i) => {
+        const a = -Math.PI / 2 + i * (2 * Math.PI / N);
+        const x = CX + R * Math.cos(a);
+        const y = CY + R * Math.sin(a);
+
+        // Node: outer positions, inner animates
+        const g = document.createElementNS(NS, 'g');
+        g.classList.add('sdd-node');
+        g.setAttribute('data-i', i);
+        g.setAttribute('transform', `translate(${x},${y})`);
+        const inner = document.createElementNS(NS, 'g');
+        inner.classList.add('sdd-node-anim');
+        inner.innerHTML =
+          `<circle r="26"/>` +
+          `<text text-anchor="middle" dominant-baseline="central" dy="1">${s.n}</text>`;
+        g.appendChild(inner);
+        nodesG.appendChild(g);
+
+        // Label: outer positions, inner animates
+        const LR = R + 62;
+        const lx = CX + LR * Math.cos(a);
+        const ly = CY + LR * Math.sin(a);
+        const vy = Math.sin(a);
+        const mainDy = vy < -0.5 ? -8 : (vy > 0.5 ? 16 : 4);
+
+        const lg = document.createElementNS(NS, 'g');
+        lg.classList.add('sdd-node-label');
+        lg.setAttribute('data-i', i);
+        lg.setAttribute('transform', `translate(${lx},${ly})`);
+        const linner = document.createElementNS(NS, 'g');
+        linner.classList.add('sdd-node-label-anim');
+        linner.innerHTML =
+          `<text class="label-main" text-anchor="middle" dy="${mainDy}">${s.label}</text>` +
+          `<text class="label-sub"  text-anchor="middle" dy="${mainDy + 16}">${s.sub}</text>`;
+        lg.appendChild(linner);
+        labelsG.appendChild(lg);
+      });
+
+      // ---- Initial hidden state (target the -anim inner groups) ----
+      utils.set('.sdd-loop-track',        { opacity: 0 });
+      utils.set('.sdd-node-anim',         { opacity: 0, scale: 0 });
+      utils.set('.sdd-node-label-anim',   { opacity: 0, translateY: 6 });
+      utils.set('.sdd-loop-center text',  { opacity: 0 });
+      utils.set('.sdd-loop-comet',        { opacity: 0 });
+
+      let orbitStarted = false;
+
+      function playEntry() {
+        utils.set('.sdd-node-anim',        { opacity: 0, scale: 0 });
+        utils.set('.sdd-node-label-anim',  { opacity: 0, translateY: 6 });
+        utils.set('.sdd-loop-track',       { opacity: 0 });
+        utils.set('.sdd-loop-center text', { opacity: 0 });
+
+        const tl = createTimeline();
+        tl.add('.sdd-loop-track', {
+          opacity: [0, 1],
+          duration: 500,
+          ease: 'outQuad'
+        })
+        .add('.sdd-node-anim', {
+          opacity: [0, 1],
+          scale:   [0, 1],
+          duration: 520,
+          ease: 'outBack(1.6)',
+          delay: stagger(80)
+        }, '-=300')
+        .add('.sdd-node-label-anim', {
+          opacity:    [0, 1],
+          translateY: [6, 0],
+          duration: 400,
+          delay: stagger(80)
+        }, '-=520')
+        .add('.sdd-loop-center text', {
+          opacity: [0, 1],
+          duration: 500
+        }, '-=300');
+
+        if (!orbitStarted) {
+          orbitStarted = true;
+          const path = createMotionPath('#sdd-loop-path');
+          utils.set('.sdd-loop-comet', { opacity: 1 });
+          animate('.sdd-loop-comet', {
+            ...path,
+            duration: 7000,
+            loop: true,
+            ease: 'linear'
+          });
+
+          // Pulse each node's inner group in phase with the comet
+          stages.forEach((_, i) => {
+            const phase = (i / N) * 7000;
+            setTimeout(() => {
+              animate(`.sdd-node[data-i="${i}"] .sdd-node-anim`, {
+                scale: [
+                  { to: 1.18, duration: 220, ease: 'outQuad' },
+                  { to: 1,    duration: 320, ease: 'outQuad' }
+                ],
+                loop: true,
+                loopDelay: 7000 - 540
+              });
+            }, phase);
+          });
+        }
+      }
+
+      // ---- Trigger when slide becomes active ------------------
+      const obs = new MutationObserver(() => {
+        if (slide.classList.contains('active')) playEntry();
+      });
+      obs.observe(slide, { attributes: true, attributeFilter: ['class'] });
+      if (slide.classList.contains('active')) playEntry();
+    }
+  </script>
+</body>
+</html>
