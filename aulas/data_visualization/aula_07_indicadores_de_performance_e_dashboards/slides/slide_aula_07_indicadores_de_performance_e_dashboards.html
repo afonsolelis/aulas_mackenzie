@@ -9,6 +9,8 @@
 </head>
 <body>
   <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
     <div class="slide">
       <div class="deck-shell" data-aula-number="07" data-year="2026">
         <div>
@@ -17,50 +19,443 @@
           <h1 class="deck-title">Indicadores de Performance e Dashboards</h1>
           <p class="deck-meta">Aula 07 &nbsp;&bull;&nbsp; 26/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Organização de KPIs e sinais visuais para acompanhamento e tomada de decisão.</p>
+          <p class="deck-subtitle">Um dashboard que não muda decisão nenhuma é um relatório caro.</p>
         </div>
       </div>
     </div>
 
+    <!-- SLIDE 2 - AGENDA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">Teoria que orienta a prática</h2>
-          <p class="deck-summary">A aula conecta fundamentos de percepção e comunicação a uma atividade aplicada com dados.</p>
+          <h2 class="deck-title">O que vai acontecer hoje</h2>
+          <p class="deck-summary">Da visualização isolada para o instrumento de decisão. O que separa métrica de indicador e como montar um painel que alguém realmente usa.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>8h30 &ndash; 9h30 &middot; Teoria</h3>
-            <p>Definição de KPI, metas, contexto, granularidade, hierarquia da informação e desenho de dashboards.</p>
+            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <ul>
+              <li>Métrica, indicador e KPI</li>
+              <li>A ficha técnica do indicador</li>
+              <li>Resultado e tendência</li>
+              <li>Metas, limites e contexto</li>
+              <li>Por que dashboards falham</li>
+              <li>Layout e ordem de leitura</li>
+            </ul>
           </article>
           <article class="deck-card">
-            <h3>9h30 &ndash; 12h10 &middot; Prática AWS Student</h3>
-            <p>Construir um dashboard executivo com KPIs, tendências, filtros essenciais e chamadas para ação.</p>
+            <h3>10h00 &ndash; 12h10 &middot; Prática</h3>
+            <ul>
+              <li>Definição de quatro KPIs do Olist</li>
+              <li>Ficha técnica de cada um</li>
+              <li>Montagem do dashboard</li>
+              <li>Filtros e parâmetros</li>
+              <li>Detalhamento por clique e alerta</li>
+            </ul>
           </article>
         </div>
       </div>
     </div>
 
+    <!-- SLIDE 3 - RECAP -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Construção do Conteúdo</span>
-          <h2 class="deck-title">Da evidência à decisão</h2>
-          <p class="deck-summary">Organização de KPIs e sinais visuais para acompanhamento e tomada de decisão.</p>
+          <span class="deck-kicker">Construção do Conteúdo &middot; Recap</span>
+          <h2 class="deck-title">Seis aulas de peças isoladas</h2>
+          <p class="deck-summary">Você tem perguntas, gráficos justificados, tabelas e mapas normalizados. Falta o que transforma peças em instrumento: seleção, hierarquia e contexto de decisão.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - TESE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">O dashboard existe para provocar ação</h2>
+          <p class="deck-summary">Se ninguém faz nada diferente depois de olhar, ele não é um instrumento de gestão — é um relatório automatizado que custa manutenção e produz a sensação de controle.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>O teste do dashboard</strong>
+          <p style="margin:8px 0 0;">Para cada elemento, pergunte: se este número piorar, quem faz o quê? Se não houver resposta, o elemento não pertence a um dashboard. Pode pertencer a uma análise, a um relatório ou a lugar nenhum.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - METRICA VS INDICADOR -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito</span>
+          <h2 class="deck-title">Métrica, indicador e KPI</h2>
+          <p class="deck-summary">Os três termos são usados como sinônimos e não são. A diferença é operacional, não semântica.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Termo</th><th>Definição</th><th>Exemplo no Olist</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Métrica</td><td>Qualquer número medido</td><td>Total de pedidos</td></tr>
+            <tr><td>Indicador</td><td>Métrica com referência que permite julgar</td><td>Pedidos vs. mesmo mês do ano anterior</td></tr>
+            <tr><td>KPI</td><td>Indicador ligado a um objetivo e a um dono</td><td>Taxa de atraso abaixo de 8%, dono: operações</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>A promoção só acontece com contexto</strong>
+          <p style="margin:8px 0 0;">"Taxa de atraso: 12%" é métrica. "Taxa de atraso: 12%, meta 8%, era 9% no trimestre passado" é indicador. O número sozinho não permite julgamento.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - FICHA TECNICA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Indicador &middot; Definição</span>
+          <h2 class="deck-title">A ficha técnica do indicador</h2>
+          <p class="deck-summary">Sete campos. Um indicador sem eles gera discussão sobre o número em vez de discussão sobre a ação.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Campo</th><th>Pergunta que responde</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Nome</td><td>Como as pessoas vão chamar isso?</td></tr>
+            <tr><td>Definição</td><td>O que exatamente está sendo medido?</td></tr>
+            <tr><td>Fórmula</td><td>Numerador e denominador explícitos</td></tr>
+            <tr><td>Grão</td><td>Por pedido, por cliente, por item?</td></tr>
+            <tr><td>Meta</td><td>Qual valor é aceitável?</td></tr>
+            <tr><td>Dono</td><td>Quem responde quando sai da meta?</td></tr>
+            <tr><td>Frequência</td><td>De quanto em quanto tempo se olha?</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - EXEMPLO DE FICHA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Indicador &middot; Exemplo</span>
+          <h2 class="deck-title">Uma ficha preenchida</h2>
+          <p class="deck-summary">Taxa de atraso na entrega — o indicador que você trouxe da Aula 06.</p>
+        </div>
+        <table class="deck-table">
+          <tbody>
+            <tr><td><strong>Nome</strong></td><td>Taxa de atraso na entrega</td></tr>
+            <tr><td><strong>Definição</strong></td><td>Proporção de pedidos entregues após a data prometida</td></tr>
+            <tr><td><strong>Fórmula</strong></td><td>Pedidos com entrega posterior à data estimada ÷ pedidos entregues</td></tr>
+            <tr><td><strong>Grão</strong></td><td>Pedido</td></tr>
+            <tr><td><strong>Meta</strong></td><td>A definir com a operação</td></tr>
+            <tr><td><strong>Dono</strong></td><td>Coordenação de logística</td></tr>
+            <tr><td><strong>Frequência</strong></td><td>Semanal</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>Note o denominador</strong>
+          <p style="margin:8px 0 0;">"Pedidos entregues", não "todos os pedidos". Cancelados não têm data de entrega e distorceriam a taxa. Essa decisão precisa estar na ficha, não na cabeça de quem construiu.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - RESULTADO E TENDENCIA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Indicador &middot; Tipos</span>
+          <h2 class="deck-title">Indicador de resultado e de tendência</h2>
+          <p class="deck-summary">Um dashboard só com indicadores de resultado informa sobre o passado e não permite agir a tempo.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Resultado</strong>
+            <ul>
+              <li>Mede o que já aconteceu</li>
+              <li>Fácil de medir, difícil de influenciar</li>
+              <li>Faturamento do mês</li>
+              <li>Satisfação média do trimestre</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Tendência</strong>
+            <ul>
+              <li>Antecipa o resultado futuro</li>
+              <li>Difícil de escolher, fácil de influenciar</li>
+              <li>Pedidos em atraso de processamento</li>
+              <li>Tempo até a primeira movimentação</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - POR QUE FALHAM -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dashboard &middot; Diagnóstico</span>
+          <h2 class="deck-title">Cinco razões pelas quais dashboards falham</h2>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Falha</th><th>Sintoma</th><th>Correção</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sem dono</td><td>Ninguém responde pelo número</td><td>Atribuir dono a cada indicador</td></tr>
+            <tr><td>Sem meta</td><td>Não se sabe se está bom</td><td>Definir referência antes de publicar</td></tr>
+            <tr><td>Excesso</td><td>Vinte painéis, nenhuma hierarquia</td><td>Cortar até restar o que provoca ação</td></tr>
+            <tr><td>Sem recorte</td><td>Só o agregado, sem detalhamento</td><td>Filtros e detalhamento por clique</td></tr>
+            <tr><td>Sem cadência</td><td>Ninguém olha em momento definido</td><td>Amarrar a um ritual de gestão</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - ANATOMIA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Dashboard &middot; Estrutura</span>
+          <h2 class="deck-title">Três camadas</h2>
+          <p class="deck-summary">Todo dashboard útil tem esta estrutura, mesmo quando não é explícita.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>De cima para baixo</strong>
+          <ol style="margin:10px 0 0; padding-left:22px;">
+            <li><strong>Estado</strong> — quatro a seis números que dizem se está bom ou ruim agora.</li>
+            <li><strong>Tendência</strong> — como esses números chegaram até aqui.</li>
+            <li><strong>Diagnóstico</strong> — recortes que apontam onde está o problema.</li>
+          </ol>
+          <p style="margin:12px 0 0;">A leitura vai de cima para baixo apenas quando algo está errado. Se tudo está na meta, a primeira camada basta e o resto nem é lido.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - LAYOUT -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Dashboard &middot; Layout</span>
+          <h2 class="deck-title">Onde o olho entra</h2>
+          <p class="deck-summary">A leitura ocidental começa no canto superior esquerdo. Esse é o espaço mais caro do painel e deve ser ocupado pelo que mais importa.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Regras de posicionamento</strong>
+            <ul>
+              <li>O indicador mais importante no topo à esquerda</li>
+              <li>Elementos relacionados agrupados por proximidade</li>
+              <li>Filtros no topo, visíveis antes dos dados</li>
+              <li>Detalhamento abaixo, nunca acima</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Erros comuns</strong>
+            <ul>
+              <li>Ordem por facilidade de construção</li>
+              <li>Cada painel com uma escala de cor diferente</li>
+              <li>Rolagem horizontal</li>
+              <li>Título que não diz qual decisão o painel apoia</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - FILTROS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Dashboard &middot; Interação</span>
+          <h2 class="deck-title">Filtros são decisões de escopo</h2>
+          <p class="deck-summary">Cada filtro adicionado é uma pergunta que você delega ao leitor. Isso é poderoso e perigoso.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Duas regras</strong>
+          <ol style="margin:10px 0 0; padding-left:22px;">
+            <li><strong>Estado inicial é uma afirmação.</strong> O filtro padrão define a leitura que a maioria terá. Escolha-o deliberadamente.</li>
+            <li><strong>Todo filtro visível precisa ser usado.</strong> Filtros que ninguém mexe são ruído — remova-os e fixe o valor.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - DRILL E ALERTA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Dashboard &middot; Interação</span>
+          <h2 class="deck-title">Detalhamento e alerta</h2>
+          <p class="deck-summary">Duas funções que transformam um painel estático em ferramenta de investigação e de vigilância.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Detalhamento por clique</strong>
+            <ul>
+              <li>Do agregado ao caso individual</li>
+              <li>Responde "por que este número?"</li>
+              <li>Evita construir dez painéis fixos</li>
+              <li>Precisa ser descoberto — sinalize</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Alerta</strong>
+            <ul>
+              <li>Inverte a lógica: o painel avisa você</li>
+              <li>Exige limite numérico definido</li>
+              <li>Excesso de alerta vira ruído ignorado</li>
+              <li>Um alerta sem dono não é um alerta</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - ABERTURA PRATICA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 10h00 &ndash; 12h10</span>
+          <h2 class="deck-title">Laboratório: o dashboard do Olist</h2>
+          <p class="deck-summary">Quatro indicadores, um painel, filtros funcionando e um alerta configurado. O dashboard construído hoje é a base do projeto final.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>A decisão que o painel apoia</strong>
+          <p style="margin:8px 0 0;">Antes de construir qualquer coisa, escreva numa frase qual decisão este dashboard existe para apoiar. Todo elemento que não contribuir para essa decisão fica de fora.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - ETAPA 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 1</span>
+          <h2 class="deck-title">Definir os quatro indicadores</h2>
+          <p class="deck-summary">Trinta minutos. Antes de construir, preencher as fichas.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Escolha quatro indicadores que apoiem a decisão declarada.</li>
+          <li>Garanta que pelo menos um seja de tendência, não só de resultado.</li>
+          <li>Preencha os sete campos da ficha técnica de cada um.</li>
+          <li>Para cada um, escreva: se piorar, quem faz o quê?</li>
+          <li>Descarte qualquer indicador que não tenha resposta para essa pergunta.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - ETAPA 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 2</span>
+          <h2 class="deck-title">Construir os componentes</h2>
+          <p class="deck-summary">Quarenta minutos. Cada indicador vira uma pergunta salva antes de virar painel.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Construa cada indicador como valor único em destaque, com comparação temporal.</li>
+          <li>Construa a série histórica de cada um.</li>
+          <li>Construa dois recortes de diagnóstico — por estado e por categoria.</li>
+          <li>Reaproveite o que já existe na sua coleção das aulas anteriores.</li>
+          <li>Nomeie tudo de forma que outra pessoa entenda sem abrir.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - ETAPA 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 3</span>
+          <h2 class="deck-title">Montar o painel</h2>
+          <p class="deck-summary">Trinta minutos. As três camadas, na ordem certa.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Posicione os quatro indicadores na faixa superior.</li>
+          <li>Coloque as séries históricas na camada do meio.</li>
+          <li>Coloque os recortes de diagnóstico embaixo.</li>
+          <li>Adicione filtro de período e filtro de estado no topo.</li>
+          <li>Defina o estado inicial dos filtros deliberadamente e justifique.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - ETAPA 4 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 4</span>
+          <h2 class="deck-title">Interação e vigilância</h2>
+          <p class="deck-summary">Trinta minutos. O painel precisa responder "por quê" e avisar quando algo sair da linha.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Configure detalhamento por clique de pelo menos um componente.</li>
+          <li>Teste: clicando num estado, o restante do painel responde?</li>
+          <li>Configure um alerta sobre o indicador mais crítico.</li>
+          <li>Defina o limite numérico e justifique-o.</li>
+          <li>Peça a um colega que use o painel sem explicação e observe onde ele trava.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - ENTREGAVEL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega</span>
+          <h2 class="deck-title">O que sai daqui hoje</h2>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>Critério visual</h3>
-            <p>A representação deve preservar a integridade dos dados e tornar a comparação necessária fácil de perceber.</p>
+            <h3>No Metabase</h3>
+            <p>Um dashboard funcional com quatro indicadores, séries históricas, dois recortes de diagnóstico, filtros e um alerta configurado.</p>
           </article>
           <article class="deck-card">
-            <h3>Resultado esperado</h3>
-            <p>Uma visualização adequada ao público, à mensagem e à decisão que precisa ser tomada.</p>
+            <h3>No repositório</h3>
+            <p><code>docs/07_kpis.md</code> com a decisão que o painel apoia, a ficha técnica dos quatro indicadores e a justificativa do estado inicial dos filtros.</p>
           </article>
         </div>
       </div>
     </div>
+
+    <!-- SLIDE 20 - CRITERIOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Avaliação</span>
+          <h2 class="deck-title">Como este trabalho é avaliado</h2>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Fichas completas</td><td>Os sete campos preenchidos para os quatro indicadores</td></tr>
+            <tr><td>Ação declarada</td><td>Cada indicador responde "se piorar, quem faz o quê"</td></tr>
+            <tr><td>Camadas respeitadas</td><td>Estado, tendência e diagnóstico em ordem</td></tr>
+            <tr><td>Interação funcionando</td><td>Filtros e detalhamento testados por outra pessoa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - PROXIMA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Próxima aula &middot; 03/10</span>
+          <h2 class="deck-title">Storytelling com Dados e Projeto Final</h2>
+          <p class="deck-summary">Última aula. O dashboard serve a quem já sabe o que procurar; a apresentação serve a quem precisa ser convencido. São coisas diferentes.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Traga pronto</strong>
+          <p style="margin:8px 0 0;">O dashboard funcionando e uma revisão dos sete artefatos anteriores. A aula final é de curadoria e defesa — não haverá tempo para construir do zero.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">

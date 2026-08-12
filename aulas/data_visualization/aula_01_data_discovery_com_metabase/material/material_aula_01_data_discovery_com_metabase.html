@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 01 — Data Discovery com Metabase</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+  <style>
+    /* Escopo local da Aula 01 — apenas o par de perguntas contrastadas.
+       Tabelas, callouts e code blocks vêm de assets/styles.css. */
+    .content-block .m01-q-bad,
+    .content-block .m01-q-good {
+      font-family: var(--font-mono);
+      font-size: .88em;
+      padding: 12px 16px;
+      margin: 8px 0;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+    }
+    .content-block .m01-q-bad  { border-left: 3px solid var(--muted); background: var(--surface); }
+    .content-block .m01-q-good { border-left: 3px solid var(--accent); background: #fff; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_01_data_discovery_com_metabase.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 01 — Data Discovery com Metabase</h1>
+      <p class="meta">Aula 01 &middot; 15/08/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block">
+        <h2>1. Visão geral</h2>
+        <p>Esta é a primeira aula da disciplina e ela deliberadamente não fala sobre gráficos. Fala sobre o que precisa acontecer antes: conhecer o conjunto de dados com o qual se vai trabalhar durante todo o semestre, entender seus limites e transformar intenções vagas de negócio em perguntas que os dados conseguem responder.</p>
+        <p>A escolha de começar por aqui tem uma razão prática. A maior parte dos erros graves de visualização não está no tipo de gráfico escolhido — está em visualizar corretamente um número que foi calculado errado. Um gráfico impecável de prazo médio de entrega que silenciosamente excluiu os pedidos nunca entregues é mais perigoso que um gráfico feio, porque parece confiável.</p>
+        <p>Ao final desta aula você terá acesso funcionando ao Metabase, conhecerá as nove tabelas do dataset Olist com precisão suficiente para explicar o que cada linha representa, e terá escrito o backlog de perguntas que vai guiar as sete aulas seguintes.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>2. Por que discovery vem antes da visualização</h2>
+        <p>Existe um caminho que quase todo profissional percorre quando recebe acesso a um banco de dados novo: abre a ferramenta, arrasta alguns campos, escolhe o gráfico que parece mais apresentável e monta um painel. O painel fica pronto rápido, é apresentado, e não muda decisão nenhuma. Isso acontece porque o painel respondeu perguntas que ninguém tinha feito.</p>
+        <p>O caminho alternativo é mais lento no começo e muito mais rápido no final. Ele começa pela descoberta: o que existe neste conjunto, em que granularidade, cobrindo qual período, com qual qualidade. Só depois vem a formulação das perguntas, e só então a escolha da representação.</p>
+        <p>Data discovery não se confunde com três atividades vizinhas. Não é análise exploratória, que já parte de uma hipótese a testar. Não é limpeza de dados, que pressupõe saber o que está sujo. E não é a construção do artefato final. É a etapa que torna as três possíveis, porque estabelece o que se pode e o que não se pode afirmar.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>3. As quatro dimensões do perfilamento</h2>
+        <p>Perfilar uma coluna significa responder quatro perguntas sobre ela. O procedimento é mecânico e leva poucos minutos por coluna, mas evita conclusões erradas que sobreviveriam ao semestre inteiro.</p>
+
+        <table>
+          <thead>
+            <tr><th>Dimensão</th><th>Pergunta</th><th>Sinal de alerta</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Completude</td><td>Quantos valores nulos existem e onde eles se concentram?</td><td>Nulos agrupados num período específico ou numa categoria específica</td></tr>
+            <tr><td>Cardinalidade</td><td>Quantos valores distintos a coluna assume?</td><td>Coluna categórica com milhares de valores; coluna booleana com três valores</td></tr>
+            <tr><td>Distribuição</td><td>Como os valores se espalham ao longo da faixa?</td><td>Média muito distante da mediana</td></tr>
+            <tr><td>Outliers</td><td>O que existe nos extremos da faixa?</td><td>Zeros, valores negativos e datas impossíveis</td></tr>
+          </tbody>
+        </table>
+
+        <h3>3.1 Completude — o nulo nunca é aleatório</h3>
+        <p>A pergunta útil não é quantos nulos existem, mas por que <em>estes</em> registros estão nulos e aqueles não. Nulo distribuído uniformemente costuma indicar falha de captura. Nulo concentrado indica regra de negócio.</p>
+        <p>No Olist a data de entrega é nula em parte dos pedidos. Isso não é defeito do dado: são pedidos cancelados, extraviados ou ainda em trânsito no momento da extração. Se você calcular o prazo médio de entrega ignorando essa informação, estará calculando a média apenas dos pedidos bem-sucedidos. O resultado é um número que parece bom justamente porque excluiu os casos ruins.</p>
+
+        <h3>3.2 Cardinalidade — quantos valores distintos</h3>
+        <p>A cardinalidade determina qual representação é viável. Uma coluna com cinco valores distintos cabe numa comparação lado a lado. Uma com setenta e um valores — como a categoria de produto no Olist — exige decisão sobre agrupamento antes de qualquer gráfico. Uma com dezenas de milhares não é uma categoria, é um identificador, e identificador não se agrupa.</p>
+
+        <h3>3.3 Distribuição — média e mediana contam histórias diferentes</h3>
+        <p>Em dados de comércio eletrônico a distribuição raramente é simétrica. A maior parte dos pedidos tem valor baixo e alguns poucos têm valor muito alto. Essa cauda longa à direita puxa a média para cima e a afasta do caso típico.</p>
+        <p>A regra prática: use média quando a distribuição é aproximadamente simétrica ou quando você precisa que a soma seja preservada — faturamento total dividido por número de pedidos é média legítima. Use mediana quando quer descrever o caso típico numa distribuição assimétrica — ticket, prazo de entrega e valor de frete pedem mediana.</p>
+        <p>Quando média e mediana divergem muito, isso não é um problema a esconder: é um achado a reportar.</p>
+
+        <h3>3.4 Outliers — o que existe nos extremos</h3>
+        <p>Antes de decidir o que fazer com valores extremos, é preciso saber se são erro de registro ou fenômeno real. Um frete de valor zero pode ser promoção de frete grátis — dado legítimo. Uma data de entrega anterior à data da compra é erro. Um pedido de valor muito alto pode ser uma compra corporativa real.</p>
+        <p>A decisão de excluir outliers precisa ser registrada e justificada. Exclusão silenciosa é a forma mais comum de produzir um gráfico honesto na aparência e enganoso no conteúdo.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Tipo físico e tipo semântico</h2>
+        <p>O banco de dados armazena <code>customer_state</code> como texto. Isso é o tipo físico: como o valor está guardado. Mas a coluna não é texto qualquer — é a sigla de uma unidade federativa brasileira. Isso é o tipo semântico: o que o valor significa no mundo real.</p>
+        <p>Ferramentas de visualização usam o tipo semântico para decidir o que oferecer. Enquanto o Metabase enxergar <code>customer_state</code> como texto genérico, ele vai oferecer uma lista alfabética. Quando souber que é um estado, vai oferecer um mapa. A configuração desses metadados é feita na área administrativa e é uma etapa de preparação, não de análise.</p>
+
+        <table>
+          <thead>
+            <tr><th>Coluna</th><th>Tipo físico</th><th>Tipo semântico</th><th>O que destrava</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>customer_state</code></td><td>text</td><td>State</td><td>Mapa de regiões</td></tr>
+            <tr><td><code>customer_zip_code_prefix</code></td><td>integer</td><td>Zip Code</td><td>Agrupamento geográfico</td></tr>
+            <tr><td><code>geolocation_lat</code> / <code>lng</code></td><td>numeric</td><td>Latitude / Longitude</td><td>Mapa de pontos</td></tr>
+            <tr><td><code>price</code></td><td>numeric</td><td>Currency</td><td>Formatação monetária automática</td></tr>
+            <tr><td><code>review_score</code></td><td>integer</td><td>Score / Category</td><td>Trata como categoria, evita somar notas</td></tr>
+            <tr><td><code>order_status</code></td><td>text</td><td>Category</td><td>Filtro por lista de opções</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>O caso do review_score</strong>
+          <p>A nota da avaliação é um inteiro de 1 a 5. Fisicamente é número, e por isso a ferramenta tende a oferecer soma. Somar notas de avaliação não significa nada — a soma de duas notas 5 não é uma nota 10. Marcar a coluna como categoria impede o erro na origem.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>5. O grão da análise</h2>
+        <p>Grão é o nível de detalhe representado por uma linha da tabela. É o conceito mais importante desta aula e a fonte mais frequente de números inflados em relatórios corporativos.</p>
+
+        <table>
+          <thead>
+            <tr><th>Tabela</th><th>Uma linha representa</th><th>Consequência</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>olist_orders</code></td><td>um pedido</td><td>Grão mais alto; contagem aqui é contagem de pedidos</td></tr>
+            <tr><td><code>olist_order_items</code></td><td>um item dentro de um pedido</td><td>Um pedido aparece tantas vezes quantos itens tiver</td></tr>
+            <tr><td><code>olist_order_payments</code></td><td>uma parcela de pagamento</td><td>Um pedido pode ter mais de uma forma de pagamento</td></tr>
+            <tr><td><code>olist_order_reviews</code></td><td>uma avaliação</td><td>Nem todo pedido tem avaliação</td></tr>
+            <tr><td><code>olist_geolocation</code></td><td>um ponto de coordenada por prefixo de CEP</td><td>Muitos pontos por CEP; junção direta multiplica linhas</td></tr>
+          </tbody>
+        </table>
+
+        <p>Quando você junta duas tabelas de grãos diferentes, o resultado assume o grão mais fino. Ao juntar pedidos com itens, uma linha deixa de ser um pedido e passa a ser um item. Contar linhas nesse resultado e chamar o número de "total de pedidos" produz um número inflado que passa despercebido porque continua parecendo plausível.</p>
+
+        <div class="note">
+          <strong>Pergunta de controle obrigatória</strong>
+          <p>Depois de cada junção, antes de qualquer agregação: <em>o que uma linha representa agora?</em> Se você não souber responder em uma frase, não agregue ainda.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Da pergunta vaga à pergunta respondível</h2>
+        <p>Perguntas de negócio chegam vagas, e isso é natural — quem pergunta não conhece a estrutura dos dados. O trabalho de tradução é seu.</p>
+
+        <p><strong>Como a pergunta costuma chegar:</strong></p>
+        <div class="m01-q-bad">"Como está a performance de entrega?"</div>
+
+        <p><strong>Como ela precisa ficar:</strong></p>
+        <div class="m01-q-good">"Qual o percentual de pedidos entregues após a data prometida, por estado, entre janeiro de 2017 e agosto de 2018, considerando apenas pedidos com status delivered?"</div>
+
+        <p>A segunda versão é feia de ler e excelente de responder. Ela contém cinco elementos que a primeira não tem:</p>
+
+        <table>
+          <thead>
+            <tr><th>Elemento</th><th>Pergunta de controle</th><th>No exemplo</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Métrica</td><td>O que está sendo medido?</td><td>Percentual de pedidos atrasados</td></tr>
+            <tr><td>Recorte</td><td>Quebrado por qual dimensão?</td><td>Por estado do cliente</td></tr>
+            <tr><td>Período</td><td>Cobrindo qual janela temporal?</td><td>Jan/2017 a ago/2018</td></tr>
+            <tr><td>Filtro</td><td>O que fica deliberadamente de fora?</td><td>Apenas status <code>delivered</code></td></tr>
+            <tr><td>Decisão</td><td>O que muda conforme a resposta?</td><td>Onde renegociar prazo com transportadora</td></tr>
+          </tbody>
+        </table>
+
+        <p>O quinto elemento é o que mais falta e o mais importante. Se nenhuma decisão muda em função da resposta, a pergunta é curiosidade. Curiosidade é legítima em exploração, mas não justifica um lugar num dashboard.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>7. O dataset Olist</h2>
+        <p>Olist é um marketplace brasileiro que conecta pequenos vendedores a grandes plataformas de comércio eletrônico. O conjunto de dados público cobre aproximadamente cem mil pedidos realizados entre 2016 e 2018, com informações de preço, frete, prazo prometido e realizado, forma de pagamento, avaliação do cliente e localização geográfica.</p>
+        <p>A escolha deste dataset para a disciplina não é casual. Ele contém, num único conjunto, todos os tipos de dado que a ementa exige representar: séries temporais de dois anos, valores contínuos com cauda longa, dezenas de categorias, hierarquia entre categoria e produto, texto livre em avaliações e geografia com estado, cidade e coordenadas.</p>
+
+        <h3>7.1 As nove tabelas</h3>
+        <p>Os volumes abaixo são ordens de grandeza para orientação. Confirmar cada número é parte da atividade prática de hoje.</p>
+
+        <table>
+          <thead>
+            <tr><th>Tabela</th><th>Grão</th><th>Ordem de grandeza</th><th>Serve para</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>olist_orders</code></td><td>pedido</td><td>~100 mil</td><td>Datas, status, prazo prometido e realizado</td></tr>
+            <tr><td><code>olist_order_items</code></td><td>item do pedido</td><td>~113 mil</td><td>Preço unitário e valor do frete</td></tr>
+            <tr><td><code>olist_order_payments</code></td><td>parcela de pagamento</td><td>~104 mil</td><td>Meio de pagamento e número de parcelas</td></tr>
+            <tr><td><code>olist_order_reviews</code></td><td>avaliação</td><td>~99 mil</td><td>Nota de 1 a 5 e comentário em texto</td></tr>
+            <tr><td><code>olist_customers</code></td><td>cliente por pedido</td><td>~99 mil</td><td>Cidade, estado e prefixo de CEP</td></tr>
+            <tr><td><code>olist_sellers</code></td><td>vendedor</td><td>~3 mil</td><td>Localização de origem do envio</td></tr>
+            <tr><td><code>olist_products</code></td><td>produto</td><td>~33 mil</td><td>Categoria, peso e dimensões</td></tr>
+            <tr><td><code>olist_geolocation</code></td><td>ponto de coordenada</td><td>~1 milhão</td><td>Latitude e longitude por prefixo de CEP</td></tr>
+            <tr><td><code>product_category_name_translation</code></td><td>categoria</td><td>71</td><td>Tradução dos nomes de categoria</td></tr>
+          </tbody>
+        </table>
+
+        <h3>7.2 Como as tabelas se conectam</h3>
+        <pre>olist_customers
+     │  customer_id
+     ▼
+olist_orders ──────────────► olist_order_reviews
+     │  order_id                    order_id
+     │
+     ├──► olist_order_payments      (1 pedido : N parcelas)
+     │
+     └──► olist_order_items         (1 pedido : N itens)
+                 │  product_id           │  seller_id
+                 ▼                       ▼
+          olist_products          olist_sellers
+                 │  product_category_name
+                 ▼
+   product_category_name_translation</pre>
+
+        <p>O pedido é o centro do modelo. Praticamente toda pergunta relevante passa por <code>olist_orders</code>, seja para obter datas, seja para conectar cliente a produto.</p>
+
+        <div class="note">
+          <strong>Atenção com olist_geolocation</strong>
+          <p>Essa tabela tem múltiplas coordenadas para o mesmo prefixo de CEP — cada ponto registrado é uma linha. Juntá-la diretamente a pedidos multiplica o número de linhas de forma dramática. O uso correto passa por agregar as coordenadas por prefixo antes da junção. Voltaremos a isso na Aula 06.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Metabase</h2>
+        <p>Metabase é uma ferramenta open source de exploração e visualização de dados. Nesta disciplina usaremos uma instância única, hospedada pelo professor, com o banco Olist conectado em modo somente leitura.</p>
+        <p>A escolha do Metabase sobre alternativas proprietárias tem três motivos. É gratuito e você pode reinstalar depois do curso sem barreira de licença. Oferece construtor visual e editor SQL no mesmo produto, o que permite aumentar a complexidade ao longo do semestre sem trocar de ambiente. E possui exploração automática de tabelas, recurso especialmente útil na etapa de discovery.</p>
+
+        <h3>8.1 Acesso à instância</h3>
+        <p>A instância já está no ar e é a mesma para toda a turma. Funciona em qualquer navegador, sem instalar nada.</p>
+
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Valor</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Endereço</td><td><a href="https://metabase-production-76b0.up.railway.app">metabase-production-76b0.up.railway.app</a></td></tr>
+            <tr><td>Login</td><td><code>alunos@aula.local</code></td></tr>
+            <tr><td>Senha</td><td><code>OlistAula2026!</code></td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>A conta é compartilhada pela turma inteira</strong>
+          <p>Todos entram com o mesmo login. Isso tem duas consequências práticas. A primeira: <strong>não troque a senha</strong> — trocar derruba todo mundo que estiver conectado, no meio da aula. A segunda: como todos são a mesma identidade para a ferramenta, não existe isolamento técnico entre o seu trabalho e o dos colegas. O que protege o trabalho de cada um é a convenção de coleções descrita a seguir, não uma permissão.</p>
+        </div>
+
+        <h3>8.2 Organização do trabalho</h3>
+        <p>Na primeira vez que entrar, crie uma coleção com o seu nome completo e salve tudo dentro dela. Toda entrega desta disciplina será procurada ali, então o nome precisa identificar você sem ambiguidade.</p>
+        <p>Como a conta é compartilhada, você enxerga as coleções dos colegas e tem permissão técnica para editá-las. Não faça isso. Se quiser partir de uma pergunta que outra pessoa montou, use <em>Duplicate</em> e trabalhe sobre a cópia, dentro da sua própria coleção.</p>
+        <p>O banco de dados, esse sim, está protegido: a conexão é somente leitura de verdade. Nenhuma consulta escrita por você — nem no construtor, nem no editor SQL — consegue alterar ou apagar dado. Errar uma consulta faz a consulta falhar, e nada além disso.</p>
+
+        <h3>8.3 Os cinco lugares que importam nesta aula</h3>
+        <table>
+          <thead>
+            <tr><th>Lugar</th><th>Para que serve</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Browse data</td><td>Navegar pelo banco e inspecionar tabelas e colunas sem escrever consulta</td></tr>
+            <tr><td>X-ray</td><td>Gerar automaticamente uma exploração completa de uma tabela</td></tr>
+            <tr><td>Notebook editor</td><td>Construtor visual: filtrar, agrupar, sumarizar e juntar</td></tr>
+            <tr><td>Native query</td><td>Editor SQL, para quando o construtor não alcança</td></tr>
+            <tr><td>Collections</td><td>Onde o trabalho é salvo e organizado</td></tr>
+          </tbody>
+        </table>
+
+        <h3>8.4 Construtor visual ou SQL</h3>
+        <p>A escolha entre os dois não é questão de nível de habilidade. É questão de qual deles preserva mais informação para quem vier depois.</p>
+        <p>Prefira o construtor visual quando a pergunta cabe em filtro, agrupamento e sumarização, quando você quer que o resultado permaneça explorável por clique, quando outra pessoa vai precisar editar a pergunta, ou quando quer aproveitar o detalhamento automático que a ferramenta oferece ao clicar num ponto do gráfico.</p>
+        <p>Prefira SQL quando precisar de função de janela ou expressão de tabela comum, quando a lógica de junção for irregular, quando o cálculo envolver linhas distantes entre si, ou quando a consulta precisar ser versionada como arquivo no repositório.</p>
+
+        <h3>8.5 Dicas de uso</h3>
+        <p>Nada aqui é conceito novo — são atritos concretos que aparecem nas primeiras horas de uso e custam tempo de aula quando ninguém avisa antes.</p>
+
+        <table>
+          <thead>
+            <tr><th>Dica</th><th>Por quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Salve antes de navegar para outra tela</td><td>Pergunta não salva se perde ao clicar fora. Não há rascunho automático nem aviso de saída.</td></tr>
+            <tr><td>Nomeie a pergunta descrevendo o conteúdo</td><td>&ldquo;Pedidos entregues por mês&rdquo; se encontra daqui a seis semanas; &ldquo;Pergunta 1&rdquo; não. Você vai reaproveitar essas perguntas até a Aula 08.</td></tr>
+            <tr><td>Use <em>View the SQL</em> no construtor</td><td>Mostra o SQL que o construtor gerou. É a forma mais rápida de aprender a correspondência entre as duas formas de perguntar.</td></tr>
+            <tr><td>Clique nos pontos do gráfico</td><td>Cada ponto abre as linhas que o compõem. É assim que se confere um número que parece estranho, em vez de confiar nele.</td></tr>
+            <tr><td>Trate o X-ray como bússola, não como resposta</td><td>Ele mostra o que é fácil de mostrar, não o que importa para a sua pergunta.</td></tr>
+            <tr><td>Experimente SQL sem medo</td><td>A conexão é somente leitura. O pior resultado possível de uma consulta errada é uma mensagem de erro.</td></tr>
+            <tr><td>Confira o grão depois de toda junção</td><td>O construtor não avisa que o número de linhas mudou. Compare a contagem antes e depois — é a checagem mais barata desta aula.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>9. Laboratório — descobrir o Olist</h2>
+        <p>Duração aproximada de duas horas e dez minutos, das 10h00 às 12h10. Seis etapas. Ao final você terá cinco perguntas salvas e o documento de discovery escrito.</p>
+
+        <div class="note">
+          <strong>Antes de começar</strong>
+          <p>Acesse a instância com as credenciais da seção 8.1. Confirme três coisas: você entrou, o banco <code>olist</code> aparece em <em>Browse data</em> com as nove tabelas, e a coleção com o seu nome já existe. Se algo falhar, resolva agora — não avance com o ambiente quebrado.</p>
+        </div>
+
+        <h3>Etapa 1 — Navegar pelo schema (10 minutos)</h3>
+        <ol>
+          <li>Acesse <em>Browse data</em> e abra o banco <code>olist</code>.</li>
+          <li>Percorra as nove tabelas, uma a uma.</li>
+          <li>Para cada tabela, escreva em uma única frase o que uma linha representa.</li>
+          <li>Anote quais colunas parecem chaves de junção entre tabelas.</li>
+        </ol>
+
+        <h3>Etapa 2 — Exploração automática (10 minutos)</h3>
+        <ol>
+          <li>Selecione a tabela <code>olist_orders</code> e acione o X-ray.</li>
+          <li>Leia toda a exploração que o Metabase gerou automaticamente.</li>
+          <li>Anote duas observações que chamaram sua atenção.</li>
+          <li>Anote uma coisa que parece suspeita ou que você não entendeu.</li>
+        </ol>
+        <p>O X-ray é um bom ponto de partida e um péssimo ponto de chegada. Ele mostra o que é fácil de mostrar, não o que é importante. Use-o para se orientar rápido, nunca como resposta final.</p>
+
+        <h3>Etapa 3 — Perfilamento (40 minutos)</h3>
+        <p>Aplique as quatro dimensões às colunas que pretende usar durante o semestre. Registre cada resposta no documento.</p>
+
+        <table>
+          <thead>
+            <tr><th>O que verificar</th><th>Como fazer no Metabase</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Volume de cada tabela</td><td>Nova pergunta → sumarizar por contagem de linhas</td></tr>
+            <tr><td>Período coberto</td><td>Sumarizar por mínimo e por máximo de <code>order_purchase_timestamp</code></td></tr>
+            <tr><td>Nulos na data de entrega</td><td>Filtrar onde <code>order_delivered_customer_date</code> é vazio e contar</td></tr>
+            <tr><td>Valores possíveis de status</td><td>Agrupar por <code>order_status</code> e contar</td></tr>
+            <tr><td>Distribuição de preço</td><td>Sumarizar média e mediana de <code>price</code> e comparar</td></tr>
+            <tr><td>Cardinalidade de categoria</td><td>Contagem de valores distintos de <code>product_category_name</code></td></tr>
+            <tr><td>Cobertura de avaliações</td><td>Comparar contagem de reviews com contagem de pedidos</td></tr>
+          </tbody>
+        </table>
+
+        <p>Ao encontrar os nulos na data de entrega, não pare no número. Investigue: esses pedidos têm qual status? Estão concentrados em algum período? A resposta muda o que você poderá afirmar sobre prazo de entrega no resto do semestre.</p>
+
+        <h3>Etapa 4 — Primeira pergunta no construtor (30 minutos)</h3>
+        <p>Pergunta guiada: <em>quantos pedidos foram feitos por mês, considerando apenas os que chegaram ao status delivered?</em></p>
+        <ol>
+          <li>Crie uma nova pergunta a partir de <code>olist_orders</code>.</li>
+          <li>Adicione filtro: <code>order_status</code> igual a <code>delivered</code>.</li>
+          <li>Sumarize por contagem de linhas.</li>
+          <li>Agrupe por <code>order_purchase_timestamp</code>, escolhendo granularidade mensal.</li>
+          <li>Observe o resultado e verifique se o início e o fim da série fazem sentido com o período que você descobriu na Etapa 3.</li>
+          <li>Salve na coleção com o seu nome, usando um título descritivo — não use "Pergunta 1".</li>
+        </ol>
+        <p>Preste atenção às pontas da série. É comum que o primeiro e o último mês do período tenham volume muito menor, simplesmente porque estão incompletos. Isso não é queda de vendas: é recorte de extração. Confundir os dois é um erro clássico.</p>
+
+        <h3>Etapa 5 — Junção e o cuidado com o grão (20 minutos)</h3>
+        <ol>
+          <li>Crie uma pergunta juntando <code>olist_orders</code> com <code>olist_order_items</code> pela coluna <code>order_id</code>.</li>
+          <li>Conte as linhas do resultado.</li>
+          <li>Compare com a contagem de linhas de <code>olist_orders</code> isolada.</li>
+          <li>Escreva uma frase explicando a diferença. Se os dois números forem iguais, algo está errado na sua junção.</li>
+          <li>Agora some <code>price</code> agrupando por mês e avalie se o total é compatível com o volume de pedidos observado na etapa anterior.</li>
+        </ol>
+
+        <h3>Etapa 6 — O backlog do semestre (20 minutos)</h3>
+        <p>Este é o artefato mais importante do dia. Escreva dez perguntas de negócio sobre o Olist, cada uma contendo os cinco elementos: métrica, recorte, período, filtro e decisão.</p>
+        <p>Distribua as perguntas assim: duas sobre evolução no tempo, duas sobre comparação entre categorias, duas sobre geografia, duas sobre prazo e satisfação, e duas livres.</p>
+        <p>Depois de escrever as dez, marque quais delas você já sabe que os dados <em>não</em> conseguem responder — por falta de coluna, por falta de granularidade ou por qualidade insuficiente. Essas perguntas são tão valiosas quanto as respondíveis, porque delimitam o alcance honesto do seu trabalho.</p>
+        <p>Por fim, marque as três perguntas prioritárias. Uma delas será usada já na Aula 02.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>10. Entregáveis</h2>
+        <table>
+          <thead>
+            <tr><th>Onde</th><th>O quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Metabase</td><td>Coleção com o seu nome contendo pelo menos cinco perguntas salvas e nomeadas de forma descritiva, incluindo a série mensal e a junção com itens</td></tr>
+            <tr><td>Repositório</td><td><code>docs/01_discovery.md</code> com o perfil das nove tabelas, os problemas de qualidade encontrados e as dez perguntas de negócio</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Critérios de avaliação</h3>
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Precisão do grão</td><td>Cada tabela descrita com clareza sobre o que uma linha representa</td></tr>
+            <tr><td>Honestidade sobre qualidade</td><td>Problemas encontrados estão registrados, não omitidos</td></tr>
+            <tr><td>Perguntas respondíveis</td><td>Os cinco elementos presentes em cada pergunta</td></tr>
+            <tr><td>Consciência dos limites</td><td>Pelo menos uma pergunta identificada como não respondível, com justificativa</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>11. Preparação para a Aula 02</h2>
+        <p>Na próxima aula, em 22 de agosto, o tema é percepção visual e processo de criação. Você já saberá o que os dados contêm e o que quer perguntar; vamos descobrir por que algumas representações comunicam em meio segundo e outras exigem meio minuto de esforço.</p>
+        <p>Traga suas três perguntas prioritárias. Uma delas será usada para construir, de propósito, uma visualização ruim — e depois reconstruí-la aplicando princípios de percepção.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>12. Orientação para a prática em sala</h2>
+        <div class="note">
+          <strong>Como conduzir o laboratório</strong>
+          <p>Todo o laboratório é executado durante a aula, na instância Metabase disponibilizada. Trabalhe na coleção com o seu nome e salve cada etapa antes de avançar para a próxima — perguntas não salvas se perdem ao navegar.</p>
+          <p>Ao terminar a Etapa 6, troque o backlog com um colega e revise as perguntas dele procurando os cinco elementos. Perguntas sem o elemento de decisão devem ser devolvidas para reescrita. Essa revisão por pares se repete em todas as aulas da disciplina e faz parte da avaliação.</p>
+        </div>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>

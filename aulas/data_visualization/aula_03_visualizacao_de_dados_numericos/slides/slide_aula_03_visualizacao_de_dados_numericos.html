@@ -9,6 +9,8 @@
 </head>
 <body>
   <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
     <div class="slide">
       <div class="deck-shell" data-aula-number="03" data-year="2026">
         <div>
@@ -17,50 +19,536 @@
           <h1 class="deck-title">Visualização de Dados Numéricos</h1>
           <p class="deck-meta">Aula 03 &nbsp;&bull;&nbsp; 29/08/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Comparações, distribuições, tendências, correlações e composição de medidas quantitativas.</p>
+          <p class="deck-subtitle">Todo gráfico numérico executa um de quatro trabalhos. Saber qual é o seu resolve a escolha.</p>
         </div>
       </div>
     </div>
 
+    <!-- SLIDE 2 - AGENDA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">Teoria que orienta a prática</h2>
-          <p class="deck-summary">A aula conecta fundamentos de percepção e comunicação a uma atividade aplicada com dados.</p>
+          <h2 class="deck-title">O que vai acontecer hoje</h2>
+          <p class="deck-summary">Um framework de quatro trabalhos que organiza toda a família de gráficos numéricos, seguido da construção de um gráfico para cada trabalho sobre o Olist.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>8h30 &ndash; 9h30 &middot; Teoria</h3>
-            <p>Escalas, eixos, agregações, distribuições, séries temporais, correlação e prevenção de distorções.</p>
+            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <ul>
+              <li>Os quatro trabalhos do gráfico numérico</li>
+              <li>Magnitude: barras e suas regras</li>
+              <li>Distribuição: histograma e a escolha do intervalo</li>
+              <li>Evolução: linha e granularidade temporal</li>
+              <li>Relação: dispersão e correlação</li>
+              <li>Agregação, cauda longa e paradoxo de Simpson</li>
+            </ul>
           </article>
           <article class="deck-card">
-            <h3>9h30 &ndash; 12h10 &middot; Prática AWS Student</h3>
-            <p>Criar e comparar gráficos quantitativos para responder perguntas distintas sobre o mesmo conjunto de dados.</p>
+            <h3>10h00 &ndash; 12h10 &middot; Prática</h3>
+            <ul>
+              <li>Série temporal de pedidos com granularidade variável</li>
+              <li>Histograma de ticket</li>
+              <li>Comparação de magnitude entre categorias</li>
+              <li>Dispersão preço contra frete</li>
+              <li>Tratamento explícito de outliers</li>
+            </ul>
           </article>
         </div>
       </div>
     </div>
 
+    <!-- SLIDE 3 - RECAP -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Construção do Conteúdo</span>
-          <h2 class="deck-title">Da evidência à decisão</h2>
-          <p class="deck-summary">Comparações, distribuições, tendências, correlações e composição de medidas quantitativas.</p>
+          <span class="deck-kicker">Construção do Conteúdo &middot; Recap</span>
+          <h2 class="deck-title">De onde viemos</h2>
+          <p class="deck-summary">Duas aulas construíram a base: o que os dados têm e como o olho os lê. Hoje aplicamos as duas coisas ao primeiro grande domínio de representação.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Aula 01 deixou</strong>
+            <ul>
+              <li>Perfil das tabelas e do grão</li>
+              <li>Consciência sobre nulos e outliers</li>
+              <li>Backlog de perguntas</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Aula 02 deixou</strong>
+            <ul>
+              <li>Ranking dos canais de codificação</li>
+              <li>Vocabulário de crítica perceptiva</li>
+              <li>Teste dos cinco segundos</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - TESE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">Não escolha o gráfico — escolha o trabalho</h2>
+          <p class="deck-summary">A pergunta "qual gráfico eu uso?" não tem resposta. A pergunta "qual trabalho este gráfico precisa executar?" tem quatro respostas possíveis, e cada uma leva a uma família pequena de opções.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>A inversão</strong>
+          <p style="margin:8px 0 0;">Partir do catálogo de gráficos leva à escolha por familiaridade: você usa o que já usou antes. Partir do trabalho leva à escolha por adequação: você usa o que a pergunta exige, mesmo que nunca tenha usado.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - OS QUATRO TRABALHOS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Framework</span>
+          <h2 class="deck-title">Os quatro trabalhos</h2>
+          <p class="deck-summary">Toda pergunta numérica cai em um destes quatro. Identificar qual é o primeiro passo.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Trabalho</th><th>Pergunta típica</th><th>Família de gráficos</th><th>Canal principal</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Comparar magnitude</td><td>Qual é maior? Quanto maior?</td><td>Barras, pontos alinhados</td><td>Comprimento, posição</td></tr>
+            <tr><td>Mostrar distribuição</td><td>Como os valores se espalham?</td><td>Histograma, boxplot</td><td>Posição, área</td></tr>
+            <tr><td>Revelar evolução</td><td>Como mudou ao longo do tempo?</td><td>Linha, área</td><td>Posição, inclinação</td></tr>
+            <tr><td>Expor relação</td><td>Duas variáveis andam juntas?</td><td>Dispersão</td><td>Posição bidimensional</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - MAGNITUDE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Trabalho 1 &middot; Magnitude</span>
+          <h2 class="deck-title">Comparar quantidades entre categorias</h2>
+          <p class="deck-summary">O trabalho mais comum e o mais fácil de fazer errado, porque a ferramenta oferece opções vistosas que degradam a precisão.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Regras da barra</strong>
+            <ul>
+              <li>Eixo sempre começa no zero</li>
+              <li>Ordene por valor, não por alfabeto</li>
+              <li>Barra horizontal quando o rótulo é longo</li>
+              <li>Espaçamento uniforme entre barras</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Quando trocar por pontos</strong>
+            <ul>
+              <li>Muitas categorias e valores próximos</li>
+              <li>Eixo precisa ser truncado por necessidade real</li>
+              <li>Comparação de dois momentos por categoria</li>
+              <li>A barra vira uma mancha sólida sem informação</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - BARRAS EMPILHADAS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Trabalho 1 &middot; Armadilha</span>
+          <h2 class="deck-title">O problema das barras empilhadas</h2>
+          <p class="deck-summary">Só o primeiro segmento parte de uma base comum. Todos os outros flutuam, e comparar segmentos flutuantes entre categorias é quase impossível.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Quando empilhar é aceitável</strong>
+          <p style="margin:8px 0 0;">Quando a comparação relevante é do <em>total</em> entre categorias, e a composição interna é contexto secundário. Se a pergunta for sobre um componente específico, empilhar é a escolha errada — separe em barras agrupadas ou em pequenos múltiplos.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - DISTRIBUICAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Trabalho 2 &middot; Distribuição</span>
+          <h2 class="deck-title">Mostrar como os valores se espalham</h2>
+          <p class="deck-summary">Um único número de resumo esconde a forma. Duas distribuições completamente diferentes podem ter exatamente a mesma média.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Histograma responde</strong>
+            <ul>
+              <li>Onde está a concentração?</li>
+              <li>A distribuição tem uma ou mais modas?</li>
+              <li>Existe assimetria e para que lado?</li>
+              <li>Onde estão os valores extremos?</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Boxplot responde</strong>
+            <ul>
+              <li>Onde está a mediana?</li>
+              <li>Qual a dispersão central?</li>
+              <li>Quais pontos são atípicos?</li>
+              <li>Como várias categorias se comparam?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - O INTERVALO DO HISTOGRAMA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Trabalho 2 &middot; Decisão</span>
+          <h2 class="deck-title">A largura do intervalo muda a conclusão</h2>
+          <p class="deck-summary">O histograma é o único gráfico em que um parâmetro de construção altera radicalmente a forma percebida. E a ferramenta escolhe esse parâmetro por você, por padrão.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Intervalo</th><th>Efeito</th><th>Risco</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Muito largo</td><td>Forma lisa, poucas barras</td><td>Esconde modas e vazios reais</td></tr>
+            <tr><td>Muito estreito</td><td>Forma serrilhada, muitas barras</td><td>Ruído de amostragem parece padrão</td></tr>
+            <tr><td>Adequado</td><td>Revela a estrutura sem inventar</td><td>Exige testar mais de uma opção</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>Procedimento</strong>
+          <p style="margin:8px 0 0;">Teste ao menos três larguras diferentes. Se a conclusão mudar entre elas, isso é um achado a reportar — não um detalhe técnico a esconder.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - EVOLUCAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Trabalho 3 &middot; Evolução</span>
+          <h2 class="deck-title">Revelar mudança ao longo do tempo</h2>
+          <p class="deck-summary">A linha é o gráfico mais bem compreendido pelo público geral — e por isso mesmo o mais fácil de usar para enganar sem intenção.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Use linha quando</strong>
+            <ul>
+              <li>O eixo horizontal é contínuo e ordenado</li>
+              <li>Os intervalos entre pontos são regulares</li>
+              <li>A continuidade entre pontos faz sentido</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Não use linha quando</strong>
+            <ul>
+              <li>As categorias do eixo não têm ordem natural</li>
+              <li>Há lacunas grandes e irregulares</li>
+              <li>Ligar os pontos sugere valores que não existem</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - GRANULARIDADE TEMPORAL -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Trabalho 3 &middot; Granularidade</span>
+          <h2 class="deck-title">A granularidade é uma decisão analítica</h2>
+          <p class="deck-summary">Diária, semanal, mensal: cada escolha revela um padrão e esconde outro. Nenhuma é neutra.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Granularidade</th><th>Revela</th><th>Esconde</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Diária</td><td>Picos, quedas e efeito de dia da semana</td><td>Tendência de longo prazo sob o ruído</td></tr>
+            <tr><td>Semanal</td><td>Ciclo comercial, tendência de médio prazo</td><td>Eventos de um único dia</td></tr>
+            <tr><td>Mensal</td><td>Sazonalidade e tendência</td><td>Tudo o que acontece dentro do mês</td></tr>
+            <tr><td>Trimestral</td><td>Movimento estrutural</td><td>Praticamente toda a variação operacional</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>A armadilha das pontas</strong>
+          <p style="margin:8px 0 0;">O primeiro e o último período de uma série quase sempre estão incompletos, porque a extração cortou no meio. A queda visível na ponta direita costuma ser recorte de dados, não queda de negócio.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - RELACAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Trabalho 4 &middot; Relação</span>
+          <h2 class="deck-title">Expor relação entre duas variáveis</h2>
+          <p class="deck-summary">A dispersão usa o canal mais preciso do ranking duas vezes: posição horizontal e posição vertical. É o gráfico mais informativo por unidade de tinta.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que ela mostra</strong>
+            <ul>
+              <li>Direção da relação</li>
+              <li>Força da associação</li>
+              <li>Presença de agrupamentos</li>
+              <li>Pontos fora do padrão geral</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Problemas comuns</strong>
+            <ul>
+              <li>Sobreposição de pontos em volume alto</li>
+              <li>Escala dominada por poucos extremos</li>
+              <li>Leitura causal de relação estatística</li>
+              <li>Ausência de contexto sobre o volume por ponto</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - CORRELACAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Trabalho 4 &middot; Integridade</span>
+          <h2 class="deck-title">A dispersão convida à conclusão causal</h2>
+          <p class="deck-summary">Quando dois eixos mostram uma nuvem inclinada, o cérebro completa a frase sozinho: um causa o outro. Quase sempre está errado.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Três explicações alternativas, sempre</strong>
+          <ol style="margin:10px 0 0; padding-left:22px;">
+            <li><strong>Causalidade invertida</strong> — talvez seja o segundo que causa o primeiro.</li>
+            <li><strong>Terceira variável</strong> — algo não representado no gráfico causa os dois.</li>
+            <li><strong>Artefato de seleção</strong> — o recorte dos dados fabricou a relação.</li>
+          </ol>
+          <p style="margin:12px 0 0;">No Olist: frete e prazo de entrega crescem juntos. A distância causa os dois — não um ao outro.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - AGREGACAO E SIMPSON -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Integridade &middot; Agregação</span>
+          <h2 class="deck-title">O paradoxo de Simpson</h2>
+          <p class="deck-summary">Uma tendência que aparece no agregado pode desaparecer — ou se inverter — quando os dados são separados em grupos.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Como se manifesta na prática</strong>
+          <p style="margin:8px 0 0;">O prazo médio de entrega da empresa melhora no agregado, enquanto piora em todos os estados individualmente. Isso é possível quando a composição muda: se a proporção de pedidos migra para estados que já eram mais rápidos, a média geral cai mesmo com piora em todo lugar.</p>
+          <p style="margin:10px 0 0;">A defesa é sempre a mesma: antes de afirmar uma tendência agregada, verifique se ela se sustenta nos principais recortes.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - OUTLIERS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Integridade &middot; Extremos</span>
+          <h2 class="deck-title">O que fazer com os outliers</h2>
+          <p class="deck-summary">Três caminhos legítimos e um ilegítimo. O ilegítimo é o mais praticado.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Caminho</th><th>Quando</th><th>Exigência</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Manter e anotar</td><td>O extremo é real e relevante</td><td>Anotação explicando o ponto</td></tr>
+            <tr><td>Separar em outra visão</td><td>O extremo domina a escala</td><td>Duas visualizações, ambas mostradas</td></tr>
+            <tr><td>Excluir com critério</td><td>É erro de registro comprovado</td><td>Critério declarado e quantidade informada</td></tr>
+            <tr><td>Excluir em silêncio</td><td>Nunca</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - MEDIA VS MEDIANA APLICADA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Integridade &middot; Resumo</span>
+          <h2 class="deck-title">Qual número resume a série</h2>
+          <p class="deck-summary">A escolha entre média e mediana muda a conclusão, e a ferramenta oferece média por padrão.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Média</strong>
+            <ul>
+              <li>Preserva a soma total</li>
+              <li>Adequada em distribuição simétrica</li>
+              <li>Sensível a cada valor extremo</li>
+              <li>Faturamento por pedido</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Mediana</strong>
+            <ul>
+              <li>Descreve o caso típico</li>
+              <li>Adequada em cauda longa</li>
+              <li>Resistente a extremos</li>
+              <li>Ticket, frete, prazo de entrega</li>
+            </ul>
+          </div>
+        </div>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>Boa prática</strong>
+          <p style="margin:8px 0 0;">Quando as duas divergem muito, mostre as duas. A divergência é informação sobre a forma da distribuição.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - ABERTURA PRATICA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 10h00 &ndash; 12h10</span>
+          <h2 class="deck-title">Laboratório: quatro trabalhos, quatro gráficos</h2>
+          <p class="deck-summary">Você vai construir um gráfico para cada trabalho, sobre o Olist, declarando explicitamente qual trabalho cada um executa e por que o tipo escolhido vence as alternativas.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Regra do laboratório</strong>
+          <p style="margin:8px 0 0;">Para cada gráfico você precisa nomear duas alternativas que descartou e dizer por quê. Escolha sem alternativa descartada não é escolha — é hábito.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - ETAPA 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 1</span>
+          <h2 class="deck-title">Evolução &mdash; série temporal de pedidos</h2>
+          <p class="deck-summary">Trinta minutos. O foco está na decisão de granularidade, não na construção.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Construa a série de pedidos entregues por <strong>dia</strong> e observe o padrão.</li>
+          <li>Troque para <strong>semana</strong>. Anote o que apareceu e o que sumiu.</li>
+          <li>Troque para <strong>mês</strong>. Anote de novo.</li>
+          <li>Identifique as pontas incompletas da série e decida o que fazer com elas.</li>
+          <li>Escolha uma granularidade, justifique por escrito e salve.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - ETAPA 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 2</span>
+          <h2 class="deck-title">Distribuição &mdash; histograma de ticket</h2>
+          <p class="deck-summary">Trinta minutos. O foco está na largura do intervalo e na assimetria.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Construa o histograma do valor de item (<code>price</code>).</li>
+          <li>Teste três larguras de intervalo diferentes e compare as formas.</li>
+          <li>Calcule média e mediana e marque as duas mentalmente sobre a forma.</li>
+          <li>Descreva a assimetria em uma frase.</li>
+          <li>Decida como tratar a cauda superior e registre o critério.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - ETAPA 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 3</span>
+          <h2 class="deck-title">Magnitude &mdash; comparação entre categorias</h2>
+          <p class="deck-summary">Trinta minutos. O foco está na ordenação e no recorte.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Some o faturamento por categoria de produto.</li>
+          <li>Ordene por valor e observe a forma da distribuição de categorias.</li>
+          <li>Decida quantas categorias mostrar e o que fazer com o restante.</li>
+          <li>Escolha entre barra vertical e horizontal com base no comprimento dos rótulos.</li>
+          <li>Destaque uma única categoria com cor e justifique a escolha.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - ETAPA 4 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 4</span>
+          <h2 class="deck-title">Relação &mdash; preço contra frete</h2>
+          <p class="deck-summary">Trinta minutos. O foco está na sobreposição e na interpretação honesta.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Construa a dispersão de <code>price</code> contra <code>freight_value</code>.</li>
+          <li>Observe a sobreposição de pontos e decida como tratá-la.</li>
+          <li>Verifique se a escala está dominada por poucos extremos.</li>
+          <li>Escreva a relação observada sem usar verbo causal.</li>
+          <li>Liste uma terceira variável que poderia explicar o padrão.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 22 - ENTREGAVEL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega</span>
+          <h2 class="deck-title">O que sai daqui hoje</h2>
+          <p class="deck-summary">Quatro gráficos e, principalmente, quatro justificativas.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>Critério visual</h3>
-            <p>A representação deve preservar a integridade dos dados e tornar a comparação necessária fácil de perceber.</p>
+            <h3>No Metabase</h3>
+            <p>Quatro perguntas salvas, uma por trabalho, com nomes que declarem qual trabalho cada uma executa.</p>
           </article>
           <article class="deck-card">
-            <h3>Resultado esperado</h3>
-            <p>Uma visualização adequada ao público, à mensagem e à decisão que precisa ser tomada.</p>
+            <h3>No repositório</h3>
+            <p><code>docs/03_numericos.md</code> com, para cada gráfico: o trabalho, o tipo escolhido, duas alternativas descartadas com motivo e as decisões de escala, granularidade e outliers.</p>
           </article>
         </div>
       </div>
     </div>
+
+    <!-- SLIDE 23 - CRITERIOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Avaliação</span>
+          <h2 class="deck-title">Como este trabalho é avaliado</h2>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Identificação do trabalho</td><td>Cada gráfico declara qual dos quatro executa</td></tr>
+            <tr><td>Alternativas descartadas</td><td>Duas por gráfico, com motivo técnico</td></tr>
+            <tr><td>Decisões declaradas</td><td>Granularidade, intervalo, recorte e outliers registrados</td></tr>
+            <tr><td>Linguagem não causal</td><td>A dispersão é descrita sem afirmar causa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 24 - PROXIMA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Próxima aula &middot; 05/09</span>
+          <h2 class="deck-title">Visualização de Dados Não Numéricos</h2>
+          <p class="deck-summary">Números têm ordem natural e distância definida. Categorias, hierarquias e texto não têm nem uma coisa nem outra — e isso muda tudo.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Traga pronto</strong>
+          <p style="margin:8px 0 0;">O gráfico de magnitude por categoria da Etapa 3. Na próxima aula vamos atacar exatamente o problema que você encontrou lá: o que fazer com setenta e uma categorias.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">

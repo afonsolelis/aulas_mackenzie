@@ -22,43 +22,214 @@
       <p class="meta">Aula 08 &middot; 03/10/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
     </header>
 
-    <article class="content">
-      <section>
+    <article class="material">
+
+      <section class="content-block">
         <h2>1. Visão geral</h2>
-        <p>Construção de uma narrativa visual que conecta evidências, contexto e recomendação.</p>
-        <p>Storytelling com dados organiza contexto, mudança, evidência e recomendação em uma sequência deliberada. A narrativa não autoriza selecionar apenas fatos convenientes: hipóteses alternativas, incertezas e limitações precisam permanecer visíveis. Títulos ativos e anotações devem explicar por que o padrão importa, não repetir o eixo.</p>
+        <p>Esta é a última aula da disciplina e tem duas funções: fechar o arco conceitual com o tema de narrativa e realizar a defesa do projeto final.</p>
+        <p>A distinção central é entre exploração e explicação. Nas sete semanas anteriores você explorou: construiu muitas visões, seguiu caminhos que não deram em nada, acumulou perguntas salvas. Hoje o trabalho é o oposto — selecionar pouco, editar muito e convencer alguém.</p>
+        <p>Não haverá tempo para construir nada novo. Tudo o que for apresentado hoje já existe na sua coleção; o trabalho é de curadoria, sequenciamento e anotação.</p>
       </section>
 
-      <section>
-        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
-        <p>Estrutura narrativa, tensão, sequência, anotação, escolha de evidências e comunicação da recomendação.</p>
-        <p>Uma apresentação eficaz estabelece a situação, revela uma tensão mensurável, investiga causas e propõe ação proporcional à evidência. Cada visual deve cumprir uma função na progressão. Transições ajudam o público a relacionar as partes; apêndices preservam detalhes sem interromper a mensagem principal.</p>
+      <section class="content-block">
+        <h2>2. Exploração e explicação</h2>
+        <p>Apresentar o processo de exploração como se fosse explicação é o erro mais comum em apresentação de dados. Produz aquelas apresentações em que o autor percorre cronologicamente tudo o que fez, e a audiência espera pacientemente pela conclusão que só chega no último minuto.</p>
+
+        <table>
+          <thead>
+            <tr><th>Aspecto</th><th>Exploração</th><th>Explicação</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Quantidade de visões</td><td>Muitas, pouco editadas</td><td>Poucas, muito editadas</td></tr>
+            <tr><td>Público</td><td>O próprio autor</td><td>Outra pessoa, com pouco tempo</td></tr>
+            <tr><td>Caminhos sem saída</td><td>Fazem parte do processo</td><td>Ficam de fora</td></tr>
+            <tr><td>Critério de sucesso</td><td>Encontrar algo</td><td>Mudar uma decisão</td></tr>
+          </tbody>
+        </table>
       </section>
 
-      <section>
-        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
-        <h3>Objetivo</h3>
-        <p>Apresentar um projeto final de storytelling com dados, receber feedback e revisar a mensagem visual.</p>
-        <ol>
-          <li>Selecione no S3 o conjunto do projeto e formule uma decisão concreta que a apresentação apoiará.</li>
-          <li>Explore os dados no Athena, registre achados contrários à hipótese inicial e valide as métricas escolhidas.</li>
-          <li>Escreva uma estrutura em quatro atos: contexto, mudança, explicação e recomendação.</li>
-          <li>Escolha uma evidência visual para cada ato e remova peças que não avancem a narrativa.</li>
-          <li>Crie títulos orientados a conclusão e anotações que conectem dados, consequência e decisão.</li>
-          <li>Apresente em até sete minutos; os colegas devem registrar mensagem percebida, dúvidas e riscos.</li>
-          <li>Revise a narrativa com o feedback, explicite limitações e entregue versão final com fontes e apêndice metodológico.</li>
+      <section class="content-block">
+        <h2>3. A mensagem única</h2>
+        <p>Uma frase, declarativa, que a audiência precisa levar embora. Se você não consegue escrevê-la, a apresentação ainda não está pronta — e nenhuma quantidade de slides compensa isso.</p>
+
+        <div class="note">
+          <strong>Três testes da mensagem</strong>
+          <p><strong>É declarativa?</strong> "Análise de prazos de entrega" é um assunto, não uma mensagem. "Atrasamos três vezes mais no Norte, e a causa principal é a distância entre vendedor e cliente" é uma mensagem.</p>
+          <p><strong>É contestável?</strong> Se ninguém poderia razoavelmente discordar, trata-se de obviedade e não precisa de apresentação. A mensagem precisa afirmar algo que alguém poderia questionar — e que você está preparado para defender.</p>
+          <p><strong>Cabe em uma frase?</strong> Duas mensagens significam duas apresentações. Escolha uma e guarde a outra para depois.</p>
+        </div>
+
+        <p>Escrever a mensagem antes de escolher os gráficos inverte o processo natural e é justamente por isso que funciona. Quando os gráficos vêm primeiro, a mensagem tende a virar um resumo do que foi encontrado; quando a mensagem vem primeiro, os gráficos viram evidência a serviço de um argumento.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Contexto, conflito, resolução</h2>
+        <p>A estrutura narrativa mais antiga que existe, aplicada a dados. Cada parte tem um trabalho definido e um orçamento de tempo.</p>
+
+        <table>
+          <thead>
+            <tr><th>Parte</th><th>Trabalho</th><th>Tempo em 12 minutos</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Contexto</td><td>Estabelecer o que a audiência já sabe e aceita</td><td>2 minutos</td></tr>
+            <tr><td>Conflito</td><td>Apresentar o que quebra a expectativa</td><td>4 minutos</td></tr>
+            <tr><td>Resolução</td><td>Explicar a causa provável e propor a ação</td><td>4 minutos</td></tr>
+            <tr><td>Fechamento</td><td>Repetir a mensagem única e definir o próximo passo</td><td>2 minutos</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>O erro de proporção</strong>
+          <p>A tendência natural é gastar oito minutos em contexto e metodologia e trinta segundos na recomendação — porque o contexto é confortável e a recomendação é exposta a crítica. Inverta deliberadamente: o público que precisa decidir quer a recomendação, e busca o contexto apenas o suficiente para confiar nela.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Sequenciamento e anotação</h2>
+
+        <h3>5.1 Uma ideia por tela</h3>
+        <p>A sequência é o que transforma um conjunto de gráficos numa argumentação. Numa boa sequência, cada tela responde à pergunta que a tela anterior levantou, o nível de detalhe aumenta gradualmente, e a audiência consegue antecipar o próximo passo — o que a mantém acompanhando em vez de decifrando.</p>
+        <p>Numa má sequência, a ordem é cronológica em relação ao trabalho feito, os gráficos aparecem todos de uma vez, e o detalhe vem antes do panorama. O sintoma é observável: a audiência não sabe onde olhar na tela.</p>
+
+        <h3>5.2 Três camadas de texto</h3>
+        <p>Um gráfico sem anotação exige que a audiência descubra sozinha o que ver. Numa apresentação, esse é tempo que você não tem.</p>
+        <ol class="steps">
+          <li><strong>Título</strong> — declara a conclusão daquela peça, não o assunto. "Atraso é 3x maior no Norte" em vez de "Taxa de atraso por região".</li>
+          <li><strong>Marcação no gráfico</strong> — aponta o ponto exato que sustenta a conclusão, para que o olho vá direto.</li>
+          <li><strong>Nota de rodapé</strong> — registra a decisão metodológica que alguém pode questionar: o denominador usado, o período excluído, o critério de corte.</li>
+        </ol>
+        <p>A terceira camada é a que mais se esquece e a que mais salva numa arguição. Ela demonstra que a decisão foi consciente, e não descuido.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Adequação ao público</h2>
+        <p>Adequar ao público não é simplificar — é mudar o que ocupa o centro da apresentação.</p>
+
+        <table>
+          <thead>
+            <tr><th>Público</th><th>Quer saber</th><th>O centro da apresentação</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Diretoria</td><td>O que fazer e quanto custa</td><td>Recomendação e impacto estimado</td></tr>
+            <tr><td>Operação</td><td>Onde e como agir</td><td>Recorte por região e por processo</td></tr>
+            <tr><td>Time técnico</td><td>Se o número é confiável</td><td>Método, fonte e limitações</td></tr>
+          </tbody>
+        </table>
+
+        <p>Para a defesa de hoje, o público é misto: a banca quer a recomendação e também o método. A saída é colocar a recomendação no centro da narrativa e o método nas anotações e no material de apoio, pronto para ser acionado na arguição.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Curadoria — a parte difícil é cortar</h2>
+        <p>Você tem sete semanas de trabalho e doze minutos. A maior parte do que produziu não vai aparecer, e isso não diminui o valor do que ficou de fora: o trabalho descartado é o que sustenta a sua confiança nas conclusões que ficaram.</p>
+        <p>Entra na apresentação: o que sustenta diretamente a mensagem única, o que antecipa a objeção mais provável, e o que demonstra rigor em um ponto crítico — a comparação de mapas da Aula 06 é o exemplo mais forte disso.</p>
+        <p>Fica no material de apoio: o processo de descoberta, as análises que não deram em nada, o detalhamento metodológico completo e — especialmente — os gráficos de que você gostou mas que não servem ao argumento.</p>
+
+        <div class="note">
+          <strong>Os sete artefatos e o papel de cada um</strong>
+          <p>Aula 01, perfil e backlog: credibilidade e delimitação de escopo. Aula 02, par antes/depois: demonstração de método. Aula 03, gráficos numéricos: evidência quantitativa. Aula 04, categorias e texto: contexto qualitativo. Aula 05, matriz de decisão: justificativa das escolhas. Aula 06, mapas normalizados: demonstração de rigor. Aula 07, dashboard: instrumento de acompanhamento contínuo.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Laboratório — curadoria, montagem, ensaio e defesa</h2>
+        <p>Das 9h40 às 12h10. A parte teórica desta aula é mais curta justamente para liberar tempo de ensaio e defesa.</p>
+
+        <h3>Etapa 1 — Definir a mensagem e curar (30 minutos)</h3>
+        <ol class="steps">
+          <li>Escreva a mensagem única em uma frase declarativa e contestável.</li>
+          <li>Aplique os três testes: declarativa, contestável, cabe em uma frase.</li>
+          <li>Percorra a sua coleção e marque tudo o que sustenta essa mensagem.</li>
+          <li>Selecione no máximo cinco peças.</li>
+          <li>Para cada peça descartada de que você goste, anote por que ela não entra — esse registro faz parte do entregável.</li>
+        </ol>
+
+        <h3>Etapa 2 — Montar o dashboard narrativo (40 minutos)</h3>
+        <p>Diferente do dashboard da Aula 07: ali a ordem era hierarquia de indicadores; aqui a ordem é argumento.</p>
+        <ol class="steps">
+          <li>Organize as peças na sequência contexto, conflito, resolução.</li>
+          <li>Reescreva cada título para declarar a conclusão daquela peça.</li>
+          <li>Adicione blocos de texto entre as seções, ligando uma à outra.</li>
+          <li>Marque no gráfico o ponto exato que sustenta cada conclusão.</li>
+          <li>Adicione notas de rodapé com as decisões metodológicas questionáveis.</li>
+        </ol>
+
+        <h3>Etapa 3 — Ensaio em duplas (30 minutos)</h3>
+        <ol class="steps">
+          <li>Apresente para o colega em doze minutos, cronometrados.</li>
+          <li>O colega não interrompe e anota os pontos em que perdeu o fio.</li>
+          <li>Ao final, o colega repete de volta a mensagem única que entendeu.</li>
+          <li>Se a mensagem repetida não for a sua, identifique em que ponto ela se perdeu.</li>
+          <li>Troquem os papéis e repitam o exercício.</li>
+        </ol>
+        <p>A repetição da mensagem pelo ouvinte é o mesmo princípio do teste dos cinco segundos da Aula 02, aplicado a um formato mais longo. Se a mensagem não sobreviveu a doze minutos de apresentação, ela não vai sobreviver a uma reunião de diretoria.</p>
+
+        <h3>Etapa 4 — Defesa e exportação (restante da aula)</h3>
+        <ol class="steps">
+          <li>Apresentação de doze minutos, seguida de cinco minutos de arguição.</li>
+          <li>A arguição foca em método: por que este recorte, por que este denominador, o que ficou de fora.</li>
+          <li>Exporte as perguntas e o dashboard da sua coleção.</li>
+          <li>Versione os arquivos exportados em <code>export/</code> no repositório.</li>
+          <li>Confirme que os oito documentos de <code>docs/</code> estão completos.</li>
         </ol>
       </section>
 
-      <section>
-        <h2>4. Critérios de avaliação da solução</h2>
-        <p>O projeto final deve sustentar uma recomendação verificável, manter integridade e incerteza dos dados e conduzir o público por uma sequência coerente. A avaliação considera clareza da mensagem, adequação visual, força da evidência e resposta ao feedback.</p>
+      <section class="content-block">
+        <h2>9. Avaliação</h2>
+
+        <h3>9.1 Critérios da defesa</h3>
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Mensagem única</td><td>Declarativa, contestável e sustentada por evidência</td></tr>
+            <tr><td>Estrutura</td><td>Contexto, conflito e resolução em proporção adequada</td></tr>
+            <tr><td>Curadoria</td><td>No máximo cinco peças, todas necessárias ao argumento</td></tr>
+            <tr><td>Anotação</td><td>Títulos declaram conclusão; pontos críticos marcados no gráfico</td></tr>
+            <tr><td>Defesa metodológica</td><td>Recortes e denominadores justificados sob arguição</td></tr>
+            <tr><td>Tempo</td><td>Doze minutos, sem atropelo no final</td></tr>
+          </tbody>
+        </table>
+
+        <h3>9.2 Composição da nota final da disciplina</h3>
+        <table>
+          <thead>
+            <tr><th>Componente</th><th>Peso</th><th>Quando</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Artefatos semanais no Metabase e no repositório</td><td>40%</td><td>Aulas 01 a 07</td></tr>
+            <tr><td>Dashboard narrativo final</td><td>30%</td><td>Aula 08</td></tr>
+            <tr><td>Apresentação e defesa</td><td>20%</td><td>Aula 08</td></tr>
+            <tr><td>Participação nas revisões por pares</td><td>10%</td><td>Contínuo</td></tr>
+          </tbody>
+        </table>
+
+        <p>Critério transversal, válido para todos os componentes: toda escolha de representação precisa de justificativa explícita. Trabalho sem justificativa é avaliado como incompleto, ainda que visualmente correto.</p>
       </section>
 
-      <section class="callout">
-        <h3>Orientação para a prática em sala</h3>
-        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      <section class="content-block">
+        <h2>10. O que fica depois da disciplina</h2>
+        <p>O Metabase é open source e gratuito. O roteiro de instalação em contêiner está disponível no repositório da disciplina, o que significa que você pode reproduzir todo o ambiente em qualquer máquina depois do curso, sem barreira de licença.</p>
+        <p>Mais importante que a ferramenta é o método, que não depende dela: escrever a pergunta antes de construir o gráfico, perfilar os dados antes de confiar neles, justificar cada escolha de representação em vez de opinar sobre ela, e testar a leitura com outra pessoa antes de apresentar.</p>
+        <p>Leve com você a coleção exportada em arquivos, a matriz de decisão construída pela turma e os oito documentos de justificativa. Esse conjunto é um portfólio defensável — e é o tipo de material que sustenta uma conversa técnica em qualquer processo seletivo.</p>
+
+        <div class="note">
+          <strong>A tese, de novo</strong>
+          <p>A qualidade da pergunta determina a qualidade da visualização. Foi a tese da primeira aula e continua sendo a da última: um gráfico impecável que responde à pergunta errada não tem valor, e nenhuma técnica de representação corrige isso.</p>
+        </div>
       </section>
+
+      <section class="content-block">
+        <h2>11. Orientação para a prática em sala</h2>
+        <div class="note">
+          <strong>Como conduzir a aula final</strong>
+          <p>Chegue com o dashboard da Aula 07 funcionando e com os sete documentos revisados. A Etapa 1 pressupõe que você conheça o próprio material bem o suficiente para selecionar rapidamente — quem chegar sem essa revisão vai gastar o tempo de curadoria procurando o que tem.</p>
+          <p>No ensaio da Etapa 3, resista à tentação de explicar o que o colega não entendeu. Cada ponto em que ele perdeu o fio é um defeito da apresentação, e a informação só é útil se você registrar em vez de corrigir na hora.</p>
+          <p>A exportação da Etapa 4 é obrigatória e frequentemente esquecida. A instância da disciplina não fica disponível indefinidamente; o que não for exportado hoje se perde.</p>
+        </div>
+      </section>
+
     </article>
   </main>
 </body>

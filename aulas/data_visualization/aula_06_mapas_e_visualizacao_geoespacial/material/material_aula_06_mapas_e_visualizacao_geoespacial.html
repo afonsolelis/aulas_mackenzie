@@ -22,43 +22,199 @@
       <p class="meta">Aula 06 &middot; 19/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
     </header>
 
-    <article class="content">
-      <section>
+    <article class="material">
+
+      <section class="content-block">
         <h2>1. Visão geral</h2>
-        <p>Uso responsável de localização, regiões, densidade e movimento na análise de negócios.</p>
-        <p>Mapas são úteis quando a localização participa da explicação. Coropléticos representam taxas por área e devem usar valores normalizados; totais absolutos favorecem símbolos proporcionais. Pontos mostram ocorrências, enquanto densidade ajuda a identificar concentração. Um mapa não é adequado quando a ordem ou comparação exata importa mais que o espaço.</p>
+        <p>O mapa é a representação mais sedutora do repertório de visualização. Ele parece sofisticado, ocupa a tela inteira com autoridade e raramente é questionado. É também, por isso, a representação mais fácil de usar para dizer algo falso sem intenção de mentir.</p>
+        <p>A tese desta aula é desconfortável: a maioria dos mapas de negócio mostra, na prática, onde as pessoas moram. Um mapa de vendas absolutas por estado do Brasil reproduz o mapa de população. São Paulo aparece em destaque em vendas, em reclamações, em devoluções e em atrasos — porque São Paulo tem mais gente. O mapa consumiu meia tela e não informou nada que uma lista de população já não dissesse.</p>
+        <p>A aula trata de quando o espaço é de fato a variável relevante, de como normalizar corretamente, e de por que o dado geográfico do Olist exige um cuidado específico com junções.</p>
       </section>
 
-      <section>
-        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
-        <p>Coordenadas, regiões, projeções, mapas coropléticos, símbolos proporcionais e normalização.</p>
-        <p>Projeções distorcem área, distância ou direção, e regiões grandes dominam visualmente mesmo com pouca população. Chaves geográficas inconsistentes causam perdas silenciosas no join. Antes de mapear, valide códigos, coordenadas, cobertura e denominadores. Legenda, fonte, período e tratamento de áreas sem dados são parte da análise.</p>
+      <section class="content-block">
+        <h2>2. Quando o mapa vale a pena</h2>
+        <p>Três condições justificam um mapa. Se nenhuma se aplica, uma barra ordenada por estado comunica melhor, com mais precisão e menos espaço.</p>
+        <p>A primeira é que a proximidade geográfica explique o fenômeno — quando estar perto de algo é causa, e não apenas coincidência de localização. A segunda é que o padrão espacial seja contínuo, formando manchas e gradientes em vez de pontos isolados. A terceira é que a audiência precise localizar para agir: um gerente regional que vai deslocar equipe precisa ver onde, não apenas quanto.</p>
+
+        <div class="note">
+          <strong>A pergunta que a matriz de decisão não fazia</strong>
+          <p>A matriz construída na Aula 05 tem cinco dimensões, e nenhuma delas pergunta se a localização é <em>causa</em> do fenômeno ou apenas <em>onde ele aconteceu</em>. Essa é a sexta dimensão, e ela decide sozinha se o mapa é a representação certa. Acrescente-a à matriz da turma.</p>
+        </div>
       </section>
 
-      <section>
-        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
-        <h3>Objetivo</h3>
-        <p>Preparar dados geográficos e criar um mapa analítico com legenda, escala e contexto adequados.</p>
-        <ol>
-          <li>Armazene no S3 o conjunto de indicadores regionais e o arquivo geográfico autorizado para a aula.</li>
-          <li>Valide códigos de município ou estado, duplicidades, coordenadas fora de faixa e regiões sem correspondência.</li>
-          <li>Use Athena para calcular uma taxa com denominador apropriado e mantenha também o total absoluto.</li>
-          <li>Crie um mapa coroplético para a taxa com classes e legenda documentadas.</li>
-          <li>Crie uma alternativa com símbolos proporcionais para o total e compare a interpretação produzida.</li>
-          <li>Adicione contexto geográfico essencial, fonte, período e indicação explícita de ausência de dados.</li>
-          <li>Confronte o mapa com um gráfico de barras ordenado e justifique em qual pergunta a geografia agrega valor.</li>
+      <section class="content-block">
+        <h2>3. Mapa de regiões e mapa de pontos</h2>
+        <table>
+          <thead>
+            <tr><th>Aspecto</th><th>Mapa de regiões</th><th>Mapa de pontos</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Unidade representada</td><td>Área administrativa</td><td>Coordenada individual</td></tr>
+            <tr><td>Codifica quantidade por</td><td>Intensidade de cor</td><td>Posição e tamanho do ponto</td></tr>
+            <tr><td>Pressupõe</td><td>Homogeneidade dentro da área</td><td>Precisão razoável da coordenada</td></tr>
+            <tr><td>Falha quando</td><td>As áreas têm tamanhos muito diferentes</td><td>Os pontos se sobrepõem em massa</td></tr>
+            <tr><td>Exige</td><td>Normalização em quase todos os casos</td><td>Tratamento explícito de sobreposição</td></tr>
+          </tbody>
+        </table>
+        <p>O pressuposto de homogeneidade do mapa de regiões merece atenção. Ao pintar o estado de São Paulo com uma única cor, o mapa afirma implicitamente que o fenômeno é uniforme em todo o território — o que é falso em praticamente qualquer indicador socioeconômico. Quanto maior e mais heterogênea a área, mais essa simplificação distorce.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Normalização</h2>
+        <p>Este é o erro central dos mapas de região e o assunto mais importante da aula. Colorir áreas por valor absoluto produz, em quase todo conjunto de dados de negócio, o mapa da população.</p>
+
+        <div class="note">
+          <strong>A pergunta de controle</strong>
+          <p>Se eu dobrar a população de um estado sem mudar nada no comportamento das pessoas, este número dobra? Se a resposta for sim, o número precisa ser normalizado antes de virar cor.</p>
+        </div>
+
+        <h3>4.1 O denominador muda a pergunta</h3>
+        <p>Não existe denominador neutro. Cada escolha transforma o mapa numa resposta a uma pergunta diferente.</p>
+
+        <table>
+          <thead>
+            <tr><th>Denominador</th><th>A pergunta vira</th><th>Quando usar</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>População do estado</td><td>Penetração no mercado potencial</td><td>Análise de expansão comercial</td></tr>
+            <tr><td>Total de pedidos do estado</td><td>Taxa interna do fenômeno</td><td>Qualidade de serviço</td></tr>
+            <tr><td>Total nacional</td><td>Participação no todo</td><td>Concentração de receita</td></tr>
+            <tr><td>Base de clientes do estado</td><td>Comportamento por cliente</td><td>Ticket médio, frequência de compra</td></tr>
+            <tr><td>Nenhum</td><td>Volume bruto</td><td>Quase nunca apropriado em mapa</td></tr>
+          </tbody>
+        </table>
+
+        <p>No Olist, para responder "onde entregamos pior", divida os pedidos atrasados pelo total de pedidos <em>daquele estado</em>. Dividir pelo total nacional responde a outra coisa: onde está o maior volume absoluto de atrasos — que é, previsivelmente, onde há mais gente.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Distorção de área e escala de cor</h2>
+
+        <h3>5.1 Áreas grandes gritam mais alto</h3>
+        <p>Num mapa do Brasil, o Amazonas ocupa uma fração enorme da tela e Sergipe quase desaparece. A quantidade de tinta destinada a cada estado é proporcional à sua área geográfica, não à sua relevância no dado. O resultado é que estados grandes e pouco povoados dominam a leitura visual mesmo quando representam uma fatia pequena do negócio.</p>
+        <p>As mitigações possíveis: complementar o mapa com uma tabela ordenada ao lado, rotular diretamente os estados relevantes, ou reconhecer que, quando o ranking é a mensagem, barras comunicam melhor.</p>
+
+        <h3>5.2 Três tipos de escala de cor</h3>
+        <table>
+          <thead>
+            <tr><th>Escala</th><th>Estrutura</th><th>Use para</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sequencial</td><td>Uma cor, variando do claro ao escuro</td><td>Quantidade que só cresce a partir de zero</td></tr>
+            <tr><td>Divergente</td><td>Duas cores com ponto neutro no meio</td><td>Desvio em relação a uma referência ou meta</td></tr>
+            <tr><td>Categórica</td><td>Matizes distintos sem ordem</td><td>Categorias sem relação de grandeza</td></tr>
+          </tbody>
+        </table>
+
+        <p>O corte das faixas é uma segunda decisão, tão consequente quanto a primeira. Faixas de mesma amplitude, quantis ou quebras naturais produzem mapas visualmente muito diferentes a partir exatamente do mesmo dado. Declare qual critério usou — isso é tão relevante quanto declarar o denominador da normalização.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. O dado geográfico do Olist</h2>
+        <p>O conjunto oferece três níveis de granularidade, com qualidade decrescente.</p>
+
+        <table>
+          <thead>
+            <tr><th>Nível</th><th>Coluna</th><th>Qualidade</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Estado</td><td><code>customer_state</code>, <code>seller_state</code></td><td>Confiável, 27 valores, pronto para mapa de regiões</td></tr>
+            <tr><td>Cidade</td><td><code>customer_city</code></td><td>Grafia inconsistente e cardinalidade alta</td></tr>
+            <tr><td>Coordenada</td><td><code>olist_geolocation</code></td><td>Múltiplos pontos por prefixo de CEP</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>A tabela que multiplica linhas</strong>
+          <p>A tabela de geolocalização tem cerca de um milhão de linhas para menos de vinte mil prefixos de CEP distintos: cada prefixo aparece muitas vezes, com coordenadas ligeiramente diferentes.</p>
+          <p>Se você juntá-la diretamente a pedidos, cada pedido se multiplica pelo número de coordenadas do seu CEP. Um faturamento de milhões vira bilhões — e o número continua parecendo plausível para quem não conferir. A correção é agregar as coordenadas por prefixo, obtendo uma coordenada representativa por CEP, <em>antes</em> de qualquer junção.</p>
+        </div>
+
+        <p>Sobre a coluna de cidade: a grafia inconsistente — acentuação variável, abreviações, erros de digitação — significa que qualquer agregação por cidade produzirá categorias duplicadas. Se a análise por cidade for necessária, a padronização precisa ser feita e declarada como etapa de tratamento.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Laboratório — o mesmo dado, duas conclusões</h2>
+        <p>Duração aproximada de duas horas e dez minutos. O exercício central é demonstrar, com o próprio dado, como a ausência de normalização produz uma conclusão errada.</p>
+
+        <h3>Etapa 1 — O mapa ingênuo (20 minutos)</h3>
+        <p>Construa o mapa que quase todo relatório corporativo tem.</p>
+        <ol class="steps">
+          <li>Confirme que <code>customer_state</code> está marcado com o tipo semântico de estado.</li>
+          <li>Construa um mapa de regiões com a <strong>contagem absoluta</strong> de pedidos por estado.</li>
+          <li>Anote quais estados aparecem mais escuros.</li>
+          <li>Escreva a conclusão que alguém tiraria olhando apenas este mapa.</li>
+        </ol>
+
+        <h3>Etapa 2 — O mapa normalizado (40 minutos)</h3>
+        <ol class="steps">
+          <li>Adote a pergunta: onde entregamos pior?</li>
+          <li>Calcule os pedidos com entrega posterior à data prometida, por estado.</li>
+          <li>Divida pelo total de pedidos <em>daquele estado</em> para obter a taxa.</li>
+          <li>Construa o mapa com a taxa e compare lado a lado com o mapa da Etapa 1.</li>
+          <li>Escreva o que mudou na conclusão e explique por quê.</li>
+        </ol>
+        <p>Esta comparação é o entregável mais importante da aula. Guarde as duas versões: elas serão usadas na apresentação final como demonstração de rigor analítico.</p>
+
+        <h3>Etapa 3 — Mapa de pontos (30 minutos)</h3>
+        <ol class="steps">
+          <li>Agregue <code>olist_geolocation</code> por prefixo de CEP, obtendo uma coordenada por prefixo.</li>
+          <li>Confirme que a contagem de linhas caiu para a ordem de milhares.</li>
+          <li>Junte com a tabela de clientes e construa o mapa de pontos.</li>
+          <li>Avalie a sobreposição de pontos e decida como tratá-la.</li>
+          <li>Compare com o mapa de regiões: o que este mostra que aquele escondia?</li>
+        </ol>
+
+        <h3>Etapa 4 — Distância, frete e prazo (20 minutos)</h3>
+        <p>Aqui a geografia entra como causa, não como rótulo.</p>
+        <ol class="steps">
+          <li>Separe os pedidos em dois grupos: vendedor e cliente no mesmo estado, e em estados diferentes.</li>
+          <li>Calcule o frete mediano e o prazo mediano de cada grupo.</li>
+          <li>Verifique se a diferença observada é consistente entre os principais estados.</li>
+          <li>Escreva a conclusão sem afirmar causa além do que o dado sustenta.</li>
         </ol>
       </section>
 
-      <section>
-        <h2>4. Critérios de avaliação da solução</h2>
-        <p>O mapa deve usar a variável espacial e a codificação corretas, normalizar quando necessário e tornar ausências visíveis. A justificativa precisa abordar projeção, legenda, denominador e a vantagem analítica do mapa sobre uma visão não espacial.</p>
+      <section class="content-block">
+        <h2>8. Entregáveis e avaliação</h2>
+        <table>
+          <thead>
+            <tr><th>Onde</th><th>O quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Metabase</td><td>Mapa absoluto, mapa normalizado, mapa de pontos e a análise de distância</td></tr>
+            <tr><td>Repositório</td><td><code>docs/06_mapas.md</code> com o denominador escolhido e sua justificativa, a demonstração das duas conclusões e a decisão sobre escala de cor</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Demonstração da distorção</td><td>As duas conclusões estão explícitas e contrastadas</td></tr>
+            <tr><td>Denominador justificado</td><td>A escolha responde à pergunta declarada</td></tr>
+            <tr><td>Junção correta</td><td>A geolocalização foi agregada antes da junção</td></tr>
+            <tr><td>Escala declarada</td><td>Tipo de escala e critério de faixas registrados</td></tr>
+          </tbody>
+        </table>
       </section>
 
-      <section class="callout">
-        <h3>Orientação para a prática em sala</h3>
-        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      <section class="content-block">
+        <h2>9. Preparação para a Aula 07</h2>
+        <p>Em 26 de setembro saímos das visualizações isoladas e entramos no instrumento de decisão: o dashboard. Vamos tratar do que separa uma métrica de um indicador, da ficha técnica que todo KPI precisa ter, e de por que a maioria dos dashboards corporativos não muda decisão nenhuma.</p>
+        <p>Traga a taxa de atraso por estado da Etapa 2. Ela é a melhor candidata a virar o primeiro indicador do seu dashboard: é uma taxa, é normalizada, é comparável entre regiões e sugere ação.</p>
       </section>
+
+      <section class="content-block">
+        <h2>10. Orientação para a prática em sala</h2>
+        <div class="note">
+          <strong>Como conduzir o laboratório</strong>
+          <p>A Etapa 3 é a que mais gera erro de execução. Antes de construir o mapa de pontos, verifique a contagem de linhas depois da agregação por CEP — se ela continuar na casa do milhão, a agregação não funcionou e a junção seguinte vai inflar todos os números.</p>
+          <p>Ao final, apresente a um colega apenas o mapa da Etapa 1 e peça a conclusão dele. Depois mostre o da Etapa 2. Essa sequência, feita com outra pessoa, é a demonstração mais convincente do ponto central da aula.</p>
+        </div>
+      </section>
+
     </article>
   </main>
 </body>

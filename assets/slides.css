@@ -719,3 +719,59 @@ pre code {
 
   .slide-footer { padding: 6px 8px; }
 }
+
+/* --------------------------------------------------------------------------
+   Lista de etapas numeradas — compartilhada pelos decks de laboratório.
+   -------------------------------------------------------------------------- */
+
+.deck-steps {
+  counter-reset: dstep;
+  list-style: none;
+  padding: 0;
+  margin: 18px 0 0;
+}
+
+.deck-steps > li {
+  counter-increment: dstep;
+  position: relative;
+  padding-left: 42px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.deck-steps > li::before {
+  content: counter(dstep, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--deck-muted);
+  border: 1px solid var(--deck-line);
+  border-radius: 4px;
+  padding: 2px 7px;
+  background: var(--deck-panel);
+}
+
+/* Bloco de esquema/diagrama em texto monoespaçado, tema escuro. */
+.deck-schema {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  line-height: 1.75;
+  background: var(--deck-code-bg);
+  color: var(--deck-code-fg);
+  border-radius: 6px;
+  padding: 26px 24px 22px;
+  margin: 16px 0 0;
+  overflow-x: auto;
+  box-shadow: 0 10px 24px rgba(13, 17, 23, 0.18);
+}
+
+/* Variante compacta de shell: mais conteúdo por slide sem quebrar a escala. */
+.deck-shell.is-dense .deck-title { font-size: 2.1em; }
+.deck-shell.is-dense .deck-summary { font-size: 0.95em; }
+.deck-shell.is-dense .deck-card { padding: 18px 20px; }
+.deck-shell.is-dense .deck-table th,
+.deck-shell.is-dense .deck-table td { padding: 7px 10px; font-size: 0.86em; }

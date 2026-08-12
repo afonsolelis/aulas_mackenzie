@@ -22,43 +22,201 @@
       <p class="meta">Aula 05 &middot; 12/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
     </header>
 
-    <article class="content">
-      <section>
+    <article class="material">
+
+      <section class="content-block">
         <h2>1. Visão geral</h2>
-        <p>Critérios para selecionar a forma visual mais adequada à mensagem e ao público.</p>
-        <p>Tabelas são adequadas quando o leitor precisa localizar valores exatos ou comparar poucas células conhecidas. Gráficos são superiores para perceber padrão, ordem e magnitude. Pequenos múltiplos permitem comparar várias séries na mesma escala; gráficos de composição exigem cautela quando muitas partes ou diferenças pequenas dificultam a leitura.</p>
+        <p>As quatro primeiras aulas criaram um viés: ao passar tanto tempo ensinando a representar visualmente, produziram a impressão de que gráfico é sempre superior a tabela. Não é. Existem perguntas para as quais a tabela é objetivamente a melhor resposta, e reconhecê-las faz parte da competência que a disciplina forma.</p>
+        <p>A tese desta aula é que gráfico e tabela executam trabalhos diferentes, não são níveis diferentes de sofisticação. O gráfico mostra padrão; a tabela entrega valor. Usar gráfico quando o leitor precisa de um número exato é tão inadequado quanto usar tabela quando ele precisa enxergar uma tendência.</p>
+        <p>A segunda metade da aula é dedicada à construção coletiva de uma matriz de decisão de representação — um artefato da turma, que será usado e testado até o fim do semestre.</p>
       </section>
 
-      <section>
-        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
-        <p>Forças e limitações de tabelas, barras, linhas, dispersão, composição e pequenos múltiplos.</p>
-        <p>Uma matriz de decisão pode cruzar tarefa analítica, tipo de dado, precisão, volume de categorias e familiaridade do público. Ela não substitui julgamento, mas torna a escolha justificável. A mesma base pode exigir uma tabela operacional detalhada e uma síntese executiva; tentar atender ambos os públicos em uma única peça costuma comprometer os dois.</p>
+      <section class="content-block">
+        <h2>2. O que cada representação faz melhor</h2>
+        <table>
+          <thead>
+            <tr><th>A tabela vence quando</th><th>O gráfico vence quando</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>O leitor precisa do valor exato</td><td>A pergunta é sobre padrão ou tendência</td></tr>
+            <tr><td>Unidades diferentes convivem na mesma visão</td><td>Há muitos pontos para comparar</td></tr>
+            <tr><td>São poucas linhas e poucas colunas</td><td>A forma da distribuição importa</td></tr>
+            <tr><td>O uso é consulta recorrente, não descoberta</td><td>A conclusão é relativa, não absoluta</td></tr>
+            <tr><td>O número será copiado para outro documento</td><td>O tempo de leitura disponível é curto</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>O caso das unidades misturadas</strong>
+          <p>Um gráfico com faturamento em reais, prazo em dias e satisfação em escala de 1 a 5 no mesmo eixo é ilegível. A tabela resolve isso naturalmente: cada coluna tem sua unidade, declarada no cabeçalho. Sempre que a visão precisa combinar grandezas incomparáveis, a tabela deixa de ser alternativa e passa a ser a única escolha razoável.</p>
+        </div>
       </section>
 
-      <section>
-        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
-        <h3>Objetivo</h3>
-        <p>Montar uma matriz de decisão e transformar uma tabela operacional em uma comunicação executiva.</p>
-        <ol>
-          <li>Disponibilize no S3 uma tabela operacional com metas, realizado, variação, período e unidade de negócio.</li>
-          <li>Liste as tarefas do público operacional e do público executivo e classifique a precisão exigida.</li>
-          <li>Construa uma matriz relacionando cada tarefa a tabela, barras, linhas, dispersão ou pequenos múltiplos.</li>
-          <li>Formate a tabela operacional com alinhamento decimal, unidades no cabeçalho e destaque condicional parcimonioso.</li>
-          <li>Crie uma versão executiva que mostre apenas desempenho, tendência e exceções acionáveis.</li>
-          <li>Compare as duas entregas com critérios de densidade, velocidade de leitura, precisão e contexto.</li>
-          <li>Documente por que cada representação foi escolhida e qual pergunta ela não consegue responder.</li>
+      <section class="content-block">
+        <h2>3. Anatomia de uma tabela legível</h2>
+        <p>A tabela também tem regras perceptivas, e elas são ignoradas com muito mais frequência que as dos gráficos — provavelmente porque a tabela é vista como formato neutro, o que ela não é.</p>
+
+        <table>
+          <thead>
+            <tr><th>Elemento</th><th>Regra</th><th>Por quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Números</td><td>Alinhados à direita</td><td>Alinha a casa decimal e permite comparar comprimento</td></tr>
+            <tr><td>Texto</td><td>Alinhado à esquerda</td><td>A margem esquerda regular acelera a varredura vertical</td></tr>
+            <tr><td>Cabeçalho</td><td>Alinhado como o conteúdo da coluna</td><td>Evita desconexão visual entre título e dado</td></tr>
+            <tr><td>Casas decimais</td><td>Constantes dentro da coluna</td><td>Variação impede comparação visual imediata</td></tr>
+            <tr><td>Grade</td><td>Mínima ou ausente</td><td>Linhas de grade competem com os dados pela atenção</td></tr>
+            <tr><td>Ordenação</td><td>Pela coluna que responde à pergunta</td><td>A ordem é o principal recurso de navegação da tabela</td></tr>
+          </tbody>
+        </table>
+
+        <h3>3.1 O alinhamento numérico não é preciosismo</h3>
+        <p>Números alinhados à direita, com casas decimais constantes, transformam a coluna num gráfico de barras implícito: o comprimento do número passa a funcionar como sinal de magnitude. Valores de ordem de grandeza diferente saltam sozinhos — um número com dois dígitos a mais é imediatamente visível sem nenhum recurso adicional.</p>
+        <p>Alinhar números à esquerda destrói esse sinal gratuito e obriga o leitor a comparar dígito por dígito.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Tabela dinâmica</h2>
+        <p>Quando a pergunta cruza duas dimensões — categoria por estado, mês por meio de pagamento — a tabela dinâmica entrega o valor exato de cada célula sem sacrificar a estrutura bidimensional.</p>
+        <p>Ela é a melhor escolha quando há duas dimensões e uma métrica, quando o leitor consulta células específicas, quando totais de linha e de coluna fazem parte da resposta, e quando o número total de células permanece gerenciável.</p>
+        <p>Ela quebra quando uma das dimensões tem cardinalidade alta, quando a pergunta é sobre padrão em vez de valor, quando a tela exige rolagem nas duas direções simultaneamente, e quando o leitor precisa comparar células distantes entre si — nesse último caso, o esforço de memória de trabalho inviabiliza a leitura.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Formatação condicional e híbridos</h2>
+        <p>A formatação condicional adiciona um canal visual à tabela sem tirar dela o valor exato. É a resposta para o caso mais comum na prática: "preciso do número e também preciso enxergar o padrão".</p>
+
+        <div class="note">
+          <strong>Duas regras que evitam o desastre</strong>
+          <p><strong>Uma escala por vez.</strong> Colorir cinco colunas com cinco escalas diferentes produz uma tabela ilegível, em que nenhuma cor significa nada porque todas competem.</p>
+          <p><strong>Intensidade, não matiz.</strong> Para representar quantidade, varie a saturação de uma única cor. Matizes diferentes comunicam categorias, não graus — usar verde, amarelo e vermelho para uma escala contínua faz o leitor procurar três grupos onde existe um contínuo.</p>
+        </div>
+
+        <p>Micrográficos embutidos em células — barras finas dentro da própria coluna — são outra forma de híbrido. Funcionam bem para uma única métrica e se tornam ruído quando aplicados a várias colunas ao mesmo tempo.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Quando a tabela vira um gráfico ruim</h2>
+        <p>A tabela tem um ponto de ruptura conhecido, e ele chega antes do que se imagina. Os sinais são comportamentais e fáceis de observar: mais de vinte linhas sem ordenação clara, o leitor usando o dedo na tela para acompanhar uma linha, a comparação exigindo memorizar valores de células distantes, ou alguém exportando a tabela para outra ferramenta só para conseguir enxergá-la.</p>
+        <p>Diante de qualquer um desses sinais, quatro saídas: reduzir o número de linhas com filtro ou agregação, adicionar formatação condicional, trocar por gráfico mantendo a tabela como detalhe acessível, ou separar em duas visões com propósitos distintos.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>7. A matriz de decisão de representação</h2>
+        <p>Cinco dimensões que, respondidas em sequência, levam a uma representação. A turma preenche os detalhes na prática de hoje; o esqueleto é este.</p>
+
+        <table>
+          <thead>
+            <tr><th>#</th><th>Dimensão</th><th>Pergunta</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Trabalho</td><td>Comparar, distribuir, evoluir, relacionar ou consultar?</td></tr>
+            <tr><td>2</td><td>Tipo de dado</td><td>Numérico, nominal, ordinal, hierárquico, temporal, geográfico?</td></tr>
+            <tr><td>3</td><td>Cardinalidade</td><td>Quantos itens precisam aparecer simultaneamente?</td></tr>
+            <tr><td>4</td><td>Precisão exigida</td><td>Valor exato ou ordem de grandeza?</td></tr>
+            <tr><td>5</td><td>Tempo de leitura</td><td>Cinco segundos ou cinco minutos?</td></tr>
+          </tbody>
+        </table>
+
+        <h3>7.1 As duas dimensões que mais decidem</h3>
+        <p>Na prática, precisão exigida e tempo de leitura resolvem a maioria dos casos antes que as outras três precisem ser consultadas.</p>
+
+        <table>
+          <thead>
+            <tr><th>Precisão exigida</th><th>Tempo de leitura</th><th>Representação indicada</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Valor exato</td><td>Longo</td><td>Tabela</td></tr>
+            <tr><td>Valor exato</td><td>Curto</td><td>Valor único em destaque</td></tr>
+            <tr><td>Ordem de grandeza</td><td>Curto</td><td>Gráfico</td></tr>
+            <tr><td>Ambos</td><td>Longo</td><td>Tabela com formatação condicional</td></tr>
+          </tbody>
+        </table>
+
+        <p>A linha mais frequentemente ignorada é a segunda. Quando alguém precisa de um número exato em cinco segundos, a resposta não é tabela nem gráfico: é o número, grande, sozinho na tela, com o contexto mínimo necessário para interpretá-lo. Esse é o componente que a Aula 07 vai explorar em profundidade.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Laboratório — uma pergunta, três representações</h2>
+        <p>Duração aproximada de duas horas e dez minutos. Use a pergunta que você trouxe achando que não deveria virar gráfico. Se a intuição estiver certa, o exercício comprova; se estiver errada, é ainda mais instrutivo.</p>
+
+        <h3>Etapa 1 — Três versões da mesma resposta (40 minutos)</h3>
+        <ol class="steps">
+          <li>Construa a resposta como <strong>tabela simples</strong>, aplicando todas as regras de alinhamento e ordenação.</li>
+          <li>Construa como <strong>tabela dinâmica</strong>, cruzando duas dimensões.</li>
+          <li>Construa como <strong>gráfico</strong>, escolhendo o tipo pelo trabalho identificado.</li>
+          <li>Salve as três com nomes que identifiquem claramente a variação.</li>
         </ol>
+
+        <h3>Etapa 2 — Formatação condicional (20 minutos)</h3>
+        <ol class="steps">
+          <li>Aplique escala de intensidade a uma única métrica da tabela dinâmica.</li>
+          <li>Verifique se o padrão que o gráfico mostrava aparece também aqui.</li>
+          <li>Se aparecer, avalie honestamente se o gráfico ainda é necessário.</li>
+          <li>Registre a conclusão, qualquer que seja ela.</li>
+        </ol>
+
+        <h3>Etapa 3 — Defesa por público (20 minutos)</h3>
+        <p>A mesma resposta serve públicos diferentes de formas diferentes.</p>
+        <ol class="steps">
+          <li>Para cada versão, defina qual público ela atende melhor.</li>
+          <li>Defina o tempo de leitura realisticamente disponível para esse público.</li>
+          <li>Defina qual decisão específica cada público precisa tomar.</li>
+          <li>Elimine a versão que não serve a nenhum público real — e diga qual foi.</li>
+        </ol>
+
+        <h3>Etapa 4 — A matriz da turma (50 minutos, em conjunto)</h3>
+        <p>Este é o artefato coletivo da disciplina e o entregável mais importante desta aula.</p>
+        <ol class="steps">
+          <li>Cada grupo apresenta a regra que extraiu do próprio exercício.</li>
+          <li>A turma consolida as regras numa matriz única, eliminando duplicatas.</li>
+          <li>Regras conflitantes são discutidas até virarem uma regra única com condição explícita.</li>
+          <li>A matriz é testada contra três perguntas novas, sorteadas na hora.</li>
+          <li>O resultado é versionado no repositório de cada aluno.</li>
+        </ol>
+        <p>Se a matriz falhar em alguma das perguntas sorteadas, isso não é fracasso do exercício — é a descoberta de uma dimensão que faltava. Acrescente-a e teste de novo.</p>
       </section>
 
-      <section>
-        <h2>4. Critérios de avaliação da solução</h2>
-        <p>A matriz deve demonstrar coerência entre tarefa e representação. A tabela operacional deve favorecer consulta precisa; a síntese executiva deve favorecer padrão e decisão, sem remover definições, período ou unidade.</p>
+      <section class="content-block">
+        <h2>9. Entregáveis e avaliação</h2>
+        <table>
+          <thead>
+            <tr><th>Onde</th><th>O quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Metabase</td><td>Três versões da mesma pergunta — tabela, tabela dinâmica e gráfico — mais a versão com formatação condicional</td></tr>
+            <tr><td>Repositório</td><td><code>docs/05_representacao.md</code> com a matriz de decisão consolidada da turma e a defesa por público das três versões</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Tabela bem construída</td><td>Alinhamento, casas decimais e ordenação corretos</td></tr>
+            <tr><td>Defesa por público</td><td>Cada versão associada a um público e a uma decisão concreta</td></tr>
+            <tr><td>Contribuição à matriz</td><td>Ao menos uma regra própria incorporada ao artefato coletivo</td></tr>
+            <tr><td>Aplicabilidade</td><td>A matriz resolve as três perguntas sorteadas no teste</td></tr>
+          </tbody>
+        </table>
       </section>
 
-      <section class="callout">
-        <h3>Orientação para a prática em sala</h3>
-        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      <section class="content-block">
+        <h2>10. Preparação para a Aula 06</h2>
+        <p>Em 19 de setembro entramos no terreno mais sedutor e mais traiçoeiro da visualização: o mapa. Vamos examinar quando o espaço é a variável relevante e quando o mapa apenas redesenha a densidade populacional com outras cores.</p>
+        <p>Traga a matriz de decisão consolidada. Vamos testá-la contra o caso geográfico, que é onde matrizes desse tipo costumam falhar primeiro.</p>
       </section>
+
+      <section class="content-block">
+        <h2>11. Orientação para a prática em sala</h2>
+        <div class="note">
+          <strong>Como conduzir o laboratório</strong>
+          <p>As três primeiras etapas são individuais e acontecem em sala. A Etapa 4 é coletiva e ocupa quase metade do tempo prático — reserve-a integralmente, porque o valor está na discussão das regras conflitantes, não na velocidade de consolidação.</p>
+          <p>Registre a matriz num formato que todos consigam versionar no próprio repositório. Ela vai ser consultada nas três aulas seguintes e defendida na apresentação final.</p>
+        </div>
+      </section>
+
     </article>
   </main>
 </body>

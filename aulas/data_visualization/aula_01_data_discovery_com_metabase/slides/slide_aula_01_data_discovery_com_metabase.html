@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 01 — Data Discovery com Metabase</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style>
+    /* Escopo local da Aula 01 — apenas conteúdo específico deste deck.
+       Densidade, etapas e esquema vêm de assets/slides.css. */
+    .a01-label {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--deck-muted);
+      display: block;
+      margin-bottom: 6px;
+    }
+    .a01-badquestion {
+      font-family: var(--font-mono);
+      font-size: .9em;
+      padding: 10px 14px;
+      border: 1px solid var(--deck-line);
+      border-left: 3px solid var(--deck-muted);
+      background: var(--deck-surface);
+      margin-bottom: 10px;
+    }
+    .a01-goodquestion {
+      font-family: var(--font-mono);
+      font-size: .9em;
+      padding: 10px 14px;
+      border: 1px solid var(--deck-line);
+      border-left: 3px solid var(--deck-accent);
+      background: var(--deck-panel);
+    }
+    /* Credenciais projetadas: precisam ser legíveis do fundo da sala. */
+    .a01-cred {
+      font-family: var(--font-mono);
+      font-size: 1.15em;
+      line-height: 2;
+      margin: 0;
+    }
+    .a01-cred dt {
+      display: inline-block;
+      width: 5.5em;
+      color: var(--deck-muted);
+      font-size: .78em;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+    .a01-cred dd {
+      display: inline;
+      margin: 0;
+      font-weight: 700;
+      word-break: break-all;
+    }
+    .a01-cred dd::after { content: ""; display: block; }
+  </style>
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 1 - CAPA                                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="01" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Data Discovery com Metabase</h1>
+          <p class="deck-meta">Aula 01 &nbsp;&bull;&nbsp; 15/08/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Antes de escolher como mostrar, é preciso saber o que existe e o que se quer perguntar.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 2 - AGENDA                                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">O que vai acontecer hoje</h2>
+          <p class="deck-summary">Uma hora e meia entendendo o que é descobrir dados e como se formula uma pergunta respondível. Depois, duas horas dentro do Metabase com um dataset real de e-commerce brasileiro.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <ul>
+              <li>Por que discovery vem antes do gráfico</li>
+              <li>As quatro dimensões do perfilamento</li>
+              <li>Tipo físico e tipo semântico</li>
+              <li>Grão da análise</li>
+              <li>Da pergunta vaga à pergunta respondível</li>
+              <li>O dataset Olist e o Metabase</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>10h00 &ndash; 12h10 &middot; Prática</h3>
+            <ul>
+              <li>Primeiro acesso à instância</li>
+              <li>X-ray automático das tabelas</li>
+              <li>Perfilamento das 9 tabelas do Olist</li>
+              <li>Query builder: filtrar, agrupar, sumarizar</li>
+              <li>Primeira junção entre tabelas</li>
+              <li>Backlog de 10 perguntas de negócio</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 3 - ABERTURA / PLACEHOLDER DA DISCIPLINA               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Construção do Conteúdo</span>
+          <h2 class="deck-title">Oito sábados, uma progressão</h2>
+          <p class="deck-summary">A disciplina não é um catálogo de tipos de gráfico. É uma trilha em que cada semana consome o trabalho da anterior, sobre o mesmo conjunto de dados, até chegar a uma história defensável.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>#</th><th>Data</th><th>Tema</th><th>O que você leva embora</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>01</td><td>15/08</td><td>Data Discovery</td><td>Perfil dos dados e backlog de perguntas</td></tr>
+            <tr><td>02</td><td>22/08</td><td>Percepção Visual</td><td>Par antes/depois justificado</td></tr>
+            <tr><td>03</td><td>29/08</td><td>Dados Numéricos</td><td>Quatro gráficos, quatro trabalhos</td></tr>
+            <tr><td>04</td><td>05/09</td><td>Dados Não Numéricos</td><td>Categorias e texto tratados</td></tr>
+            <tr><td>05</td><td>12/09</td><td>Tabelas e Escolha</td><td>Matriz de decisão da turma</td></tr>
+            <tr><td>06</td><td>19/09</td><td>Mapas</td><td>Dois mapas normalizados</td></tr>
+            <tr><td>07</td><td>26/09</td><td>KPIs e Dashboards</td><td>Dashboard com filtros</td></tr>
+            <tr><td>08</td><td>03/10</td><td>Storytelling</td><td>Apresentação final de 12 minutos</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 4 - TESE DA AULA                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">Um gráfico bonito que responde à pergunta errada não vale nada</h2>
+          <p class="deck-summary">A maior parte dos erros de visualização não acontece na escolha do gráfico. Acontece antes: na pressa de visualizar um dado que ainda não foi compreendido.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Quatro regras da disciplina</strong>
+          <ol style="margin:12px 0 0; padding-left:22px;">
+            <li>Nenhum gráfico antes de saber o grão, a completude e o período do dado.</li>
+            <li>Todo gráfico responde a uma pergunta escrita antes de ele existir.</li>
+            <li>Toda escolha de representação precisa de justificativa &mdash; perceptiva, não estética.</li>
+            <li>Se você não consegue explicar o que o eixo significa, o gráfico não está pronto.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 5 - O ERRO COMUM                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Diagnóstico</span>
+          <h2 class="deck-title">O caminho que quase todo mundo faz</h2>
+          <p class="deck-summary">E por que ele produz dashboards que ninguém usa.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Caminho comum</strong>
+            <ol style="margin:10px 0 0; padding-left:20px;">
+              <li>Recebe acesso ao banco</li>
+              <li>Arrasta campos para a tela</li>
+              <li>Escolhe o gráfico que parece bonito</li>
+              <li>Monta um dashboard com tudo</li>
+              <li>Apresenta</li>
+              <li>Ninguém toma decisão nenhuma</li>
+            </ol>
+          </div>
+          <div class="deck-panel">
+            <strong>Caminho desta disciplina</strong>
+            <ol style="margin:10px 0 0; padding-left:20px;">
+              <li>Recebe acesso ao banco</li>
+              <li>Descobre o que existe e o que falta</li>
+              <li>Escreve as perguntas que importam</li>
+              <li>Escolhe a representação por critério</li>
+              <li>Testa a leitura com outra pessoa</li>
+              <li>Defende cada decisão</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 6 - O QUE E DATA DISCOVERY                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito</span>
+          <h2 class="deck-title">Data Discovery</h2>
+          <p class="deck-summary">O trabalho de conhecer um conjunto de dados que você não criou, antes de confiar nele para qualquer afirmação.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>O que é</h3>
+            <p>Exploração sistemática para responder: o que existe aqui, em que granularidade, cobrindo qual período, com qual qualidade e o que é possível perguntar.</p>
+          </article>
+          <article class="deck-card">
+            <h3>O que não é</h3>
+            <p>Não é análise exploratória com hipótese pronta, não é limpeza de dados e não é a construção do gráfico final. É a etapa que torna as três seguintes possíveis.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 7 - AS 4 DIMENSOES DO PERFILAMENTO                     -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Perfilamento &middot; Framework</span>
+          <h2 class="deck-title">Quatro perguntas para cada coluna</h2>
+          <p class="deck-summary">Aplicadas a toda coluna que você pretende usar. Leva minutos e evita conclusões erradas que sobreviveriam ao semestre inteiro.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Dimensão</th><th>Pergunta</th><th>Sinal de alerta</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Completude</td><td>Quantos nulos existem e onde?</td><td>Nulo concentrado num período ou numa categoria</td></tr>
+            <tr><td>Cardinalidade</td><td>Quantos valores distintos?</td><td>Categórico com milhares de valores; booleano com 3 valores</td></tr>
+            <tr><td>Distribuição</td><td>Como os valores se espalham?</td><td>Média muito distante da mediana</td></tr>
+            <tr><td>Outliers</td><td>O que há nos extremos?</td><td>Zeros, negativos e datas impossíveis</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 8 - COMPLETUDE                                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Perfilamento &middot; Completude</span>
+          <h2 class="deck-title">O nulo nunca é aleatório</h2>
+          <p class="deck-summary">A pergunta certa não é "quantos nulos existem", é "por que estes registros estão nulos e aqueles não".</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Um caso do próprio Olist</strong>
+          <p style="margin:10px 0 0;">A data de entrega é nula em parte dos pedidos. Se você ignorar isso e calcular o prazo médio de entrega, estará calculando a média apenas dos pedidos que foram entregues &mdash; e excluindo silenciosamente os cancelados e os extraviados. O número resultante é bonito, defensável na aparência, e errado.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 9 - DISTRIBUICAO                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Perfilamento &middot; Distribuição</span>
+          <h2 class="deck-title">Média e mediana contam histórias diferentes</h2>
+          <p class="deck-summary">Em dados de e-commerce a distribuição quase nunca é simétrica. Poucos pedidos muito caros puxam a média para cima e deixam a maioria dos clientes invisível.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Quando usar média</strong>
+            <ul>
+              <li>Distribuição aproximadamente simétrica</li>
+              <li>Você precisa que a soma seja preservada</li>
+              <li>Faturamento total dividido por pedidos</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Quando usar mediana</strong>
+            <ul>
+              <li>Cauda longa à direita</li>
+              <li>Você quer descrever o caso típico</li>
+              <li>Ticket, prazo de entrega, valor de frete</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 10 - TIPO FISICO VS SEMANTICO                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Metadados</span>
+          <h2 class="deck-title">Tipo físico não é tipo semântico</h2>
+          <p class="deck-summary">O banco sabe que a coluna é <code>text</code>. Só você sabe que ela é um CEP. Essa diferença decide se o Metabase vai oferecer um mapa ou uma lista alfabética.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Coluna</th><th>Tipo físico</th><th>Tipo semântico</th><th>O que destrava</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>customer_state</code></td><td>text</td><td>State</td><td>Mapa de regiões</td></tr>
+            <tr><td><code>customer_zip_code_prefix</code></td><td>integer</td><td>Zip Code</td><td>Agrupamento geográfico</td></tr>
+            <tr><td><code>geolocation_lat</code></td><td>numeric</td><td>Latitude</td><td>Mapa de pontos</td></tr>
+            <tr><td><code>price</code></td><td>numeric</td><td>Currency</td><td>Formatação em R$</td></tr>
+            <tr><td><code>review_score</code></td><td>integer</td><td>Score / Category</td><td>Trata como categoria, não soma</td></tr>
+            <tr><td><code>order_status</code></td><td>text</td><td>Category</td><td>Filtro por lista, não por texto livre</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 11 - O GRAO                                            -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Grão</span>
+          <h2 class="deck-title">Uma linha representa o quê?</h2>
+          <p class="deck-summary">Grão é o nível de detalhe de uma linha. Errar o grão é a causa mais frequente de número inflado em relatório.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Tabela</th><th>Uma linha é</th><th>Cuidado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>olist_orders</code></td><td>um pedido</td><td>Grão mais alto do conjunto</td></tr>
+            <tr><td><code>olist_order_items</code></td><td>um item dentro de um pedido</td><td>Um pedido aparece várias vezes</td></tr>
+            <tr><td><code>olist_order_payments</code></td><td>uma parcela de pagamento</td><td>Um pedido pode ter vários pagamentos</td></tr>
+            <tr><td><code>olist_geolocation</code></td><td>um ponto de CEP</td><td>Muitos pontos por CEP &mdash; junção explode</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:16px;">
+          <strong>Regra prática</strong>
+          <p style="margin:8px 0 0;">Se você juntar pedidos com itens e depois contar pedidos, vai contar cada pedido tantas vezes quantos itens ele tiver. Sempre pergunte: depois desta junção, o que uma linha representa?</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 12 - DA PERGUNTA VAGA A RESPONDIVEL                    -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Método</span>
+          <h2 class="deck-title">Da pergunta vaga à pergunta respondível</h2>
+          <p class="deck-summary">A pergunta de negócio chega sempre vaga. Seu trabalho é traduzi-la em algo que tem uma resposta verificável nos dados que você tem.</p>
+        </div>
+        <div style="margin-top:18px;">
+          <span class="a01-label">Como chega</span>
+          <div class="a01-badquestion">"Como está a performance de entrega?"</div>
+          <span class="a01-label" style="margin-top:14px;">Como precisa ficar</span>
+          <div class="a01-goodquestion">"Qual o percentual de pedidos entregues após a data prometida, por estado, entre jan/2017 e ago/2018, considerando apenas pedidos com status <code>delivered</code>?"</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 13 - ANATOMIA DA PERGUNTA                              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Método &middot; Anatomia</span>
+          <h2 class="deck-title">Os cinco elementos de uma pergunta respondível</h2>
+          <p class="deck-summary">Falta de qualquer um deles produz uma resposta que não pode ser verificada nem defendida.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Elemento</th><th>Pergunta de controle</th><th>No exemplo anterior</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Métrica</td><td>O que está sendo medido?</td><td>% de pedidos atrasados</td></tr>
+            <tr><td>Recorte</td><td>Quebrado por qual dimensão?</td><td>Por estado</td></tr>
+            <tr><td>Período</td><td>Cobrindo qual janela?</td><td>Jan/2017 a ago/2018</td></tr>
+            <tr><td>Filtro</td><td>O que fica de fora?</td><td>Só status <code>delivered</code></td></tr>
+            <tr><td>Decisão</td><td>O que muda com a resposta?</td><td>Onde renegociar prazo com transportadora</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>O quinto é o que mais falta</strong>
+          <p style="margin:8px 0 0;">Se nenhuma decisão muda com a resposta, a pergunta é curiosidade. Curiosidade é legítima, mas não vira dashboard.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 14 - O DATASET OLIST                                   -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Dataset</span>
+          <h2 class="deck-title">Olist &mdash; e-commerce brasileiro real</h2>
+          <p class="deck-summary">Dados públicos de um marketplace que conecta pequenos vendedores a grandes plataformas. Cerca de 100 mil pedidos entre 2016 e 2018, com preço, frete, prazo, avaliação e geografia.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Por que este dataset</h3>
+            <p>É brasileiro, tem geografia real, texto livre em avaliações, séries temporais de dois anos e sujeira de dado de verdade. Cobre todos os tipos de representação da ementa.</p>
+          </article>
+          <article class="deck-card">
+            <h3>O negócio por trás</h3>
+            <p>O vendedor anuncia no marketplace, o cliente compra, a Olist coordena a entrega e coleta a avaliação. Prazo e frete são o coração da operação.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 15 - AS 9 TABELAS                                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dataset &middot; Schema</span>
+          <h2 class="deck-title">As nove tabelas</h2>
+          <p class="deck-summary">Os números de volume abaixo são ordens de grandeza. Confirmar cada um deles é parte da prática de hoje.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Tabela</th><th>Grão</th><th>Ordem de grandeza</th><th>Serve para</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>olist_orders</code></td><td>pedido</td><td>~100 mil</td><td>Datas, status, prazo</td></tr>
+            <tr><td><code>olist_order_items</code></td><td>item do pedido</td><td>~113 mil</td><td>Preço e frete</td></tr>
+            <tr><td><code>olist_order_payments</code></td><td>parcela</td><td>~104 mil</td><td>Meio de pagamento</td></tr>
+            <tr><td><code>olist_order_reviews</code></td><td>avaliação</td><td>~99 mil</td><td>Score e texto livre</td></tr>
+            <tr><td><code>olist_customers</code></td><td>cliente por pedido</td><td>~99 mil</td><td>Cidade e estado</td></tr>
+            <tr><td><code>olist_sellers</code></td><td>vendedor</td><td>~3 mil</td><td>Origem do envio</td></tr>
+            <tr><td><code>olist_products</code></td><td>produto</td><td>~33 mil</td><td>Categoria e dimensões</td></tr>
+            <tr><td><code>olist_geolocation</code></td><td>ponto de CEP</td><td>~1 milhão</td><td>Latitude e longitude</td></tr>
+            <tr><td><code>product_category_name_translation</code></td><td>categoria</td><td>71</td><td>Tradução dos nomes</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 16 - COMO AS TABELAS SE LIGAM                          -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Dataset &middot; Relacionamentos</span>
+          <h2 class="deck-title">Como as tabelas se conectam</h2>
+          <p class="deck-summary">O pedido é o centro. Quase toda pergunta interessante passa por ele.</p>
+        </div>
+        <div class="deck-schema">olist_customers
+     │  customer_id
+     ▼
+olist_orders ──────────────► olist_order_reviews
+     │  order_id                    order_id
+     │
+     ├──► olist_order_payments      (1 pedido : N parcelas)
+     │
+     └──► olist_order_items         (1 pedido : N itens)
+                 │  product_id           │  seller_id
+                 ▼                       ▼
+          olist_products          olist_sellers
+                 │  product_category_name
+                 ▼
+   product_category_name_translation</div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 17 - METABASE: O QUE E                                 -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Ferramenta</span>
+          <h2 class="deck-title">Metabase</h2>
+          <p class="deck-summary">Ferramenta open source de exploração e visualização de dados. Vamos usar uma instância única, hospedada, com o Olist conectado em modo somente leitura.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Por que esta ferramenta</h3>
+            <p>É gratuita e você pode reinstalar depois do curso. Tem construtor visual e SQL no mesmo produto, o que permite subir a complexidade sem trocar de ambiente.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Como vamos usar</h3>
+            <p>A turma compartilha uma conta. Cada aluno cria uma coleção com o próprio nome e salva tudo lá dentro. O banco é somente leitura: não há como quebrar o dado.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 18 - ANATOMIA DA INTERFACE                             -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Ferramenta &middot; Interface</span>
+          <h2 class="deck-title">Os cinco lugares que importam hoje</h2>
+          <p class="deck-summary">O Metabase tem muita superfície. Nesta aula você só precisa destes cinco.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Lugar</th><th>Para que serve</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Browse data</td><td>Navegar pelo banco, ver tabelas e colunas sem escrever nada</td></tr>
+            <tr><td>X-ray</td><td>Gerar automaticamente uma exploração completa de uma tabela</td></tr>
+            <tr><td>Notebook editor</td><td>Construtor visual: filtrar, agrupar, sumarizar, juntar</td></tr>
+            <tr><td>Native query</td><td>Editor SQL, para quando o construtor não alcança</td></tr>
+            <tr><td>Collections</td><td>Onde o trabalho fica salvo e organizado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 19 - QUERY BUILDER VS SQL                              -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Ferramenta &middot; Decisão</span>
+          <h2 class="deck-title">Construtor visual ou SQL?</h2>
+          <p class="deck-summary">Não é questão de nível. É questão de qual dos dois preserva mais informação para quem vier depois.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Prefira o construtor</strong>
+            <ul>
+              <li>A pergunta cabe em filtro, grupo e sumarização</li>
+              <li>Você quer que o resultado seja explorável por clique</li>
+              <li>Outra pessoa vai precisar editar depois</li>
+              <li>Você quer drill-down automático</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Prefira SQL</strong>
+            <ul>
+              <li>Precisa de função de janela ou CTE</li>
+              <li>A lógica de junção é irregular</li>
+              <li>Precisa de cálculo entre linhas distantes</li>
+              <li>A consulta precisa ser versionada no repositório</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 20 - ACESSO A INSTANCIA                                -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Acesso</span>
+          <h2 class="deck-title">A instância da turma</h2>
+          <p class="deck-summary">Uma instância só, hospedada na nuvem, com o Olist conectado em modo somente leitura. Abra agora, antes da teoria acabar.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Como entrar</strong>
+            <dl class="a01-cred">
+              <dt>Endereço</dt><dd>metabase-production-76b0.up.railway.app</dd>
+              <dt>Login</dt><dd>alunos@aula.local</dd>
+              <dt>Senha</dt><dd>OlistAula2026!</dd>
+            </dl>
+          </div>
+          <div class="deck-panel">
+            <strong>Três regras</strong>
+            <ul>
+              <li>A conta é <strong>a mesma para todos</strong> &mdash; não troque a senha, você derruba a turma inteira</li>
+              <li>Crie <strong>uma coleção com o seu nome</strong> e salve tudo lá dentro</li>
+              <li>Não edite nem apague a coleção de outra pessoa &mdash; para reaproveitar, duplique</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 21 - DICAS DE USO                                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prática &middot; Dicas</span>
+          <h2 class="deck-title">Seis coisas que economizam tempo hoje</h2>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Dica</th><th>Por quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Salve antes de navegar</td><td>Pergunta não salva se perde ao clicar fora &mdash; não existe rascunho automático</td></tr>
+            <tr><td>Nomeie descrevendo o conteúdo</td><td>&ldquo;Pedidos entregues por mês&rdquo; se acha depois; &ldquo;Pergunta 1&rdquo; não</td></tr>
+            <tr><td>Use <em>View the SQL</em></td><td>Mostra o SQL que o construtor gerou &mdash; a forma mais rápida de aprender a tradução</td></tr>
+            <tr><td>Clique no gráfico</td><td>Cada ponto abre as linhas que o compõem; é assim que se confere um número suspeito</td></tr>
+            <tr><td>X-ray para se orientar</td><td>Bom ponto de partida, péssimo ponto de chegada &mdash; ele mostra o fácil, não o importante</td></tr>
+            <tr><td>Erro de SQL não quebra nada</td><td>O banco é somente leitura: o pior que acontece é a consulta falhar. Experimente à vontade</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 22 - ABERTURA DA PRATICA                               -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 10h00 &ndash; 12h10</span>
+          <h2 class="deck-title">Laboratório: descobrir o Olist</h2>
+          <p class="deck-summary">Seis etapas. Ao final você terá cinco perguntas salvas na sua coleção e um documento com o perfil dos dados e o backlog do semestre.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Antes de começar</strong>
+          <p style="margin:8px 0 0;">Confirme três coisas: você entrou na instância, vê o banco <code>olist</code> em <em>Browse data</em> com as nove tabelas, e já criou a coleção com o seu nome. Se algo falhar, resolva agora &mdash; não avance com o ambiente quebrado.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 23 - ETAPA 1 E 2                                       -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapas 1 e 2</span>
+          <h2 class="deck-title">Reconhecimento do terreno</h2>
+          <p class="deck-summary">Vinte minutos. Objetivo: saber o que existe antes de perguntar qualquer coisa.</p>
+        </div>
+        <ol class="deck-steps">
+          <li><strong>Navegue pelo schema.</strong> Em <em>Browse data</em>, abra o banco <code>olist</code> e percorra as nove tabelas. Para cada uma, anote em uma frase o que uma linha representa.</li>
+          <li><strong>Rode o X-ray.</strong> Escolha <code>olist_orders</code> e acione o X-ray. Leia o que o Metabase gerou sozinho e anote duas coisas que chamaram sua atenção e uma que parece suspeita.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 24 - ETAPA 3                                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 3</span>
+          <h2 class="deck-title">Perfilamento</h2>
+          <p class="deck-summary">Quarenta minutos. Aplique as quatro dimensões às colunas que você pretende usar no semestre.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Verifique</th><th>Como</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Volume de cada tabela</td><td>Sumarizar por contagem de linhas</td></tr>
+            <tr><td>Período coberto</td><td>Mínimo e máximo de <code>order_purchase_timestamp</code></td></tr>
+            <tr><td>Nulos em datas de entrega</td><td>Filtrar onde a data de entrega é vazia e contar</td></tr>
+            <tr><td>Valores de <code>order_status</code></td><td>Agrupar por status e contar</td></tr>
+            <tr><td>Distribuição de preço</td><td>Comparar média e mediana de <code>price</code></td></tr>
+            <tr><td>Cardinalidade de categoria</td><td>Contagem de valores distintos</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 25 - ETAPA 4                                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 4</span>
+          <h2 class="deck-title">Primeira pergunta no construtor</h2>
+          <p class="deck-summary">Trinta minutos. Construa e salve, sem escrever SQL.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Pergunta guiada</strong>
+          <p style="margin:8px 0 0;">Quantos pedidos foram feitos por mês, considerando apenas os que chegaram ao status <code>delivered</code>?</p>
+        </div>
+        <ol class="deck-steps" style="margin-top:14px;">
+          <li>Nova pergunta a partir de <code>olist_orders</code>.</li>
+          <li>Filtre <code>order_status</code> igual a <code>delivered</code>.</li>
+          <li>Sumarize por contagem de linhas.</li>
+          <li>Agrupe por <code>order_purchase_timestamp</code> em granularidade mensal.</li>
+          <li>Salve na coleção com o seu nome, usando um título descritivo.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 26 - ETAPA 5                                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 5</span>
+          <h2 class="deck-title">Junção e o cuidado com o grão</h2>
+          <p class="deck-summary">Vinte minutos. Aqui é onde a maior parte dos erros de relatório nasce.</p>
+        </div>
+        <ol class="deck-steps">
+          <li><strong>Junte</strong> <code>olist_orders</code> com <code>olist_order_items</code> por <code>order_id</code>.</li>
+          <li><strong>Conte as linhas</strong> do resultado e compare com a contagem de <code>olist_orders</code> sozinha.</li>
+          <li><strong>Explique a diferença</strong> em uma frase escrita. Se os números baterem, algo está errado na sua junção.</li>
+          <li><strong>Agora some</strong> <code>price</code> por mês e verifique se o total faz sentido com o volume de pedidos.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 27 - ETAPA 6                                           -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 6</span>
+          <h2 class="deck-title">O backlog do semestre</h2>
+          <p class="deck-summary">Vinte minutos. Este é o artefato mais importante do dia: as perguntas que você vai responder nas próximas sete aulas.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Escreva dez perguntas</strong>
+          <p style="margin:8px 0 0;">Cada uma com os cinco elementos: métrica, recorte, período, filtro e decisão. Depois marque quais delas você já sabe que os dados <em>não</em> conseguem responder &mdash; essas são tão valiosas quanto as outras.</p>
+        </div>
+        <div class="deck-columns" style="margin-top:16px;">
+          <div class="deck-panel">
+            <strong>Distribua entre os temas</strong>
+            <ul>
+              <li>Duas sobre evolução no tempo</li>
+              <li>Duas sobre comparação entre categorias</li>
+              <li>Duas sobre geografia</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>E mais</strong>
+            <ul>
+              <li>Duas sobre prazo e satisfação</li>
+              <li>Duas livres</li>
+              <li>Marque as três prioritárias</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 28 - ENTREGAVEL                                        -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega</span>
+          <h2 class="deck-title">O que sai daqui hoje</h2>
+          <p class="deck-summary">Dois artefatos. Ambos serão consumidos na Aula 02.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>No Metabase</h3>
+            <p>Coleção pessoal com pelo menos cinco perguntas salvas e nomeadas de forma descritiva, incluindo a série mensal e a junção com itens.</p>
+          </article>
+          <article class="deck-card">
+            <h3>No repositório</h3>
+            <p><code>docs/01_discovery.md</code> com o perfil das nove tabelas, os problemas de qualidade encontrados e as dez perguntas de negócio.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 29 - CRITERIOS                                         -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Avaliação</span>
+          <h2 class="deck-title">Como este trabalho é avaliado</h2>
+          <p class="deck-summary">Não é pela quantidade de perguntas salvas. É pela qualidade da investigação.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Precisão do grão</td><td>Cada tabela descrita com o que uma linha representa</td></tr>
+            <tr><td>Honestidade sobre qualidade</td><td>Problemas encontrados estão registrados, não escondidos</td></tr>
+            <tr><td>Perguntas respondíveis</td><td>Os cinco elementos presentes em cada uma</td></tr>
+            <tr><td>Consciência dos limites</td><td>Pelo menos uma pergunta identificada como não respondível</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SLIDE 30 - PROXIMA AULA                                      -->
+    <!-- ============================================================ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Próxima aula &middot; 22/08</span>
+          <h2 class="deck-title">Percepção Visual e Processo de Criação</h2>
+          <p class="deck-summary">Você já sabe o que os dados têm e o que quer perguntar. Na semana que vem descobrimos por que algumas representações comunicam em meio segundo e outras exigem meio minuto.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Traga pronto</strong>
+          <p style="margin:8px 0 0;">Suas três perguntas prioritárias. Uma delas vai virar o gráfico que você vai construir mal de propósito &mdash; e depois reconstruir aplicando princípios de percepção.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
+      <a href="../material/material_aula_01_data_discovery_com_metabase.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

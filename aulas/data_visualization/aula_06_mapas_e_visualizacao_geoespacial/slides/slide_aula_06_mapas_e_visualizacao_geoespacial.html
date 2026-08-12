@@ -9,6 +9,8 @@
 </head>
 <body>
   <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
     <div class="slide">
       <div class="deck-shell" data-aula-number="06" data-year="2026">
         <div>
@@ -17,50 +19,393 @@
           <h1 class="deck-title">Mapas e Visualização Geoespacial</h1>
           <p class="deck-meta">Aula 06 &nbsp;&bull;&nbsp; 19/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Uso responsável de localização, regiões, densidade e movimento na análise de negócios.</p>
+          <p class="deck-subtitle">A representação mais sedutora e a mais fácil de usar para dizer algo falso.</p>
         </div>
       </div>
     </div>
 
+    <!-- SLIDE 2 - AGENDA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">Teoria que orienta a prática</h2>
-          <p class="deck-summary">A aula conecta fundamentos de percepção e comunicação a uma atividade aplicada com dados.</p>
+          <h2 class="deck-title">O que vai acontecer hoje</h2>
+          <p class="deck-summary">Quando o espaço é a variável relevante, quando ele é apenas distração, e por que o mapa mais comum do mundo corporativo é um mapa de densidade populacional disfarçado.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>8h30 &ndash; 9h30 &middot; Teoria</h3>
-            <p>Coordenadas, regiões, projeções, mapas coropléticos, símbolos proporcionais e normalização.</p>
+            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <ul>
+              <li>Quando o mapa informa e quando engana</li>
+              <li>Mapa de regiões e mapa de pontos</li>
+              <li>O problema da normalização</li>
+              <li>Projeções e distorção de área</li>
+              <li>Escalas de cor em mapas</li>
+              <li>Cardinalidade geográfica no Brasil</li>
+            </ul>
           </article>
           <article class="deck-card">
-            <h3>9h30 &ndash; 12h10 &middot; Prática AWS Student</h3>
-            <p>Preparar dados geográficos e criar um mapa analítico com legenda, escala e contexto adequados.</p>
+            <h3>10h00 &ndash; 12h10 &middot; Prática</h3>
+            <ul>
+              <li>Mapa de regiões por estado</li>
+              <li>O mesmo mapa, normalizado</li>
+              <li>Mapa de pontos com geolocalização</li>
+              <li>Frete e prazo por distância</li>
+              <li>Defesa da normalização escolhida</li>
+            </ul>
           </article>
         </div>
       </div>
     </div>
 
+    <!-- SLIDE 3 - RECAP -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Construção do Conteúdo</span>
-          <h2 class="deck-title">Da evidência à decisão</h2>
-          <p class="deck-summary">Uso responsável de localização, regiões, densidade e movimento na análise de negócios.</p>
+          <span class="deck-kicker">Construção do Conteúdo &middot; Recap</span>
+          <h2 class="deck-title">O teste da matriz</h2>
+          <p class="deck-summary">A matriz de decisão construída na Aula 05 tem cinco dimensões. O caso geográfico costuma revelar que falta uma sexta.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>A dimensão que falta</strong>
+          <p style="margin:8px 0 0;">Nenhuma das cinco dimensões pergunta se a localização é <em>causa</em> do fenômeno ou apenas <em>onde ele aconteceu</em>. Essa distinção decide se o mapa é a representação certa ou um desperdício de espaço.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - TESE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">A maioria dos mapas corporativos mostra onde as pessoas moram</h2>
+          <p class="deck-summary">Um mapa de vendas absolutas por estado quase sempre reproduz o mapa de população do Brasil. São Paulo lidera em tudo — vendas, reclamações, devoluções, atrasos — porque São Paulo tem mais gente. O mapa não informou nada.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - QUANDO O MAPA INFORMA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Decisão</span>
+          <h2 class="deck-title">O mapa vale a pena quando</h2>
+          <p class="deck-summary">Três condições. Se nenhuma se aplica, uma barra ordenada por estado comunica melhor e ocupa menos espaço.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Use mapa quando</strong>
+            <ul>
+              <li>A proximidade geográfica explica o fenômeno</li>
+              <li>O padrão espacial é contínuo, não pontual</li>
+              <li>A audiência precisa localizar para agir</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Prefira barras quando</strong>
+            <ul>
+              <li>A pergunta é de ranking entre regiões</li>
+              <li>É preciso comparar valores com precisão</li>
+              <li>Há poucas regiões relevantes</li>
+              <li>A geografia é só um rótulo</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - DOIS TIPOS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Tipos</span>
+          <h2 class="deck-title">Mapa de regiões e mapa de pontos</h2>
+          <p class="deck-summary">Duas famílias com pressupostos e falhas diferentes.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Aspecto</th><th>Mapa de regiões</th><th>Mapa de pontos</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Unidade</td><td>Área administrativa</td><td>Coordenada individual</td></tr>
+            <tr><td>Codifica por</td><td>Intensidade de cor</td><td>Posição e tamanho</td></tr>
+            <tr><td>Pressupõe</td><td>Homogeneidade dentro da área</td><td>Precisão da coordenada</td></tr>
+            <tr><td>Falha quando</td><td>Áreas têm tamanhos muito diferentes</td><td>Pontos se sobrepõem em massa</td></tr>
+            <tr><td>Exige</td><td>Normalização quase sempre</td><td>Tratamento de sobreposição</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - NORMALIZACAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Normalização</span>
+          <h2 class="deck-title">O erro central dos mapas de região</h2>
+          <p class="deck-summary">Colorir áreas por valor absoluto produz, em quase todo dataset, o mapa da população. A cor precisa representar uma taxa, não uma contagem.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>A pergunta de controle</strong>
+          <p style="margin:8px 0 0;">Se eu dobrar a população de um estado sem mudar nada no comportamento das pessoas, este número dobra? Se a resposta for sim, o número precisa ser normalizado antes de virar cor.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - COMO NORMALIZAR -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Normalização &middot; Como</span>
+          <h2 class="deck-title">Por que dividir</h2>
+          <p class="deck-summary">O denominador escolhido muda a pergunta que o mapa responde. Não existe denominador neutro.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Denominador</th><th>A pergunta vira</th><th>Quando usar</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>População</td><td>Penetração no mercado potencial</td><td>Análise de expansão</td></tr>
+            <tr><td>Total de pedidos do estado</td><td>Taxa interna do fenômeno</td><td>Qualidade de serviço</td></tr>
+            <tr><td>Total nacional</td><td>Participação no todo</td><td>Concentração de receita</td></tr>
+            <tr><td>Base de clientes</td><td>Comportamento por cliente</td><td>Ticket, frequência</td></tr>
+            <tr><td>Nenhum</td><td>Volume bruto</td><td>Quase nunca em mapa</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>No Olist</strong>
+          <p style="margin:8px 0 0;">Para "onde entregamos pior", divida atrasos pelo total de pedidos <em>daquele estado</em>. Dividir pelo total nacional responde outra coisa: onde está o maior volume de atrasos — que é, de novo, onde há mais gente.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - AREAS DESIGUAIS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Distorção &middot; Área</span>
+          <h2 class="deck-title">Áreas grandes gritam mais alto</h2>
+          <p class="deck-summary">Num mapa do Brasil, o Amazonas ocupa uma fração enorme da tela e Sergipe quase desaparece. A quantidade de tinta de cada estado é proporcional à sua área geográfica, não à sua relevância no dado.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Consequência</strong>
+            <ul>
+              <li>Estados grandes dominam a leitura</li>
+              <li>Estados pequenos ficam invisíveis</li>
+              <li>O peso visual não corresponde ao peso do dado</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Mitigações</strong>
+            <ul>
+              <li>Complementar o mapa com uma tabela ordenada</li>
+              <li>Rotular diretamente os estados relevantes</li>
+              <li>Considerar barras quando o ranking é a mensagem</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - ESCALA DE COR -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Cor</span>
+          <h2 class="deck-title">A escala de cor decide o que se enxerga</h2>
+          <p class="deck-summary">Três tipos de escala, cada uma para um tipo de dado. Trocá-las produz leitura errada.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Escala</th><th>Estrutura</th><th>Use para</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Sequencial</td><td>Uma cor, do claro ao escuro</td><td>Quantidade que só cresce</td></tr>
+            <tr><td>Divergente</td><td>Duas cores, neutro no meio</td><td>Desvio em relação a uma referência</td></tr>
+            <tr><td>Categórica</td><td>Matizes distintos</td><td>Categorias sem ordem</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>O corte das faixas também é uma decisão</strong>
+          <p style="margin:8px 0 0;">Faixas iguais, quantis ou quebras naturais produzem mapas visualmente diferentes com o mesmo dado. Declare qual usou — é tão relevante quanto o denominador da normalização.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - O DADO GEO DO OLIST -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Olist &middot; Dados</span>
+          <h2 class="deck-title">O que o Olist oferece de geografia</h2>
+          <p class="deck-summary">Três níveis de granularidade, com qualidade decrescente.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Nível</th><th>Coluna</th><th>Qualidade</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Estado</td><td><code>customer_state</code>, <code>seller_state</code></td><td>Confiável, 27 valores</td></tr>
+            <tr><td>Cidade</td><td><code>customer_city</code></td><td>Grafia inconsistente, cardinalidade alta</td></tr>
+            <tr><td>Coordenada</td><td><code>olist_geolocation</code></td><td>Múltiplos pontos por prefixo de CEP</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - A ARMADILHA DA GEOLOCATION -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Olist &middot; Armadilha</span>
+          <h2 class="deck-title">A tabela que multiplica linhas</h2>
+          <p class="deck-summary">A tabela de geolocalização tem cerca de um milhão de linhas para menos de vinte mil prefixos de CEP distintos. Cada prefixo aparece muitas vezes, com coordenadas ligeiramente diferentes.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>O que acontece se você juntar direto</strong>
+          <p style="margin:8px 0 0;">Cada pedido se multiplica pelo número de coordenadas do seu CEP. Um faturamento de milhões vira bilhões, e o número continua parecendo plausível. A correção: agregue as coordenadas por prefixo — uma coordenada representativa por CEP — <em>antes</em> de qualquer junção.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - ABERTURA PRATICA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 10h00 &ndash; 12h10</span>
+          <h2 class="deck-title">Laboratório: o mesmo dado, duas conclusões</h2>
+          <p class="deck-summary">O exercício central de hoje é demonstrar, com o próprio dado, como a ausência de normalização produz uma conclusão errada.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - ETAPA 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 1</span>
+          <h2 class="deck-title">O mapa ingênuo</h2>
+          <p class="deck-summary">Vinte minutos. Construa o mapa que quase todo relatório corporativo tem.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Confirme que <code>customer_state</code> está marcado com o tipo semântico de estado.</li>
+          <li>Construa um mapa de regiões com a <strong>contagem absoluta</strong> de pedidos por estado.</li>
+          <li>Anote quais estados aparecem mais escuros.</li>
+          <li>Escreva a conclusão que alguém tiraria olhando só este mapa.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - ETAPA 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 2</span>
+          <h2 class="deck-title">O mapa normalizado</h2>
+          <p class="deck-summary">Quarenta minutos. Mesmo dado, denominador declarado, conclusão diferente.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Escolha a pergunta: onde entregamos pior?</li>
+          <li>Calcule pedidos com entrega após a data prometida, por estado.</li>
+          <li>Divida pelo total de pedidos <em>daquele estado</em> para obter a taxa.</li>
+          <li>Construa o mapa com a taxa e compare com o mapa da Etapa 1.</li>
+          <li>Escreva o que mudou na conclusão e por quê.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - ETAPA 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 3</span>
+          <h2 class="deck-title">Mapa de pontos</h2>
+          <p class="deck-summary">Trinta minutos. Cuidado com a junção — este é o ponto onde os números explodem.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Agregue <code>olist_geolocation</code> por prefixo de CEP, obtendo uma coordenada por prefixo.</li>
+          <li>Confirme que a contagem de linhas caiu para a ordem de milhares.</li>
+          <li>Junte com clientes e construa o mapa de pontos.</li>
+          <li>Avalie a sobreposição e decida como tratá-la.</li>
+          <li>Compare com o mapa de regiões: o que este mostra que aquele escondia?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - ETAPA 4 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 4</span>
+          <h2 class="deck-title">Distância, frete e prazo</h2>
+          <p class="deck-summary">Vinte minutos. A geografia como causa, não como rótulo.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Compare pedidos em que vendedor e cliente estão no mesmo estado com os demais.</li>
+          <li>Calcule o frete mediano e o prazo mediano em cada um dos dois grupos.</li>
+          <li>Verifique se a diferença é consistente entre estados.</li>
+          <li>Escreva a conclusão sem afirmar causa além do que o dado sustenta.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - ENTREGAVEL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega</span>
+          <h2 class="deck-title">O que sai daqui hoje</h2>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>Critério visual</h3>
-            <p>A representação deve preservar a integridade dos dados e tornar a comparação necessária fácil de perceber.</p>
+            <h3>No Metabase</h3>
+            <p>Mapa absoluto, mapa normalizado, mapa de pontos e a análise de distância — quatro perguntas salvas.</p>
           </article>
           <article class="deck-card">
-            <h3>Resultado esperado</h3>
-            <p>Uma visualização adequada ao público, à mensagem e à decisão que precisa ser tomada.</p>
+            <h3>No repositório</h3>
+            <p><code>docs/06_mapas.md</code> com o denominador escolhido e sua justificativa, a demonstração das duas conclusões e a decisão sobre escala de cor.</p>
           </article>
         </div>
       </div>
     </div>
+
+    <!-- SLIDE 19 - CRITERIOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Avaliação</span>
+          <h2 class="deck-title">Como este trabalho é avaliado</h2>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Demonstração da distorção</td><td>As duas conclusões estão explícitas e contrastadas</td></tr>
+            <tr><td>Denominador justificado</td><td>A escolha responde à pergunta declarada</td></tr>
+            <tr><td>Junção correta</td><td>A geolocalização foi agregada antes da junção</td></tr>
+            <tr><td>Escala declarada</td><td>Tipo de escala e critério de faixas registrados</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - PROXIMA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Próxima aula &middot; 26/09</span>
+          <h2 class="deck-title">Indicadores de Performance e Dashboards</h2>
+          <p class="deck-summary">Das visualizações isoladas para o instrumento de decisão. O que separa uma métrica de um indicador e por que a maioria dos dashboards não muda decisão nenhuma.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Traga pronto</strong>
+          <p style="margin:8px 0 0;">A taxa de atraso por estado da Etapa 2. Ela é a melhor candidata a virar o primeiro KPI do seu dashboard.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">

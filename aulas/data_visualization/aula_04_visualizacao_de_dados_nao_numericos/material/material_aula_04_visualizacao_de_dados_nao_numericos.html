@@ -22,43 +22,197 @@
       <p class="meta">Aula 04 &middot; 05/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
     </header>
 
-    <article class="content">
-      <section>
+    <article class="material">
+
+      <section class="content-block">
         <h2>1. Visão geral</h2>
-        <p>Representações para categorias, hierarquias, relações, fluxos e conteúdo textual.</p>
-        <p>Dados não numéricos descrevem tipos, níveis, relações, sequências e textos. Uma contagem transforma categorias em medida, mas não elimina a semântica. Hierarquias exigem preservar parentesco; redes precisam diferenciar nós e vínculos; fluxos precisam representar direção; texto demanda critérios transparentes de classificação.</p>
+        <p>Num gráfico numérico, o eixo se organiza sozinho: 10 vem depois de 5 e a distância entre eles é conhecida e constante. Em dados categóricos não existe nem ordem intrínseca nem distância definida. Isso significa que toda ordenação passa a ser uma escolha do autor — e escolhas exigem justificativa.</p>
+        <p>Esta aula trata dos quatro tipos de dado que não são quantidade contínua: categorias nominais, categorias ordinais, hierarquias e texto livre. Para cada um há uma restrição própria e um conjunto de decisões que a ferramenta não toma por você.</p>
+        <p>A decisão mais consequente da aula é também a menos documentada nos dashboards do mundo real: o que fazer quando existem setenta e uma categorias e o gráfico comporta dez.</p>
       </section>
 
-      <section>
-        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
-        <p>Dados categóricos, hierárquicos, relacionais e textuais; frequência, conexão e organização.</p>
-        <p>Treemaps favorecem visão de composição, diagramas de nós e arestas expõem conexões e Sankey evidencia fluxo entre etapas, mas todos podem se tornar ilegíveis com cardinalidade alta. Agrupar categorias raras, filtrar relações pouco relevantes e ordenar por uma regra explícita costuma revelar mais que exibir todo o conjunto.</p>
+      <section class="content-block">
+        <h2>2. Taxonomia dos dados não numéricos</h2>
+        <table>
+          <thead>
+            <tr><th>Tipo</th><th>Característica</th><th>Exemplo no Olist</th><th>Representação típica</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Nominal</td><td>Sem ordem alguma entre valores</td><td>Categoria de produto, meio de pagamento</td><td>Barras ordenadas por valor</td></tr>
+            <tr><td>Ordinal</td><td>Tem ordem, não tem distância definida</td><td>Score de avaliação de 1 a 5</td><td>Barras na ordem natural</td></tr>
+            <tr><td>Hierárquico</td><td>Aninhamento em níveis</td><td>Categoria contém produtos</td><td>Treemap, barras aninhadas</td></tr>
+            <tr><td>Textual</td><td>Livre, não estruturado</td><td>Comentário da avaliação</td><td>Transformação e depois contagem</td></tr>
+            <tr><td>Relacional</td><td>Conexão entre entidades</td><td>Vendedor de um estado, cliente de outro</td><td>Diagrama de fluxo, matriz</td></tr>
+          </tbody>
+        </table>
       </section>
 
-      <section>
-        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
-        <h3>Objetivo</h3>
-        <p>Modelar categorias e relações e produzir uma visualização que revele padrões não numéricos.</p>
-        <ol>
-          <li>Carregue no S3 registros categóricos e identifique dimensões nominais, ordinais, hierárquicas e relacionais.</li>
-          <li>Normalize rótulos equivalentes e registre a regra usada para valores ausentes ou categorias raras.</li>
-          <li>Modele uma tabela de nós e vínculos ou uma hierarquia pai-filho, conforme o conjunto escolhido.</li>
-          <li>Calcule frequências e graus no Athena para selecionar elementos relevantes sem apagar exceções importantes.</li>
-          <li>Crie uma visão de frequência e outra de relações, mantendo cores e rótulos consistentes entre ambas.</li>
-          <li>Anote um agrupamento ou caminho que não seria evidente em uma tabela plana.</li>
-          <li>Revise a visualização para evitar sobreposição, cruzamento excessivo e ordenação arbitrária.</li>
+      <section class="content-block">
+        <h2>3. A regra da ordenação</h2>
+        <p>A regra depende inteiramente de qual dos dois primeiros tipos você tem em mãos, e trocar um pelo outro produz erro grave.</p>
+
+        <h3>3.1 Nominal — ordene por valor</h3>
+        <p>Como não existe ordem correta intrínseca, ordenar pelo valor transforma a comparação em leitura imediata: o olho percorre a lista de cima para baixo e já obtém o ranking. A ordem alfabética, oferecida por padrão em muitas ferramentas, desperdiça essa oportunidade e obriga o leitor a fazer a comparação manualmente.</p>
+        <p>A exceção legítima ocorre quando a audiência precisa localizar rapidamente uma categoria específica que já conhece — num relatório operacional recorrente em que cada gestor procura sempre a sua região, por exemplo. Nesse caso, ordem alfabética ou ordem fixa acelera a busca.</p>
+
+        <h3>3.2 Ordinal — preserve a ordem natural</h3>
+        <p>Aqui a ordem carrega significado, e ordenar por valor destrói informação. Um gráfico de distribuição de score precisa mostrar 1, 2, 3, 4, 5 nessa sequência, porque o que interessa é a <em>forma</em> da distribuição: se ela é crescente, se tem vale no meio, se concentra nos extremos. Reordenar por frequência apaga exatamente isso.</p>
+
+        <h3>3.3 O ordinal disfarçado de número</h3>
+        <p>O score de avaliação do Olist é armazenado como inteiro de 1 a 5. Fisicamente é número, e a ferramenta oferecerá soma e média. Conceitualmente, porém, é ordinal: a distância entre 1 e 2 não é necessariamente igual à distância entre 4 e 5.</p>
+
+        <div class="note">
+          <strong>Por que a média de score engana</strong>
+          <p>Uma média de 4,2 pode vir de praticamente todo mundo dando 4, ou de uma maioria dando 5 com um quinto dando 1. As duas situações produzem quase a mesma média e são operacionalmente opostas: a segunda indica um problema grave concentrado num subgrupo de clientes.</p>
+          <p>As saídas: mostrar a distribuição completa dos cinco valores, ou converter para uma métrica declarada, como percentual de avaliações 1 e 2. A segunda opção tem a vantagem de ser acionável — existe uma meta possível para ela.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Cardinalidade alta e o corte da cauda longa</h2>
+        <p>Toda distribuição de categorias em negócio real tem aproximadamente a mesma forma: poucas categorias concentram a maior parte do valor e uma cauda longa de categorias pequenas carrega o restante. O Olist tem setenta e uma categorias de produto, e a decisão sobre o que mostrar é inevitável.</p>
+
+        <h3>4.1 O dilema</h3>
+        <p>Mostrar todas as categorias produz rótulos ilegíveis, barras minúsculas indistinguíveis entre si e nenhuma comparação possível. É honesto e inútil. Mostrar apenas as maiores produz um gráfico legível e comparável, mas esconde o tamanho da cauda e sugere que o mostrado é o todo. É útil e potencialmente enganoso.</p>
+        <p>A saída não é escolher entre honestidade e utilidade: é cortar com critério declarado.</p>
+
+        <h3>4.2 Quatro critérios de corte</h3>
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>Regra</th><th>Quando serve</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Top N fixo</td><td>Mostrar as N maiores categorias</td><td>O espaço visual é a restrição principal</td></tr>
+            <tr><td>Cobertura acumulada</td><td>Incluir categorias até somar X% do total</td><td>A pergunta é sobre concentração</td></tr>
+            <tr><td>Limiar absoluto</td><td>Incluir as que superam um valor mínimo</td><td>Existe piso de relevância definido pelo negócio</td></tr>
+            <tr><td>Quebra natural</td><td>Cortar onde há um salto grande na série ordenada</td><td>A distribuição tem degrau visível</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>A regra da barra "Outros"</strong>
+          <p>Se você agrupar o restante numa barra "Outros", ela precisa aparecer no gráfico com seu tamanho real — e o rótulo precisa informar quantas categorias ela contém. "Outros (61 categorias)" é honesto; "Outros" sozinho não é. Quando a barra "Outros" é maior que as barras individuais mostradas, isso por si só é o achado mais importante do gráfico.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Por que a pizza falha justamente aqui</h2>
+        <p>O gráfico de pizza é oferecido como padrão para dados categóricos em praticamente toda ferramenta, e é quase sempre a pior escolha disponível. Três problemas se somam.</p>
+        <p>Primeiro, o canal de codificação: ângulo e área ocupam os últimos lugares do ranking de precisão perceptiva visto na Aula 02. Segundo, a escala com a cardinalidade: cinco fatias já são difíceis de comparar; setenta são impossíveis, e a legenda necessária ocupa mais espaço que o próprio gráfico. Terceiro, a comparação entre gráficos: comparar duas pizzas lado a lado — antes e depois, região A e região B — é ainda mais impreciso que comparar fatias dentro de uma.</p>
+        <p>Onde ela ainda serve: duas ou três categorias, quando a mensagem é simplesmente "a maior parte é isto" e nenhuma comparação precisa é necessária. Fora disso, barras ordenadas resolvem melhor em todos os casos.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Hierarquias</h2>
+        <p>No Olist, categoria contém produtos, e produtos aparecem em itens de pedido. Uma hierarquia permite duas leituras distintas: o total por nível e a composição interna de cada bloco.</p>
+
+        <h3>6.1 Treemap e barras aninhadas</h3>
+        <p>O treemap serve quando há muitos itens distribuídos em vários níveis, quando a mensagem é sobre proporção do todo, quando não se exige comparação precisa entre blocos e quando o espaço de tela é limitado. Barras aninhadas servem quando há poucos níveis e poucos itens, quando a comparação precisa importa, quando o leitor vai extrair valores específicos e quando há espaço vertical disponível.</p>
+
+        <div class="note">
+          <strong>O treemap é bonito e impreciso</strong>
+          <p>Ele codifica quantidade por área — quinto lugar no ranking de precisão. As pessoas subestimam sistematicamente áreas grandes e superestimam áreas pequenas. Use-o para dar a visão do todo e permitir identificar rapidamente os grandes blocos; não o use quando a pergunta for "quanto o bloco A é maior que o bloco B". Para isso, volte para barras.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Texto livre como dado</h2>
+        <p>O Olist contém dezenas de milhares de comentários de avaliação. Nenhuma visualização consome texto bruto: é preciso transformá-lo em categoria ou em contagem antes de qualquer representação.</p>
+
+        <h3>7.1 Transformações possíveis</h3>
+        <p>As mais simples costumam ser as mais informativas: presença ou ausência de comentário, comprimento do comentário, contagem de ocorrência de termos escolhidos deliberadamente, e classificação manual de uma amostra representativa.</p>
+
+        <h3>7.2 O sinal mais barato do texto</h3>
+        <p>Antes de qualquer técnica de processamento de linguagem natural, duas variáveis derivadas carregam informação real. A decisão de escrever um comentário já é um sinal: clientes indiferentes tendem a não escrever, o que significa que a taxa de comentários por score revela intensidade de sentimento. E o comprimento do texto costuma se relacionar com a intensidade da experiência, em qualquer das duas direções.</p>
+        <p>Cruzar essas duas variáveis com o score produz um achado defensável sem nenhuma técnica sofisticada — e frequentemente mais confiável que uma análise automática de sentimento aplicada sem validação.</p>
+
+        <h3>7.3 Cuidados</h3>
+        <p>A nuvem de palavras codifica frequência por área e descarta todo o contexto — inclusive negações, que invertem completamente o sentido e desaparecem na contagem de termos. Frequência de termo não é importância: palavras comuns aparecem muito e informam pouco. E uma amostra pequena lida manualmente não generaliza: ela serve para gerar hipótese, não para sustentar conclusão.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Laboratório — categorias, hierarquia e texto</h2>
+        <p>Duração aproximada de duas horas e dez minutos. A etapa mais importante é a segunda: a decisão de corte, que precisa ser declarada e defendida.</p>
+
+        <h3>Etapa 1 — O ranking completo (20 minutos)</h3>
+        <p>Antes de cortar, é preciso ver a forma inteira da distribuição.</p>
+        <ol class="steps">
+          <li>Some o faturamento por categoria de produto, incluindo todas as categorias.</li>
+          <li>Ordene por valor decrescente.</li>
+          <li>Observe a forma: onde está a quebra entre o topo e a cauda?</li>
+          <li>Calcule quanto as dez maiores categorias representam do total.</li>
+          <li>Anote quantas categorias são necessárias para cobrir 80% do faturamento.</li>
+        </ol>
+
+        <h3>Etapa 2 — A decisão de corte (30 minutos)</h3>
+        <ol class="steps">
+          <li>Escolha um dos quatro critérios de corte e justifique a escolha em uma frase.</li>
+          <li>Aplique o corte e construa o gráfico resultante.</li>
+          <li>Adicione a barra "Outros" com o total agregado e a contagem de categorias no rótulo.</li>
+          <li>Escreva explicitamente o que a versão cortada esconde em relação à versão completa.</li>
+          <li>Salve as duas versões, completa e cortada, na sua coleção.</li>
+        </ol>
+
+        <h3>Etapa 3 — Score de avaliação como ordinal (30 minutos)</h3>
+        <ol class="steps">
+          <li>Calcule a média simples do <code>review_score</code> e anote o valor.</li>
+          <li>Construa a distribuição completa dos cinco valores possíveis.</li>
+          <li>Compare: a média representa bem a forma que você está vendo?</li>
+          <li>Construa a distribuição de score quebrada por estado ou por categoria de produto.</li>
+          <li>Defina uma métrica declarada — percentual de notas 1 e 2, por exemplo — e justifique por que ela é mais acionável que a média.</li>
+        </ol>
+
+        <h3>Etapa 4 — Texto como dado (30 minutos)</h3>
+        <p>Sem nenhuma técnica de linguagem natural: apenas transformação e contagem.</p>
+        <ol class="steps">
+          <li>Calcule o percentual de avaliações que têm comentário escrito, quebrado por score.</li>
+          <li>Observe se clientes insatisfeitos escrevem mais que satisfeitos.</li>
+          <li>Calcule o comprimento médio do comentário por score.</li>
+          <li>Leia uma amostra de dez comentários de score 1 e dez de score 5.</li>
+          <li>Escreva o que a leitura revelou que a contagem não revelava — este é o ponto do exercício.</li>
         </ol>
       </section>
 
-      <section>
-        <h2>4. Critérios de avaliação da solução</h2>
-        <p>A entrega deve preservar o significado das categorias e relações, explicar filtros e agrupamentos e permitir que o leitor diferencie frequência de importância. A forma escolhida precisa corresponder à estrutura nominal, ordinal, hierárquica ou relacional.</p>
+      <section class="content-block">
+        <h2>9. Entregáveis e avaliação</h2>
+        <table>
+          <thead>
+            <tr><th>Onde</th><th>O quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Metabase</td><td>Ranking completo, ranking cortado, distribuição de score e análise de comentários por score</td></tr>
+            <tr><td>Repositório</td><td><code>docs/04_categoricos.md</code> com o critério de corte, a justificativa, o que se perde no corte e a defesa do tratamento dado ao score</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Corte declarado</td><td>Critério nomeado, aplicado e justificado</td></tr>
+            <tr><td>Transparência da perda</td><td>Está escrito o que a versão cortada esconde</td></tr>
+            <tr><td>Ordinal respeitado</td><td>O score não é tratado como número contínuo</td></tr>
+            <tr><td>Texto transformado</td><td>A análise textual parte de uma transformação explícita, não de impressão</td></tr>
+          </tbody>
+        </table>
       </section>
 
-      <section class="callout">
-        <h3>Orientação para a prática em sala</h3>
-        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      <section class="content-block">
+        <h2>10. Preparação para a Aula 05</h2>
+        <p>Em 12 de setembro chega a pergunta incômoda: e quando a resposta certa é uma tabela? Depois de dois domínios inteiros de gráficos, vamos examinar os casos em que a tabela vence e construir coletivamente a matriz de decisão de representação da turma.</p>
+        <p>Traga uma pergunta do seu backlog que você acha que <em>não</em> deveria virar gráfico. Vamos testar essa intuição contra critérios.</p>
       </section>
+
+      <section class="content-block">
+        <h2>11. Orientação para a prática em sala</h2>
+        <div class="note">
+          <strong>Como conduzir o laboratório</strong>
+          <p>As quatro etapas acontecem em sala. Na Etapa 2, antes de escolher seu critério de corte, pergunte a dois colegas qual critério eles escolheram e por quê — a diversidade de respostas para o mesmo dado é o aprendizado central da aula.</p>
+          <p>Na Etapa 4, a leitura da amostra de comentários é obrigatória e não pode ser substituída por nenhuma contagem. O objetivo é justamente experimentar o limite do que a agregação captura.</p>
+        </div>
+      </section>
+
     </article>
   </main>
 </body>

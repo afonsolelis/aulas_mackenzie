@@ -78,7 +78,7 @@ Organizar o conteúdo do curso em um repositório estático Hub com a página in
 - O horário de cada disciplina deve seguir seu cronograma em `specs/estrutura_curso.md`.
 - Aulas noturnas ocorrem das `19h00` às `22h00`; aulas de sábado de Data Collection and Storage e Data Visualization ocorrem das `8h30` às `12h10`.
 - A primeira parte da aula deve ser sempre teórica.
-- O restante da aula deve ser prático e usar o ambiente `AWS Student`.
+- O restante da aula deve ser prático, no ambiente definido para a disciplina: `AWS Student Lab` em Cloud Computing e SRE e em Data Collection and Storage; instância `Metabase` hospedada em Data Visualization.
 - Slides, materiais e cronograma devem refletir os intervalos da respectiva disciplina de forma consistente.
 
 ## Regra obrigatória para slides

@@ -22,43 +22,239 @@
       <p class="meta">Aula 03 &middot; 29/08/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
     </header>
 
-    <article class="content">
-      <section>
+    <article class="material">
+
+      <section class="content-block">
         <h2>1. Visão geral</h2>
-        <p>Comparações, distribuições, tendências, correlações e composição de medidas quantitativas.</p>
-        <p>Dados quantitativos podem responder perguntas diferentes: barras favorecem comparação entre categorias; linhas revelam continuidade temporal; histogramas e box plots mostram distribuição; dispersão investiga associação entre variáveis. O tipo de gráfico deve decorrer da pergunta, não da disponibilidade de um modelo pronto.</p>
+        <p>Esta aula trata do primeiro grande domínio de representação: dados numéricos contínuos. A abordagem evita deliberadamente o formato de catálogo — em vez de listar tipos de gráfico e suas características, organiza toda a família por <em>trabalho</em>: o que aquele gráfico precisa fazer pelo leitor.</p>
+        <p>A razão é prática. A pergunta "qual gráfico eu uso?" não tem resposta, porque depende de algo que a pergunta não informa. A pergunta "qual trabalho este gráfico precisa executar?" tem quatro respostas possíveis, e cada uma delas leva a uma família pequena de opções, entre as quais a escolha é quase mecânica.</p>
+        <p>Partir do catálogo leva à escolha por familiaridade: você usa o que já usou antes. Partir do trabalho leva à escolha por adequação: você usa o que a pergunta exige, mesmo que nunca tenha usado.</p>
       </section>
 
-      <section>
-        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
-        <p>Escalas, eixos, agregações, distribuições, séries temporais, correlação e prevenção de distorções.</p>
-        <p>Agregações podem esconder dispersão, sazonalidade e valores extremos. Eixos truncados amplificam diferenças; escalas duplas sugerem relações artificiais; correlação não demonstra causalidade. Sempre informe unidade, período, denominador e regra de agregação. Quando a incerteza for relevante, apresente intervalo ou variabilidade.</p>
+      <section class="content-block">
+        <h2>2. Os quatro trabalhos</h2>
+        <p>Toda pergunta sobre dados numéricos cai em um destes quatro trabalhos. Identificar qual é o primeiro passo de qualquer construção.</p>
+
+        <table>
+          <thead>
+            <tr><th>Trabalho</th><th>Pergunta típica</th><th>Família de gráficos</th><th>Canal principal</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Comparar magnitude</td><td>Qual é maior? Quanto maior?</td><td>Barras, pontos alinhados</td><td>Comprimento, posição</td></tr>
+            <tr><td>Mostrar distribuição</td><td>Como os valores se espalham?</td><td>Histograma, boxplot</td><td>Posição, área</td></tr>
+            <tr><td>Revelar evolução</td><td>Como mudou ao longo do tempo?</td><td>Linha, área</td><td>Posição, inclinação</td></tr>
+            <tr><td>Expor relação</td><td>Duas variáveis andam juntas?</td><td>Dispersão</td><td>Posição bidimensional</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>Uma pergunta, um trabalho</strong>
+          <p>Se a sua pergunta parece exigir dois trabalhos ao mesmo tempo, ela é na verdade duas perguntas. Separe-as e construa duas visualizações. Tentar resolver os dois trabalhos num único gráfico é a origem da maioria dos gráficos ilegíveis.</p>
+        </div>
       </section>
 
-      <section>
-        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
-        <h3>Objetivo</h3>
-        <p>Criar e comparar gráficos quantitativos para responder perguntas distintas sobre o mesmo conjunto de dados.</p>
-        <ol>
-          <li>Consulte no Athena as medidas de receita, quantidade, data e segmento disponíveis no arquivo do S3.</li>
-          <li>Calcule resumo estatístico e identifique valores ausentes, extremos e possíveis erros de unidade.</li>
-          <li>Crie uma comparação categórica com barras ordenadas e eixo iniciado em zero.</li>
-          <li>Crie uma série temporal com granularidade coerente e destaque períodos atípicos.</li>
-          <li>Construa uma distribuição e compare média, mediana e amplitude antes de resumir o desempenho.</li>
-          <li>Teste uma dispersão para duas medidas e descreva associação, grupos e exceções sem alegar causalidade.</li>
-          <li>Reúna as quatro leituras em uma nota analítica que indique qual gráfico responde melhor a cada pergunta.</li>
+      <section class="content-block">
+        <h2>3. Trabalho 1 — Comparar magnitude</h2>
+        <p>É o trabalho mais comum em relatórios de negócio e, por isso mesmo, aquele em que os erros se propagam mais. A ferramenta oferece opções vistosas — pizza, rosca, bolha, barras tridimensionais — que degradam sistematicamente a precisão do julgamento.</p>
+
+        <h3>3.1 As regras da barra</h3>
+        <p>O eixo de valor sempre começa no zero. Isso não é convenção estética: a barra codifica quantidade pelo comprimento, e truncar o eixo faz o comprimento mentir sobre a proporção. Uma barra duas vezes mais longa precisa representar o dobro do valor, sempre.</p>
+        <p>A ordenação segue o valor, não o alfabeto. Ordem alfabética só se justifica quando a audiência precisa localizar rapidamente uma categoria específica que já conhece — num relatório operacional recorrente, por exemplo. Fora disso, ordenar por valor transforma a comparação em leitura imediata.</p>
+        <p>A orientação depende do comprimento dos rótulos. Nomes de categoria longos — como os do Olist — pedem barras horizontais, porque rótulos girados a 45 graus custam esforço de leitura desproporcional.</p>
+
+        <h3>3.2 Quando trocar barra por pontos alinhados</h3>
+        <p>Quando há muitas categorias com valores próximos, a área sólida das barras vira uma mancha que não acrescenta informação. Um gráfico de pontos alinhados no mesmo eixo preserva a precisão da posição, reduz a tinta e ainda permite truncar o eixo de forma legítima — porque o ponto não codifica comprimento.</p>
+        <p>Pontos também vencem quando a comparação é entre dois momentos por categoria: dois pontos ligados por uma linha fina mostram a mudança com muito mais clareza que duas barras lado a lado.</p>
+
+        <h3>3.3 A armadilha das barras empilhadas</h3>
+        <p>Numa barra empilhada, apenas o primeiro segmento parte de uma base comum. Todos os demais flutuam, começando onde o segmento anterior terminou. Comparar o tamanho de um segmento flutuante entre categorias diferentes é uma tarefa que o sistema visual executa muito mal.</p>
+        <p>Empilhar é aceitável quando a comparação relevante é do total entre categorias e a composição interna é contexto secundário. Se a pergunta for sobre um componente específico, empilhar é a escolha errada: separe em barras agrupadas ou, melhor ainda, em pequenos múltiplos.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Trabalho 2 — Mostrar distribuição</h2>
+        <p>Um único número de resumo esconde a forma dos dados. Duas distribuições radicalmente diferentes podem ter exatamente a mesma média, e decidir com base apenas nessa média significa decidir sem saber o que se está decidindo.</p>
+
+        <h3>4.1 Histograma e boxplot respondem coisas diferentes</h3>
+        <p>O histograma responde onde está a concentração dos valores, se a distribuição tem uma ou mais modas, se existe assimetria e para que lado, e onde estão os valores extremos. É a ferramenta de escolha quando você quer conhecer a <em>forma</em>.</p>
+        <p>O boxplot responde onde está a mediana, qual a dispersão central, quais pontos são atípicos segundo um critério explícito, e — sua grande vantagem — como várias categorias se comparam entre si. É a ferramenta de escolha quando você quer comparar <em>distribuições</em>.</p>
+
+        <h3>4.2 A largura do intervalo muda a conclusão</h3>
+        <p>O histograma é o único gráfico em que um parâmetro de construção altera radicalmente a forma percebida. Pior: a ferramenta escolhe esse parâmetro por você, por padrão, sem avisar.</p>
+
+        <table>
+          <thead>
+            <tr><th>Largura do intervalo</th><th>Efeito visual</th><th>Risco</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Muito larga</td><td>Forma lisa, poucas barras</td><td>Esconde modas e vazios que existem de fato</td></tr>
+            <tr><td>Muito estreita</td><td>Forma serrilhada, muitas barras</td><td>Ruído de amostragem é lido como padrão</td></tr>
+            <tr><td>Adequada</td><td>Revela a estrutura sem inventar detalhe</td><td>Exige testar mais de uma opção</td></tr>
+          </tbody>
+        </table>
+
+        <p>O procedimento correto é testar ao menos três larguras diferentes antes de escolher. Se a conclusão mudar entre elas, isso é um achado a reportar — não um detalhe técnico a esconder.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Trabalho 3 — Revelar evolução</h2>
+        <p>A linha é o gráfico mais bem compreendido pelo público geral e, exatamente por isso, o mais fácil de usar para enganar sem intenção: a audiência confia nele sem verificar os parâmetros.</p>
+
+        <h3>5.1 Quando a linha é apropriada</h3>
+        <p>Use linha quando o eixo horizontal é contínuo e ordenado, os intervalos entre pontos são regulares, e a continuidade entre pontos faz sentido conceitual — ou seja, quando é razoável supor que existe um valor entre dois pontos medidos.</p>
+        <p>Não use linha quando as categorias do eixo não têm ordem natural, quando há lacunas grandes e irregulares na série, ou quando ligar os pontos sugere a existência de valores intermediários que não existem. Ligar categorias nominais com uma linha é um erro comum e comunica uma continuidade que o dado não tem.</p>
+
+        <h3>5.2 A granularidade é uma decisão analítica</h3>
+        <p>Diária, semanal, mensal, trimestral: cada escolha revela um padrão e esconde outro. Nenhuma é neutra, e nenhuma é "a correta" independentemente da pergunta.</p>
+
+        <table>
+          <thead>
+            <tr><th>Granularidade</th><th>Revela</th><th>Esconde</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Diária</td><td>Picos, quedas e efeito de dia da semana</td><td>Tendência de longo prazo, submersa no ruído</td></tr>
+            <tr><td>Semanal</td><td>Ciclo comercial e tendência de médio prazo</td><td>Eventos concentrados num único dia</td></tr>
+            <tr><td>Mensal</td><td>Sazonalidade e tendência estrutural</td><td>Tudo o que acontece dentro do mês</td></tr>
+            <tr><td>Trimestral</td><td>Movimento estrutural de longo prazo</td><td>Praticamente toda a variação operacional</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>A armadilha das pontas</strong>
+          <p>O primeiro e o último período de uma série quase sempre estão incompletos, porque a extração dos dados cortou no meio do período. A queda dramática visível na ponta direita de tantos gráficos é, na esmagadora maioria dos casos, recorte de dados — não queda de negócio. A correção é simples: remova os períodos incompletos ou sinalize-os explicitamente.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Trabalho 4 — Expor relação</h2>
+        <p>A dispersão usa o canal mais preciso do ranking duas vezes: posição horizontal e posição vertical. É, por unidade de tinta, o gráfico mais informativo que existe.</p>
+
+        <h3>6.1 O que ela mostra e onde falha</h3>
+        <p>Mostra a direção da relação, a força da associação, a presença de agrupamentos distintos e os pontos que fogem do padrão geral. Falha quando o volume de pontos é alto o suficiente para que eles se sobreponham, quando a escala é dominada por poucos valores extremos, e quando não há indicação de quantos registros cada ponto representa.</p>
+        <p>Para sobreposição, as saídas são transparência nos pontos, amostragem do conjunto, ou agregação em células — cada uma com uma perda associada que precisa ser declarada.</p>
+
+        <h3>6.2 A dispersão convida à conclusão causal</h3>
+        <p>Quando dois eixos mostram uma nuvem inclinada, o cérebro completa a frase sozinho: um causa o outro. Quase sempre está errado. Antes de afirmar qualquer coisa, três explicações alternativas precisam ser consideradas:</p>
+        <ol class="steps">
+          <li><strong>Causalidade invertida</strong> — talvez seja o segundo que causa o primeiro.</li>
+          <li><strong>Terceira variável</strong> — algo não representado no gráfico causa os dois.</li>
+          <li><strong>Artefato de seleção</strong> — o recorte aplicado aos dados fabricou a relação observada.</li>
+        </ol>
+        <p>No Olist, frete e prazo de entrega crescem juntos. A distância entre vendedor e cliente causa os dois; nenhum causa o outro. Um gráfico que sugira "aumentar o frete melhora o prazo" está tecnicamente correto nos dados e completamente errado na conclusão.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Agregação, extremos e integridade</h2>
+
+        <h3>7.1 O paradoxo de Simpson</h3>
+        <p>Uma tendência visível no agregado pode desaparecer — ou se inverter — quando os dados são separados em grupos. Isso não é uma curiosidade estatística rara: acontece sempre que a composição da população muda ao longo do período analisado.</p>
+        <p>Um exemplo possível no Olist: o prazo médio de entrega da operação melhora no agregado, enquanto piora em todos os estados individualmente. É perfeitamente possível quando a proporção de pedidos migra para estados que já eram mais rápidos — a média geral cai mesmo com piora em todo lugar.</p>
+        <p>A defesa é sempre a mesma: antes de afirmar uma tendência agregada, verifique se ela se sustenta nos principais recortes. Se não se sustentar, a tendência agregada é sobre composição, não sobre desempenho.</p>
+
+        <h3>7.2 O que fazer com os outliers</h3>
+        <table>
+          <thead>
+            <tr><th>Caminho</th><th>Quando é apropriado</th><th>O que exige</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Manter e anotar</td><td>O valor extremo é real e relevante para a decisão</td><td>Anotação no gráfico explicando o ponto</td></tr>
+            <tr><td>Separar em outra visão</td><td>O extremo domina a escala e apaga o resto</td><td>Duas visualizações, ambas apresentadas</td></tr>
+            <tr><td>Excluir com critério</td><td>É erro de registro comprovado</td><td>Critério declarado e quantidade de registros informada</td></tr>
+            <tr><td>Excluir em silêncio</td><td>Nunca</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+
+        <h3>7.3 Qual número resume a série</h3>
+        <p>A escolha entre média e mediana muda a conclusão, e a ferramenta oferece média por padrão. Média preserva a soma total, é adequada em distribuição aproximadamente simétrica e é sensível a cada valor extremo. Mediana descreve o caso típico, é adequada em distribuição com cauda longa e resiste a extremos.</p>
+        <p>No Olist, faturamento por pedido pede média; ticket, frete e prazo de entrega pedem mediana. Quando as duas divergem muito, mostre as duas: a divergência é informação sobre a forma da distribuição, e escondê-la é escolher qual história contar.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Laboratório — quatro trabalhos, quatro gráficos</h2>
+        <p>Duração aproximada de duas horas e dez minutos. Você vai construir um gráfico para cada trabalho, declarando explicitamente qual trabalho ele executa e por que o tipo escolhido vence as alternativas.</p>
+
+        <div class="note">
+          <strong>Regra do laboratório</strong>
+          <p>Para cada gráfico você precisa nomear duas alternativas que descartou e dizer por quê. Escolha sem alternativa descartada não é escolha — é hábito.</p>
+        </div>
+
+        <h3>Etapa 1 — Evolução: série temporal de pedidos (30 minutos)</h3>
+        <ol class="steps">
+          <li>Construa a série de pedidos entregues por <strong>dia</strong> e observe o padrão resultante.</li>
+          <li>Troque a granularidade para <strong>semana</strong>. Anote o que apareceu e o que desapareceu.</li>
+          <li>Troque para <strong>mês</strong> e anote novamente.</li>
+          <li>Identifique as pontas incompletas da série e decida o que fazer com elas.</li>
+          <li>Escolha uma granularidade, justifique a escolha por escrito e salve a pergunta.</li>
+        </ol>
+
+        <h3>Etapa 2 — Distribuição: histograma de ticket (30 minutos)</h3>
+        <ol class="steps">
+          <li>Construa o histograma do valor de item (<code>price</code>).</li>
+          <li>Teste três larguras de intervalo diferentes e compare as formas obtidas.</li>
+          <li>Calcule média e mediana e localize as duas mentalmente sobre a forma.</li>
+          <li>Descreva a assimetria em uma frase, indicando para que lado ela aponta.</li>
+          <li>Decida como tratar a cauda superior e registre o critério usado.</li>
+        </ol>
+
+        <h3>Etapa 3 — Magnitude: comparação entre categorias (30 minutos)</h3>
+        <ol class="steps">
+          <li>Some o faturamento por categoria de produto.</li>
+          <li>Ordene por valor e observe a forma da distribuição entre categorias.</li>
+          <li>Decida quantas categorias mostrar e o que fazer com o restante.</li>
+          <li>Escolha entre barra vertical e horizontal com base no comprimento dos rótulos.</li>
+          <li>Destaque uma única categoria com cor e justifique a escolha do destaque.</li>
+        </ol>
+
+        <h3>Etapa 4 — Relação: preço contra frete (30 minutos)</h3>
+        <ol class="steps">
+          <li>Construa a dispersão de <code>price</code> contra <code>freight_value</code>.</li>
+          <li>Observe a sobreposição de pontos e decida como tratá-la.</li>
+          <li>Verifique se a escala está dominada por poucos valores extremos.</li>
+          <li>Escreva a relação observada sem usar nenhum verbo causal.</li>
+          <li>Liste ao menos uma terceira variável que poderia explicar o padrão.</li>
         </ol>
       </section>
 
-      <section>
-        <h2>4. Critérios de avaliação da solução</h2>
-        <p>As visualizações devem empregar escalas honestas, unidades explícitas e agregações reproduzíveis. A análise deve distinguir comparação, tendência, distribuição e associação, evitando conclusões causais sem evidência.</p>
+      <section class="content-block">
+        <h2>9. Entregáveis e avaliação</h2>
+        <table>
+          <thead>
+            <tr><th>Onde</th><th>O quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Metabase</td><td>Quatro perguntas salvas, uma por trabalho, nomeadas de modo a declarar qual trabalho cada uma executa</td></tr>
+            <tr><td>Repositório</td><td><code>docs/03_numericos.md</code> com, para cada gráfico: o trabalho, o tipo escolhido, duas alternativas descartadas com motivo, e as decisões de escala, granularidade e outliers</td></tr>
+          </tbody>
+        </table>
+
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Identificação do trabalho</td><td>Cada gráfico declara qual dos quatro trabalhos executa</td></tr>
+            <tr><td>Alternativas descartadas</td><td>Duas por gráfico, com motivo técnico e não estético</td></tr>
+            <tr><td>Decisões declaradas</td><td>Granularidade, largura de intervalo, recorte e outliers registrados</td></tr>
+            <tr><td>Linguagem não causal</td><td>A relação da dispersão é descrita sem afirmar causa</td></tr>
+          </tbody>
+        </table>
       </section>
 
-      <section class="callout">
-        <h3>Orientação para a prática em sala</h3>
-        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      <section class="content-block">
+        <h2>10. Preparação para a Aula 04</h2>
+        <p>Em 5 de setembro entramos no domínio dos dados não numéricos. Números têm ordem natural e distância definida entre valores; categorias, hierarquias e texto livre não têm nem uma coisa nem outra, e isso muda todas as regras.</p>
+        <p>Traga o gráfico de magnitude por categoria da Etapa 3. A próxima aula ataca exatamente o problema que você encontrou lá: o que fazer quando existem setenta e uma categorias e o gráfico só comporta dez.</p>
       </section>
+
+      <section class="content-block">
+        <h2>11. Orientação para a prática em sala</h2>
+        <div class="note">
+          <strong>Como conduzir o laboratório</strong>
+          <p>As quatro etapas são executadas durante a aula, na <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a>, com as mesmas credenciais da Aula 01. Salve cada gráfico assim que terminar a etapa — a justificativa escrita pode ser completada depois, mas a construção precisa acontecer em sala, onde há apoio para depurar.</p>
+          <p>Ao final, apresente a um colega apenas o gráfico da Etapa 4, sem explicar nada, e peça que ele descreva a relação que enxerga. Se a descrição dele usar verbo causal, discuta por quê — essa conversa é o objetivo real da etapa.</p>
+        </div>
+      </section>
+
     </article>
   </main>
 </body>

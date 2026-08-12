@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 02 — Percepção Visual e Processo de Criação</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+  <style>
+    /* Escopo local da Aula 02 — grade da demonstração pré-atentiva. */
+    .content-block .m02-grid {
+      font-family: var(--font-mono);
+      font-size: 1.05em;
+      letter-spacing: .3em;
+      line-height: 1.9;
+      text-align: center;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+      margin: 16px 0;
+    }
+    .content-block .m02-hit { font-weight: 800; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_02_percepcao_visual_e_processo_de_criacao.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 02 — Percepção Visual e Processo de Criação</h1>
+      <p class="meta">Aula 02 &middot; 22/08/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block">
+        <h2>1. Visão geral</h2>
+        <p>Na Aula 01 você descobriu o que os dados do Olist contêm e escreveu as perguntas que quer responder. Esta aula trata do outro lado da equação: o que acontece no sistema visual de quem vai olhar o resultado.</p>
+        <p>A tese central é que um gráfico não é decoração de dados — é uma interface com o sistema visual humano. Esse sistema tem propriedades conhecidas e mensuradas há décadas: certas coisas ele processa em milissegundos, sem esforço consciente; outras exigem leitura sequencial e atenção deliberada. Saber quais são umas e outras transforma a escolha de representação de matéria de gosto em matéria de adequação.</p>
+        <p>A consequência prática é direta. Duas pessoas podem legitimamente discordar sobre qual gráfico é mais bonito. Não podem discordar sobre qual dos dois permite comparar valores com mais precisão — isso é uma questão empírica com resposta conhecida.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>2. Processamento pré-atentivo</h2>
+        <p>Existe uma classe de propriedades visuais que o cérebro detecta antes de qualquer decisão consciente de olhar, tipicamente em menos de 250 milissegundos. São chamadas de atributos pré-atentivos.</p>
+
+        <h3>2.1 Uma demonstração</h3>
+        <p>Conte quantos algarismos 5 existem na grade abaixo:</p>
+
+        <div class="m02-grid">
+          7 4 9 2 6 1 8 3 5 0 4 7<br>
+          2 5 8 1 9 6 3 7 0 4 2 8<br>
+          6 3 1 5 7 0 9 4 2 8 6 1<br>
+          9 7 2 8 4 5 1 6 3 0 7 9
+        </div>
+
+        <p>Agora conte de novo. Os dados são exatamente os mesmos; apenas um atributo visual mudou:</p>
+
+        <div class="m02-grid">
+          7 4 9 2 6 1 8 3 <span class="m02-hit">5</span> 0 4 7<br>
+          2 <span class="m02-hit">5</span> 8 1 9 6 3 7 0 4 2 8<br>
+          6 3 1 <span class="m02-hit">5</span> 7 0 9 4 2 8 6 1<br>
+          9 7 2 8 4 <span class="m02-hit">5</span> 1 6 3 0 7 9
+        </div>
+
+        <p>Na primeira grade você leu sequencialmente, algarismo por algarismo, e a contagem exigiu esforço e memória de trabalho. Na segunda, a resposta apareceu quase antes da decisão de procurar. Nenhum dado mudou: mudou o canal de codificação.</p>
+
+        <h3>2.2 O catálogo de atributos</h3>
+        <table>
+          <thead>
+            <tr><th>Categoria</th><th>Atributos</th><th>Melhor uso</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Forma</td><td>Orientação, comprimento, largura, tamanho, curvatura, formato</td><td>Codificar quantidade</td></tr>
+            <tr><td>Cor</td><td>Matiz, intensidade, saturação</td><td>Destacar exceção ou separar grupos</td></tr>
+            <tr><td>Movimento</td><td>Piscar, direção de movimento</td><td>Alerta — raramente apropriado em relatório</td></tr>
+            <tr><td>Posição espacial</td><td>Posição bidimensional, agrupamento</td><td>Comparação precisa de valores</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>A regra que quase todo mundo quebra</strong>
+          <p>O efeito pré-atentivo depende de raridade. O algarismo em negrito salta porque quase tudo ao redor não está em negrito. Se você aplicar negrito em metade da grade, o efeito desaparece completamente. Destacar dez coisas num painel equivale a não destacar nada — e ainda custa a atenção que seria usada para entender o dado.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>3. Princípios de Gestalt</h2>
+        <p>Os princípios de Gestalt descrevem como o sistema visual agrupa elementos automaticamente. Eles operam sempre, independentemente da sua intenção. Num gráfico bem construído, os agrupamentos que o olho forma coincidem com a estrutura real dos dados; num gráfico malfeito, o olho forma grupos que os dados não têm.</p>
+
+        <table>
+          <thead>
+            <tr><th>Princípio</th><th>O olho assume que</th><th>Aplicação em gráfico</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Proximidade</td><td>O que está perto pertence junto</td><td>Aproximar o rótulo do dado que ele nomeia</td></tr>
+            <tr><td>Similaridade</td><td>O que se parece pertence junto</td><td>Mesma cor para a mesma série ao longo de todo o painel</td></tr>
+            <tr><td>Conexão</td><td>O que está ligado pertence junto</td><td>Linha ligando pontos da mesma série temporal</td></tr>
+            <tr><td>Região comum</td><td>O que está na mesma área pertence junto</td><td>Fundo sombreado marcando um período de exceção</td></tr>
+            <tr><td>Continuidade</td><td>O olho segue o caminho mais suave</td><td>Alinhamento consistente de eixos e rótulos</td></tr>
+            <tr><td>Fechamento</td><td>Formas incompletas são completadas mentalmente</td><td>Dispensa a moldura completa em volta do gráfico</td></tr>
+          </tbody>
+        </table>
+
+        <h3>3.1 Gestalt trabalha contra você por padrão</h3>
+        <p>Configurações padrão de ferramentas produzem, com frequência, agrupamentos falsos. Uma legenda posicionada longe da série obriga o olho a viajar de ida e volta, quebrando a proximidade. Duas séries com cores parecidas são fundidas pela similaridade. Espaçamento irregular entre barras sugere que algumas categorias se relacionam mais que outras. Uma grade escura compete com as próprias barras pela atenção.</p>
+        <p>A correção em todos os casos passa por assumir controle explícito: rotular a série diretamente sobre ela, garantir contraste real entre séries que se comparam, manter espaçamento uniforme dentro de cada grupo e reduzir a grade ao mínimo necessário para leitura de valor.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. O ranking dos canais de codificação</h2>
+        <p>Cleveland e McGill mediram experimentalmente a precisão com que pessoas julgam quantidades codificadas em diferentes canais visuais. O resultado é um ranking que explica quase todas as recomendações clássicas de visualização.</p>
+
+        <table>
+          <thead>
+            <tr><th>#</th><th>Canal</th><th>Exemplo típico</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Posição em escala comum</td><td>Pontos num mesmo eixo vertical</td></tr>
+            <tr><td>2</td><td>Posição em escalas não alinhadas</td><td>Pequenos múltiplos lado a lado</td></tr>
+            <tr><td>3</td><td>Comprimento</td><td>Barras a partir de uma base comum</td></tr>
+            <tr><td>4</td><td>Ângulo e inclinação</td><td>Fatias de pizza</td></tr>
+            <tr><td>5</td><td>Área</td><td>Bolhas dimensionadas por valor</td></tr>
+            <tr><td>6</td><td>Volume e curvatura</td><td>Gráficos tridimensionais</td></tr>
+            <tr><td>7</td><td>Saturação e matiz</td><td>Mapa de calor</td></tr>
+          </tbody>
+        </table>
+
+        <h3>4.1 O ranking explica as regras que você já ouviu</h3>
+        <table>
+          <thead>
+            <tr><th>Recomendação clássica</th><th>Justificativa pelo ranking</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Prefira barras a gráficos de pizza</td><td>Barra usa comprimento e posição; pizza usa ângulo e área — dois níveis abaixo</td></tr>
+            <tr><td>Evite gráfico de rosca</td><td>Remove o centro e piora ainda mais o julgamento de ângulo</td></tr>
+            <tr><td>Cuidado com gráficos de bolha</td><td>Área é percebida com erro sistemático: dobrar o valor não parece o dobro</td></tr>
+            <tr><td>Não use 3D em dado bidimensional</td><td>Volume é quase o pior canal e a perspectiva distorce a posição</td></tr>
+            <tr><td>Cor para categoria, não para quantidade</td><td>Matiz separa bem e ordena mal</td></tr>
+            <tr><td>Alinhe barras numa base comum</td><td>Posição em escala comum é o canal mais preciso disponível</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>Quando descer no ranking é legítimo</strong>
+          <p>O ranking mede precisão de julgamento, não utilidade geral. Um mapa de calor usa saturação — o último colocado — e ainda assim é a representação certa quando o objetivo é revelar padrão numa matriz grande, e não comparar dois valores específicos. A regra é: quanto mais precisa precisa ser a comparação, mais alto no ranking o canal deve estar.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Carga cognitiva e razão dado-tinta</h2>
+        <p>A atenção de quem lê é um recurso finito. Cada elemento presente no gráfico consome uma parte dela, e o que sobra é o que resta para compreender o dado. Isso torna a edição — a remoção deliberada de elementos — uma atividade tão importante quanto a construção.</p>
+
+        <h3>5.1 O que cobra sem devolver</h3>
+        <p>Grade escura e completa, bordas em todos os elementos, gradientes e sombras, uma cor diferente para cada categoria que não se compara entre si, casas decimais além da precisão real do dado. Todos esses elementos consomem atenção e não acrescentam informação.</p>
+
+        <h3>5.2 O que devolve mais do que cobra</h3>
+        <p>Rótulo posicionado diretamente sobre a série, ordenação por valor em vez de alfabética, uma anotação curta explicando a anomalia visível, título que declara a conclusão em vez de nomear o assunto, unidade explícita no eixo.</p>
+
+        <h3>5.3 Procedimento de edição</h3>
+        <ol class="steps">
+          <li>Liste todo elemento visual presente no gráfico, sem exceção.</li>
+          <li>Para cada um, pergunte: se eu remover isto, alguma informação se perde?</li>
+          <li>Se a resposta for não, remova.</li>
+          <li>Repita o ciclo até que qualquer remoção adicional cause perda real.</li>
+        </ol>
+
+        <p>Existe um limite. Minimalismo levado ao extremo remove contexto necessário — um eixo sem unidade e um gráfico sem título são minimalistas e inúteis. O objetivo não é o gráfico mais vazio possível, é o gráfico em que tudo o que está presente tem função.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Integridade e distorção de escala</h2>
+        <p>Truncar o eixo — começá-lo em valor diferente de zero — amplifica visualmente as diferenças. Isso às vezes revela um padrão real que seria invisível de outra forma, e às vezes fabrica um padrão que não existe. A diferença entre os dois casos depende do tipo de gráfico e do tipo de comparação.</p>
+
+        <table>
+          <thead>
+            <tr><th>Situação</th><th>Truncar o eixo</th><th>Por quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Gráfico de linha em série temporal</td><td>Aceitável</td><td>A linha codifica variação; a posição relativa é o que importa</td></tr>
+            <tr><td>Gráfico de barras</td><td>Não</td><td>A barra <em>é</em> o comprimento; truncar mente sobre a proporção</td></tr>
+            <tr><td>Variação pequena sobre base alta</td><td>Aceitável, com sinalização</td><td>Sem truncar, o padrão real fica invisível</td></tr>
+            <tr><td>Zero sem significado no domínio</td><td>Aceitável</td><td>Temperatura, pH e nota não têm zero natural relevante</td></tr>
+            <tr><td>Audiência vai ler rápido, sem checar o eixo</td><td>Não</td><td>A leitura de tempo curto ignora o eixo</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>O critério de honestidade</strong>
+          <p>Pergunte-se qual seria a conclusão de alguém que olhasse o gráfico por três segundos sem ler o eixo. Se essa conclusão for diferente da conclusão correta, o gráfico é enganoso — independentemente de o eixo estar tecnicamente rotulado.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>7. O ciclo de criação e interpretação</h2>
+        <p>Criar uma visualização não é um ato único que termina quando o gráfico aparece na tela. É um ciclo que só se fecha quando outra pessoa interpreta o resultado.</p>
+
+        <table>
+          <thead>
+            <tr><th>#</th><th>Etapa</th><th>Pergunta que resolve</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Pergunta</td><td>O que se quer saber e que decisão depende disso?</td></tr>
+            <tr><td>2</td><td>Dado</td><td>Qual recorte responde a isso, com qual grão?</td></tr>
+            <tr><td>3</td><td>Codificação</td><td>Qual canal representa esta quantidade com a precisão necessária?</td></tr>
+            <tr><td>4</td><td>Composição</td><td>Por onde o olho entra e que caminho ele percorre?</td></tr>
+            <tr><td>5</td><td>Edição</td><td>O que pode sair sem perda de informação?</td></tr>
+            <tr><td>6</td><td>Teste</td><td>Outra pessoa entende sem explicação verbal?</td></tr>
+            <tr><td>7</td><td>Revisão</td><td>O que o teste revelou que precisa mudar?</td></tr>
+          </tbody>
+        </table>
+
+        <h3>7.1 O teste dos cinco segundos</h3>
+        <p>É o método mais barato e mais implacável de avaliar uma visualização.</p>
+        <ol class="steps">
+          <li>Mostre o gráfico a alguém que não participou da construção.</li>
+          <li>Conte cinco segundos e esconda a tela.</li>
+          <li>Pergunte: o que você viu primeiro? Qual a mensagem? Que número você lembra?</li>
+          <li>Não explique, não corrija, não justifique. Apenas anote a resposta literal.</li>
+          <li>Se a resposta não corresponder à mensagem pretendida, o gráfico falhou — não a pessoa.</li>
+        </ol>
+        <p>A tentação de explicar durante o teste é enorme e destrói o valor do método. Se você precisa explicar, o gráfico já falhou: no uso real não haverá ninguém ao lado para explicar.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Laboratório — destruir e reconstruir</h2>
+        <p>Duração aproximada de duas horas e dez minutos, das 10h00 às 12h10. A construção deliberada de um gráfico ruim ensina mais rápido que a construção direta de um bom, porque obriga a nomear cada mecanismo de degradação.</p>
+
+        <div class="note">
+          <strong>Ponto de partida</strong>
+          <p>Escolha uma das três perguntas prioritárias que você escreveu na Aula 01. Precisa ser uma pergunta que envolva comparação entre categorias ou evolução no tempo — perguntas de valor único não servem para este exercício.</p>
+        </div>
+
+        <h3>Etapa 1 — Construa o pior gráfico possível (30 minutos)</h3>
+        <p>Responda corretamente à sua pergunta no Metabase e apresente o resultado da pior forma que conseguir. A regra fundamental: o dado precisa estar certo. Toda a distorção é na representação. Um gráfico com dado errado não serve.</p>
+        <p>Recursos disponíveis para degradar: gráfico de pizza com muitas fatias, ordenação alfabética em dado que tem ordem natural, uma cor diferente para cada categoria, legenda posicionada longe da série, rótulos com quatro casas decimais, título genérico que não diz nada.</p>
+        <p>Salve esta versão com um nome que a identifique claramente como a versão inicial.</p>
+
+        <h3>Etapa 2 — Auditoria perceptiva (20 minutos)</h3>
+        <p>Troque de tela com um colega e audite o gráfico dele nestes cinco pontos, por escrito:</p>
+        <table>
+          <thead>
+            <tr><th>#</th><th>Ponto</th><th>Pergunta da auditoria</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Canal</td><td>Em qual canal a quantidade está codificada? É possível subir no ranking?</td></tr>
+            <tr><td>2</td><td>Ordem</td><td>A ordenação ajuda a comparação ou é arbitrária?</td></tr>
+            <tr><td>3</td><td>Destaque</td><td>O que salta primeiro é aquilo que importa?</td></tr>
+            <tr><td>4</td><td>Agrupamento</td><td>Os agrupamentos visuais correspondem à estrutura do dado?</td></tr>
+            <tr><td>5</td><td>Ruído</td><td>O que pode ser removido sem perda de informação?</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Etapa 3 — Reconstrução (40 minutos)</h3>
+        <p>Volte ao seu gráfico e corrija um ponto de cada vez, registrando o motivo de cada mudança.</p>
+        <ol class="steps">
+          <li><strong>Suba o canal de codificação.</strong> Troque o tipo de visualização por um que use posição ou comprimento.</li>
+          <li><strong>Ordene por valor.</strong> Categoria nominal se ordena pelo dado, não pelo alfabeto — a menos que a audiência precise localizar uma categoria específica rapidamente.</li>
+          <li><strong>Reduza a cor a uma decisão.</strong> Uma cor neutra para tudo, uma cor de destaque apenas para o que precisa de atenção.</li>
+          <li><strong>Aproxime o rótulo do dado.</strong> Elimine a viagem do olho até a legenda.</li>
+          <li><strong>Ajuste a precisão numérica</strong> ao que o dado realmente sustenta.</li>
+          <li><strong>Reescreva o título</strong> para declarar a conclusão em vez de nomear o assunto.</li>
+        </ol>
+        <p>Salve a versão reconstruída ao lado da original, na mesma coleção, com nomes que deixem clara a relação entre as duas.</p>
+
+        <h3>Etapa 4 — Teste e revisão (20 minutos)</h3>
+        <ol class="steps">
+          <li>Aplique o teste dos cinco segundos com um colega diferente do que fez a auditoria.</li>
+          <li>Mostre a versão reconstruída por exatamente cinco segundos.</li>
+          <li>Pergunte o que a pessoa viu primeiro e qual entendeu ser a mensagem.</li>
+          <li>Anote a resposta literal, sem interpretar nem corrigir.</li>
+          <li>Se a mensagem não chegou, identifique qual dos cinco pontos da auditoria ainda falha.</li>
+          <li>Faça uma última revisão e salve a versão final.</li>
+        </ol>
+      </section>
+
+      <section class="content-block">
+        <h2>9. Entregáveis</h2>
+        <table>
+          <thead>
+            <tr><th>Onde</th><th>O quê</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Metabase</td><td>Duas perguntas salvas na sua coleção: a versão inicial degradada e a versão reconstruída, nomeadas de modo que a relação entre elas fique explícita</td></tr>
+            <tr><td>Repositório</td><td><code>docs/02_percepcao.md</code> com a auditoria de cinco pontos, cada mudança feita, o princípio perceptivo que a justifica e o resultado literal do teste dos cinco segundos</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Critérios de avaliação</h3>
+        <table>
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Justificativa perceptiva</td><td>Cada mudança aponta um princípio específico, nomeado — nunca "ficou melhor"</td></tr>
+            <tr><td>Uso do ranking</td><td>A reconstrução sobe o canal de codificação e isso está explicado</td></tr>
+            <tr><td>Honestidade no teste</td><td>A resposta do colega está registrada como foi dita, mesmo quando negativa</td></tr>
+            <tr><td>Integridade do dado</td><td>Nenhuma das versões distorce o valor; a diferença está apenas na representação</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>10. Preparação para a Aula 03</h2>
+        <p>Em 29 de agosto entramos no primeiro grande domínio de representação: dados numéricos. Com o vocabulário perceptivo instalado, vamos organizar os gráficos numéricos por <em>trabalho</em> — comparar magnitude, mostrar distribuição, revelar evolução, expor relação — e escolher entre eles por critério.</p>
+        <p>Traga sua versão reconstruída e o resultado do teste dos cinco segundos. Ela será o ponto de partida das comparações numéricas da próxima aula.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>11. Orientação para a prática em sala</h2>
+        <div class="note">
+          <strong>Como conduzir o laboratório</strong>
+          <p>Todo o exercício é executado durante a aula, na <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a>, com as mesmas credenciais da Aula 01. As duas versões precisam permanecer salvas — não sobrescreva a versão degradada, porque ela é metade do entregável.</p>
+          <p>As trocas com colegas são obrigatórias e acontecem em dois momentos distintos, com pessoas diferentes: a auditoria na Etapa 2 e o teste dos cinco segundos na Etapa 4. Ao auditar o trabalho de outra pessoa, aponte o mecanismo perceptivo, não o gosto. "A ordenação alfabética impede a comparação de magnitude" é uma crítica útil; "não gostei das cores" não é.</p>
+        </div>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>
