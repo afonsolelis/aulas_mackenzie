@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 07 — Indicadores de Performance e Dashboards</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_07_indicadores_de_performance_e_dashboards.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 07 — Indicadores de Performance e Dashboards</h1>
+      <p class="meta">Aula 07 &middot; 26/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>1. Visão geral</h2>
+        <p>Organização de KPIs e sinais visuais para acompanhamento e tomada de decisão.</p>
+        <p>Um KPI conecta medida, objetivo, meta, período, responsável e ação. Sem referência, um número isolado não indica desempenho. O dashboard deve organizar estado atual, tendência, causas e detalhes em níveis progressivos, começando pela decisão recorrente que precisa apoiar.</p>
+      </section>
+
+      <section>
+        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
+        <p>Definição de KPI, metas, contexto, granularidade, hierarquia da informação e desenho de dashboards.</p>
+        <p>Excesso de cartões, velocímetros e filtros transfere ao usuário o trabalho de interpretação. Comparação com meta, período anterior e faixa esperada costuma ser mais informativa. Filtros devem alterar decisões reais, ter estado visível e preservar definições. Alertas precisam indicar consequência e próximo passo, não apenas cor.</p>
+      </section>
+
+      <section>
+        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
+        <h3>Objetivo</h3>
+        <p>Construir um dashboard executivo com KPIs, tendências, filtros essenciais e chamadas para ação.</p>
+        <ol>
+          <li>Consulte no Athena os fatos e dimensões do conjunto executivo armazenado no S3.</li>
+          <li>Defina para cada KPI fórmula, unidade, meta, frequência, proprietário e ação esperada.</li>
+          <li>Esboce a hierarquia do dashboard: resumo, tendência, diagnóstico e detalhe.</li>
+          <li>Construa os KPIs com comparação contra meta e período anterior, evitando números sem contexto.</li>
+          <li>Adicione tendências na mesma escala e uma decomposição que explique a principal variação.</li>
+          <li>Implemente somente filtros ligados a decisões recorrentes e teste combinações sem dados.</li>
+          <li>Realize um teste de tarefa: peça a um colega que identifique o problema, a causa provável e a ação indicada.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>4. Critérios de avaliação da solução</h2>
+        <p>O dashboard deve responder rapidamente o que mudou, por que importa e onde investigar. Fórmulas e filtros precisam ser consistentes, a hierarquia deve favorecer leitura executiva e cada alerta deve estar associado a uma possível ação.</p>
+      </section>
+
+      <section class="callout">
+        <h3>Orientação para a prática em sala</h3>
+        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

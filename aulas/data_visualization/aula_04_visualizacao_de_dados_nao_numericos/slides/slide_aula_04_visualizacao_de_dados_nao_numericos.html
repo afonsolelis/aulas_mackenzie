@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 04 — Visualização de Dados Não Numéricos</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="04" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Visualização de Dados Não Numéricos</h1>
+          <p class="deck-meta">Aula 04 &nbsp;&bull;&nbsp; 05/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Representações para categorias, hierarquias, relações, fluxos e conteúdo textual.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Teoria que orienta a prática</h2>
+          <p class="deck-summary">A aula conecta fundamentos de percepção e comunicação a uma atividade aplicada com dados.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h30 &middot; Teoria</h3>
+            <p>Dados categóricos, hierárquicos, relacionais e textuais; frequência, conexão e organização.</p>
+          </article>
+          <article class="deck-card">
+            <h3>9h30 &ndash; 12h10 &middot; Prática AWS Student</h3>
+            <p>Modelar categorias e relações e produzir uma visualização que revele padrões não numéricos.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Construção do Conteúdo</span>
+          <h2 class="deck-title">Da evidência à decisão</h2>
+          <p class="deck-summary">Representações para categorias, hierarquias, relações, fluxos e conteúdo textual.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Critério visual</h3>
+            <p>A representação deve preservar a integridade dos dados e tornar a comparação necessária fácil de perceber.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Resultado esperado</h3>
+            <p>Uma visualização adequada ao público, à mensagem e à decisão que precisa ser tomada.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
+      <a href="../material/material_aula_04_visualizacao_de_dados_nao_numericos.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

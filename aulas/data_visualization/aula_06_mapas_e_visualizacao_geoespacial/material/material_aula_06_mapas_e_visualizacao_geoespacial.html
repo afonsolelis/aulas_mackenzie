@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 06 — Mapas e Visualização Geoespacial</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_06_mapas_e_visualizacao_geoespacial.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 06 — Mapas e Visualização Geoespacial</h1>
+      <p class="meta">Aula 06 &middot; 19/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>1. Visão geral</h2>
+        <p>Uso responsável de localização, regiões, densidade e movimento na análise de negócios.</p>
+        <p>Mapas são úteis quando a localização participa da explicação. Coropléticos representam taxas por área e devem usar valores normalizados; totais absolutos favorecem símbolos proporcionais. Pontos mostram ocorrências, enquanto densidade ajuda a identificar concentração. Um mapa não é adequado quando a ordem ou comparação exata importa mais que o espaço.</p>
+      </section>
+
+      <section>
+        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
+        <p>Coordenadas, regiões, projeções, mapas coropléticos, símbolos proporcionais e normalização.</p>
+        <p>Projeções distorcem área, distância ou direção, e regiões grandes dominam visualmente mesmo com pouca população. Chaves geográficas inconsistentes causam perdas silenciosas no join. Antes de mapear, valide códigos, coordenadas, cobertura e denominadores. Legenda, fonte, período e tratamento de áreas sem dados são parte da análise.</p>
+      </section>
+
+      <section>
+        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
+        <h3>Objetivo</h3>
+        <p>Preparar dados geográficos e criar um mapa analítico com legenda, escala e contexto adequados.</p>
+        <ol>
+          <li>Armazene no S3 o conjunto de indicadores regionais e o arquivo geográfico autorizado para a aula.</li>
+          <li>Valide códigos de município ou estado, duplicidades, coordenadas fora de faixa e regiões sem correspondência.</li>
+          <li>Use Athena para calcular uma taxa com denominador apropriado e mantenha também o total absoluto.</li>
+          <li>Crie um mapa coroplético para a taxa com classes e legenda documentadas.</li>
+          <li>Crie uma alternativa com símbolos proporcionais para o total e compare a interpretação produzida.</li>
+          <li>Adicione contexto geográfico essencial, fonte, período e indicação explícita de ausência de dados.</li>
+          <li>Confronte o mapa com um gráfico de barras ordenado e justifique em qual pergunta a geografia agrega valor.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>4. Critérios de avaliação da solução</h2>
+        <p>O mapa deve usar a variável espacial e a codificação corretas, normalizar quando necessário e tornar ausências visíveis. A justificativa precisa abordar projeção, legenda, denominador e a vantagem analítica do mapa sobre uma visão não espacial.</p>
+      </section>
+
+      <section class="callout">
+        <h3>Orientação para a prática em sala</h3>
+        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

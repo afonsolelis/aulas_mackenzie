@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 04 — Visualização de Dados Não Numéricos</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_04_visualizacao_de_dados_nao_numericos.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 04 — Visualização de Dados Não Numéricos</h1>
+      <p class="meta">Aula 04 &middot; 05/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>1. Visão geral</h2>
+        <p>Representações para categorias, hierarquias, relações, fluxos e conteúdo textual.</p>
+        <p>Dados não numéricos descrevem tipos, níveis, relações, sequências e textos. Uma contagem transforma categorias em medida, mas não elimina a semântica. Hierarquias exigem preservar parentesco; redes precisam diferenciar nós e vínculos; fluxos precisam representar direção; texto demanda critérios transparentes de classificação.</p>
+      </section>
+
+      <section>
+        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
+        <p>Dados categóricos, hierárquicos, relacionais e textuais; frequência, conexão e organização.</p>
+        <p>Treemaps favorecem visão de composição, diagramas de nós e arestas expõem conexões e Sankey evidencia fluxo entre etapas, mas todos podem se tornar ilegíveis com cardinalidade alta. Agrupar categorias raras, filtrar relações pouco relevantes e ordenar por uma regra explícita costuma revelar mais que exibir todo o conjunto.</p>
+      </section>
+
+      <section>
+        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
+        <h3>Objetivo</h3>
+        <p>Modelar categorias e relações e produzir uma visualização que revele padrões não numéricos.</p>
+        <ol>
+          <li>Carregue no S3 registros categóricos e identifique dimensões nominais, ordinais, hierárquicas e relacionais.</li>
+          <li>Normalize rótulos equivalentes e registre a regra usada para valores ausentes ou categorias raras.</li>
+          <li>Modele uma tabela de nós e vínculos ou uma hierarquia pai-filho, conforme o conjunto escolhido.</li>
+          <li>Calcule frequências e graus no Athena para selecionar elementos relevantes sem apagar exceções importantes.</li>
+          <li>Crie uma visão de frequência e outra de relações, mantendo cores e rótulos consistentes entre ambas.</li>
+          <li>Anote um agrupamento ou caminho que não seria evidente em uma tabela plana.</li>
+          <li>Revise a visualização para evitar sobreposição, cruzamento excessivo e ordenação arbitrária.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>4. Critérios de avaliação da solução</h2>
+        <p>A entrega deve preservar o significado das categorias e relações, explicar filtros e agrupamentos e permitir que o leitor diferencie frequência de importância. A forma escolhida precisa corresponder à estrutura nominal, ordinal, hierárquica ou relacional.</p>
+      </section>
+
+      <section class="callout">
+        <h3>Orientação para a prática em sala</h3>
+        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

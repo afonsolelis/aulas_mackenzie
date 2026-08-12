@@ -5,6 +5,7 @@
 Este documento define a estrutura canônica de pastas e convenções de nomenclatura para o repositório **Hub de Disciplinas MBA em Engenharia de Dados & Cloud**, englobando as disciplinas:
 1. **Cloud Computing e SRE — Visão Prática com AWS**
 2. **Data Collection and Storage**
+3. **Data Visualization**
 
 ## Referências obrigatórias
 
@@ -23,7 +24,8 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 │   └── slides.css                       # CSS dos slides HTML nativos
 ├── pages/
 │   ├── home_cloud_sre.html              # Home da disciplina Cloud Computing e SRE
-│   └── home_data_collection.html        # Home da disciplina Data Collection and Storage
+│   ├── home_data_collection.html        # Home da disciplina Data Collection and Storage
+│   └── home_data_visualization.html     # Home da disciplina Data Visualization
 ├── specs/
 │   ├── estrutura_curso.md
 │   ├── repositorio_de_aulas.md
@@ -34,7 +36,11 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
     │   └── aula_xx_nome_da_aula/
     │       ├── slides/slide_aula_xx_nome_da_aula.html
     │       └── material/material_aula_xx_nome_da_aula.html
-    └── data_collection_and_storage/
+    ├── data_collection_and_storage/
+    │   └── aula_xx_nome_da_aula/
+    │       ├── slides/slide_aula_xx_nome_da_aula.html
+    │       └── material/material_aula_xx_nome_da_aula.html
+    └── data_visualization/
         └── aula_xx_nome_da_aula/
             ├── slides/slide_aula_xx_nome_da_aula.html
             └── material/material_aula_xx_nome_da_aula.html
@@ -63,10 +69,10 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 
 ## Dinâmica Obrigatória da Aula
 
-- Toda aula inicia às `19h00` e encerra às `22h00`.
+- O horário de cada disciplina é definido em seu cronograma.
+- Aulas noturnas ocorrem das `19h00` às `22h00`; aulas de sábado de Data Collection and Storage e Data Visualization ocorrem das `8h30` às `12h10`.
 - O bloco inicial da aula é sempre teórico.
-- As duas últimas horas (20h00 às 22h00) são reservadas para a prática.
-- Toda a prática ocorre com o ambiente `AWS Student`.
+- O restante da aula é reservado à prática no ambiente `AWS Student`, conforme os intervalos publicados no cronograma e na agenda.
 
 ---
 
@@ -100,3 +106,17 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 | 07 | 28/11/2026 | Qualidade de Dados, Contratos e Validação de Ingestão |
 | 08 | 05/12/2026 | Arquitetura Integrada de Coleta, Storage e Projeto Final |
 
+### 3. Data Visualization (Disciplina 02 · Carga Horária: 32 h/a)
+
+**Horário:** Sábados &middot; 8h30 às 12h10
+
+| Aula | Data | Tema Principal |
+|------|------|----------------|
+| 01 | 15/08/2026 | Percepção Visual e Fundamentos da Visualização |
+| 02 | 22/08/2026 | Processo de Criação e Interpretação Visual |
+| 03 | 29/08/2026 | Visualização de Dados Numéricos |
+| 04 | 05/09/2026 | Visualização de Dados Não Numéricos |
+| 05 | 12/09/2026 | Tabelas, Gráficos e Escolha da Representação |
+| 06 | 19/09/2026 | Mapas e Visualização Geoespacial |
+| 07 | 26/09/2026 | Indicadores de Performance e Dashboards |
+| 08 | 03/10/2026 | Storytelling com Dados e Projeto Final |

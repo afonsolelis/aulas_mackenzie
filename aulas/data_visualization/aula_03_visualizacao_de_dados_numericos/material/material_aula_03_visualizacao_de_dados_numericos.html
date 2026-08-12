@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 03 — Visualização de Dados Numéricos</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_03_visualizacao_de_dados_numericos.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 03 — Visualização de Dados Numéricos</h1>
+      <p class="meta">Aula 03 &middot; 29/08/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+    </header>
+
+    <article class="content">
+      <section>
+        <h2>1. Visão geral</h2>
+        <p>Comparações, distribuições, tendências, correlações e composição de medidas quantitativas.</p>
+        <p>Dados quantitativos podem responder perguntas diferentes: barras favorecem comparação entre categorias; linhas revelam continuidade temporal; histogramas e box plots mostram distribuição; dispersão investiga associação entre variáveis. O tipo de gráfico deve decorrer da pergunta, não da disponibilidade de um modelo pronto.</p>
+      </section>
+
+      <section>
+        <h2>2. Fundamentos teóricos (8h30 &ndash; 9h30)</h2>
+        <p>Escalas, eixos, agregações, distribuições, séries temporais, correlação e prevenção de distorções.</p>
+        <p>Agregações podem esconder dispersão, sazonalidade e valores extremos. Eixos truncados amplificam diferenças; escalas duplas sugerem relações artificiais; correlação não demonstra causalidade. Sempre informe unidade, período, denominador e regra de agregação. Quando a incerteza for relevante, apresente intervalo ou variabilidade.</p>
+      </section>
+
+      <section>
+        <h2>3. Laboratório no AWS Student Lab (9h30 &ndash; 12h10)</h2>
+        <h3>Objetivo</h3>
+        <p>Criar e comparar gráficos quantitativos para responder perguntas distintas sobre o mesmo conjunto de dados.</p>
+        <ol>
+          <li>Consulte no Athena as medidas de receita, quantidade, data e segmento disponíveis no arquivo do S3.</li>
+          <li>Calcule resumo estatístico e identifique valores ausentes, extremos e possíveis erros de unidade.</li>
+          <li>Crie uma comparação categórica com barras ordenadas e eixo iniciado em zero.</li>
+          <li>Crie uma série temporal com granularidade coerente e destaque períodos atípicos.</li>
+          <li>Construa uma distribuição e compare média, mediana e amplitude antes de resumir o desempenho.</li>
+          <li>Teste uma dispersão para duas medidas e descreva associação, grupos e exceções sem alegar causalidade.</li>
+          <li>Reúna as quatro leituras em uma nota analítica que indique qual gráfico responde melhor a cada pergunta.</li>
+        </ol>
+      </section>
+
+      <section>
+        <h2>4. Critérios de avaliação da solução</h2>
+        <p>As visualizações devem empregar escalas honestas, unidades explícitas e agregações reproduzíveis. A análise deve distinguir comparação, tendência, distribuição e associação, evitando conclusões causais sem evidência.</p>
+      </section>
+
+      <section class="callout">
+        <h3>Orientação para a prática em sala</h3>
+        <p>Conclua o laboratório durante a aula, mantenha os dados no ambiente autorizado do AWS Student Lab e apresente a visualização para revisão por pares. Use o feedback para revisar decisões analíticas, representação e mensagem antes da entrega.</p>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
