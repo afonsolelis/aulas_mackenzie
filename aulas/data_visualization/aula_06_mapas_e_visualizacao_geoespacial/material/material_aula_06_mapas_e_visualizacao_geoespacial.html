@@ -134,6 +134,12 @@
       </section>
 
       <section class="content-block">
+        <h2>6.1 Revisão de risco geoespacial</h2>
+        <p>Mapas adicionam decisões que não existem num gráfico comum: unidade espacial, projeção, fronteira, classificação, resolução e exposição de localização. Antes de construir, registre por que o espaço é necessário para agir. Se uma tabela ordenada responde melhor, o mapa é decoração.</p>
+        <table><thead><tr><th>Risco</th><th>Diagnóstico</th><th>Contramedida</th></tr></thead><tbody><tr><td>Densidade populacional</td><td>volume acompanha onde há mais pessoas ou clientes</td><td>normalizar e mostrar denominador</td></tr><tr><td>Falácia ecológica</td><td>conclusão individual nasce de agregado regional</td><td>limitar afirmação ao nível espacial</td></tr><tr><td>MAUP</td><td>padrão muda quando fronteiras ou agregação mudam</td><td>teste de sensibilidade</td></tr><tr><td>Distorção de área</td><td>territórios grandes capturam atenção</td><td>pontos, tabela ou pequenos múltiplos</td></tr><tr><td>Reidentificação</td><td>ponto ou CEP expõe pessoa ou residência</td><td>agregar, deslocar ou suprimir</td></tr></tbody></table>
+        <ol class="steps"><li>Declare a tarefa espacial: localizar, comparar ou revelar continuidade.</li><li>Defina unidade de análise e unidade de exibição.</li><li>Teste cardinalidade e multiplicação da junção geográfica.</li><li>Escolha denominador e justifique a normalização.</li><li>Compare pelo menos dois métodos de classificação.</li><li>Verifique sensibilidade a outra unidade ou recorte espacial.</li><li>Avalie privacidade e detalhe mínimo necessário.</li><li>Construa uma alternativa não cartográfica e compare a precisão.</li></ol>
+        <div class="audit-template"><strong>Modelo de <code>docs/06_revisao_geoespacial.md</code></strong><p><code>Tarefa espacial → unidade → junção → denominador → classificação → sensibilidade → privacidade → alternativa → conclusão permitida.</code></p></div>
+
         <h2>7. Laboratório — o mesmo dado, duas conclusões</h2>
         <p>Duração aproximada de duas horas e dez minutos. O exercício central é demonstrar, com o próprio dado, como a ausência de normalização produz uma conclusão errada.</p>
 
@@ -183,7 +189,7 @@
           </thead>
           <tbody>
             <tr><td>Metabase</td><td>Mapa absoluto, mapa normalizado, mapa de pontos e a análise de distância</td></tr>
-            <tr><td>Repositório</td><td><code>docs/06_mapas.md</code> com o denominador escolhido e sua justificativa, a demonstração das duas conclusões e a decisão sobre escala de cor</td></tr>
+            <tr><td>Repositório</td><td><code>docs/06_revisao_geoespacial.md</code> com unidade, junção, denominador, sensibilidade, privacidade e alternativa</td></tr>
           </tbody>
         </table>
 

@@ -134,6 +134,7 @@
             <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
             <ul>
               <li>Por que discovery vem antes do gráfico</li>
+              <li>Método C-D-P-V-D e ISO/IEC 25012</li>
               <li>As quatro dimensões do perfilamento</li>
               <li>Tipo físico e tipo semântico</li>
               <li>Grão da análise</li>
@@ -147,6 +148,7 @@
               <li>Primeiro acesso à instância</li>
               <li>X-ray automático das tabelas</li>
               <li>Perfilamento das 9 tabelas do Olist</li>
+              <li>Criação de uma regra testável de dados</li>
               <li>Query builder: filtrar, agrupar, sumarizar</li>
               <li>Primeira junção entre tabelas</li>
               <li>Backlog de 10 perguntas de negócio</li>
@@ -185,6 +187,62 @@
     </div>
 
     <!-- ============================================================ -->
+    <!-- MÉTODO TRANSVERSAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Método C-D-P-V-D &middot; Visão global</span>
+          <h2 class="deck-title">Nenhum gráfico começa no gráfico</h2>
+          <p class="deck-summary">As oito aulas percorrem o mesmo sistema de decisão. Hoje construímos os dois primeiros gates: contexto e dados.</p>
+        </div>
+        <div class="method-flow">
+          <div class="method-step is-current"><strong>Contexto</strong><span>Público, tarefa, decisão e consequência do erro.</span></div>
+          <div class="method-step is-current"><strong>Dados</strong><span>Fonte, grão, qualidade, regras e limitações.</span></div>
+          <div class="method-step"><strong>Pergunta</strong><span>Métrica, dimensão, período, filtro e decisão.</span></div>
+          <div class="method-step"><strong>Visual</strong><span>Codificação, interação e acessibilidade.</span></div>
+          <div class="method-step"><strong>Decisão</strong><span>Teste, interpretação, ação e evidência.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">ISO/IEC 25012 &middot; Aplicação educacional</span>
+          <h2 class="deck-title">Qualidade não é “dado limpo”</h2>
+          <p class="deck-summary">A norma define um modelo com 15 características. Para o discovery, usamos um recorte operacional e registramos evidência para cada dimensão relevante.</p>
+        </div>
+        <div class="standard-map">
+          <strong>Dados aptos<br>para a decisão</strong>
+          <div class="standard-principles">
+            <span><strong>Completude</strong><br>o que falta e por quê?</span>
+            <span><strong>Acurácia</strong><br>o valor é plausível e verificável?</span>
+            <span><strong>Consistência</strong><br>regras concordam entre tabelas?</span>
+            <span><strong>Atualidade</strong><br>o período serve à decisão?</span>
+            <span><strong>Credibilidade</strong><br>origem e transformação são confiáveis?</span>
+            <span><strong>Rastreabilidade</strong><br>é possível refazer o cálculo?</span>
+            <span><strong>Compreensibilidade</strong><br>nome, unidade e semântica estão claros?</span>
+            <span><strong>Confidencialidade</strong><br>o recorte expõe informação sensível?</span>
+          </div>
+        </div>
+        <p class="deck-meta">Alinhamento educacional; não representa certificação nem auditoria formal.</p>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div><span class="deck-kicker">ISO/TS 8000-82 &middot; Regra de dados</span><h2 class="deck-title">Perfil sem regra é fotografia; regra permite testar</h2></div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>1 · Observar</strong><span>Distribuição, nulos, duplicidade, formato e domínio.</span></div>
+          <div class="quality-gate"><strong>2 · Formular</strong><span>“Pedido entregue deve ter data de entrega.”</span></div>
+          <div class="quality-gate"><strong>3 · Medir</strong><span>Numerador, denominador, limiar, exceção e responsável.</span></div>
+          <div class="quality-gate"><strong>4 · Testar</strong><span>Executar a consulta e guardar as violações.</span></div>
+          <div class="quality-gate"><strong>5 · Explicar</strong><span>Distinguir defeito, estado do processo e ausência esperada.</span></div>
+          <div class="quality-gate"><strong>6 · Decidir</strong><span>Aceitar, corrigir, excluir ou sinalizar com impacto declarado.</span></div>
+        </div>
+      </div>
+    </div>
+
     <!-- SLIDE 4 - TESE DA AULA                                       -->
     <!-- ============================================================ -->
     <div class="slide">
@@ -812,7 +870,7 @@ olist_orders ──────────────► olist_order_reviews
           </article>
           <article class="deck-card">
             <h3>No repositório</h3>
-            <p><code>docs/01_discovery.md</code> com o perfil das nove tabelas, os problemas de qualidade encontrados e as dez perguntas de negócio.</p>
+            <p><code>docs/01_brief_e_qualidade.md</code> com contexto, perfil, regras, limitações e as dez perguntas de negócio.</p>
           </article>
         </div>
       </div>

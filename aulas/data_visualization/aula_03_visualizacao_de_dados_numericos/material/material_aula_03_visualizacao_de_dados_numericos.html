@@ -170,6 +170,14 @@
       </section>
 
       <section class="content-block">
+        <h2>7.1 Protocolo de integridade numérica</h2>
+        <p>Todo gráfico numérico deve declarar seis decisões: unidade, agregação, denominador, escala, incerteza e limitação. Esses campos impedem que escolhas silenciosas pareçam propriedades naturais do dado.</p>
+        <table><thead><tr><th>Decisão</th><th>Registro obrigatório</th><th>Pergunta de revisão</th></tr></thead><tbody><tr><td>Unidade</td><td>R$, dias, pedidos, percentual ou taxa</td><td>a unidade aparece no título ou eixo?</td></tr><tr><td>Agregação</td><td>soma, média, mediana, percentil, distinto</td><td>outro resumo mudaria a conclusão?</td></tr><tr><td>Denominador</td><td>população usada na taxa</td><td>casos ausentes foram excluídos?</td></tr><tr><td>Escala</td><td>zero, log, intervalo e tempo</td><td>a geometria preserva proporções?</td></tr><tr><td>Incerteza</td><td>N, dispersão e estabilidade</td><td>diferença pode ser ruído?</td></tr><tr><td>Limitação</td><td>outlier, viés, ausência e causalidade</td><td>qual afirmação o gráfico não autoriza?</td></tr></tbody></table>
+
+        <h3>Registro de decisão visual</h3>
+        <ol class="steps"><li>Classifique a pergunta em magnitude, distribuição, evolução ou relação.</li><li>Desenhe duas representações candidatas antes de construir.</li><li>Compare os canais visuais usados e a precisão necessária.</li><li>Teste agregações e granularidades alternativas.</li><li>Identifique a conclusão mais forte que os dados autorizam.</li><li>Escreva uma frase com a principal limitação ou incerteza.</li><li>Documente por que a alternativa foi descartada.</li></ol>
+        <div class="audit-template"><strong>Modelo de <code>docs/03_registro_numerico.md</code></strong><p><code>Pergunta → trabalho analítico → cálculo → candidatas → escolha → escala → incerteza → alternativa descartada → decisão autorizada → limitação.</code></p></div>
+
         <h2>8. Laboratório — quatro trabalhos, quatro gráficos</h2>
         <p>Duração aproximada de duas horas e dez minutos. Você vai construir um gráfico para cada trabalho, declarando explicitamente qual trabalho ele executa e por que o tipo escolhido vence as alternativas.</p>
 
@@ -223,7 +231,7 @@
           </thead>
           <tbody>
             <tr><td>Metabase</td><td>Quatro perguntas salvas, uma por trabalho, nomeadas de modo a declarar qual trabalho cada uma executa</td></tr>
-            <tr><td>Repositório</td><td><code>docs/03_numericos.md</code> com, para cada gráfico: o trabalho, o tipo escolhido, duas alternativas descartadas com motivo, e as decisões de escala, granularidade e outliers</td></tr>
+            <tr><td>Repositório</td><td><code>docs/03_registro_numerico.md</code> com trabalho, cálculo, alternativas, escala, incerteza e limitações</td></tr>
           </tbody>
         </table>
 

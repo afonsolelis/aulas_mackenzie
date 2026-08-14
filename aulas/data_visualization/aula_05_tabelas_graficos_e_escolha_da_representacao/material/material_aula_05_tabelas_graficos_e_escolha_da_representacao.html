@@ -137,6 +137,15 @@
       </section>
 
       <section class="content-block">
+        <h2>7.1 Especificação visual e acessibilidade</h2>
+        <p>A escolha da representação passa a ser um contrato verificável. Antes de abrir o Metabase, documente tarefa, dados, forma, codificação, contexto e ação. Depois compare pelo menos duas alternativas. A melhor não é a mais sofisticada, mas a que permite concluir a tarefa com menor custo e risco.</p>
+        <table><thead><tr><th>Camada</th><th>Decisão</th><th>Critério de aceite</th></tr></thead><tbody><tr><td>Tarefa</td><td>localizar, comparar, detectar padrão ou monitorar</td><td>uma tarefa principal</td></tr><tr><td>Dados</td><td>métrica, dimensão, grão, filtro e período</td><td>cálculo reproduzível</td></tr><tr><td>Forma</td><td>tabela, gráfico, mapa ou texto</td><td>alternativa descartada</td></tr><tr><td>Codificação</td><td>posição, comprimento, cor, forma e ordem</td><td>canal adequado à precisão</td></tr><tr><td>Contexto</td><td>título, unidade, fonte, atualização e limite</td><td>não exige explicação oral</td></tr><tr><td>Ação</td><td>limiar, decisão e responsável</td><td>próximo passo explícito</td></tr></tbody></table>
+
+        <h3>Checklist WCAG 2.2 / ISO/IEC 40500:2025</h3>
+        <p>WCAG não é uma “paleta para daltônicos”. É um conjunto de requisitos testáveis. Para visualizações, a prática mínima inclui não depender exclusivamente de cor, manter contraste, oferecer equivalência textual e tabular, preservar estrutura e permitir operação por teclado.</p>
+        <ol class="steps"><li>Imprima ou simule escala de cinza: a mensagem continua distinguível?</li><li>Remova a legenda: rótulos e contexto ainda identificam séries?</li><li>Escreva uma descrição curta com tipo, assunto e conclusão principal.</li><li>Forneça tabela equivalente com cabeçalhos, unidades e fonte.</li><li>Percorra filtros e links usando apenas teclado.</li><li>Aumente o zoom para 200% e verifique leitura, reflow e sobreposição.</li><li>Registre falhas, severidade, correção e reteste.</li></ol>
+        <div class="audit-template"><strong>Modelo de <code>docs/05_especificacao_visual.md</code></strong><p><code>Tarefa → dados → candidatas → escolha → codificação → contexto → alternativa acessível → teste → ação.</code></p></div>
+
         <h2>8. Laboratório — uma pergunta, três representações</h2>
         <p>Duração aproximada de duas horas e dez minutos. Use a pergunta que você trouxe achando que não deveria virar gráfico. Se a intuição estiver certa, o exercício comprova; se estiver errada, é ainda mais instrutivo.</p>
 
@@ -185,7 +194,7 @@
           </thead>
           <tbody>
             <tr><td>Metabase</td><td>Três versões da mesma pergunta — tabela, tabela dinâmica e gráfico — mais a versão com formatação condicional</td></tr>
-            <tr><td>Repositório</td><td><code>docs/05_representacao.md</code> com a matriz de decisão consolidada da turma e a defesa por público das três versões</td></tr>
+            <tr><td>Repositório</td><td><code>docs/05_especificacao_visual.md</code> com matriz, candidatas, escolha, acessibilidade e teste</td></tr>
           </tbody>
         </table>
 

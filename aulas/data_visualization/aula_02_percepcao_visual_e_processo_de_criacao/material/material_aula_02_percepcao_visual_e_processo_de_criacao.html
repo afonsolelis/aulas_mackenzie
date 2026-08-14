@@ -230,6 +230,28 @@
       </section>
 
       <section class="content-block">
+        <h2>7.1 Auditoria heurística e ISO 9241-112</h2>
+        <p>A ISO 9241-112 trata da apresentação de informação em sistemas interativos. Aqui ela funciona como referência para formular perguntas de avaliação: o sinal relevante é detectável, elementos são distinguíveis, a interpretação é inequívoca, a apresentação é concisa e consistente? Não se trata de copiar a norma nem declarar conformidade, mas de converter princípios em evidência observável.</p>
+
+        <p>A auditoria usa dez heurísticas transversais: adequação à tarefa; clareza da mensagem; integridade; codificação; hierarquia; consistência; contexto e incerteza; prevenção de interpretação errada; acessibilidade; acionabilidade. Cada achado recebe severidade:</p>
+        <table>
+          <thead><tr><th>Nota</th><th>Significado</th><th>Tratamento</th></tr></thead>
+          <tbody><tr><td>0</td><td>não é problema</td><td>não registrar como defeito</td></tr><tr><td>1</td><td>cosmético</td><td>corrigir se houver tempo</td></tr><tr><td>2</td><td>atrapalha leitura ou eficiência</td><td>corrigir antes da entrega</td></tr><tr><td>3</td><td>pode induzir interpretação errada</td><td>bloqueia o gate</td></tr><tr><td>4</td><td>impede ou inverte a decisão</td><td>retirar de uso imediatamente</td></tr></tbody>
+        </table>
+
+        <h3>Passo a passo da auditoria</h3>
+        <ol class="steps">
+          <li>Escreva a tarefa e a resposta correta esperada antes de mostrar o gráfico.</li>
+          <li>Observe uma pessoa por cinco segundos sem explicar o conteúdo.</li>
+          <li>Pergunte qual mensagem ela percebeu e qual ação tomaria.</li>
+          <li>Registre o elemento concreto que causou hesitação ou erro.</li>
+          <li>Associe o achado a uma heurística e atribua severidade pelo impacto.</li>
+          <li>Proponha uma mudança causal — não “melhorar o visual”.</li>
+          <li>Repita o teste com outra pessoa e compare tempo, erro e confiança.</li>
+        </ol>
+
+        <div class="audit-template"><strong>Modelo de achado</strong><p><code>Evidência → heurística → severidade → consequência para a decisão → correção → resultado do reteste.</code></p></div>
+
         <h2>8. Laboratório — destruir e reconstruir</h2>
         <p>Duração aproximada de duas horas e dez minutos, das 10h00 às 12h10. A construção deliberada de um gráfico ruim ensina mais rápido que a construção direta de um bom, porque obriga a nomear cada mecanismo de degradação.</p>
 
@@ -289,7 +311,7 @@
           </thead>
           <tbody>
             <tr><td>Metabase</td><td>Duas perguntas salvas na sua coleção: a versão inicial degradada e a versão reconstruída, nomeadas de modo que a relação entre elas fique explícita</td></tr>
-            <tr><td>Repositório</td><td><code>docs/02_percepcao.md</code> com a auditoria de cinco pontos, cada mudança feita, o princípio perceptivo que a justifica e o resultado literal do teste dos cinco segundos</td></tr>
+            <tr><td>Repositório</td><td><code>docs/02_auditoria_heuristica.md</code> com achados, severidade, mudanças, justificativas e resultado do reteste</td></tr>
           </tbody>
         </table>
 

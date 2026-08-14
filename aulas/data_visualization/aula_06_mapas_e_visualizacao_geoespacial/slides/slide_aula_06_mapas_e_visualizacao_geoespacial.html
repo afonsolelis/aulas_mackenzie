@@ -40,6 +40,7 @@
               <li>Mapa de regiões e mapa de pontos</li>
               <li>O problema da normalização</li>
               <li>Projeções e distorção de área</li>
+              <li>Falácia ecológica, MAUP e privacidade</li>
               <li>Escalas de cor em mapas</li>
               <li>Cardinalidade geográfica no Brasil</li>
             </ul>
@@ -52,6 +53,7 @@
               <li>Mapa de pontos com geolocalização</li>
               <li>Frete e prazo por distância</li>
               <li>Defesa da normalização escolhida</li>
+              <li>Revisão de risco geoespacial</li>
             </ul>
           </article>
         </div>
@@ -72,6 +74,13 @@
         </div>
       </div>
     </div>
+
+    <!-- MÉTODO TRANSVERSAL -->
+    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Método C-D-P-V-D &middot; Aula 06</span><h2 class="deck-title">Mapa só entra quando espaço muda a decisão</h2></div><div class="method-flow"><div class="method-step"><strong>Contexto</strong><span>Quem precisa agir onde?</span></div><div class="method-step is-current"><strong>Dados</strong><span>Unidade espacial, cobertura e privacidade.</span></div><div class="method-step"><strong>Pergunta</strong><span>Localizar, comparar ou revelar padrão?</span></div><div class="method-step is-current"><strong>Visual</strong><span>Ponto, região, projeção, classe e escala.</span></div><div class="method-step"><strong>Decisão</strong><span>O padrão espacial muda a ação?</span></div></div></div></div>
+
+    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Revisão de risco geoespacial</span><h2 class="deck-title">Seis perguntas antes de publicar um mapa</h2></div><div class="quality-gates"><div class="quality-gate"><strong>Unidade</strong><span>Estado, cidade, CEP, ponto ou área de influência?</span></div><div class="quality-gate"><strong>Denominador</strong><span>Total, taxa por cliente, pedido ou população?</span></div><div class="quality-gate"><strong>Junção</strong><span>Uma chave multiplica linhas ou perde territórios?</span></div><div class="quality-gate"><strong>Classificação</strong><span>Intervalo igual, quantil ou limiar de negócio?</span></div><div class="quality-gate"><strong>Privacidade</strong><span>O nível de detalhe reidentifica alguém?</span></div><div class="quality-gate"><strong>Alternativa</strong><span>Uma tabela ordenada responde com mais precisão?</span></div></div></div></div>
+
+    <div class="slide"><div class="deck-shell is-dense"><div><span class="deck-kicker">Falácias e integridade</span><h2 class="deck-title">O mapa pode inventar causalidade sem escrever uma palavra</h2></div><table class="deck-table"><thead><tr><th>Risco</th><th>Como aparece</th><th>Contramedida</th></tr></thead><tbody><tr><td>Densidade populacional</td><td>volume acompanha onde há mais pessoas</td><td>normalizar e mostrar base</td></tr><tr><td>Falácia ecológica</td><td>atribuir ao indivíduo padrão agregado da região</td><td>limitar a conclusão ao nível espacial</td></tr><tr><td>MAUP</td><td>resultado muda ao trocar fronteiras/agregação</td><td>teste de sensibilidade espacial</td></tr><tr><td>Área visual</td><td>territórios grandes dominam atenção</td><td>tabela, pontos ou pequenos múltiplos</td></tr><tr><td>Precisão falsa</td><td>coordenada sugere exatidão inexistente</td><td>declarar origem e resolução</td></tr></tbody></table></div></div>
 
     <!-- SLIDE 4 - TESE -->
     <div class="slide">
@@ -364,7 +373,7 @@
           </article>
           <article class="deck-card">
             <h3>No repositório</h3>
-            <p><code>docs/06_mapas.md</code> com o denominador escolhido e sua justificativa, a demonstração das duas conclusões e a decisão sobre escala de cor.</p>
+            <p><code>docs/06_revisao_geoespacial.md</code> com unidade, junção, denominador, sensibilidade, privacidade e alternativa.</p>
           </article>
         </div>
       </div>

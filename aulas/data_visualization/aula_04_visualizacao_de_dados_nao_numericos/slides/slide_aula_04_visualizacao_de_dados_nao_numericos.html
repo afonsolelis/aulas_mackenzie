@@ -37,6 +37,7 @@
             <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
             <ul>
               <li>Taxonomia dos dados não numéricos</li>
+              <li>Protocolo auditável de categorização</li>
               <li>Nominal e ordinal: o problema da ordem</li>
               <li>Cardinalidade alta e cauda longa</li>
               <li>Critérios honestos de corte</li>
@@ -52,6 +53,7 @@
               <li>Hierarquia categoria para produto</li>
               <li>Score de avaliação como ordinal</li>
               <li>Análise dos comentários por score</li>
+              <li>Teste de perda, sensibilidade e viés</li>
             </ul>
           </article>
         </div>
@@ -72,6 +74,13 @@
         </div>
       </div>
     </div>
+
+    <!-- MÉTODO TRANSVERSAL -->
+    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Método C-D-P-V-D &middot; Aula 04</span><h2 class="deck-title">Categoria é uma decisão sobre o mundo</h2></div><div class="method-flow"><div class="method-step"><strong>Contexto</strong><span>Quem nomeia e quem é afetado?</span></div><div class="method-step is-current"><strong>Dados</strong><span>Domínio, ausência e cardinalidade.</span></div><div class="method-step is-current"><strong>Pergunta</strong><span>Comparar, ordenar, agrupar ou classificar.</span></div><div class="method-step"><strong>Visual</strong><span>Ordem, corte, hierarquia e texto.</span></div><div class="method-step"><strong>Decisão</strong><span>O que desaparece no agrupamento?</span></div></div></div></div>
+
+    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Protocolo de categorização</span><h2 class="deck-title">Do valor bruto à categoria publicada</h2></div><div class="quality-gates"><div class="quality-gate"><strong>1 · Domínio</strong><span>Valores, frequências, ausências e variações.</span></div><div class="quality-gate"><strong>2 · Semântica</strong><span>Nominal, ordinal, hierárquico, relacional ou textual.</span></div><div class="quality-gate"><strong>3 · Regra</strong><span>Inclusão, exclusão, precedência e tratamento do nulo.</span></div><div class="quality-gate"><strong>4 · Perda</strong><span>Volume e diversidade ocultados por “Outros”.</span></div><div class="quality-gate"><strong>5 · Viés</strong><span>Quem fica invisível ou parece menos importante?</span></div><div class="quality-gate"><strong>6 · Versão</strong><span>Regra, data, autor e impacto da mudança.</span></div></div></div></div>
+
+    <div class="slide"><div class="deck-shell is-dense"><div><span class="deck-kicker">Gate de integridade</span><h2 class="deck-title">“Top 10 + Outros” precisa prestar contas</h2></div><table class="deck-table"><thead><tr><th>Pergunta</th><th>Evidência</th><th>Falha grave</th></tr></thead><tbody><tr><td>Por que dez?</td><td>limiar de decisão ou cobertura acumulada</td><td>número arbitrário</td></tr><tr><td>Quanto ficou fora?</td><td>% de volume e nº de categorias</td><td>“Outros” sem dimensão</td></tr><tr><td>A cauda é homogênea?</td><td>distribuição e exemplos</td><td>misturar comportamentos opostos</td></tr><tr><td>O corte muda a conclusão?</td><td>comparação antes/depois</td><td>não testar sensibilidade</td></tr><tr><td>É reproduzível?</td><td>regra escrita e consulta salva</td><td>agrupamento manual sem versão</td></tr></tbody></table></div></div>
 
     <!-- SLIDE 4 - TESE -->
     <div class="slide">
@@ -420,7 +429,7 @@
           </article>
           <article class="deck-card">
             <h3>No repositório</h3>
-            <p><code>docs/04_categoricos.md</code> com o critério de corte escolhido, a justificativa, o que se perde no corte e a defesa do tratamento dado ao score.</p>
+            <p><code>docs/04_protocolo_categorias.md</code> com taxonomia, regra, cobertura, perda, sensibilidade e risco de invisibilidade.</p>
           </article>
         </div>
       </div>

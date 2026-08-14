@@ -664,6 +664,50 @@ body.material .page,
 
 .content-block .note > :last-child { margin-bottom: 0; }
 
+.method-flow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 24px 0;
+  counter-reset: method-step;
+}
+
+.method-step {
+  padding: 18px 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+}
+
+.method-step::before {
+  counter-increment: method-step;
+  content: "0" counter(method-step);
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: .72em;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.method-step strong { display: block; margin-bottom: 6px; }
+.method-step span { color: var(--muted); font-size: .86em; }
+.method-step.is-current { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+
+.audit-template {
+  margin: 22px 0;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: var(--surface);
+}
+
+.audit-template code { white-space: normal; }
+
+@media (max-width: 760px) {
+  .method-flow { grid-template-columns: 1fr; }
+}
+
 .content-block ol.steps {
   counter-reset: mstep;
   list-style: none;

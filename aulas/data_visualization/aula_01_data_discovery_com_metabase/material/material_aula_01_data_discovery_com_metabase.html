@@ -282,6 +282,47 @@ olist_orders ──────────────► olist_order_reviews
       </section>
 
       <section class="content-block">
+        <h2>8.3 Método C-D-P-V-D e qualidade orientada à decisão</h2>
+        <p>A disciplina inteira usa cinco gates: Contexto, Dados, Pergunta, Visual e Decisão. Eles evitam que a ferramenta dite o raciocínio. Nesta primeira aula, a entrega só atravessa os dois primeiros gates: existe um usuário e uma decisão concretos; os dados foram examinados com profundidade suficiente para saber o que sustentam e o que não sustentam.</p>
+
+        <div class="method-flow">
+          <div class="method-step is-current"><strong>Contexto</strong><span>Público, tarefa, decisão e consequência.</span></div>
+          <div class="method-step is-current"><strong>Dados</strong><span>Fonte, grão, qualidade, regras e limites.</span></div>
+          <div class="method-step"><strong>Pergunta</strong><span>Métrica e recorte verificáveis.</span></div>
+          <div class="method-step"><strong>Visual</strong><span>Codificação e acessibilidade.</span></div>
+          <div class="method-step"><strong>Decisão</strong><span>Teste, ação e evidência.</span></div>
+        </div>
+
+        <h3>8.3.1 Perfil alinhado à ISO/IEC 25012</h3>
+        <p>A ISO/IEC 25012 define um modelo geral de qualidade para dados estruturados. Não faremos uma auditoria de conformidade nem alegaremos certificação. Usaremos um recorte educacional para tornar o perfilamento verificável: completude, acurácia plausível, consistência, atualidade, credibilidade, rastreabilidade, compreensibilidade e confidencialidade.</p>
+        <table>
+          <thead><tr><th>Dimensão</th><th>Pergunta operacional</th><th>Evidência no Olist</th></tr></thead>
+          <tbody>
+            <tr><td>Completude</td><td>Que valor falta e qual processo explica a ausência?</td><td>% nulo por coluna e status do pedido</td></tr>
+            <tr><td>Consistência</td><td>As regras concordam entre tabelas?</td><td>entregue sem data; item sem pedido</td></tr>
+            <tr><td>Atualidade</td><td>O período ainda serve à decisão proposta?</td><td>mínimo, máximo e lacunas temporais</td></tr>
+            <tr><td>Rastreabilidade</td><td>Outra pessoa consegue refazer o número?</td><td>consulta salva, filtros e grão documentados</td></tr>
+            <tr><td>Compreensibilidade</td><td>Nome, unidade e semântica estão claros?</td><td>dicionário das colunas utilizadas</td></tr>
+          </tbody>
+        </table>
+
+        <h3>8.3.2 Da observação para uma regra testável</h3>
+        <p>A ISO/TS 8000-82 conecta perfilamento e criação de regras. Uma regra útil contém escopo, condição, medida, tolerância e ação. “A coluna tem poucos nulos” não é regra. “Entre pedidos com status <code>delivered</code>, pelo menos 99,9% devem ter <code>order_delivered_customer_date</code>; violações são listadas e investigadas” é testável.</p>
+        <ol class="steps">
+          <li>Escolha um campo crítico para uma decisão, não o campo mais fácil.</li>
+          <li>Descreva o domínio esperado, incluindo nulos e exceções legítimas.</li>
+          <li>Escreva a regra em linguagem de negócio antes do SQL.</li>
+          <li>Defina numerador, denominador, limiar e período.</li>
+          <li>Implemente a consulta de conformidade e uma consulta que liste violações.</li>
+          <li>Classifique cada violação como defeito, estado do processo ou ausência esperada.</li>
+          <li>Registre o impacto: aceitar, sinalizar, excluir ou impedir a análise.</li>
+        </ol>
+
+        <div class="audit-template">
+          <strong>Modelo de <code>docs/01_brief_e_qualidade.md</code></strong>
+          <p><code>Público → tarefa → decisão → consequência do erro → tabela/grão → regra → medida observada → exceções → limitação → perguntas autorizadas → perguntas proibidas.</code></p>
+        </div>
+
         <h2>9. Laboratório — descobrir o Olist</h2>
         <p>Duração aproximada de duas horas e dez minutos, das 10h00 às 12h10. Seis etapas. Ao final você terá cinco perguntas salvas e o documento de discovery escrito.</p>
 
@@ -363,7 +404,7 @@ olist_orders ──────────────► olist_order_reviews
           </thead>
           <tbody>
             <tr><td>Metabase</td><td>Coleção com o seu nome contendo pelo menos cinco perguntas salvas e nomeadas de forma descritiva, incluindo a série mensal e a junção com itens</td></tr>
-            <tr><td>Repositório</td><td><code>docs/01_discovery.md</code> com o perfil das nove tabelas, os problemas de qualidade encontrados e as dez perguntas de negócio</td></tr>
+            <tr><td>Repositório</td><td><code>docs/01_brief_e_qualidade.md</code> com contexto, perfil das nove tabelas, regras, limitações e as dez perguntas de negócio</td></tr>
           </tbody>
         </table>
 

@@ -131,6 +131,12 @@
       </section>
 
       <section class="content-block">
+        <h2>7.1 Protocolo de categorização e risco de invisibilidade</h2>
+        <p>Uma categoria não apenas descreve o mundo: ela decide quais diferenças contam. Agrupar sinônimos, escolher um “top N”, converter texto em tema ou tratar uma escala ordinal como número produz consequências analíticas. Por isso toda transformação categórica precisa ser versionada e auditável.</p>
+        <ol class="steps"><li>Liste o domínio completo, frequências, nulos e variações de escrita.</li><li>Classifique o campo como nominal, ordinal, hierárquico, relacional ou textual.</li><li>Escreva regras de inclusão, exclusão, precedência e tratamento do nulo.</li><li>Meça quantos registros e categorias serão ocultados pelo corte.</li><li>Compare a conclusão antes e depois do agrupamento.</li><li>Procure grupos minoritários ou comportamentos opostos escondidos em “Outros”.</li><li>Registre versão, autor, data e impacto da regra.</li></ol>
+        <table><thead><tr><th>Gate</th><th>Critério de aceite</th></tr></thead><tbody><tr><td>Justificativa</td><td>o corte deriva de cobertura, limiar ou decisão — nunca do padrão da ferramenta</td></tr><tr><td>Transparência</td><td>“Outros” informa percentual do volume e quantidade de categorias</td></tr><tr><td>Sensibilidade</td><td>há comparação com pelo menos outro limiar</td></tr><tr><td>Reprodução</td><td>regra e consulta estão salvas</td></tr><tr><td>Viés</td><td>o documento declara quem perde visibilidade</td></tr></tbody></table>
+        <div class="audit-template"><strong>Modelo de <code>docs/04_protocolo_categorias.md</code></strong><p><code>Campo → semântica → domínio → regra → cobertura → perda → sensibilidade → risco de invisibilidade → versão.</code></p></div>
+
         <h2>8. Laboratório — categorias, hierarquia e texto</h2>
         <p>Duração aproximada de duas horas e dez minutos. A etapa mais importante é a segunda: a decisão de corte, que precisa ser declarada e defendida.</p>
 
@@ -181,7 +187,7 @@
           </thead>
           <tbody>
             <tr><td>Metabase</td><td>Ranking completo, ranking cortado, distribuição de score e análise de comentários por score</td></tr>
-            <tr><td>Repositório</td><td><code>docs/04_categoricos.md</code> com o critério de corte, a justificativa, o que se perde no corte e a defesa do tratamento dado ao score</td></tr>
+            <tr><td>Repositório</td><td><code>docs/04_protocolo_categorias.md</code> com taxonomia, regra, cobertura, perda, sensibilidade e risco de invisibilidade</td></tr>
           </tbody>
         </table>
 

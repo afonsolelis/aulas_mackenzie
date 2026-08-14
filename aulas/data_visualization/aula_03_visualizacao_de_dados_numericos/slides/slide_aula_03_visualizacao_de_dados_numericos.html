@@ -37,6 +37,7 @@
             <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
             <ul>
               <li>Os quatro trabalhos do gráfico numérico</li>
+              <li>Protocolo de integridade numérica</li>
               <li>Magnitude: barras e suas regras</li>
               <li>Distribuição: histograma e a escolha do intervalo</li>
               <li>Evolução: linha e granularidade temporal</li>
@@ -52,6 +53,7 @@
               <li>Comparação de magnitude entre categorias</li>
               <li>Dispersão preço contra frete</li>
               <li>Tratamento explícito de outliers</li>
+              <li>Registro da alternativa descartada</li>
             </ul>
           </article>
         </div>
@@ -86,6 +88,13 @@
         </div>
       </div>
     </div>
+
+    <!-- MÉTODO TRANSVERSAL -->
+    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Método C-D-P-V-D &middot; Aula 03</span><h2 class="deck-title">Número não escolhe gráfico; trabalho analítico escolhe</h2></div><div class="method-flow"><div class="method-step"><strong>Contexto</strong><span>Decisão e tolerância ao erro.</span></div><div class="method-step"><strong>Dados</strong><span>Distribuição, grão e qualidade.</span></div><div class="method-step is-current"><strong>Pergunta</strong><span>Magnitude, distribuição, evolução ou relação.</span></div><div class="method-step is-current"><strong>Visual</strong><span>Escala, agregação e codificação.</span></div><div class="method-step"><strong>Decisão</strong><span>Conclusão com incerteza declarada.</span></div></div></div></div>
+
+    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Protocolo numérico &middot; Antes de publicar</span><h2 class="deck-title">Seis decisões que o gráfico precisa declarar</h2></div><div class="quality-gates"><div class="quality-gate"><strong>Unidade</strong><span>R$, dias, pedidos, percentual ou taxa por base?</span></div><div class="quality-gate"><strong>Agregação</strong><span>Soma, média, mediana, percentil ou contagem distinta?</span></div><div class="quality-gate"><strong>Denominador</strong><span>De qual população este percentual é calculado?</span></div><div class="quality-gate"><strong>Escala</strong><span>Zero, log, intervalo e granularidade temporal.</span></div><div class="quality-gate"><strong>Incerteza</strong><span>Tamanho da amostra, dispersão e estabilidade.</span></div><div class="quality-gate"><strong>Limitação</strong><span>Outlier, ausência, viés e causalidade não demonstrada.</span></div></div></div></div>
+
+    <div class="slide"><div class="deck-shell is-dense"><div><span class="deck-kicker">Registro de decisão visual</span><h2 class="deck-title">Escolher também é documentar o que foi descartado</h2></div><table class="deck-table"><thead><tr><th>Campo</th><th>Exemplo</th><th>Teste</th></tr></thead><tbody><tr><td>Trabalho</td><td>Comparar prazo mediano entre estados</td><td>A pergunta é magnitude?</td></tr><tr><td>Candidatas</td><td>Barras, pontos, mapa</td><td>Qual usa canal mais preciso?</td></tr><tr><td>Escolha</td><td>Pontos ordenados</td><td>Diferenças permanecem legíveis?</td></tr><tr><td>Risco</td><td>Amostras pequenas parecem estáveis</td><td>Mostrar N e intervalo?</td></tr><tr><td>Decisão</td><td>Priorizar estados acima do P75</td><td>A ação decorre da evidência?</td></tr></tbody></table></div></div>
 
     <!-- SLIDE 4 - TESE -->
     <div class="slide">
@@ -507,7 +516,7 @@
           </article>
           <article class="deck-card">
             <h3>No repositório</h3>
-            <p><code>docs/03_numericos.md</code> com, para cada gráfico: o trabalho, o tipo escolhido, duas alternativas descartadas com motivo e as decisões de escala, granularidade e outliers.</p>
+            <p><code>docs/03_registro_numerico.md</code> com trabalho, cálculo, alternativas, escala, incerteza e limitações.</p>
           </article>
         </div>
       </div>

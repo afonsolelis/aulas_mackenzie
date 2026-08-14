@@ -151,6 +151,14 @@
       </section>
 
       <section class="content-block">
+        <h2>7.1 ISO 9241-110, heurísticas e teste baseado em tarefa</h2>
+        <p>Um dashboard não é uma coleção de gráficos: é uma interface. A ISO 9241-110 oferece sete princípios para avaliar a interação: adequação à tarefa, autodescrição, conformidade com expectativas, aprendizagem, controlabilidade, robustez a erros e engajamento. As heurísticas de Nielsen complementam a avaliação com visibilidade do estado, prevenção de erro, reconhecimento em vez de memorização e design minimalista.</p>
+        <table><thead><tr><th>Princípio</th><th>Pergunta no dashboard</th></tr></thead><tbody><tr><td>Adequação à tarefa</td><td>cada componente apoia uma decisão real?</td></tr><tr><td>Autodescrição</td><td>filtro, período, atualização e estado são evidentes?</td></tr><tr><td>Expectativa</td><td>cliques, filtros e navegação seguem convenções?</td></tr><tr><td>Controlabilidade</td><td>o usuário altera e desfaz o escopo?</td></tr><tr><td>Robustez a erros</td><td>combinações vazias ou inválidas são explicadas?</td></tr><tr><td>Aprendizagem</td><td>uma pessoa nova conclui a tarefa sem treinamento?</td></tr></tbody></table>
+
+        <h3>Protocolo de teste</h3>
+        <ol class="steps"><li>Defina perfil, cenário e decisão antes de recrutar a pessoa.</li><li>Escreva tarefas observáveis, como “identifique onde intervir primeiro”.</li><li>Registre resposta correta, limite de tempo e critérios de sucesso.</li><li>Peça que a pessoa pense em voz alta, sem ensinar o painel.</li><li>Colete sucesso, tempo, caminho, erros, hesitações e confiança.</li><li>Associe cada falha a uma heurística e severidade de 0 a 4.</li><li>Corrija a causa mais grave e repita a mesma tarefa com outra pessoa.</li></ol>
+        <div class="audit-template"><strong>Modelo de <code>docs/07_kpis_e_teste.md</code></strong><p><code>KPI/fórmula/dono/meta → usuário/tarefa → resultado esperado → observação → heurística → severidade → correção → reteste.</code></p></div>
+
         <h2>8. Laboratório — o dashboard do Olist</h2>
         <p>Duração aproximada de duas horas e dez minutos. O dashboard construído hoje é a base do projeto final da Aula 08.</p>
 
@@ -205,7 +213,7 @@
           </thead>
           <tbody>
             <tr><td>Metabase</td><td>Dashboard funcional com quatro indicadores, séries históricas, dois recortes de diagnóstico, filtros e um alerta configurado</td></tr>
-            <tr><td>Repositório</td><td><code>docs/07_kpis.md</code> com a decisão que o painel apoia, a ficha técnica dos quatro indicadores e a justificativa do estado inicial dos filtros</td></tr>
+            <tr><td>Repositório</td><td><code>docs/07_kpis_e_teste.md</code> com fichas técnicas, tarefas, achados, severidade, correções e reteste</td></tr>
           </tbody>
         </table>
 
