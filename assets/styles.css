@@ -113,6 +113,37 @@ a:focus { outline: 2px solid var(--accent); outline-offset: 2px; }
   position: relative;
   overflow: hidden;
 }
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 36px;
+  align-items: center;
+}
+.hub-qr {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  text-align: center;
+}
+.hub-qr img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.hub-qr figcaption {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.68em;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
 .hero::before {
   content: '';
   position: absolute;
@@ -599,6 +630,8 @@ body.material .page,
 
   .hero { padding: 24px 22px; }
   .hero h1 { font-size: 1.8em; }
+  .hero-content { grid-template-columns: 1fr; gap: 22px; }
+  .hub-qr { width: 150px; }
 
   .content-block { padding: 24px 22px; }
   .content-block h1 { font-size: 1.75em; }

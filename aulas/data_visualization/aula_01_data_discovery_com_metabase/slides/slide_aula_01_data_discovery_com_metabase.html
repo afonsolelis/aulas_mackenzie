@@ -57,6 +57,41 @@
       word-break: break-all;
     }
     .a01-cred dd::after { content: ""; display: block; }
+    .a01-cover-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 36px;
+      align-items: center;
+    }
+    .a01-entry-qr {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      padding: 14px;
+      border: 1px solid var(--deck-line);
+      border-radius: 4px;
+      background: var(--deck-panel);
+      text-align: center;
+    }
+    .a01-entry-qr img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .a01-entry-qr figcaption {
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-size: .62em;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+    @media (max-width: 900px) {
+      .a01-cover-grid { grid-template-columns: 1fr 150px; gap: 20px; }
+    }
+    @media (max-width: 600px) {
+      .a01-cover-grid { grid-template-columns: 1fr; }
+      .a01-entry-qr { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -67,13 +102,19 @@
     <!-- ============================================================ -->
     <div class="slide">
       <div class="deck-shell" data-aula-number="01" data-year="2026">
-        <div>
-          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
-          <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
-          <h1 class="deck-title">Data Discovery com Metabase</h1>
-          <p class="deck-meta">Aula 01 &nbsp;&bull;&nbsp; 15/08/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
-          <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Antes de escolher como mostrar, é preciso saber o que existe e o que se quer perguntar.</p>
+        <div class="a01-cover-grid">
+          <div>
+            <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+            <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+            <h1 class="deck-title">Data Discovery com Metabase</h1>
+            <p class="deck-meta">Aula 01 &nbsp;&bull;&nbsp; 15/08/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+            <p class="deck-year">2026</p>
+            <p class="deck-subtitle">Antes de escolher como mostrar, é preciso saber o que existe e o que se quer perguntar.</p>
+          </div>
+          <figure class="a01-entry-qr">
+            <img src="../../../../assets/qr_github_pages.svg" alt="QR code para acessar o Hub de Disciplinas">
+            <figcaption>Acesse os slides e materiais<br>afonsolelis.github.io/aulas_mackenzie</figcaption>
+          </figure>
         </div>
       </div>
     </div>
