@@ -888,11 +888,23 @@ echo "http://${ST_EC2_IP}:8501"
     </section>
 
     <section class="content-block">
-      <p>
+      <nav class="material-nav">
         <a href="../slides/slide_aula_06_data_warehousing_na_nuvem_de_alta_performance.html">Voltar aos slides desta aula</a>
-        &nbsp;&middot;&nbsp;
+        <span> &nbsp;&middot;&nbsp; </span>
         <a href="../../../../pages/home_cloud_sre.html">Índice do curso</a>
-      </p>
+        <button type="button" class="print-button" data-print
+                aria-label="Exportar este material em PDF"
+                title="Exportar em PDF (Ctrl+P)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+               stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+               aria-hidden="true" focusable="false">
+            <polyline points="6 9 6 2 18 2 18 9" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+            <rect x="6" y="14" width="12" height="8" />
+          </svg>
+          <span class="print-button-label">PDF</span>
+        </button>
+      </nav>
     </section>
 
   </main>
@@ -916,5 +928,6 @@ echo "http://${ST_EC2_IP}:8501"
       }
     });
   </script>
+  <script src="../../../../assets/print.js" defer></script>
 </body>
 </html>

@@ -738,3 +738,456 @@ body.material .page,
   padding: 2px 7px;
   background: #ffffff;
 }
+
+/* --------------------------------------------------------------------------
+   14. Material  -  botao "Exportar PDF" (.print-button)
+   Acao (nao navegacao) que vive como ultimo item da .material-nav, depois do
+   CTA preto. Variante "outline" para nao competir com o CTA. Ver secao 15
+   para a folha de impressao e assets/print.js para o comportamento.
+   -------------------------------------------------------------------------- */
+
+.print-button {
+  /* <button> nao herda tipografia nem caixa: resetamos tudo explicitamente */
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  font-weight: 600;
+  line-height: 1.65;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
+}
+
+.print-button svg {
+  flex-shrink: 0;
+  display: block;
+}
+
+.print-button-label { white-space: nowrap; }
+
+/* A secao 11 oculta TODO <span> da barra (o separador "&middot;" e redundante ali).
+   Esse seletor (.material-nav span) e mais especifico que .print-button-label,
+   entao o rotulo do botao precisa ser reativado explicitamente. */
+.material-nav .print-button-label { display: inline; }
+
+/* #bcbcb5 é a borda de hover já usada por .card:hover — reaproveitada aqui */
+.print-button:hover {
+  background: var(--surface);
+  border-color: #bcbcb5;
+}
+
+/* Mesmo padrao do "a:focus" global (secao 2) */
+.print-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.print-button:active { transform: translateY(1px); }
+
+/* --- Dentro da barra flutuante (secao 11) --------------------------------- */
+
+/* .material-nav ja aplica font-mono 0.78em: aqui voltamos para 1em para nao
+   compor 0.78 x 0.78, e igualamos padding/altura aos .material-nav a. */
+.material-nav .print-button {
+  position: relative;
+  align-self: stretch;  /* altura identica aos links, sem numero magico */
+  margin-left: 6px;     /* 6px de gap da barra + 6px = 12px, espaco do divisor */
+  padding: 7px 12px;
+  font-size: 1em;
+}
+
+/* Divisor vertical: separa ACAO de NAVEGACAO. Fica no meio do gap de 12px,
+   fora da caixa do botao. Escopo em .material-nav para que um .print-button
+   solto (ex.: dentro de footer.actions) nao ganhe um divisor orfao. */
+.material-nav .print-button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -7px;
+  width: 1px;
+  height: 18px;
+  margin-top: -9px;
+  background: var(--line);
+  pointer-events: none;
+}
+
+/* --- Dentro do rodape .actions (materiais sem .material-nav) --------------
+   Nao precisa de regra propria: a base ja replica .button (secao 5) —
+   mesma fonte mono 0.78em, mesmo padding 8px 14px, mesma borda e raio. */
+
+/* --- Responsivo ----------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  /* Barra apertada: o botao vira so o icone, em caixa quadrada. O aria-label
+     e o title continuam descrevendo a acao. A altura vem do align-self:
+     stretch, entao o icone (14px) nunca fica mais baixo que os links. */
+  .material-nav .print-button {
+    margin-left: 4px;
+    padding: 0 10px;   /* mesma respiracao horizontal dos links no mobile */
+    gap: 0;
+    justify-content: center;
+  }
+  .material-nav .print-button::before {
+    left: -5px;
+    height: 14px;
+    margin-top: -7px;
+  }
+  .material-nav .print-button-label { display: none; }
+
+  /* Guarda anti-overflow: com 3 links + botao a barra full-width pode estourar
+     em telas estreitas. Os links secundarios encolhem com reticencias; o CTA
+     preto (ultimo <a>) e o botao nunca encolhem. Escopo em :has(.print-button)
+     para nao alterar materiais que ainda nao receberam o botao. */
+  .material-nav:has(.print-button) a {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .material-nav:has(.print-button) a:last-of-type { flex-shrink: 0; }
+}
+
+@media (max-width: 400px) {
+  .material-nav .print-button { padding: 0 7px; }
+}
+
+/* --------------------------------------------------------------------------
+   SNIPPET HTML CANONICO  -  copiar literalmente para dentro da <nav class=
+   "material-nav"> (ou do <footer class="actions">), SEMPRE como ultimo item,
+   depois do link "Ver Slide". Nao altera qual <a> e :last-of-type, porque
+   :last-of-type conta por tipo de elemento e este e um <button>.
+
+<button type="button" class="print-button" data-print
+        aria-label="Exportar este material em PDF"
+        title="Exportar em PDF (Ctrl+P)">
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+       stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+       aria-hidden="true" focusable="false">
+    <polyline points="6 9 6 2 18 2 18 9" />
+    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+    <rect x="6" y="14" width="12" height="8" />
+  </svg>
+  <span class="print-button-label">PDF</span>
+</button>
+
+   E, antes de </head>, o script compartilhado (materiais estao em
+   aulas/<disciplina>/<aula>/material/, logo quatro niveis acima):
+
+<script src="../../../../assets/print.js" defer></script>
+
+   -------------------------------------------------------------------------- */
+
+/* --------------------------------------------------------------------------
+   15. Impressao  -  folha editorial A4 para exportar o material em PDF
+   Objetivo: o material impresso deve parecer uma apostila, nao uma captura de
+   tela. Removemos profundidade e cromo de navegacao, invertemos o code block
+   para tema claro (economia de tinta) e preservamos apenas os acentos pretos
+   que carregam a identidade editorial.
+   -------------------------------------------------------------------------- */
+
+/* Utilitarios de visibilidade (o par .no-print fica dentro do @media print) */
+.print-only { display: none; }
+
+@media print {
+
+  /* --- 15.1 Pagina ------------------------------------------------------- */
+
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
+    line-height: 1.5;
+    letter-spacing: 0;
+  }
+
+  /* --- 15.2 Neutralizacao de tudo que quebra impressao ------------------- */
+
+  /* Cromo de navegacao e utilitarios */
+  .material-nav,
+  .print-button,
+  .no-print,
+  .material footer.actions {
+    display: none !important;
+  }
+
+  .print-only { display: block; }
+
+  /* CRITICO: min-height:100vh (secao 6) gera paginas em branco no fim do PDF */
+  .material,
+  .material .slide,
+  body.material {
+    min-height: 0 !important;
+    height: auto !important;
+  }
+
+  /* Profundidade, desfoque e movimento nao existem no papel */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* transform e resetado FORA do SVG: o atributo transform="" usado pelos
+     diagramas (Mermaid nas aulas 03/04/06 de cloud_sre) e mapeado como
+     propriedade CSS, entao um "transform: none !important" global desmontaria
+     o desenho inteiro na impressao. */
+  *:not(svg):not(svg *),
+  *:not(svg)::before,
+  *:not(svg)::after {
+    transform: none !important;
+  }
+
+  .page {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  img,
+  svg { max-width: 100%; height: auto; }
+
+  /* --- 15.3 Hero --------------------------------------------------------- */
+
+  .hero {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    padding: 16px 0 18px;
+    margin: 0 0 18px;
+    break-inside: avoid;
+    break-after: avoid;   /* o titulo nunca fica sozinho no fim da pagina */
+  }
+
+  .hero[data-year]::after { display: none; }   /* numeral gigante decorativo */
+
+  .logo-full { height: 34px; margin-bottom: 12px; }
+
+  .hero-content { grid-template-columns: minmax(0, 1fr) 120px; gap: 20px; }
+  .hub-qr { padding: 8px; break-inside: avoid; }
+
+  .hero h1 { font-size: 1.95em; break-after: avoid; }
+  .hero p  { font-size: 1em; }
+  .hero .meta { margin-top: 12px; }
+
+  /* --- 15.4 Content block ------------------------------------------------ */
+
+  /* No papel a "caixa" nao faz sentido: o conteudo flui e a regra preta de
+     topo vira o divisor de secao. */
+  .content-block {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    padding: 16px 0 0;
+    margin: 0 0 22px;
+    break-inside: auto;   /* blocos longos devem paginar livremente */
+  }
+
+  /* Acento editorial preservado de proposito */
+  .content-block::before,
+  .hero::before {
+    background: #000000 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .content-block h1 { font-size: 1.9em; }
+  .content-block h2 { font-size: 1.35em; margin: 26px 0 12px; }
+  .content-block h3 { font-size: 1.1em;  margin: 20px 0 8px; }
+  .content-block p,
+  .content-block ul,
+  .content-block ol { max-width: none; }
+  .summary { font-size: 1.02em; max-width: none; }
+
+  /* --- 15.5 Paginacao ---------------------------------------------------- */
+
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  p, li { orphans: 3; widows: 3; }
+
+  table,
+  .note,
+  .tip,
+  .warning,
+  .danger,
+  .method-step,
+  .audit-template,
+  blockquote,
+  figure,
+  pre {
+    break-inside: avoid;
+  }
+
+  tr, img { break-inside: avoid; }
+
+  thead { display: table-header-group; }   /* repete o header a cada pagina */
+  tfoot { display: table-footer-group; }
+
+  /* --- 15.6 Tabelas ------------------------------------------------------ */
+
+  .content-block table { font-size: 0.9em; margin: 14px 0; }
+
+  .content-block th,
+  .content-block td {
+    padding: 7px 9px;
+    overflow-wrap: break-word;
+  }
+
+  /* As duas regras pretas sao a assinatura da tabela editorial */
+  .content-block thead th,
+  .content-block tbody tr:last-child td {
+    border-color: #000000 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .content-block tbody tr:hover td { background: transparent; }
+
+  /* --- 15.7 Code blocks: dark -> tema claro de impressao ----------------- */
+
+  /* Fundo escuro consome tinta e vira mancha preta quando o usuario desliga
+     "imprimir cores de fundo". Em tela o <pre> tem scroll horizontal, que nao
+     existe no papel: por isso pre-wrap + quebra de palavra. */
+  .content-block pre {
+    background: #f6f7f8 !important;
+    color: #0f0f0f !important;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    font-size: 0.82em;
+    line-height: 1.55;
+    overflow: visible;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Os tres dots de "terminal chrome" nao fazem sentido impressos */
+  .content-block pre::before { display: none; }
+
+  .content-block pre code { color: inherit; background: transparent; }
+
+  .content-block code {
+    background: transparent;
+    border: 1px solid var(--line-soft);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* --- 15.8 Callouts, steps e diagramas ---------------------------------- */
+
+  /* Fundo branco economiza tinta; a borda-esquerda de 3px continua marcando
+     o tipo do callout mesmo em impressao monocromatica. */
+  .content-block .tip,
+  .content-block .warning,
+  .content-block .danger,
+  .content-block .note,
+  .content-block blockquote.tip,
+  .content-block blockquote.warning,
+  .content-block blockquote.danger,
+  .audit-template {
+    background: #ffffff !important;
+    padding: 12px 16px;
+    margin: 14px 0;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* 5 colunas nao cabem em A4: duas colunas mantem o texto legivel */
+  .method-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .method-step { padding: 12px 14px; }
+  .method-step.is-current {
+    border: 2px solid #000000;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .content-block ol.steps > li::before {
+    background: transparent;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* --- 15.9 Links -------------------------------------------------------- */
+
+  a {
+    color: #000000 !important;
+    text-decoration: none;
+  }
+
+  .content-block a {
+    text-decoration: underline;
+    text-decoration-thickness: 0.5pt;
+    text-underline-offset: 2px;
+  }
+
+  /* Link externo: a URL vira nota entre parenteses, senao o PDF perde o destino */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    font-weight: 400;
+    color: var(--muted);
+    word-break: break-all;
+    text-decoration: none;
+  }
+
+  /* Ancoras e caminhos internos nao ganham URL */
+  a[href^="#"]::after,
+  a[href^="."]::after,
+  a[href^="/"]::after,
+  a[href^="mailto:"]::after {
+    content: "";
+  }
+
+  /* --- 15.10 Rodape de procedencia injetado por assets/print.js ---------- */
+
+  .print-source {
+    margin-top: 26px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.72em;
+    line-height: 1.55;
+    color: var(--muted);
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-source span {
+    display: block;
+    word-break: break-all;
+  }
+}
