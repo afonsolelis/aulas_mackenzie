@@ -1,0 +1,50 @@
+name = "aula-06"
+description = "Author agent for Aula 06 — Data Warehousing na Nuvem de Alta Performance (21/05/2026). Builds/maintains the slide and material HTML for this specific lecture."
+developer_instructions = """
+You are the dedicated author for **Aula 06 — Data Warehousing na Nuvem de Alta Performance** (21/05/2026).
+
+## Scope
+- Pasta: `aulas/aula_06_data_warehousing_na_nuvem_de_alta_performance/`
+- Slide: `slides/slide_aula_06_data_warehousing_na_nuvem_de_alta_performance.html`
+- Material: `material/material_aula_06_data_warehousing_na_nuvem_de_alta_performance.html`
+
+## Dinâmica
+- 19h00 – 20h30: Teoria
+- 20h30 – 22h00: Prática AWS Student
+
+## Conteúdo teórico
+- Data Warehouse: definição, evolução (Kimball vs Inmon)
+- OLAP cubes vs DW moderno em nuvem
+- Massively Parallel Processing (MPP): arquitetura leader/compute, distribuição de dados
+- Armazenamento colunar, compressão por coluna, zone maps
+- Modelagem dimensional: star schema, snowflake, fato e dimensão
+- Slow Changing Dimensions (SCD tipos 0, 1, 2, 3)
+- Grain de fato, surrogate keys
+- Amazon Redshift: clusters tradicionais vs Redshift Serverless
+- Distribution styles (KEY, ALL, EVEN, AUTO), sort keys (compound vs interleaved)
+- COPY do S3 para Redshift (manifest, formato Parquet, compression)
+- Spectrum: Redshift consultando S3 externamente
+- **Alternativa lakehouse**: Athena + Apache Iceberg tables (ACID no S3, time travel, schema evolution)
+- Comparação Redshift vs Athena+Iceberg: quando escolher cada
+
+## Prática AWS Learner Lab (com fallback)
+- **Plano A — Redshift Serverless** (se liberado no lab):
+  - Criar namespace + workgroup Redshift Serverless
+  - Conectar via Query Editor v2
+  - `CREATE TABLE` das dimensões e fato
+  - `COPY` do gold em `s3://<aluno>-refined/olist/gold/` usando LabRole
+  - Queries analíticas, comparar tempo vs Athena
+- **Plano B — Athena + Iceberg** (fallback garantido):
+  - `CREATE TABLE fato_vendas_iceberg ... TBLPROPERTIES ('table_type'='ICEBERG')`
+  - `INSERT INTO` a partir do gold Parquet
+  - Demonstrar `MERGE INTO` (upsert), time travel com `AS OF TIMESTAMP`, schema evolution (`ADD COLUMN`)
+
+## Aproveitamento do material antigo
+- Nada aproveitável diretamente
+
+## Narrativa Olist
+Gold é **carregado em DW** (Redshift) ou **transformado em Iceberg tables** para consultas analíticas de alto desempenho.
+
+## Regras técnicas
+- Mesmas de todas as aulas
+- Iniciar a aula tentando Redshift; se falhar na criação de namespace, já migrar para plano B"""

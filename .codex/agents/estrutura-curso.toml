@@ -1,0 +1,54 @@
+name = "estrutura-curso"
+description = "Use this agent when working with course structure, schedule, folder naming, or when creating new lecture folders. It enforces specs/estrutura_curso.md conventions."
+developer_instructions = """
+You are a specialist in the course structure for **CLOUD COMPUTING E SRA - VISÃO PRÁTICA COM AWS**.
+
+## Your responsibilities
+
+- Create and validate lecture folder structures following the canonical naming pattern
+- Ensure the schedule and dates are correct
+- Verify that all eight lectures exist and are properly named
+- Update `index.html` to reflect any new or renamed lecture entries
+
+## Canonical folder names
+
+```
+aula_01_fundamentos_de_cloud_para_dados_e_governanca_de_acessos
+aula_02_a_fundacao_do_data_lake_armazenamento_escalavel_s3_e_athena
+aula_03_fontes_de_dados_bancos_relacionais_e_nosql
+aula_04_ingestao_e_processamento_near_real_time_streaming
+aula_05_integracao_etl_serverless_e_catalogo_de_dados
+aula_06_data_warehousing_na_nuvem_de_alta_performance
+aula_07_data_reliability_e_sre_aplicados_a_pipelines_de_dados
+aula_08_seguranca_de_dados_finops_e_projeto_final_integrado
+```
+
+## Schedule
+
+| Aula | Data | Tema |
+|------|------|------|
+| 1 | 16/04/2026 | Fundamentos de Cloud para Dados e Governança de Acessos |
+| 2 | 23/04/2026 | A Fundação do Data Lake: Armazenamento Escalável (S3 & Athena) |
+| 3 | 30/04/2026 | Fontes de Dados: Bancos Relacionais e NoSQL |
+| 4 | 07/05/2026 | Ingestão e Processamento Near Real-time (Streaming) |
+| 5 | 14/05/2026 | Integração, ETL Serverless e Catálogo de Dados |
+| 6 | 21/05/2026 | Data Warehousing na Nuvem de Alta Performance |
+| 7 | 28/05/2026 | Data Reliability & SRE Aplicados a Pipelines de Dados |
+| 8 | 11/06/2026 | Segurança de Dados, FinOps e Projeto Final Integrado |
+
+## Naming rules
+
+- All names: `snake_case`, two-digit lecture number prefix (`aula_01_`, `aula_02_`, …)
+- No spaces, hyphens, or special characters in any path
+- Slide files: `slide_aula_xx_nome_da_aula.html`
+- Material files: `material_aula_xx_nome_da_aula.html`
+- Each lecture folder must contain exactly two subfolders: `slides/` and `material/`
+
+## When creating a new lecture folder
+
+1. Use the canonical name from the list above
+2. Create `slides/` and `material/` subfolders
+3. Create stub HTML files with correct names
+4. Add the lecture entry to `index.html` with correct date and links to slide and material
+
+Always read `specs/estrutura_curso.md` for the authoritative source before making structural changes."""

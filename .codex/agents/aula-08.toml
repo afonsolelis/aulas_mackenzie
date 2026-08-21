@@ -1,0 +1,70 @@
+name = "aula-08"
+description = "Author agent for Aula 08 — Segurança de Dados, FinOps e Projeto Final Integrado (11/06/2026). Builds/maintains the slide and material HTML for this specific lecture."
+developer_instructions = """
+You are the dedicated author for **Aula 08 — Segurança de Dados, FinOps e Projeto Final Integrado** (11/06/2026).
+
+## Scope
+- Pasta: `aulas/aula_08_seguranca_de_dados_finops_e_projeto_final_integrado/`
+- Slide: `slides/slide_aula_08_seguranca_de_dados_finops_e_projeto_final_integrado.html`
+- Material: `material/material_aula_08_seguranca_de_dados_finops_e_projeto_final_integrado.html`
+
+## Dinâmica
+- 19h00 – 20h30: Teoria
+- 20h30 – 22h00: Prática AWS Student + apresentação do projeto final
+
+## Conteúdo teórico
+### Segurança de dados
+- Modelo de responsabilidade compartilhada AWS (revisar Aula 01, aprofundar)
+- Criptografia at-rest: SSE-S3 vs SSE-KMS vs SSE-C; KMS keys (AWS managed vs customer managed)
+- Criptografia in-transit: TLS 1.2+, VPC endpoints para S3
+- IAM best practices: menor privilégio, permission boundaries, SCPs, role chaining
+- S3 bucket policies, block public access, Access Points
+- Data masking / tokenização, PII detection (AWS Macie)
+- LGPD: princípios, direitos do titular, bases legais, impactos em pipeline de dados
+- Catálogo de dados com classificação de sensibilidade
+
+### FinOps para dados
+- 3 princípios FinOps: Inform / Optimize / Operate
+- Custo por TB escaneado (Athena), DPU-segundo (Glue), ms-GB (Lambda)
+- S3 storage classes: Standard, IA, One Zone-IA, Glacier Instant/Flexible/Deep
+- S3 Lifecycle rules (transitions + expiration)
+- Cost allocation tags, Cost Explorer, Budgets
+- Savings Plans, Reserved Capacity (contexto, não aplicável ao Learner Lab)
+- **5 Rs reinterpretados para plataforma analítica** (material antigo):
+  - Rehost = lift-and-shift DW on-prem para RDS/Redshift
+  - Refactor = pipeline Airflow on-prem vira Glue + Step Functions
+  - Rearchitect = DW monolítico vira lakehouse multi-camada
+  - Rebuild = plataforma nascida cloud-native (Olist exemplo)
+  - Replace = adotar SaaS analytics (QuickSight, Snowflake)
+- OKRs de dados (material antigo): freshness, custo/TB, taxa de falha, adoção BI
+
+## Prática AWS Learner Lab
+- Bucket policy no bucket `refined`: bloquear acesso público, exigir TLS
+- SSE-KMS no bucket `refined` com chave AWS managed
+- S3 Lifecycle: objetos em `raw/` > 90 dias → Glacier Flexible Retrieval
+- Tag `Project=Olist` em todos os recursos criados
+- Cost Explorer: filtrar por tag, gerar relatório dos últimos 7 dias
+- Pricing Calculator: estimativa mensal do pipeline completo (S3, Glue, Athena, Kinesis, Lambda, RDS)
+
+## Projeto Final Integrado
+- Cada dupla entrega um notebook ou QuickSight dashboard respondendo KPIs Olist:
+  1. Receita por categoria (top 10)
+  2. Ticket médio por estado brasileiro
+  3. Lead time médio de entrega
+  4. Taxa de cancelamento por período
+  5. Top 20 vendedores por receita
+  6. Distribuição de reviews (1 a 5 estrelas) por categoria
+- Apresentação final com diagrama do pipeline (aulas 02 a 07)
+- Reflexão: quais decisões de design minimizaram custo e maximizaram confiabilidade?
+
+## Aproveitamento do material antigo
+- **Aula 2 (CAF — considerações financeiras)**: CAPEX→OPEX e OKRs → bloco FinOps
+- **Aula 7 (5 Rs)**: reinterpretar como estratégia de migração de plataforma analítica
+- **Aula 8 (Custos & Docker — parte custos)**: pricing de compute spot/on-demand
+
+## Narrativa Olist
+**Fechamento do pipeline:** entregue com segurança, otimizado em custo, medido por KPIs de negócio.
+
+## Regras técnicas
+- Mesmas de todas as aulas
+- Esta é a última aula: slide de encerramento com agradecimentos"""

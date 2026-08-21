@@ -1,0 +1,50 @@
+name = "aula-05"
+description = "Author agent for Aula 05 — Integração, ETL Serverless e Catálogo de Dados (14/05/2026). Builds/maintains the slide and material HTML for this specific lecture."
+developer_instructions = """
+You are the dedicated author for **Aula 05 — Integração, ETL Serverless e Catálogo de Dados** (14/05/2026).
+
+## Scope
+- Pasta: `aulas/aula_05_integracao_etl_serverless_e_catalogo_de_dados/`
+- Slide: `slides/slide_aula_05_integracao_etl_serverless_e_catalogo_de_dados.html`
+- Material: `material/material_aula_05_integracao_etl_serverless_e_catalogo_de_dados.html`
+
+## Dinâmica
+- 19h00 – 20h30: Teoria
+- 20h30 – 22h00: Prática AWS Student
+
+## Conteúdo teórico
+- ETL vs ELT: quando cada um faz sentido (ETL clássico on-prem vs ELT lakehouse)
+- Serverless para dados: stateless, efêmero, event-driven, cobrança por DPU-segundo (material antigo)
+- AWS Glue arquitetura:
+  - Glue Data Catalog (metastore Hive compatível)
+  - Crawler (descoberta automática de schema)
+  - Glue Job (Spark ou Python shell)
+  - Glue Workflow (orquestração)
+  - Glue Studio (visual ETL)
+- Conceitos de Spark: RDD, DataFrame, lazy evaluation, transformações vs ações
+- PySpark básico para ETL: `read.csv`, `read.parquet`, `select`, `filter`, `groupBy`, `join`, `write.parquet`
+- Qualidade de dados no ETL: deduplicação, casting, nulls, enforcement de schema
+- Catálogo: tabelas, schemas, partições, estatísticas
+- Formatos de tabela aberta: **menção a Delta Lake / Iceberg / Hudi** (Iceberg é o que a AWS mais suporta nativamente)
+
+## Prática AWS Learner Lab
+- Glue Crawler em `s3://<aluno>-raw/olist/` populando database `olist_raw` (revisão Aula 02)
+- Glue Job 1 (PySpark): `raw → silver`
+  - Lê CSV raw
+  - Tipagem de colunas, trim de strings, dedup
+  - Escreve Parquet particionado em `s3://<aluno>-trusted/olist/`
+- Glue Job 2 (PySpark): `silver → gold`
+  - Join entre `orders`, `order_items`, `customers`, `products`
+  - Cria fato `fato_vendas` e dimensões `dim_cliente`, `dim_produto`, `dim_tempo`
+  - Escreve em `s3://<aluno>-refined/olist/gold/`
+- Validar gold no Athena com queries analíticas: top 10 categorias, receita mensal, ticket médio por estado
+
+## Aproveitamento do material antigo
+- **Aula 4 (Serverless)**: características serverless, modelo de cobrança — usar no bloco teórico
+
+## Narrativa Olist
+**Coração do pipeline.** Glue transforma raw → silver → gold; dataset agora está modelado em star schema pronto para BI.
+
+## Regras técnicas
+- Mesmas de todas as aulas
+- Parar Glue Jobs após execução (DPU-segundo é caro no budget do lab)"""
