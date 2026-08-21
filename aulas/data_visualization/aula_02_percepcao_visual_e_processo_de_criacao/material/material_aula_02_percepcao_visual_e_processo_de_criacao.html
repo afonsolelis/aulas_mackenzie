@@ -6,22 +6,6 @@
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <title>Material Aula 02 — Percepção Visual e Processo de Criação</title>
   <link rel="stylesheet" href="../../../../assets/styles.css">
-  <style>
-    /* Escopo local da Aula 02 — grade da demonstração pré-atentiva. */
-    .content-block .m02-grid {
-      font-family: var(--font-mono);
-      font-size: 1.05em;
-      letter-spacing: .3em;
-      line-height: 1.9;
-      text-align: center;
-      padding: 20px;
-      border: 1px solid var(--line);
-      border-radius: 4px;
-      background: #fff;
-      margin: 16px 0;
-    }
-    .content-block .m02-hit { font-weight: 800; }
-  </style>
 </head>
 <body>
   <main class="page">
@@ -42,305 +26,284 @@
 
       <section class="content-block">
         <h2>1. Visão geral</h2>
-        <p>Na Aula 01 você descobriu o que os dados do Olist contêm e escreveu as perguntas que quer responder. Esta aula trata do outro lado da equação: o que acontece no sistema visual de quem vai olhar o resultado.</p>
-        <p>A tese central é que um gráfico não é decoração de dados — é uma interface com o sistema visual humano. Esse sistema tem propriedades conhecidas e mensuradas há décadas: certas coisas ele processa em milissegundos, sem esforço consciente; outras exigem leitura sequencial e atenção deliberada. Saber quais são umas e outras transforma a escolha de representação de matéria de gosto em matéria de adequação.</p>
-        <p>A consequência prática é direta. Duas pessoas podem legitimamente discordar sobre qual gráfico é mais bonito. Não podem discordar sobre qual dos dois permite comparar valores com mais precisão — isso é uma questão empírica com resposta conhecida.</p>
+        <p>Esta aula continua diretamente o trabalho iniciado na Aula 01. Depois de conhecer as nove tabelas do Olist, reconhecer o grão de cada uma e formular perguntas respondíveis, chegou o momento de transformar esse raciocínio em consultas e representações persistentes no Metabase.</p>
+        <p>Percepção visual não será tratada como uma lista abstrata de regras. Cada princípio será usado para tomar uma decisão concreta na ferramenta: escolher barras para comparar estados, escolher linha para preservar a continuidade do tempo, ordenar categorias por magnitude, aproximar títulos da pergunta que o gráfico responde e retirar elementos que competem com a mensagem.</p>
+        <p>A dinâmica alterna explicação, demonstração e execução. O professor apresenta um conceito ou constrói um trecho da solução; logo depois, a turma reproduz o processo na instância compartilhada. Cada ciclo termina com validação do resultado antes do próximo ciclo começar.</p>
+
+        <h3>Resultados esperados</h3>
+        <ul>
+          <li>construir uma pergunta com junção, filtro, sumarização e agrupamento;</li>
+          <li>explicar por que o grão muda — ou não muda — depois de uma junção;</li>
+          <li>escolher barras para comparação categórica e linha para evolução temporal;</li>
+          <li>formatar títulos, ordem, eixos e unidades para reduzir ambiguidade;</li>
+          <li>combinar duas perguntas salvas em um dashboard com filtro compartilhado;</li>
+          <li>validar a leitura do gráfico com outra pessoa antes de considerar o trabalho pronto.</li>
+        </ul>
       </section>
 
       <section class="content-block">
-        <h2>2. Processamento pré-atentivo</h2>
-        <p>Existe uma classe de propriedades visuais que o cérebro detecta antes de qualquer decisão consciente de olhar, tipicamente em menos de 250 milissegundos. São chamadas de atributos pré-atentivos.</p>
-
-        <h3>2.1 Uma demonstração</h3>
-        <p>Conte quantos algarismos 5 existem na grade abaixo:</p>
-
-        <div class="m02-grid">
-          7 4 9 2 6 1 8 3 5 0 4 7<br>
-          2 5 8 1 9 6 3 7 0 4 2 8<br>
-          6 3 1 5 7 0 9 4 2 8 6 1<br>
-          9 7 2 8 4 5 1 6 3 0 7 9
-        </div>
-
-        <p>Agora conte de novo. Os dados são exatamente os mesmos; apenas um atributo visual mudou:</p>
-
-        <div class="m02-grid">
-          7 4 9 2 6 1 8 3 <span class="m02-hit">5</span> 0 4 7<br>
-          2 <span class="m02-hit">5</span> 8 1 9 6 3 7 0 4 2 8<br>
-          6 3 1 <span class="m02-hit">5</span> 7 0 9 4 2 8 6 1<br>
-          9 7 2 8 4 <span class="m02-hit">5</span> 1 6 3 0 7 9
-        </div>
-
-        <p>Na primeira grade você leu sequencialmente, algarismo por algarismo, e a contagem exigiu esforço e memória de trabalho. Na segunda, a resposta apareceu quase antes da decisão de procurar. Nenhum dado mudou: mudou o canal de codificação.</p>
-
-        <h3>2.2 O catálogo de atributos</h3>
+        <h2>2. Roteiro da aula</h2>
         <table>
           <thead>
-            <tr><th>Categoria</th><th>Atributos</th><th>Melhor uso</th></tr>
+            <tr><th>Horário</th><th>Condução</th><th>O que acontece</th></tr>
           </thead>
           <tbody>
-            <tr><td>Forma</td><td>Orientação, comprimento, largura, tamanho, curvatura, formato</td><td>Codificar quantidade</td></tr>
-            <tr><td>Cor</td><td>Matiz, intensidade, saturação</td><td>Destacar exceção ou separar grupos</td></tr>
-            <tr><td>Movimento</td><td>Piscar, direção de movimento</td><td>Alerta — raramente apropriado em relatório</td></tr>
-            <tr><td>Posição espacial</td><td>Posição bidimensional, agrupamento</td><td>Comparação precisa de valores</td></tr>
+            <tr><td>8h30&ndash;8h45</td><td>Professor explica</td><td>Retomada da Aula 01, objetivo e artefatos do dia</td></tr>
+            <tr><td>8h45&ndash;9h05</td><td>Professor explica</td><td>Construtor visual, grão, sumarização e escolha do gráfico</td></tr>
+            <tr><td>9h05&ndash;9h35</td><td>Turma faz</td><td>Atividade 1: pedidos entregues por estado</td></tr>
+            <tr><td>9h35&ndash;9h50</td><td>Discussão guiada</td><td>Leitura, interpretação e limites do primeiro gráfico</td></tr>
+            <tr><td>9h50&ndash;10h10</td><td>Professor explica</td><td>Séries temporais e integridade após junções</td></tr>
+            <tr><td>10h10&ndash;10h25</td><td>Intervalo</td><td>Pausa de 15 minutos</td></tr>
+            <tr><td>10h25&ndash;10h40</td><td>Professor demonstra</td><td>Consulta de valor pago por mês, do início ao fim</td></tr>
+            <tr><td>10h40&ndash;11h10</td><td>Turma faz</td><td>Atividade 2: reprodução da série temporal</td></tr>
+            <tr><td>11h10&ndash;11h25</td><td>Turma faz em pares</td><td>Teste de cinco segundos e revisão</td></tr>
+            <tr><td>11h25&ndash;11h40</td><td>Professor explica</td><td>Hierarquia, consistência e filtros de dashboard</td></tr>
+            <tr><td>11h40&ndash;12h00</td><td>Turma faz</td><td>Atividade 3: dashboard com dois cartões e filtro de estado</td></tr>
+            <tr><td>12h00&ndash;12h10</td><td>Fechamento</td><td>Verificação dos entregáveis e justificativa das escolhas</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>3. Ponto de partida: a coleção da Aula 01</h2>
+        <p>A instância do Metabase é compartilhada, mas o trabalho é individual. A coleção com o seu nome funciona como o espaço persistente da disciplina: consultas e dashboards construídos agora serão reutilizados nas aulas seguintes. Por isso, organização e nomenclatura não são detalhes administrativos; fazem parte da rastreabilidade da análise.</p>
+        <p>Acesse a <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a> com as mesmas credenciais da Aula 01. Antes de avançar, confirme que o banco <code>olist</code> aparece, que a coleção com o seu nome existe e que as perguntas da aula anterior continuam salvas.</p>
+
+        <div class="note">
+          <strong>Conta compartilhada</strong>
+          <p>Não edite nem apague artefatos de colegas. Quando quiser estudar uma pergunta criada por outra pessoa, use a ação de duplicar e salve a cópia na sua própria coleção. Essa prática preserva a autoria e evita que uma alteração afete o trabalho alheio.</p>
+        </div>
+
+        <div class="note">
+          <strong>Idioma da interface</strong>
+          <p>A instância está configurada em inglês. Por isso, o passo a passo usa os rótulos que aparecem na tela — <em>New</em>, <em>Question</em>, <em>Join data</em>, <em>Summarize</em>, <em>Row</em>, <em>Line</em> e <em>Dashboard</em> — acompanhados da explicação em português.</p>
+        </div>
+
+        <p>O backlog da Aula 01 continua relevante. As duas consultas guiadas desta aula fornecem uma base técnica comum à turma; depois, o mesmo repertório será aplicado às perguntas prioritárias de cada aluno.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. O construtor visual como registro do raciocínio</h2>
+        <p>O construtor visual do Metabase organiza a consulta em blocos. Esses blocos não são apenas controles de interface: cada um registra uma decisão analítica. Uma pergunta bem construída permite que outra pessoa reconheça a fonte, as relações, os filtros e a operação que produziu o número.</p>
+
+        <table>
+          <thead>
+            <tr><th>Bloco</th><th>Decisão registrada</th><th>Verificação</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Fonte</td><td>Tabela que define o ponto de partida</td><td>O que uma linha representa?</td></tr>
+            <tr><td>Juntar dados</td><td>Relação necessária para obter outro atributo</td><td>A relação é 1:1, 1:N ou N:N?</td></tr>
+            <tr><td>Filtro</td><td>Universo considerado pela pergunta</td><td>Quais registros foram excluídos?</td></tr>
+            <tr><td>Resumir</td><td>Métrica calculada</td><td>É contagem, soma, média ou valor distinto?</td></tr>
+            <tr><td>Agrupar por</td><td>Dimensão usada na comparação</td><td>Cada marca visual representa o quê?</td></tr>
+            <tr><td>Visualização</td><td>Canal perceptivo escolhido</td><td>A tarefa visual ficou simples?</td></tr>
+          </tbody>
+        </table>
+
+        <h3>4.1 O grão antes e depois da junção</h3>
+        <p>Em <code>olist_orders</code>, cada linha representa um pedido. A junção com <code>olist_customers</code> por <code>customer_id</code> é efetivamente 1:1 no conjunto: cada pedido referencia um registro de cliente. A contagem de linhas continua representando a contagem de pedidos.</p>
+        <p>A junção com <code>olist_order_payments</code> é diferente. Um pedido pode ter mais de um registro de pagamento, por exemplo quando há mais de uma forma ou sequência de pagamento. Depois dessa junção, contar linhas já não equivale necessariamente a contar pedidos. Para contar pedidos, seria preciso contar <code>order_id</code> distinto. Para calcular o valor recebido, somar <code>payment_value</code> é adequado porque os registros de pagamento compõem o total.</p>
+
+        <div class="note">
+          <strong>Pergunta de controle obrigatória</strong>
+          <p>Depois de qualquer junção, pare e formule em voz alta: “o que uma linha representa agora?”. Se a resposta não estiver clara, ainda não é seguro resumir os dados.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Percepção visual aplicada às duas perguntas</h2>
+        <p>Uma visualização deve facilitar o trabalho cognitivo exigido pela pergunta. Quando o objetivo é comparar categorias, o observador precisa julgar diferenças de magnitude. Barras colocam os valores numa base comum e representam quantidade por comprimento, um canal que as pessoas comparam com boa precisão.</p>
+        <p>Quando o objetivo é observar evolução, a ordem dos pontos é parte do significado. Uma linha conecta posições sequenciais e faz o olho acompanhar continuidade, mudança de direção e ritmo. Ordenar meses pelo valor seria tão incorreto quanto ordenar palavras de uma frase alfabeticamente: os elementos continuariam presentes, mas a estrutura desapareceria.</p>
+
+        <table>
+          <thead>
+            <tr><th>Pergunta</th><th>Tarefa visual</th><th>Representação</th><th>Ajuste necessário</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Quais estados concentram mais pedidos?</td><td>Comparar magnitudes</td><td>Barras</td><td>Ordenar do maior para o menor</td></tr>
+            <tr><td>Como o valor pago evolui por mês?</td><td>Seguir mudança no tempo</td><td>Linha</td><td>Preservar ordem cronológica</td></tr>
+          </tbody>
+        </table>
+
+        <h3>5.1 Título, unidade e recorte</h3>
+        <p>O título precisa declarar o que foi calculado, não apenas nomear o assunto. “Pedidos por estado” deixa em aberto se os pedidos são criados, aprovados, enviados ou entregues. “Pedidos entregues por estado” revela o filtro essencial. Do mesmo modo, o eixo de <code>payment_value</code> precisa ser formatado como moeda; sem unidade, o leitor não sabe se observa reais, milhares, contagens ou índices.</p>
+        <p>Use destaque com parcimônia. Quando tudo recebe cor, rótulo, borda e negrito, nada se torna prioritário. Nesta aula, a hierarquia virá da posição, do tamanho do cartão, da ordenação e de títulos claros, sem cores decorativas.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Atividade 1 — Pedidos entregues por estado</h2>
+        <p>A primeira atividade constrói uma comparação categórica. A pergunta é: <em>quais estados concentram mais pedidos entregues?</em> A métrica é a quantidade de pedidos, a dimensão é o estado do cliente, o universo inclui apenas pedidos com status <code>delivered</code> e a decisão possível é onde priorizar acompanhamento operacional.</p>
+
+        <h3>6.1 Construir a consulta</h3>
+        <ol class="steps">
+          <li>Na página inicial do Metabase, clique em <strong>+ New</strong> e escolha <strong>Question</strong>.</li>
+          <li>Selecione o banco <code>olist</code> e use <code>olist_orders</code> como tabela inicial. O grão neste ponto é uma linha por pedido.</li>
+          <li>Adicione o bloco <strong>Join data</strong> e escolha <code>olist_customers</code>.</li>
+          <li>Confirme a condição <code>olist_orders.customer_id = olist_customers.customer_id</code>. Se o Metabase sugerir a relação automaticamente, ainda assim leia os dois campos antes de aceitar.</li>
+          <li>Adicione um filtro em <code>order_status</code>, selecione a condição de igualdade e marque apenas <code>delivered</code>.</li>
+          <li>Adicione <strong>Summarize</strong>, escolha <strong>Count of rows</strong> e agrupe por <code>customer_state</code> da tabela de clientes.</li>
+          <li>Execute a consulta e confira se o resultado contém uma linha por sigla de estado, acompanhada de uma contagem.</li>
+        </ol>
+
+        <h3>6.2 Construir a visualização</h3>
+        <ol class="steps">
+          <li>Ordene a coluna de contagem do maior para o menor. A ordenação por magnitude reduz a busca e torna o ranking visível.</li>
+          <li>Escolha <strong>Row</strong>, o gráfico de barras horizontais indicado pelo Metabase para muitas categorias. Se a opção disponível for apenas <strong>Bar</strong>, use barras e confirme que as siglas continuam legíveis.</li>
+          <li>Use o título <strong>Pedidos entregues por estado</strong>. Não use “Gráfico 1” ou “Análise por UF”.</li>
+          <li>Mantenha a escala começando em zero e remova elementos que não ajudam a comparar as barras.</li>
+          <li>Salve a pergunta na coleção com o seu nome usando <code>A02_01_pedidos_entregues_por_estado</code>.</li>
+        </ol>
+
+        <h3>6.3 Validar antes de avançar</h3>
+        <ul>
+          <li>cada barra representa um estado, não um cliente nem uma cidade;</li>
+          <li>o filtro <code>delivered</code> está visível na consulta;</li>
+          <li>a ordem é decrescente;</li>
+          <li>o título informa métrica, recorte e dimensão;</li>
+          <li>a pergunta está salva na coleção correta.</li>
+        </ul>
+
+        <div class="note">
+          <strong>Leitura não é interpretação</strong>
+          <p>Dizer que São Paulo possui a maior barra é leitura do resultado. Dizer que o desempenho operacional de São Paulo é melhor seria interpretação sem suporte: volume não mede qualidade. O gráfico responde onde há mais pedidos entregues, mas não explica participação de mercado, atraso, satisfação ou eficiência.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Séries temporais e integridade da métrica</h2>
+        <p>A segunda consulta combina três tipos de informação: data e status em <code>olist_orders</code>, valor em <code>olist_order_payments</code> e estado em <code>olist_customers</code>. O campo geográfico não será exibido na linha, mas precisa estar disponível para que o futuro filtro do dashboard controle o cartão.</p>
+        <p>A métrica escolhida é a soma de <code>payment_value</code>. Como um pedido pode ter mais de um registro de pagamento, a soma agrega os componentes do valor. Essa mesma junção não autorizaria contar linhas como pedidos: métricas diferentes exigem verificações de grão diferentes.</p>
+
+        <h3>7.1 Granularidade mensal</h3>
+        <p>Agrupar por mês reduz ruído diário e oferece uma escala compatível com aproximadamente dois anos de dados. O agrupamento mensal não deve converter os meses em categorias independentes; eles permanecem uma sequência ordenada. Por isso, a consulta deve usar <code>order_purchase_timestamp</code> agrupado por mês e o gráfico deve permanecer em ordem cronológica.</p>
+        <p>Os limites da série exigem cautela. O primeiro e o último mês do conjunto podem estar incompletos. Uma queda no final pode indicar apenas encerramento da coleta, e não deterioração do negócio. Antes de narrar uma tendência, confirme o intervalo coberto pelo mês.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Atividade 2 — Valor pago por mês</h2>
+        <p>A pergunta é: <em>como evoluiu o valor pago em pedidos entregues ao longo dos meses?</em> A métrica é a soma de <code>payment_value</code>, a dimensão é o mês de compra, o filtro mantém pedidos entregues e a decisão é identificar períodos que merecem investigação.</p>
+
+        <h3>8.1 Conectar as tabelas</h3>
+        <ol class="steps">
+          <li>Crie uma nova pergunta a partir de <code>olist_orders</code>.</li>
+          <li>Junte <code>olist_order_payments</code> usando <code>order_id</code> nos dois lados.</li>
+          <li>Junte também <code>olist_customers</code> usando <code>customer_id</code>. Essa segunda junção disponibiliza <code>customer_state</code> para o filtro do dashboard.</li>
+          <li>Adicione o filtro <code>order_status = delivered</code>.</li>
+          <li>Antes de resumir, lembre que agora pode haver mais de uma linha por pedido devido aos registros de pagamento.</li>
+        </ol>
+
+        <h3>8.2 Calcular e visualizar</h3>
+        <ol class="steps">
+          <li>Adicione <strong>Summarize</strong> e selecione <strong>Sum of</strong> <code>payment_value</code>.</li>
+          <li>Em <strong>Group by</strong>, selecione <code>order_purchase_timestamp</code> e altere a unidade temporal para <strong>Month</strong>.</li>
+          <li>Execute a consulta. O resultado esperado é uma sequência de meses com um valor agregado para cada período.</li>
+          <li>Escolha <strong>Line</strong>. Confirme que o eixo horizontal está em ordem cronológica.</li>
+          <li>Nas configurações de visualização, formate o eixo vertical como moeda. Evite suavização que sugira valores intermediários não observados.</li>
+          <li>Use o título <strong>Valor pago por mês — pedidos entregues</strong>.</li>
+          <li>Salve na sua coleção como <code>A02_02_valor_pago_por_mes</code>.</li>
+        </ol>
+
+        <h3>8.3 Testes de sanidade</h3>
+        <table>
+          <thead>
+            <tr><th>Verificação</th><th>Sinal esperado</th><th>Se falhar</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Cobertura temporal</td><td>Meses entre 2016 e 2018</td><td>Confira o campo de data e o filtro</td></tr>
+            <tr><td>Unidade</td><td>Valores monetários</td><td>Formate <code>payment_value</code> como moeda</td></tr>
+            <tr><td>Sequência</td><td>Meses em ordem crescente</td><td>Remova ordenação por valor</td></tr>
+            <tr><td>Filtro futuro</td><td><code>customer_state</code> disponível</td><td>Confira a junção com clientes</td></tr>
+            <tr><td>Persistência</td><td>Pergunta na coleção pessoal</td><td>Salve antes de sair da tela</td></tr>
           </tbody>
         </table>
 
         <div class="note">
-          <strong>A regra que quase todo mundo quebra</strong>
-          <p>O efeito pré-atentivo depende de raridade. O algarismo em negrito salta porque quase tudo ao redor não está em negrito. Se você aplicar negrito em metade da grade, o efeito desaparece completamente. Destacar dez coisas num painel equivale a não destacar nada — e ainda custa a atenção que seria usada para entender o dado.</p>
+          <strong>Quando os nomes na interface forem diferentes</strong>
+          <p>A instância pode exibir nomes amigáveis, como “Order Purchase Timestamp”, em vez do nome físico <code>order_purchase_timestamp</code>. Use o significado e a tabela de origem para reconhecer o campo. Não escolha apenas porque o rótulo parece semelhante.</p>
         </div>
       </section>
 
       <section class="content-block">
-        <h2>3. Princípios de Gestalt</h2>
-        <p>Os princípios de Gestalt descrevem como o sistema visual agrupa elementos automaticamente. Eles operam sempre, independentemente da sua intenção. Num gráfico bem construído, os agrupamentos que o olho forma coincidem com a estrutura real dos dados; num gráfico malfeito, o olho forma grupos que os dados não têm.</p>
+        <h2>9. Teste de cinco segundos</h2>
+        <p>O teste de cinco segundos verifica se a hierarquia visual entrega a mensagem principal sem uma explicação oral do autor. Ele não mede se o colega consegue reconstruir toda a consulta; mede se título, representação, ordem e unidade orientam a primeira leitura.</p>
 
-        <table>
-          <thead>
-            <tr><th>Princípio</th><th>O olho assume que</th><th>Aplicação em gráfico</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Proximidade</td><td>O que está perto pertence junto</td><td>Aproximar o rótulo do dado que ele nomeia</td></tr>
-            <tr><td>Similaridade</td><td>O que se parece pertence junto</td><td>Mesma cor para a mesma série ao longo de todo o painel</td></tr>
-            <tr><td>Conexão</td><td>O que está ligado pertence junto</td><td>Linha ligando pontos da mesma série temporal</td></tr>
-            <tr><td>Região comum</td><td>O que está na mesma área pertence junto</td><td>Fundo sombreado marcando um período de exceção</td></tr>
-            <tr><td>Continuidade</td><td>O olho segue o caminho mais suave</td><td>Alinhamento consistente de eixos e rótulos</td></tr>
-            <tr><td>Fechamento</td><td>Formas incompletas são completadas mentalmente</td><td>Dispensa a moldura completa em volta do gráfico</td></tr>
-          </tbody>
-        </table>
+        <ol class="steps">
+          <li>Escolha um dos dois gráficos e mostre-o a um colega durante cinco segundos.</li>
+          <li>Esconda a tela. Pergunte qual era a métrica e qual comparação ou evolução chamou atenção.</li>
+          <li>Pergunte qual filtro definia o universo dos dados.</li>
+          <li>Registre mentalmente onde houve hesitação. Não explique o gráfico durante o teste.</li>
+          <li>Reabra a tela e ajuste título, ordem, rótulos, unidade ou elementos desnecessários.</li>
+          <li>Salve a versão revisada na mesma pergunta.</li>
+        </ol>
 
-        <h3>3.1 Gestalt trabalha contra você por padrão</h3>
-        <p>Configurações padrão de ferramentas produzem, com frequência, agrupamentos falsos. Uma legenda posicionada longe da série obriga o olho a viajar de ida e volta, quebrando a proximidade. Duas séries com cores parecidas são fundidas pela similaridade. Espaçamento irregular entre barras sugere que algumas categorias se relacionam mais que outras. Uma grade escura compete com as próprias barras pela atenção.</p>
-        <p>A correção em todos os casos passa por assumir controle explícito: rotular a série diretamente sobre ela, garantir contraste real entre séries que se comparam, manter espaçamento uniforme dentro de cada grupo e reduzir a grade ao mínimo necessário para leitura de valor.</p>
+        <p>Se o colega disser apenas “era algo sobre vendas”, o título ainda está genérico. Se identificar a métrica, mas não perceber o filtro de pedidos entregues, o universo precisa ficar mais explícito. Se compreender tudo, mas demorar para localizar o maior estado, reveja a ordenação.</p>
       </section>
 
       <section class="content-block">
-        <h2>4. O ranking dos canais de codificação</h2>
-        <p>Cleveland e McGill mediram experimentalmente a precisão com que pessoas julgam quantidades codificadas em diferentes canais visuais. O resultado é um ranking que explica quase todas as recomendações clássicas de visualização.</p>
+        <h2>10. Dashboard como superfície de decisão</h2>
+        <p>Um dashboard não é uma pasta visual de gráficos. Ele coordena perguntas relacionadas para que o leitor transite entre visão geral e recorte sem reconstruir mentalmente filtros, escalas e definições. Nesta aula, os dois cartões compartilham o mesmo universo — pedidos entregues — e a mesma dimensão geográfica disponível para interação.</p>
 
         <table>
           <thead>
-            <tr><th>#</th><th>Canal</th><th>Exemplo típico</th></tr>
+            <tr><th>Princípio</th><th>Decisão de composição</th><th>Razão</th></tr>
           </thead>
           <tbody>
-            <tr><td>1</td><td>Posição em escala comum</td><td>Pontos num mesmo eixo vertical</td></tr>
-            <tr><td>2</td><td>Posição em escalas não alinhadas</td><td>Pequenos múltiplos lado a lado</td></tr>
-            <tr><td>3</td><td>Comprimento</td><td>Barras a partir de uma base comum</td></tr>
-            <tr><td>4</td><td>Ângulo e inclinação</td><td>Fatias de pizza</td></tr>
-            <tr><td>5</td><td>Área</td><td>Bolhas dimensionadas por valor</td></tr>
-            <tr><td>6</td><td>Volume e curvatura</td><td>Gráficos tridimensionais</td></tr>
-            <tr><td>7</td><td>Saturação e matiz</td><td>Mapa de calor</td></tr>
+            <tr><td>Hierarquia</td><td>Série temporal larga no topo</td><td>A evolução funciona como visão geral</td></tr>
+            <tr><td>Proximidade</td><td>Filtro próximo dos cartões</td><td>Deixa clara a área controlada</td></tr>
+            <tr><td>Consistência</td><td>Mesmo filtro de status nas perguntas</td><td>Evita comparar universos diferentes</td></tr>
+            <tr><td>Interação</td><td>Estado conectado aos dois cartões</td><td>Permite investigar o recorte sem duplicar painéis</td></tr>
           </tbody>
         </table>
 
-        <h3>4.1 O ranking explica as regras que você já ouviu</h3>
+        <p>A série temporal ficará na parte superior porque precisa de largura para mostrar os meses. As barras podem ocupar uma faixa abaixo. O filtro de estado precisa alterar os dois resultados; se apenas um cartão reagir, o dashboard cria uma comparação incoerente.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>11. Atividade 3 — Primeiro dashboard da disciplina</h2>
+        <ol class="steps">
+          <li>Clique em <strong>+ New</strong> e escolha <strong>Dashboard</strong>.</li>
+          <li>Use o nome <code>A02_dashboard_operacao_olist</code> e salve o painel na coleção com o seu nome.</li>
+          <li>Adicione a pergunta <code>A02_02_valor_pago_por_mes</code> e posicione-a numa faixa larga na parte superior.</li>
+          <li>Adicione <code>A02_01_pedidos_entregues_por_estado</code> abaixo. Ajuste o tamanho sem comprimir rótulos nem eixos.</li>
+          <li>Entre no modo de edição, adicione um filtro <strong>Text or category</strong> e nomeie-o <strong>State</strong>.</li>
+          <li>Conecte o filtro ao campo <code>customer_state</code> do cartão de pedidos por estado.</li>
+          <li>Conecte o mesmo filtro a <code>customer_state</code> do cartão de valor pago por mês.</li>
+          <li>Salve o dashboard.</li>
+          <li>Selecione <strong>SP</strong> e confirme que barras e linha mudam. Repita com <strong>BA</strong>.</li>
+          <li>Limpe o filtro, recarregue o dashboard e confirme que a configuração permanece salva.</li>
+        </ol>
+
+        <h3>11.1 Se o filtro não puder ser conectado</h3>
+        <p>Edite a pergunta que não oferece <code>customer_state</code>. Confirme que <code>olist_customers</code> foi juntada antes do bloco de resumo e que a relação usa <code>customer_id</code>. Execute, salve novamente e retorne ao dashboard. Em alguns casos, é necessário reabrir a edição do filtro para que o campo recém-disponível apareça.</p>
+
+        <h3>11.2 Se um cartão não mudar</h3>
+        <p>Abra as configurações do filtro e verifique o mapeamento de cada cartão. O fato de ambos os gráficos estarem no mesmo dashboard não faz com que o filtro seja conectado automaticamente. Cada cartão precisa ter uma associação explícita com um campo compatível.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>12. Entregáveis e continuidade</h2>
         <table>
           <thead>
-            <tr><th>Recomendação clássica</th><th>Justificativa pelo ranking</th></tr>
+            <tr><th>Artefato</th><th>Nome obrigatório</th><th>Condição de conclusão</th></tr>
           </thead>
           <tbody>
-            <tr><td>Prefira barras a gráficos de pizza</td><td>Barra usa comprimento e posição; pizza usa ângulo e área — dois níveis abaixo</td></tr>
-            <tr><td>Evite gráfico de rosca</td><td>Remove o centro e piora ainda mais o julgamento de ângulo</td></tr>
-            <tr><td>Cuidado com gráficos de bolha</td><td>Área é percebida com erro sistemático: dobrar o valor não parece o dobro</td></tr>
-            <tr><td>Não use 3D em dado bidimensional</td><td>Volume é quase o pior canal e a perspectiva distorce a posição</td></tr>
-            <tr><td>Cor para categoria, não para quantidade</td><td>Matiz separa bem e ordena mal</td></tr>
-            <tr><td>Alinhe barras numa base comum</td><td>Posição em escala comum é o canal mais preciso disponível</td></tr>
+            <tr><td>Pergunta categórica</td><td><code>A02_01_pedidos_entregues_por_estado</code></td><td>Barras ordenadas, título claro e filtro <code>delivered</code></td></tr>
+            <tr><td>Pergunta temporal</td><td><code>A02_02_valor_pago_por_mes</code></td><td>Linha mensal, moeda e meses em ordem</td></tr>
+            <tr><td>Dashboard</td><td><code>A02_dashboard_operacao_olist</code></td><td>Dois cartões e filtro de estado funcionando em ambos</td></tr>
           </tbody>
         </table>
 
+        <p>Não há documento ou exercício escrito para entregar. Os artefatos são as próprias perguntas e o dashboard funcionando na coleção pessoal. A justificativa acontece oralmente no fechamento: cada aluno deve conseguir explicar o grão, as junções, o filtro e a escolha visual em aproximadamente um minuto.</p>
+        <p>Na Aula 03, em 29 de agosto, o painel será ampliado com outros trabalhos de visualização numérica: distribuição, relação e comparação. Preserve os três artefatos; eles serão o ponto de partida da próxima construção.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>13. Orientação final para a prática em sala</h2>
         <div class="note">
-          <strong>Quando descer no ranking é legítimo</strong>
-          <p>O ranking mede precisão de julgamento, não utilidade geral. Um mapa de calor usa saturação — o último colocado — e ainda assim é a representação certa quando o objetivo é revelar padrão numa matriz grande, e não comparar dois valores específicos. A regra é: quanto mais precisa precisa ser a comparação, mais alto no ranking o canal deve estar.</p>
-        </div>
-      </section>
-
-      <section class="content-block">
-        <h2>5. Carga cognitiva e razão dado-tinta</h2>
-        <p>A atenção de quem lê é um recurso finito. Cada elemento presente no gráfico consome uma parte dela, e o que sobra é o que resta para compreender o dado. Isso torna a edição — a remoção deliberada de elementos — uma atividade tão importante quanto a construção.</p>
-
-        <h3>5.1 O que cobra sem devolver</h3>
-        <p>Grade escura e completa, bordas em todos os elementos, gradientes e sombras, uma cor diferente para cada categoria que não se compara entre si, casas decimais além da precisão real do dado. Todos esses elementos consomem atenção e não acrescentam informação.</p>
-
-        <h3>5.2 O que devolve mais do que cobra</h3>
-        <p>Rótulo posicionado diretamente sobre a série, ordenação por valor em vez de alfabética, uma anotação curta explicando a anomalia visível, título que declara a conclusão em vez de nomear o assunto, unidade explícita no eixo.</p>
-
-        <h3>5.3 Procedimento de edição</h3>
-        <ol class="steps">
-          <li>Liste todo elemento visual presente no gráfico, sem exceção.</li>
-          <li>Para cada um, pergunte: se eu remover isto, alguma informação se perde?</li>
-          <li>Se a resposta for não, remova.</li>
-          <li>Repita o ciclo até que qualquer remoção adicional cause perda real.</li>
-        </ol>
-
-        <p>Existe um limite. Minimalismo levado ao extremo remove contexto necessário — um eixo sem unidade e um gráfico sem título são minimalistas e inúteis. O objetivo não é o gráfico mais vazio possível, é o gráfico em que tudo o que está presente tem função.</p>
-      </section>
-
-      <section class="content-block">
-        <h2>6. Integridade e distorção de escala</h2>
-        <p>Truncar o eixo — começá-lo em valor diferente de zero — amplifica visualmente as diferenças. Isso às vezes revela um padrão real que seria invisível de outra forma, e às vezes fabrica um padrão que não existe. A diferença entre os dois casos depende do tipo de gráfico e do tipo de comparação.</p>
-
-        <table>
-          <thead>
-            <tr><th>Situação</th><th>Truncar o eixo</th><th>Por quê</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Gráfico de linha em série temporal</td><td>Aceitável</td><td>A linha codifica variação; a posição relativa é o que importa</td></tr>
-            <tr><td>Gráfico de barras</td><td>Não</td><td>A barra <em>é</em> o comprimento; truncar mente sobre a proporção</td></tr>
-            <tr><td>Variação pequena sobre base alta</td><td>Aceitável, com sinalização</td><td>Sem truncar, o padrão real fica invisível</td></tr>
-            <tr><td>Zero sem significado no domínio</td><td>Aceitável</td><td>Temperatura, pH e nota não têm zero natural relevante</td></tr>
-            <tr><td>Audiência vai ler rápido, sem checar o eixo</td><td>Não</td><td>A leitura de tempo curto ignora o eixo</td></tr>
-          </tbody>
-        </table>
-
-        <div class="note">
-          <strong>O critério de honestidade</strong>
-          <p>Pergunte-se qual seria a conclusão de alguém que olhasse o gráfico por três segundos sem ler o eixo. Se essa conclusão for diferente da conclusão correta, o gráfico é enganoso — independentemente de o eixo estar tecnicamente rotulado.</p>
-        </div>
-      </section>
-
-      <section class="content-block">
-        <h2>7. O ciclo de criação e interpretação</h2>
-        <p>Criar uma visualização não é um ato único que termina quando o gráfico aparece na tela. É um ciclo que só se fecha quando outra pessoa interpreta o resultado.</p>
-
-        <table>
-          <thead>
-            <tr><th>#</th><th>Etapa</th><th>Pergunta que resolve</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>1</td><td>Pergunta</td><td>O que se quer saber e que decisão depende disso?</td></tr>
-            <tr><td>2</td><td>Dado</td><td>Qual recorte responde a isso, com qual grão?</td></tr>
-            <tr><td>3</td><td>Codificação</td><td>Qual canal representa esta quantidade com a precisão necessária?</td></tr>
-            <tr><td>4</td><td>Composição</td><td>Por onde o olho entra e que caminho ele percorre?</td></tr>
-            <tr><td>5</td><td>Edição</td><td>O que pode sair sem perda de informação?</td></tr>
-            <tr><td>6</td><td>Teste</td><td>Outra pessoa entende sem explicação verbal?</td></tr>
-            <tr><td>7</td><td>Revisão</td><td>O que o teste revelou que precisa mudar?</td></tr>
-          </tbody>
-        </table>
-
-        <h3>7.1 O teste dos cinco segundos</h3>
-        <p>É o método mais barato e mais implacável de avaliar uma visualização.</p>
-        <ol class="steps">
-          <li>Mostre o gráfico a alguém que não participou da construção.</li>
-          <li>Conte cinco segundos e esconda a tela.</li>
-          <li>Pergunte: o que você viu primeiro? Qual a mensagem? Que número você lembra?</li>
-          <li>Não explique, não corrija, não justifique. Apenas anote a resposta literal.</li>
-          <li>Se a resposta não corresponder à mensagem pretendida, o gráfico falhou — não a pessoa.</li>
-        </ol>
-        <p>A tentação de explicar durante o teste é enorme e destrói o valor do método. Se você precisa explicar, o gráfico já falhou: no uso real não haverá ninguém ao lado para explicar.</p>
-      </section>
-
-      <section class="content-block">
-        <h2>7.1 Auditoria heurística e ISO 9241-112</h2>
-        <p>A ISO 9241-112 trata da apresentação de informação em sistemas interativos. Aqui ela funciona como referência para formular perguntas de avaliação: o sinal relevante é detectável, elementos são distinguíveis, a interpretação é inequívoca, a apresentação é concisa e consistente? Não se trata de copiar a norma nem declarar conformidade, mas de converter princípios em evidência observável.</p>
-
-        <p>A auditoria usa dez heurísticas transversais: adequação à tarefa; clareza da mensagem; integridade; codificação; hierarquia; consistência; contexto e incerteza; prevenção de interpretação errada; acessibilidade; acionabilidade. Cada achado recebe severidade:</p>
-        <table>
-          <thead><tr><th>Nota</th><th>Significado</th><th>Tratamento</th></tr></thead>
-          <tbody><tr><td>0</td><td>não é problema</td><td>não registrar como defeito</td></tr><tr><td>1</td><td>cosmético</td><td>corrigir se houver tempo</td></tr><tr><td>2</td><td>atrapalha leitura ou eficiência</td><td>corrigir antes da entrega</td></tr><tr><td>3</td><td>pode induzir interpretação errada</td><td>bloqueia o gate</td></tr><tr><td>4</td><td>impede ou inverte a decisão</td><td>retirar de uso imediatamente</td></tr></tbody>
-        </table>
-
-        <h3>Passo a passo da auditoria</h3>
-        <ol class="steps">
-          <li>Escreva a tarefa e a resposta correta esperada antes de mostrar o gráfico.</li>
-          <li>Observe uma pessoa por cinco segundos sem explicar o conteúdo.</li>
-          <li>Pergunte qual mensagem ela percebeu e qual ação tomaria.</li>
-          <li>Registre o elemento concreto que causou hesitação ou erro.</li>
-          <li>Associe o achado a uma heurística e atribua severidade pelo impacto.</li>
-          <li>Proponha uma mudança causal — não “melhorar o visual”.</li>
-          <li>Repita o teste com outra pessoa e compare tempo, erro e confiança.</li>
-        </ol>
-
-        <div class="audit-template"><strong>Modelo de achado</strong><p><code>Evidência → heurística → severidade → consequência para a decisão → correção → resultado do reteste.</code></p></div>
-
-        <h2>8. Laboratório — destruir e reconstruir</h2>
-        <p>Duração aproximada de duas horas e dez minutos, das 10h00 às 12h10. A construção deliberada de um gráfico ruim ensina mais rápido que a construção direta de um bom, porque obriga a nomear cada mecanismo de degradação.</p>
-
-        <div class="note">
-          <strong>Ponto de partida</strong>
-          <p>Escolha uma das três perguntas prioritárias que você escreveu na Aula 01. Precisa ser uma pergunta que envolva comparação entre categorias ou evolução no tempo — perguntas de valor único não servem para este exercício.</p>
-        </div>
-
-        <h3>Etapa 1 — Construa o pior gráfico possível (30 minutos)</h3>
-        <p>Responda corretamente à sua pergunta no Metabase e apresente o resultado da pior forma que conseguir. A regra fundamental: o dado precisa estar certo. Toda a distorção é na representação. Um gráfico com dado errado não serve.</p>
-        <p>Recursos disponíveis para degradar: gráfico de pizza com muitas fatias, ordenação alfabética em dado que tem ordem natural, uma cor diferente para cada categoria, legenda posicionada longe da série, rótulos com quatro casas decimais, título genérico que não diz nada.</p>
-        <p>Salve esta versão com um nome que a identifique claramente como a versão inicial.</p>
-
-        <h3>Etapa 2 — Auditoria perceptiva (20 minutos)</h3>
-        <p>Troque de tela com um colega e audite o gráfico dele nestes cinco pontos, por escrito:</p>
-        <table>
-          <thead>
-            <tr><th>#</th><th>Ponto</th><th>Pergunta da auditoria</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>1</td><td>Canal</td><td>Em qual canal a quantidade está codificada? É possível subir no ranking?</td></tr>
-            <tr><td>2</td><td>Ordem</td><td>A ordenação ajuda a comparação ou é arbitrária?</td></tr>
-            <tr><td>3</td><td>Destaque</td><td>O que salta primeiro é aquilo que importa?</td></tr>
-            <tr><td>4</td><td>Agrupamento</td><td>Os agrupamentos visuais correspondem à estrutura do dado?</td></tr>
-            <tr><td>5</td><td>Ruído</td><td>O que pode ser removido sem perda de informação?</td></tr>
-          </tbody>
-        </table>
-
-        <h3>Etapa 3 — Reconstrução (40 minutos)</h3>
-        <p>Volte ao seu gráfico e corrija um ponto de cada vez, registrando o motivo de cada mudança.</p>
-        <ol class="steps">
-          <li><strong>Suba o canal de codificação.</strong> Troque o tipo de visualização por um que use posição ou comprimento.</li>
-          <li><strong>Ordene por valor.</strong> Categoria nominal se ordena pelo dado, não pelo alfabeto — a menos que a audiência precise localizar uma categoria específica rapidamente.</li>
-          <li><strong>Reduza a cor a uma decisão.</strong> Uma cor neutra para tudo, uma cor de destaque apenas para o que precisa de atenção.</li>
-          <li><strong>Aproxime o rótulo do dado.</strong> Elimine a viagem do olho até a legenda.</li>
-          <li><strong>Ajuste a precisão numérica</strong> ao que o dado realmente sustenta.</li>
-          <li><strong>Reescreva o título</strong> para declarar a conclusão em vez de nomear o assunto.</li>
-        </ol>
-        <p>Salve a versão reconstruída ao lado da original, na mesma coleção, com nomes que deixem clara a relação entre as duas.</p>
-
-        <h3>Etapa 4 — Teste e revisão (20 minutos)</h3>
-        <ol class="steps">
-          <li>Aplique o teste dos cinco segundos com um colega diferente do que fez a auditoria.</li>
-          <li>Mostre a versão reconstruída por exatamente cinco segundos.</li>
-          <li>Pergunte o que a pessoa viu primeiro e qual entendeu ser a mensagem.</li>
-          <li>Anote a resposta literal, sem interpretar nem corrigir.</li>
-          <li>Se a mensagem não chegou, identifique qual dos cinco pontos da auditoria ainda falha.</li>
-          <li>Faça uma última revisão e salve a versão final.</li>
-        </ol>
-      </section>
-
-      <section class="content-block">
-        <h2>9. Entregáveis</h2>
-        <table>
-          <thead>
-            <tr><th>Onde</th><th>O quê</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Metabase</td><td>Duas perguntas salvas na sua coleção: a versão inicial degradada e a versão reconstruída, nomeadas de modo que a relação entre elas fique explícita</td></tr>
-            <tr><td>Repositório</td><td><code>docs/02_auditoria_heuristica.md</code> com achados, severidade, mudanças, justificativas e resultado do reteste</td></tr>
-          </tbody>
-        </table>
-
-        <h3>Critérios de avaliação</h3>
-        <table>
-          <thead>
-            <tr><th>Critério</th><th>O que se espera</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Justificativa perceptiva</td><td>Cada mudança aponta um princípio específico, nomeado — nunca "ficou melhor"</td></tr>
-            <tr><td>Uso do ranking</td><td>A reconstrução sobe o canal de codificação e isso está explicado</td></tr>
-            <tr><td>Honestidade no teste</td><td>A resposta do colega está registrada como foi dita, mesmo quando negativa</td></tr>
-            <tr><td>Integridade do dado</td><td>Nenhuma das versões distorce o valor; a diferença está apenas na representação</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="content-block">
-        <h2>10. Preparação para a Aula 03</h2>
-        <p>Em 29 de agosto entramos no primeiro grande domínio de representação: dados numéricos. Com o vocabulário perceptivo instalado, vamos organizar os gráficos numéricos por <em>trabalho</em> — comparar magnitude, mostrar distribuição, revelar evolução, expor relação — e escolher entre eles por critério.</p>
-        <p>Traga sua versão reconstruída e o resultado do teste dos cinco segundos. Ela será o ponto de partida das comparações numéricas da próxima aula.</p>
-      </section>
-
-      <section class="content-block">
-        <h2>11. Orientação para a prática em sala</h2>
-        <div class="note">
-          <strong>Como conduzir o laboratório</strong>
-          <p>Todo o exercício é executado durante a aula, na <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a>, com as mesmas credenciais da Aula 01. As duas versões precisam permanecer salvas — não sobrescreva a versão degradada, porque ela é metade do entregável.</p>
-          <p>As trocas com colegas são obrigatórias e acontecem em dois momentos distintos, com pessoas diferentes: a auditoria na Etapa 2 e o teste dos cinco segundos na Etapa 4. Ao auditar o trabalho de outra pessoa, aponte o mecanismo perceptivo, não o gosto. "A ordenação alfabética impede a comparação de magnitude" é uma crítica útil; "não gostei das cores" não é.</p>
+          <strong>Sequência de trabalho</strong>
+          <p>Execute todo o laboratório na <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a>. Trabalhe somente na coleção com o seu nome e salve cada pergunta antes de navegar para outra tela. Ao travar, localize primeiro a etapa: fonte, junção, filtro, resumo, visualização ou dashboard.</p>
+          <p>Não corrija um resultado inesperado alterando opções ao acaso. Volte ao grão, confira os campos usados na junção e explicite o universo do filtro. Quando o número estiver correto, ajuste a representação; quando a representação estiver clara, teste com um colega; somente então componha o dashboard.</p>
+          <p>Antes de encerrar, aplique o filtro de estado em pelo menos duas UFs, limpe o filtro, recarregue o painel e confirme que os três artefatos continuam acessíveis. O trabalho termina com o dashboard funcionando, não com uma resposta escrita.</p>
         </div>
       </section>
 

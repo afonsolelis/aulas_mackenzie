@@ -6,50 +6,6 @@
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <title>Aula 02 — Percepção Visual e Processo de Criação</title>
   <link href="../../../../assets/slides.css" rel="stylesheet">
-  <style>
-    /* Escopo local da Aula 02 — apenas conteúdo específico deste deck.
-       Densidade e etapas vêm de assets/slides.css. */
-    /* Demonstração pré-atentiva: grade de números. */
-    .a02-grid-demo {
-      font-family: var(--font-mono);
-      font-size: 1.15em;
-      letter-spacing: .35em;
-      line-height: 1.9;
-      text-align: center;
-      padding: 22px;
-      border: 1px solid var(--deck-line);
-      border-radius: 4px;
-      background: var(--deck-panel);
-      margin-top: 14px;
-    }
-    .a02-hit { font-weight: 800; }
-    .a02-rank { list-style: none; padding: 0; margin: 16px 0 0; counter-reset: a02rank; }
-    .a02-rank li {
-      counter-increment: a02rank;
-      display: flex;
-      align-items: baseline;
-      gap: 14px;
-      padding: 7px 0;
-      border-bottom: 1px solid var(--deck-line-soft);
-      font-size: .95em;
-    }
-    .a02-rank li:last-child { border-bottom: none; }
-    .a02-rank li::before {
-      content: counter(a02rank);
-      font-family: var(--font-mono);
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--deck-muted);
-      min-width: 20px;
-    }
-    .a02-rank .a02-bar {
-      display: inline-block;
-      height: 7px;
-      background: var(--deck-accent);
-      border-radius: 2px;
-      flex-shrink: 0;
-    }
-  </style>
 </head>
 <body>
   <div class="slide-container">
@@ -63,539 +19,491 @@
           <h1 class="deck-title">Percepção Visual e Processo de Criação</h1>
           <p class="deck-meta">Aula 02 &nbsp;&bull;&nbsp; 22/08/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Por que algumas representações comunicam em meio segundo e outras exigem meio minuto.</p>
+          <p class="deck-subtitle">Continuação da Aula 01: da pergunta salva no Metabase a uma análise visual que sustenta uma decisão.</p>
         </div>
       </div>
     </div>
 
     <!-- SLIDE 2 - AGENDA -->
     <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda &middot; Explicação + prática guiada</span>
+          <h2 class="deck-title">Hoje vamos construir em ciclos curtos</h2>
+          <p class="deck-summary">Eu explico e demonstro; vocês reproduzem no Metabase; a turma compara os resultados antes de avançar.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Horário</th><th>Momento</th><th>Resultado</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>8h30&ndash;9h05</td><td>Professor explica</td><td>Pergunta, grão, sumarização e escolha visual</td></tr>
+            <tr><td>9h05&ndash;9h35</td><td>Atividade 1</td><td>Pedidos entregues por estado</td></tr>
+            <tr><td>9h35&ndash;10h10</td><td>Discussão + explicação</td><td>Leitura do gráfico e séries temporais</td></tr>
+            <tr><td>10h10&ndash;10h25</td><td>Intervalo</td><td>Pausa</td></tr>
+            <tr><td>10h25&ndash;10h40</td><td>Professor demonstra</td><td>Junções e valor pago por mês</td></tr>
+            <tr><td>10h40&ndash;11h25</td><td>Atividade 2 + pares</td><td>Série temporal construída e testada</td></tr>
+            <tr><td>11h25&ndash;11h40</td><td>Professor explica</td><td>Composição e filtros de dashboard</td></tr>
+            <tr><td>11h40&ndash;12h10</td><td>Atividade 3 + fechamento</td><td>Primeiro dashboard da disciplina</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - PLACEHOLDER INICIAL / RETOMADA -->
+    <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">O que vai acontecer hoje</h2>
-          <p class="deck-summary">Teoria sobre como o sistema visual humano processa informação, seguida da reconstrução de um gráfico deliberadamente ruim construído sobre uma das suas perguntas da Aula 01.</p>
+          <span class="deck-kicker">Construção do conteúdo &middot; Retomada</span>
+          <h2 class="deck-title">Abra a sua coleção da Aula 01</h2>
+          <p class="deck-summary">Antes de criar outro gráfico, confirme que o ponto de partida está preservado.</p>
+        </div>
+        <div class="deck-placeholder">
+          <article class="deck-panel">
+            <strong>Você precisa encontrar</strong>
+            <ul>
+              <li>a coleção com o seu nome;</li>
+              <li>as perguntas salvas na Aula 01;</li>
+              <li>o backlog com três perguntas prioritárias;</li>
+              <li>o banco <code>olist</code> com as nove tabelas.</li>
+            </ul>
+          </article>
+          <aside class="deck-callout">
+            <strong>Interface em inglês</strong>
+            Os passos mostram o rótulo atual da instância: <em>New</em>, <em>Question</em>, <em>Join data</em>, <em>Summarize</em> e <em>Dashboard</em>.
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - OBJETIVO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Professor explica &middot; 8h30&ndash;8h45</span>
+          <h2 class="deck-title">O produto de hoje é um dashboard verificável</h2>
+          <p class="deck-summary">Não vamos decorar gráficos. Vamos transformar duas perguntas do Olist em consultas rastreáveis, representações adequadas e um painel filtrável.</p>
+        </div>
+        <ol class="deck-steps">
+          <li><strong>Contexto:</strong> quem precisa decidir?</li>
+          <li><strong>Dados:</strong> qual é o grão?</li>
+          <li><strong>Pergunta:</strong> qual comparação importa?</li>
+          <li><strong>Visual:</strong> qual canal torna a comparação fácil?</li>
+          <li><strong>Decisão:</strong> o que muda depois da resposta?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - CONSTRUTOR VISUAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Professor explica &middot; Construtor visual</span>
+          <h2 class="deck-title">Cada bloco do Metabase responde a uma pergunta</h2>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Bloco</th><th>Pergunta de controle</th><th>Risco</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Fonte</td><td>Uma linha representa o quê?</td><td>Contar itens como pedidos</td></tr>
+            <tr><td>Junção</td><td>A relação é 1:1 ou 1:N?</td><td>Multiplicar valores</td></tr>
+            <tr><td>Filtro</td><td>Quem ficou deliberadamente de fora?</td><td>Mudar o universo sem perceber</td></tr>
+            <tr><td>Resumir</td><td>Qual métrica e por qual dimensão?</td><td>Somar identificadores</td></tr>
+            <tr><td>Visualizar</td><td>Qual tarefa visual precisa ser fácil?</td><td>Escolher por aparência</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - ESCOLHA VISUAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Professor explica &middot; Percepção visual</span>
+          <h2 class="deck-title">O trabalho da pergunta escolhe o gráfico</h2>
+          <p class="deck-summary">Posição e comprimento permitem comparações mais precisas do que área, ângulo ou volume.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <h3>Comparar categorias</h3>
+            <p><strong>Barras</strong></p>
             <ul>
-              <li>Atributos pré-atentivos</li>
-              <li>Princípios de Gestalt</li>
-              <li>ISO 9241-112 como lente de apresentação</li>
-              <li>Ranking dos canais de codificação</li>
-              <li>Carga cognitiva e razão dado-tinta</li>
-              <li>Distorção de escala</li>
-              <li>O ciclo de criação e interpretação</li>
+              <li>base comum;</li>
+              <li>ordem por magnitude;</li>
+              <li>rótulos próximos dos dados.</li>
             </ul>
           </article>
           <article class="deck-card">
-            <h3>10h00 &ndash; 12h10 &middot; Prática</h3>
+            <h3>Mostrar evolução</h3>
+            <p><strong>Linha</strong></p>
             <ul>
-              <li>Construir um gráfico ruim de propósito</li>
-              <li>Auditoria perceptiva em cinco pontos</li>
-              <li>Reconstrução no Metabase</li>
-              <li>Teste dos cinco segundos com um colega</li>
-              <li>Auditoria heurística com severidade</li>
-              <li>Justificativa escrita de cada mudança</li>
+              <li>tempo em ordem contínua;</li>
+              <li>mesma escala ao longo do período;</li>
+              <li>atenção a meses incompletos.</li>
             </ul>
           </article>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 3 - RECAP / CONSTRUCAO -->
+    <!-- SLIDE 7 - ATIVIDADE 1 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Construção do Conteúdo &middot; Recap</span>
-          <h2 class="deck-title">De onde viemos</h2>
-          <p class="deck-summary">Na Aula 01 você descobriu o que os dados têm. Hoje descobrimos o que o olho humano faz com o que você mostra.</p>
-        </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>O que você já tem</strong>
-            <ul>
-              <li>Perfil das nove tabelas do Olist</li>
-              <li>Problemas de qualidade mapeados</li>
-              <li>Dez perguntas de negócio escritas</li>
-              <li>Três perguntas prioritárias marcadas</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>O que ainda falta</strong>
-            <ul>
-              <li>Critério para escolher a representação</li>
-              <li>Vocabulário para criticar um gráfico</li>
-              <li>Método para testar se a mensagem chegou</li>
-              <li>Justificativa que não seja "ficou bonito"</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MÉTODO TRANSVERSAL -->
-    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Método C-D-P-V-D &middot; Aula 02</span><h2 class="deck-title">Da pergunta para uma codificação defensável</h2></div><div class="method-flow"><div class="method-step"><strong>Contexto</strong><span>Quem precisa interpretar?</span></div><div class="method-step"><strong>Dados</strong><span>O que pode ser afirmado?</span></div><div class="method-step"><strong>Pergunta</strong><span>Qual comparação importa?</span></div><div class="method-step is-current"><strong>Visual</strong><span>Como o sistema visual percebe?</span></div><div class="method-step"><strong>Decisão</strong><span>A mensagem chegou sem ajuda?</span></div></div></div></div>
-
-    <div class="slide"><div class="deck-shell is-dense"><div><span class="deck-kicker">ISO 9241-112 &middot; Lentes de apresentação</span><h2 class="deck-title">Apresentar informação é reduzir ambiguidade</h2><p class="deck-summary">Aplicamos a norma como perguntas de projeto e avaliação, sem reproduzir seu texto normativo.</p></div><div class="standard-map"><strong>Informação<br>percebida e<br>compreendida</strong><div class="standard-principles"><span><strong>Detectar</strong><br>o sinal relevante chama atenção?</span><span><strong>Distinguir</strong><br>elementos diferentes parecem diferentes?</span><span><strong>Interpretar</strong><br>rótulos, unidades e relações são inequívocos?</span><span><strong>Conciso</strong><br>cada elemento paga o espaço que ocupa?</span><span><strong>Consistente</strong><br>mesma semântica usa mesma forma?</span><span><strong>Acessível</strong><br>a mensagem sobrevive sem depender apenas da visão ou da cor?</span></div></div></div></div>
-
-    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Auditoria heurística</span><h2 class="deck-title">Problema sem severidade vira opinião</h2><p class="deck-summary">Registre: evidência → heurística → consequência → correção → reteste.</p></div><div class="severity-scale"><div><strong>0</strong><span>não é problema</span></div><div><strong>1</strong><span>cosmético</span></div><div><strong>2</strong><span>atrapalha</span></div><div><strong>3</strong><span>induz erro</span></div><div><strong>4</strong><span>impede a decisão</span></div></div><div class="deck-callout"><strong>Formato obrigatório</strong><p style="margin:8px 0 0;">“A legenda distante exige memória entre série e significado (hierarquia, severidade 2). Rotular diretamente reduz a busca; retestar com cinco segundos.”</p></div></div></div>
-
-    <!-- SLIDE 4 - TESE -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Tese da aula</span>
-          <h2 class="deck-title">Um gráfico é uma interface com o sistema visual</h2>
-          <p class="deck-summary">Ele não é uma decoração de dados. É um dispositivo que aproveita — ou desperdiça — a capacidade do cérebro de processar informação visual antes da leitura consciente.</p>
+          <span class="deck-kicker">Turma faz &middot; Atividade 1 &middot; 9h05&ndash;9h35</span>
+          <h2 class="deck-title">Quais estados concentram mais pedidos entregues?</h2>
+          <p class="deck-summary">Vamos construir uma comparação categórica com junção, filtro, sumarização e barras ordenadas.</p>
         </div>
         <div class="deck-callout">
-          <strong>A consequência prática</strong>
-          <p style="margin:8px 0 0;">Se o sistema visual tem regras conhecidas, então a escolha de representação não é matéria de gosto. É matéria de adequação. Duas pessoas podem discordar sobre qual gráfico é mais bonito; não podem discordar sobre qual permite comparar valores com mais precisão.</p>
+          <strong>Definição da pergunta</strong>
+          Métrica: quantidade de pedidos &middot; dimensão: estado do cliente &middot; filtro: <code>order_status = delivered</code> &middot; decisão: onde priorizar acompanhamento operacional.
         </div>
+        <p class="deck-note">Tempo: 30 minutos. Trabalhe individualmente; peça ajuda somente depois de identificar em qual etapa travou.</p>
       </div>
     </div>
 
-    <!-- SLIDE 5 - PRE-ATENTIVO: DEMO 1 -->
+    <!-- SLIDE 8 - ATIVIDADE 1 PASSOS 1-4 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Percepção &middot; Demonstração</span>
-          <h2 class="deck-title">Quantos algarismos 5 existem aqui?</h2>
-          <p class="deck-summary">Conte. Cronometre mentalmente quanto tempo levou.</p>
-        </div>
-        <div class="a02-grid-demo">
-          7 4 9 2 6 1 8 3 <span>5</span> 0 4 7<br>
-          2 <span>5</span> 8 1 9 6 3 7 0 4 2 8<br>
-          6 3 1 <span>5</span> 7 0 9 4 2 8 6 1<br>
-          9 7 2 8 4 <span>5</span> 1 6 3 0 7 9
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 6 - PRE-ATENTIVO: DEMO 2 -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Percepção &middot; Demonstração</span>
-          <h2 class="deck-title">Agora conte de novo</h2>
-          <p class="deck-summary">Mesmos dados. Um único atributo visual mudou.</p>
-        </div>
-        <div class="a02-grid-demo">
-          7 4 9 2 6 1 8 3 <span class="a02-hit">5</span> 0 4 7<br>
-          2 <span class="a02-hit">5</span> 8 1 9 6 3 7 0 4 2 8<br>
-          6 3 1 <span class="a02-hit">5</span> 7 0 9 4 2 8 6 1<br>
-          9 7 2 8 4 <span class="a02-hit">5</span> 1 6 3 0 7 9
-        </div>
-        <div class="deck-callout" style="margin-top:16px;">
-          <strong>O que aconteceu</strong>
-          <p style="margin:8px 0 0;">Na primeira grade você leu sequencialmente. Na segunda, o peso da fonte disparou o processamento pré-atentivo: a resposta apareceu antes do esforço consciente. Nenhum dado mudou — mudou o canal de codificação.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 7 - ATRIBUTOS PRE-ATENTIVOS -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Percepção &middot; Catálogo</span>
-          <h2 class="deck-title">Atributos pré-atentivos</h2>
-          <p class="deck-summary">Propriedades visuais detectadas em menos de 250 milissegundos, sem esforço consciente. São o seu orçamento de atenção.</p>
-        </div>
-        <table class="deck-table">
-          <thead>
-            <tr><th>Categoria</th><th>Atributos</th><th>Melhor uso</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Forma</td><td>Orientação, comprimento, largura, tamanho, curvatura</td><td>Codificar quantidade</td></tr>
-            <tr><td>Cor</td><td>Matiz, intensidade, saturação</td><td>Destacar exceção ou separar grupos</td></tr>
-            <tr><td>Movimento</td><td>Piscar, direção</td><td>Alerta — raramente apropriado</td></tr>
-            <tr><td>Posição espacial</td><td>Posição 2D, agrupamento</td><td>Comparação precisa</td></tr>
-          </tbody>
-        </table>
-        <div class="deck-callout" style="margin-top:14px;">
-          <strong>A regra que quase todo mundo quebra</strong>
-          <p style="margin:8px 0 0;">O efeito só funciona quando o atributo é <em>raro</em> na tela. Se tudo está em negrito, nada está em negrito. Destacar dez coisas equivale a não destacar nada.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 8 - GESTALT -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Percepção &middot; Gestalt</span>
-          <h2 class="deck-title">Como o olho forma grupos sozinho</h2>
-          <p class="deck-summary">O cérebro agrupa elementos automaticamente. Num gráfico bem feito, esses agrupamentos coincidem com a estrutura dos dados.</p>
-        </div>
-        <table class="deck-table">
-          <thead>
-            <tr><th>Princípio</th><th>O olho assume que</th><th>Uso em gráfico</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Proximidade</td><td>O que está perto pertence junto</td><td>Aproximar rótulo do dado que ele nomeia</td></tr>
-            <tr><td>Similaridade</td><td>O que se parece pertence junto</td><td>Mesma cor para a mesma série</td></tr>
-            <tr><td>Conexão</td><td>O que está ligado pertence junto</td><td>Linha ligando pontos da mesma série</td></tr>
-            <tr><td>Região comum</td><td>O que está na mesma área pertence junto</td><td>Fundo sombreado marcando um período</td></tr>
-            <tr><td>Continuidade</td><td>O olho segue o caminho mais suave</td><td>Alinhamento de eixos e de rótulos</td></tr>
-            <tr><td>Fechamento</td><td>Formas incompletas são completadas</td><td>Dispensa a moldura completa do gráfico</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 9 - GESTALT CONTRA VOCE -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Percepção &middot; Gestalt</span>
-          <h2 class="deck-title">Gestalt trabalha contra você por padrão</h2>
-          <p class="deck-summary">Esses princípios operam sempre, queira você ou não. Se você não os controlar, eles vão criar agrupamentos que os dados não têm.</p>
-        </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>Agrupamento falso comum</strong>
-            <ul>
-              <li>Legenda distante força ida e volta do olhar</li>
-              <li>Duas séries com cores parecidas viram uma</li>
-              <li>Espaçamento irregular sugere categorias relacionadas</li>
-              <li>Grade forte compete com as barras</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>Correção</strong>
-            <ul>
-              <li>Rotular a série diretamente sobre ela</li>
-              <li>Contraste real entre séries que se comparam</li>
-              <li>Espaçamento uniforme dentro de um grupo</li>
-              <li>Grade discreta ou ausente</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 10 - RANKING DE CANAIS -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Percepção &middot; Cleveland &amp; McGill</span>
-          <h2 class="deck-title">Ranking de precisão dos canais</h2>
-          <p class="deck-summary">Ordenado por precisão com que as pessoas conseguem julgar quantidade. Do mais preciso ao menos preciso.</p>
-        </div>
-        <ul class="a02-rank">
-          <li><span class="a02-bar" style="width:160px;"></span> Posição em escala comum</li>
-          <li><span class="a02-bar" style="width:138px;"></span> Posição em escalas não alinhadas</li>
-          <li><span class="a02-bar" style="width:118px;"></span> Comprimento</li>
-          <li><span class="a02-bar" style="width:96px;"></span> Ângulo e inclinação</li>
-          <li><span class="a02-bar" style="width:74px;"></span> Área</li>
-          <li><span class="a02-bar" style="width:52px;"></span> Volume e curvatura</li>
-          <li><span class="a02-bar" style="width:30px;"></span> Saturação e matiz</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- SLIDE 11 - APLICANDO O RANKING -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Percepção &middot; Aplicação</span>
-          <h2 class="deck-title">O ranking explica quase todas as regras que você já ouviu</h2>
-          <p class="deck-summary">As recomendações clássicas de visualização não são convenções arbitrárias — são consequências do ranking.</p>
-        </div>
-        <table class="deck-table">
-          <thead>
-            <tr><th>Recomendação</th><th>Por quê, segundo o ranking</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Prefira barras a pizza</td><td>Barra usa comprimento e posição; pizza usa ângulo e área — dois níveis abaixo</td></tr>
-            <tr><td>Evite gráfico de rosca</td><td>Remove o centro e piora ainda mais o julgamento de ângulo</td></tr>
-            <tr><td>Cuidado com bolhas</td><td>Área é percebida com erro sistemático; dobrar o valor não parece o dobro</td></tr>
-            <tr><td>Não use 3D em gráfico plano</td><td>Volume é quase o pior canal e a perspectiva distorce a posição</td></tr>
-            <tr><td>Cor para categoria, não para quantidade</td><td>Matiz é ótimo para separar, péssimo para ordenar</td></tr>
-            <tr><td>Alinhe as barras numa base comum</td><td>Posição em escala comum é o canal mais preciso que existe</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 12 - CARGA COGNITIVA -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Percepção &middot; Carga</span>
-          <h2 class="deck-title">Todo elemento cobra um preço</h2>
-          <p class="deck-summary">A atenção de quem lê é finita. Cada borda, cada cor, cada rótulo consome parte dela — e o que sobra é o que resta para entender o dado.</p>
-        </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>Consome atenção sem devolver nada</strong>
-            <ul>
-              <li>Grade escura e completa</li>
-              <li>Bordas em todos os elementos</li>
-              <li>Gradientes e sombras</li>
-              <li>Cores diferentes para categorias que não se comparam</li>
-              <li>Casas decimais além da precisão real</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>Devolve mais do que consome</strong>
-            <ul>
-              <li>Rótulo direto sobre a série</li>
-              <li>Ordenação por valor</li>
-              <li>Uma anotação explicando a anomalia</li>
-              <li>Título que declara a conclusão</li>
-              <li>Unidade explícita no eixo</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 13 - RAZAO DADO-TINTA -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Percepção &middot; Tufte</span>
-          <h2 class="deck-title">Razão dado-tinta</h2>
-          <p class="deck-summary">Da tinta total usada no gráfico, quanto representa dado de fato? Tudo o que sobra é candidato à remoção.</p>
-        </div>
-        <div class="deck-callout">
-          <strong>Procedimento de edição</strong>
-          <ol style="margin:10px 0 0; padding-left:22px;">
-            <li>Liste todo elemento visual presente no gráfico.</li>
-            <li>Para cada um, pergunte: se eu remover, alguma informação se perde?</li>
-            <li>Se a resposta for não, remova.</li>
-            <li>Repita até que qualquer remoção adicional cause perda.</li>
-          </ol>
-          <p style="margin:12px 0 0;">O limite existe: minimalismo levado ao extremo remove contexto necessário. O objetivo não é o gráfico mais vazio, é o gráfico onde tudo o que está presente tem função.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 14 - DISTORCAO DE ESCALA -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Integridade</span>
-          <h2 class="deck-title">Quando o eixo pode ser truncado</h2>
-          <p class="deck-summary">O truncamento amplifica diferenças. Às vezes isso revela um padrão real; às vezes fabrica um padrão que não existe.</p>
-        </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>Pode truncar</strong>
-            <ul>
-              <li>Gráfico de linha em série temporal</li>
-              <li>A variação relevante é pequena frente à base</li>
-              <li>O zero não tem significado no domínio</li>
-              <li>O truncamento está sinalizado com clareza</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>Não pode truncar</strong>
-            <ul>
-              <li>Gráfico de barras — a barra <em>é</em> o comprimento</li>
-              <li>Comparação de magnitude entre categorias</li>
-              <li>A audiência vai ler rápido, sem checar o eixo</li>
-              <li>O objetivo é impressionar, não informar</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 15 - CICLO DE CRIACAO -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Processo</span>
-          <h2 class="deck-title">O ciclo de criação e interpretação</h2>
-          <p class="deck-summary">Criar uma visualização não é um ato único. É um ciclo em que a interpretação de outra pessoa é parte obrigatória.</p>
-        </div>
-        <table class="deck-table">
-          <thead>
-            <tr><th>#</th><th>Etapa</th><th>Pergunta que resolve</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>1</td><td>Pergunta</td><td>O que se quer saber e que decisão depende disso?</td></tr>
-            <tr><td>2</td><td>Dado</td><td>Qual recorte responde, com qual grão?</td></tr>
-            <tr><td>3</td><td>Codificação</td><td>Qual canal representa esta quantidade com precisão?</td></tr>
-            <tr><td>4</td><td>Composição</td><td>Onde o olho entra e por onde ele caminha?</td></tr>
-            <tr><td>5</td><td>Edição</td><td>O que pode sair sem perda?</td></tr>
-            <tr><td>6</td><td>Teste</td><td>Outra pessoa entende sem explicação?</td></tr>
-            <tr><td>7</td><td>Revisão</td><td>O que o teste revelou que precisa mudar?</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 16 - TESTE DOS 5 SEGUNDOS -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Processo &middot; Validação</span>
-          <h2 class="deck-title">O teste dos cinco segundos</h2>
-          <p class="deck-summary">O método mais barato e mais brutal de avaliar uma visualização.</p>
+          <span class="deck-kicker">Turma faz &middot; Atividade 1 &middot; Passos 1&ndash;4</span>
+          <h2 class="deck-title">Monte a consulta</h2>
         </div>
         <ol class="deck-steps">
-          <li>Mostre o gráfico a alguém que não participou da construção.</li>
-          <li>Conte cinco segundos e esconda a tela.</li>
-          <li>Pergunte: o que você viu primeiro? Qual a mensagem? Que número você lembra?</li>
-          <li>Não explique nada, não corrija, não justifique. Apenas anote.</li>
-          <li>Se a resposta não for a mensagem pretendida, o gráfico falhou — não a pessoa.</li>
+          <li>Clique em <strong>+ New &rarr; Question</strong> e selecione <code>olist_orders</code>.</li>
+          <li>Em <strong>Join data</strong>, escolha <code>olist_customers</code> e confirme a relação por <code>customer_id</code>.</li>
+          <li>Adicione o filtro <code>order_status</code> igual a <code>delivered</code>.</li>
+          <li>Em <strong>Summarize</strong>, escolha <strong>Count of rows</strong> e agrupe por <code>customer_state</code>.</li>
         </ol>
-      </div>
-    </div>
-
-    <!-- SLIDE 17 - ABERTURA DA PRATICA -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Prática &middot; 10h00 &ndash; 12h10</span>
-          <h2 class="deck-title">Laboratório: destruir e reconstruir</h2>
-          <p class="deck-summary">Você vai construir o pior gráfico possível a partir de uma pergunta real e depois reconstruí-lo aplicando tudo o que vimos. A destruição deliberada ensina mais que a construção direta.</p>
-        </div>
         <div class="deck-callout">
-          <strong>Ponto de partida</strong>
-          <p style="margin:8px 0 0;">Escolha uma das suas três perguntas prioritárias da Aula 01. Precisa ser uma pergunta que envolva comparação entre categorias ou evolução no tempo.</p>
+          <strong>Checkpoint de grão</strong>
+          A fonte começa com uma linha por pedido. A junção com clientes é 1:1; portanto, a contagem continua representando pedidos.
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 18 - ETAPA 1: O GRAFICO RUIM -->
+    <!-- SLIDE 9 - ATIVIDADE 1 PASSOS 5-8 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 1</span>
-          <h2 class="deck-title">Construa o pior gráfico possível</h2>
-          <p class="deck-summary">Trinta minutos. Responda corretamente à sua pergunta e apresente o resultado da pior forma que conseguir.</p>
-        </div>
-        <div class="deck-callout">
-          <strong>Regra</strong>
-          <p style="margin:8px 0 0;">O dado precisa estar <em>certo</em>. A distorção é toda na representação. Um gráfico com dado errado não serve para este exercício.</p>
-        </div>
-        <div class="deck-columns" style="margin-top:14px;">
-          <div class="deck-panel">
-            <strong>Armas disponíveis</strong>
-            <ul>
-              <li>Pizza com muitas fatias</li>
-              <li>Ordem alfabética em dado ordenável</li>
-              <li>Uma cor diferente por categoria</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>E mais</strong>
-            <ul>
-              <li>Legenda longe da série</li>
-              <li>Rótulo com quatro casas decimais</li>
-              <li>Título que não diz nada</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 19 - ETAPA 2: AUDITORIA -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Prática &middot; Etapa 2</span>
-          <h2 class="deck-title">Auditoria perceptiva</h2>
-          <p class="deck-summary">Vinte minutos. Troque de tela com um colega e audite o gráfico dele nestes cinco pontos.</p>
-        </div>
-        <table class="deck-table">
-          <thead>
-            <tr><th>#</th><th>Ponto</th><th>Pergunta da auditoria</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>1</td><td>Canal</td><td>A quantidade está codificada em qual canal? Dá para subir no ranking?</td></tr>
-            <tr><td>2</td><td>Ordem</td><td>A ordenação ajuda a comparação ou é arbitrária?</td></tr>
-            <tr><td>3</td><td>Destaque</td><td>O que salta primeiro é o que importa?</td></tr>
-            <tr><td>4</td><td>Agrupamento</td><td>Os agrupamentos visuais correspondem à estrutura do dado?</td></tr>
-            <tr><td>5</td><td>Ruído</td><td>O que pode ser removido sem perda de informação?</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 20 - ETAPA 3: RECONSTRUCAO -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Prática &middot; Etapa 3</span>
-          <h2 class="deck-title">Reconstrução</h2>
-          <p class="deck-summary">Quarenta minutos. Volte ao seu gráfico e corrija, um ponto de cada vez, registrando o motivo.</p>
+          <span class="deck-kicker">Turma faz &middot; Atividade 1 &middot; Passos 5&ndash;8</span>
+          <h2 class="deck-title">Transforme o resultado em comparação</h2>
         </div>
         <ol class="deck-steps">
-          <li><strong>Suba o canal.</strong> Troque o tipo de visualização por um que use posição ou comprimento.</li>
-          <li><strong>Ordene por valor.</strong> Categoria nominal se ordena pelo dado, não pelo alfabeto.</li>
-          <li><strong>Reduza a cor a uma decisão.</strong> Uma cor para tudo, outra apenas para o que precisa de atenção.</li>
-          <li><strong>Aproxime o rótulo do dado.</strong> Elimine a viagem do olho até a legenda.</li>
-          <li><strong>Ajuste a precisão numérica.</strong> Casas decimais só até onde o dado é confiável.</li>
-          <li><strong>Reescreva o título</strong> para que ele declare a conclusão, não o assunto.</li>
+          <li>Execute a consulta e ordene a contagem do maior para o menor.</li>
+          <li>Escolha <strong>Row</strong> (barras horizontais); se aparecer apenas <strong>Bar</strong>, use barras e mantenha as siglas legíveis.</li>
+          <li>Use o título <strong>Pedidos entregues por estado</strong> e mantenha apenas os elementos necessários para comparar.</li>
+          <li>Salve na sua coleção como <code>A02_01_pedidos_entregues_por_estado</code>.</li>
         </ol>
-      </div>
-    </div>
-
-    <!-- SLIDE 21 - ETAPA 4: TESTE -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Prática &middot; Etapa 4</span>
-          <h2 class="deck-title">Teste e revisão</h2>
-          <p class="deck-summary">Vinte minutos. Aplique o teste dos cinco segundos com um colega diferente do que fez a auditoria.</p>
+        <div class="deck-callout">
+          <strong>Antes de concluir</strong>
+          As UFs exibidas estão em ordem decrescente e o título informa exatamente métrica, recorte e dimensão?
         </div>
-        <ol class="deck-steps">
-          <li>Mostre a versão reconstruída por cinco segundos.</li>
-          <li>Pergunte o que a pessoa viu primeiro e qual a mensagem.</li>
-          <li>Anote a resposta literal, sem interpretar.</li>
-          <li>Se a mensagem não chegou, identifique qual dos cinco pontos da auditoria falhou.</li>
-          <li>Faça uma última revisão e salve as duas versões na sua coleção.</li>
-        </ol>
       </div>
     </div>
 
-    <!-- SLIDE 22 - ENTREGAVEL -->
+    <!-- SLIDE 10 - CHECKPOINT -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Entrega</span>
-          <h2 class="deck-title">O que sai daqui hoje</h2>
-          <p class="deck-summary">O par antes/depois é o registro do seu raciocínio, não apenas do resultado.</p>
+          <span class="deck-kicker">Discussão guiada &middot; 9h35&ndash;9h50</span>
+          <h2 class="deck-title">Leia primeiro; interprete depois</h2>
+          <p class="deck-summary">Três pessoas projetam o gráfico. A turma descreve o que vê antes de explicar por que isso acontece.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>No Metabase</h3>
-            <p>Duas perguntas salvas na sua coleção: a versão ruim e a versão reconstruída, nomeadas de forma que a relação entre elas fique clara.</p>
+            <h3>Leitura</h3>
+            <ul>
+              <li>Qual estado aparece primeiro?</li>
+              <li>Quais magnitudes podem ser comparadas?</li>
+              <li>Existe alguma categoria ausente?</li>
+            </ul>
           </article>
           <article class="deck-card">
-            <h3>No repositório</h3>
-            <p><code>docs/02_auditoria_heuristica.md</code> com achados, severidade, mudanças, justificativas e resultado do reteste.</p>
+            <h3>Interpretação</h3>
+            <ul>
+              <li>Volume indica desempenho?</li>
+              <li>A amostra representa o mercado inteiro?</li>
+              <li>Qual nova pergunta o gráfico provoca?</li>
+            </ul>
           </article>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 23 - CRITERIOS -->
+    <!-- SLIDE 11 - SERIE TEMPORAL -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Avaliação</span>
-          <h2 class="deck-title">Como este trabalho é avaliado</h2>
-          <p class="deck-summary">O critério central: nenhuma justificativa pode ser estética.</p>
+          <span class="deck-kicker">Professor explica &middot; 9h50&ndash;10h10</span>
+          <h2 class="deck-title">Tempo não é uma categoria qualquer</h2>
+          <p class="deck-summary">Em séries temporais, ordem e intervalo carregam significado. Reordenar meses por valor destrói a evolução que queremos observar.</p>
         </div>
         <table class="deck-table">
           <thead>
-            <tr><th>Critério</th><th>O que se espera</th></tr>
+            <tr><th>Decisão</th><th>Faça</th><th>Evite</th></tr>
           </thead>
           <tbody>
-            <tr><td>Justificativa perceptiva</td><td>Cada mudança aponta um princípio específico, nomeado</td></tr>
-            <tr><td>Uso do ranking</td><td>A reconstrução sobe o canal de codificação, e isso está explicado</td></tr>
-            <tr><td>Honestidade no teste</td><td>A resposta do colega está registrada como foi dita, mesmo se negativa</td></tr>
-            <tr><td>Integridade do dado</td><td>Nenhuma versão distorce o valor — a diferença está só na representação</td></tr>
+            <tr><td>Granularidade</td><td>Agrupe por mês</td><td>Exibir milhares de datas diárias</td></tr>
+            <tr><td>Ordem</td><td>Mantenha cronologia</td><td>Ordenar pelo maior valor</td></tr>
+            <tr><td>Canal</td><td>Use posição conectada por linha</td><td>Usar pizza para meses</td></tr>
+            <tr><td>Limites</td><td>Verifique meses parciais</td><td>Tratá-los como queda real</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - INTEGRIDADE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Professor explica &middot; Antes de visualizar</span>
+          <h2 class="deck-title">Uma junção pode alterar a métrica</h2>
+          <p class="deck-summary">Em <code>olist_order_payments</code>, uma linha representa uma parcela ou forma de pagamento. Um pedido pode aparecer mais de uma vez.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Contar pedidos</h3>
+            <p>Conte em <code>olist_orders</code> ou conte <code>order_id</code> distinto após a junção.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Somar valor pago</h3>
+            <p>Some <code>payment_value</code>; as linhas de pagamento formam o total recebido.</p>
+          </article>
+        </div>
+        <div class="deck-callout">
+          <strong>Pergunta obrigatória</strong>
+          Depois de cada junção: o que uma linha representa agora?
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - INTERVALO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Intervalo &middot; 10h10&ndash;10h25</span>
+          <h2 class="deck-title">Pausa de 15 minutos</h2>
+          <p class="deck-summary">Deixe a pergunta da Atividade 1 salva e volte com a sua coleção aberta.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Na volta</strong>
+          Eu demonstrarei a construção da segunda consulta uma vez. Em seguida, vocês a reproduzirão sem acompanhar meus cliques.
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - DEMONSTRACAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Professor demonstra &middot; 10h25&ndash;10h40</span>
+          <h2 class="deck-title">Como evoluiu o valor pago em pedidos entregues?</h2>
+          <p class="deck-summary">Observe a sequência completa antes de reproduzir: fonte, duas junções, filtro, soma, mês, linha e salvamento.</p>
+        </div>
+        <ol class="deck-steps">
+          <li><strong>Pedidos:</strong> obtenha datas e status em <code>olist_orders</code>.</li>
+          <li><strong>Pagamentos:</strong> junte o valor pago por <code>order_id</code>.</li>
+          <li><strong>Clientes:</strong> junte o estado por <code>customer_id</code>.</li>
+          <li><strong>Resumo:</strong> some o valor e agrupe por mês.</li>
+          <li><strong>Linha:</strong> preserve a evolução em ordem cronológica.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - ATIVIDADE 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Turma faz &middot; Atividade 2 &middot; 10h40&ndash;11h10</span>
+          <h2 class="deck-title">Reproduza a série temporal</h2>
+          <p class="deck-summary">Agora a demonstração sai da tela. Use os passos seguintes para construir a pergunta na sua coleção.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Definição da pergunta</strong>
+          Métrica: soma de <code>payment_value</code> &middot; dimensão: mês da compra &middot; filtro: pedidos entregues &middot; decisão: identificar períodos que merecem investigação.
+        </div>
+        <p class="deck-note">O objetivo não é memorizar cliques; é conseguir justificar cada bloco adicionado.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - ATIVIDADE 2 PASSOS 1-4 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Turma faz &middot; Atividade 2 &middot; Passos 1&ndash;4</span>
+          <h2 class="deck-title">Conecte tempo, valor e geografia</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Crie uma pergunta a partir de <code>olist_orders</code>.</li>
+          <li>Junte <code>olist_order_payments</code> por <code>order_id</code>.</li>
+          <li>Junte <code>olist_customers</code> por <code>customer_id</code>; esse campo será usado no filtro do dashboard.</li>
+          <li>Filtre <code>order_status</code> igual a <code>delivered</code>.</li>
+        </ol>
+        <div class="deck-callout">
+          <strong>Se a junção não aparecer</strong>
+          Confirme que começou em <code>olist_orders</code> e selecione manualmente os campos de mesmo nome nos dois lados da relação.
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - ATIVIDADE 2 PASSOS 5-8 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Turma faz &middot; Atividade 2 &middot; Passos 5&ndash;8</span>
+          <h2 class="deck-title">Resuma, visualize e valide</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Em <strong>Summarize</strong>, use <strong>Sum of</strong> <code>payment_value</code> e agrupe <code>order_purchase_timestamp</code> por <strong>Month</strong>.</li>
+          <li>Execute e escolha <strong>Line</strong>, mantendo os meses em ordem cronológica.</li>
+          <li>Formate o eixo vertical como moeda e use o título <strong>Valor pago por mês — pedidos entregues</strong>.</li>
+          <li>Salve como <code>A02_02_valor_pago_por_mes</code> na sua coleção.</li>
+        </ol>
+        <div class="deck-callout">
+          <strong>Teste de sanidade</strong>
+          A linha cobre 2016&ndash;2018? Os meses das extremidades podem ser parciais; não os interprete como tendência sem verificar cobertura.
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - TESTE EM PARES -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Turma faz &middot; Teste em pares &middot; 11h10&ndash;11h25</span>
+          <h2 class="deck-title">Cinco segundos, uma mensagem</h2>
+          <p class="deck-summary">Mostre apenas um gráfico ao colega por cinco segundos. Depois esconda a tela e faça as perguntas.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Qual era a métrica?</li>
+          <li>Qual comparação ou evolução chamou atenção?</li>
+          <li>Qual filtro definia o universo?</li>
+          <li>O que ficou ambíguo ou exigiu explicação?</li>
+          <li>Ajuste título, ordem, rótulos ou formatação e salve novamente.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - DASHBOARD -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Professor explica &middot; 11h25&ndash;11h40</span>
+          <h2 class="deck-title">Dashboard é coordenação, não coleção</h2>
+          <p class="deck-summary">Dois gráficos pertencem ao mesmo painel quando respondem partes da mesma decisão e reagem aos mesmos recortes.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Princípio</th><th>Aplicação hoje</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Hierarquia</td><td>Série temporal ocupa a faixa superior</td></tr>
+            <tr><td>Proximidade</td><td>Filtro fica perto do conjunto que controla</td></tr>
+            <tr><td>Consistência</td><td>Ambos usam o mesmo universo: pedidos entregues</td></tr>
+            <tr><td>Interação</td><td>Estado filtra os dois cartões</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - ATIVIDADE 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Turma faz &middot; Atividade 3 &middot; 11h40&ndash;12h00</span>
+          <h2 class="deck-title">Monte o primeiro dashboard da disciplina</h2>
+          <p class="deck-summary">As duas perguntas já estão salvas. Agora vamos coordená-las numa mesma superfície de decisão.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Cartão 1</h3>
+            <p><code>A02_01_pedidos_entregues_por_estado</code></p>
+          </article>
+          <article class="deck-card">
+            <h3>Cartão 2</h3>
+            <p><code>A02_02_valor_pago_por_mes</code></p>
+          </article>
+        </div>
+        <div class="deck-callout">
+          <strong>Nome do painel</strong>
+          <code>A02_dashboard_operacao_olist</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - ATIVIDADE 3 PASSOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Turma faz &middot; Atividade 3 &middot; Passo a passo</span>
+          <h2 class="deck-title">Adicione, conecte e teste</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Clique em <strong>+ New &rarr; Dashboard</strong>, nomeie e salve na sua coleção.</li>
+          <li>Adicione as duas perguntas; deixe a série temporal larga na parte superior e as barras abaixo.</li>
+          <li>Adicione um filtro <strong>Text or category</strong>, nomeie <strong>State</strong> e conecte-o a <code>customer_state</code> nos dois cartões.</li>
+          <li>Salve. Selecione <strong>SP</strong> e depois <strong>BA</strong>; confirme que os dois cartões mudam.</li>
+          <li>Limpe o filtro e faça uma última leitura de cinco segundos.</li>
+        </ol>
+        <div class="deck-callout">
+          <strong>Se o filtro não conectar</strong>
+          Edite a pergunta correspondente e confirme que <code>olist_customers</code> foi juntada antes do resumo.
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 22 - ENTREGAVEIS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega &middot; 12h00</span>
+          <h2 class="deck-title">O que precisa permanecer salvo</h2>
+        </div>
+        <div class="quality-gates">
+          <article class="quality-gate">
+            <strong>Pergunta 1</strong>
+            <span><code>A02_01_<wbr>pedidos_<wbr>entregues_<wbr>por_<wbr>estado</code><br>Barras em ordem decrescente</span>
+          </article>
+          <article class="quality-gate">
+            <strong>Pergunta 2</strong>
+            <span><code>A02_02_<wbr>valor_<wbr>pago_<wbr>por_<wbr>mes</code><br>Linha mensal e eixo monetário</span>
+          </article>
+          <article class="quality-gate">
+            <strong>Dashboard</strong>
+            <span><code>A02_<wbr>dashboard_<wbr>operacao_<wbr>olist</code><br>Dois cartões + filtro de estado</span>
+          </article>
+        </div>
+        <p class="deck-note">Todos os artefatos ficam na coleção com o seu nome. Não há entrega escrita nesta aula.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 23 - FECHAMENTO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; 12h00&ndash;12h10</span>
+          <h2 class="deck-title">Explique suas escolhas em 60 segundos</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Consulta</h3>
+            <ul>
+              <li>qual era o grão;</li>
+              <li>quais junções foram feitas;</li>
+              <li>qual filtro definiu o universo.</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Visual</h3>
+            <ul>
+              <li>por que barras ou linha;</li>
+              <li>qual tarefa ficou mais fácil;</li>
+              <li>qual limitação permanece.</li>
+            </ul>
+          </article>
+        </div>
       </div>
     </div>
 
@@ -605,11 +513,11 @@
         <div>
           <span class="deck-kicker">Próxima aula &middot; 29/08</span>
           <h2 class="deck-title">Visualização de Dados Numéricos</h2>
-          <p class="deck-summary">Com o vocabulário perceptivo instalado, entramos no primeiro grande domínio: os quatro trabalhos que um gráfico numérico pode executar e como escolher entre eles.</p>
+          <p class="deck-summary">Vamos ampliar o dashboard com distribuições, relações e comparações numéricas, sempre a partir das perguntas do backlog.</p>
         </div>
         <div class="deck-callout">
-          <strong>Traga pronto</strong>
-          <p style="margin:8px 0 0;">Sua versão reconstruída e o resultado do teste dos cinco segundos. Vamos usá-la como base para as comparações numéricas da próxima aula.</p>
+          <strong>Deixe pronto</strong>
+          As duas perguntas e o dashboard da Aula 02 precisam continuar salvos na sua coleção: eles serão o ponto de partida da Aula 03.
         </div>
       </div>
     </div>
