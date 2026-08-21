@@ -6,6 +6,54 @@
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <title>Material Aula 02 — Percepção Visual e Processo de Criação</title>
   <link rel="stylesheet" href="../../../../assets/styles.css">
+  <style>
+    .material-diagram {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 1.5rem 0 0.5rem;
+    }
+    .material-diagram .box {
+      fill: #ffffff;
+      stroke: #111111;
+      stroke-width: 1.5;
+    }
+    .material-diagram .soft-box {
+      fill: #fafaf7;
+      stroke: #111111;
+      stroke-width: 1.25;
+    }
+    .material-diagram .flow {
+      fill: none;
+      stroke: #111111;
+      stroke-width: 1.75;
+    }
+    .material-diagram .flow-dashed {
+      fill: none;
+      stroke: #111111;
+      stroke-dasharray: 7 5;
+      stroke-width: 1.5;
+    }
+    .material-diagram text {
+      fill: #111111;
+      font-family: Inter, Arial, sans-serif;
+    }
+    .material-diagram .svg-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .material-diagram .svg-body {
+      font-size: 14px;
+    }
+    .material-diagram .svg-meta {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+    .diagram-caption {
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+  </style>
 </head>
 <body>
   <main class="page">
@@ -26,14 +74,16 @@
 
       <section class="content-block">
         <h2>1. Visão geral</h2>
-        <p>Esta aula continua diretamente o trabalho iniciado na Aula 01. Depois de conhecer as nove tabelas do Olist, reconhecer o grão de cada uma e formular perguntas respondíveis, chegou o momento de transformar esse raciocínio em consultas e representações persistentes no Metabase.</p>
-        <p>Percepção visual não será tratada como uma lista abstrata de regras. Cada princípio será usado para tomar uma decisão concreta na ferramenta: escolher barras para comparar estados, escolher linha para preservar a continuidade do tempo, ordenar categorias por magnitude, aproximar títulos da pergunta que o gráfico responde e retirar elementos que competem com a mensagem.</p>
-        <p>A dinâmica alterna explicação, demonstração e execução. O professor apresenta um conceito ou constrói um trecho da solução; logo depois, a turma reproduz o processo na instância compartilhada. Cada ciclo termina com validação do resultado antes do próximo ciclo começar.</p>
+        <p>Esta aula dá continuidade ao trabalho iniciado na Aula 01. O conhecimento das nove tabelas do conjunto Olist, a identificação do grão e a formulação de perguntas analíticas constituem a base para a construção de consultas persistentes e representações visuais no Metabase.</p>
+        <p>Os fundamentos de percepção gráfica serão examinados em relação às tarefas analíticas que orientam uma visualização. A comparação entre estados será codificada por posição e comprimento em um gráfico de barras; a evolução mensal será representada por uma linha que preserva a ordem temporal. Títulos, unidades, ordenação e hierarquia serão tratados como componentes da precisão semântica do artefato.</p>
+        <p>A sessão começa com a arquitetura do ambiente da disciplina, o funcionamento interno de uma pergunta no Metabase e o esquema real do banco Olist hospedado no Railway. Esses elementos sustentam uma discussão orientada sobre quais tabelas, campos e agregações devem compor cada gráfico. Em seguida, a aula articula exposição conceitual, demonstração metodológica e laboratório orientado. Cada etapa prática inclui a verificação do grão, da transformação realizada, da representação selecionada e da legibilidade do resultado.</p>
 
         <h3>Resultados esperados</h3>
         <ul>
           <li>construir uma pergunta com junção, filtro, sumarização e agrupamento;</li>
-          <li>explicar por que o grão muda — ou não muda — depois de uma junção;</li>
+          <li>explicar a arquitetura do projeto e o percurso de uma consulta no Metabase;</li>
+          <li>formular perguntas analíticas a partir do esquema e da granularidade das tabelas Olist;</li>
+          <li>avaliar o efeito da cardinalidade de uma junção sobre o grão da consulta;</li>
           <li>escolher barras para comparação categórica e linha para evolução temporal;</li>
           <li>formatar títulos, ordem, eixos e unidades para reduzir ambiguidade;</li>
           <li>combinar duas perguntas salvas em um dashboard com filtro compartilhado;</li>
@@ -48,25 +98,25 @@
             <tr><th>Horário</th><th>Condução</th><th>O que acontece</th></tr>
           </thead>
           <tbody>
-            <tr><td>8h30&ndash;8h45</td><td>Professor explica</td><td>Retomada da Aula 01, objetivo e artefatos do dia</td></tr>
-            <tr><td>8h45&ndash;9h05</td><td>Professor explica</td><td>Construtor visual, grão, sumarização e escolha do gráfico</td></tr>
-            <tr><td>9h05&ndash;9h35</td><td>Turma faz</td><td>Atividade 1: pedidos entregues por estado</td></tr>
-            <tr><td>9h35&ndash;9h50</td><td>Discussão guiada</td><td>Leitura, interpretação e limites do primeiro gráfico</td></tr>
-            <tr><td>9h50&ndash;10h10</td><td>Professor explica</td><td>Séries temporais e integridade após junções</td></tr>
+            <tr><td>8h30&ndash;8h48</td><td>Exposição conceitual</td><td>Arquitetura Railway, funcionamento do Metabase e esquema Olist</td></tr>
+            <tr><td>8h48&ndash;9h05</td><td>Discussão orientada</td><td>Formulação de perguntas, escolha de tabelas, grão e risco de junção</td></tr>
+            <tr><td>9h05&ndash;9h35</td><td>Laboratório orientado</td><td>Atividade 1: pedidos entregues por estado</td></tr>
+            <tr><td>9h35&ndash;9h50</td><td>Análise coletiva</td><td>Descrição, interpretação e limites do primeiro gráfico</td></tr>
+            <tr><td>9h50&ndash;10h10</td><td>Exposição conceitual</td><td>Séries temporais e integridade após junções</td></tr>
             <tr><td>10h10&ndash;10h25</td><td>Intervalo</td><td>Pausa de 15 minutos</td></tr>
-            <tr><td>10h25&ndash;10h40</td><td>Professor demonstra</td><td>Consulta de valor pago por mês, do início ao fim</td></tr>
-            <tr><td>10h40&ndash;11h10</td><td>Turma faz</td><td>Atividade 2: reprodução da série temporal</td></tr>
-            <tr><td>11h10&ndash;11h25</td><td>Turma faz em pares</td><td>Teste de cinco segundos e revisão</td></tr>
-            <tr><td>11h25&ndash;11h40</td><td>Professor explica</td><td>Hierarquia, consistência e filtros de dashboard</td></tr>
-            <tr><td>11h40&ndash;12h00</td><td>Turma faz</td><td>Atividade 3: dashboard com dois cartões e filtro de estado</td></tr>
-            <tr><td>12h00&ndash;12h10</td><td>Fechamento</td><td>Verificação dos entregáveis e justificativa das escolhas</td></tr>
+            <tr><td>10h25&ndash;10h40</td><td>Demonstração metodológica</td><td>Construção integral da consulta de valor pago por mês</td></tr>
+            <tr><td>10h40&ndash;11h10</td><td>Laboratório orientado</td><td>Atividade 2: reprodução da série temporal</td></tr>
+            <tr><td>11h10&ndash;11h25</td><td>Avaliação em pares</td><td>Protocolo de cinco segundos e revisão</td></tr>
+            <tr><td>11h25&ndash;11h40</td><td>Exposição conceitual</td><td>Hierarquia, consistência e filtros de dashboard</td></tr>
+            <tr><td>11h40&ndash;12h00</td><td>Laboratório orientado</td><td>Atividade 3: dashboard com dois cartões e filtro de estado</td></tr>
+            <tr><td>12h00&ndash;12h10</td><td>Síntese metodológica</td><td>Verificação dos artefatos e justificativa das escolhas</td></tr>
           </tbody>
         </table>
       </section>
 
       <section class="content-block">
         <h2>3. Ponto de partida: a coleção da Aula 01</h2>
-        <p>A instância do Metabase é compartilhada, mas o trabalho é individual. A coleção com o seu nome funciona como o espaço persistente da disciplina: consultas e dashboards construídos agora serão reutilizados nas aulas seguintes. Por isso, organização e nomenclatura não são detalhes administrativos; fazem parte da rastreabilidade da análise.</p>
+        <p>A instância do Metabase é compartilhada e cada estudante desenvolve seu trabalho em uma coleção individual. Essa coleção constitui o espaço persistente da disciplina, no qual consultas e dashboards serão mantidos e reutilizados nas aulas seguintes. Organização e nomenclatura asseguram autoria, rastreabilidade e continuidade da análise.</p>
         <p>Acesse a <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a> com as mesmas credenciais da Aula 01. Antes de avançar, confirme que o banco <code>olist</code> aparece, que a coleção com o seu nome existe e que as perguntas da aula anterior continuam salvas.</p>
 
         <div class="note">
@@ -76,15 +126,133 @@
 
         <div class="note">
           <strong>Idioma da interface</strong>
-          <p>A instância está configurada em inglês. Por isso, o passo a passo usa os rótulos que aparecem na tela — <em>New</em>, <em>Question</em>, <em>Join data</em>, <em>Summarize</em>, <em>Row</em>, <em>Line</em> e <em>Dashboard</em> — acompanhados da explicação em português.</p>
+          <p>A instância está configurada em inglês. Por isso, o passo a passo usa os rótulos que aparecem na tela — <em>New</em>, <em>Question</em>, <em>Join data</em>, <em>Summarize</em>, <em>Row</em>, <em>Line</em> e <em>Dashboard</em> — acompanhados da explicação em português. A interface foi conferida na versão 0.63.10 em 21 de agosto de 2026.</p>
         </div>
 
         <p>O backlog da Aula 01 continua relevante. As duas consultas guiadas desta aula fornecem uma base técnica comum à turma; depois, o mesmo repertório será aplicado às perguntas prioritárias de cada aluno.</p>
       </section>
 
       <section class="content-block">
-        <h2>4. O construtor visual como registro do raciocínio</h2>
-        <p>O construtor visual do Metabase organiza a consulta em blocos. Esses blocos não são apenas controles de interface: cada um registra uma decisão analítica. Uma pergunta bem construída permite que outra pessoa reconheça a fonte, as relações, os filtros e a operação que produziu o número.</p>
+        <h2>4. Arquitetura do projeto e funcionamento do Metabase</h2>
+        <p>O ambiente da disciplina está hospedado no projeto <code>metabase-olist</code> do Railway. O navegador acessa a aplicação Metabase por HTTPS. A aplicação utiliza o serviço PostgreSQL para duas finalidades logicamente distintas: o banco <code>metabase</code> mantém usuários, coleções, definições de perguntas, dashboards e configurações; o banco <code>olist</code> contém as nove tabelas analíticas consultadas durante as aulas.</p>
+
+        <figure>
+          <svg class="material-diagram" viewBox="0 0 1080 390" role="img" aria-labelledby="material-arch-title material-arch-desc">
+            <title id="material-arch-title">Arquitetura do projeto Metabase Olist</title>
+            <desc id="material-arch-desc">O navegador acessa o Metabase no Railway. A aplicação persiste seus objetos no banco Metabase e consulta as tabelas do banco Olist no PostgreSQL.</desc>
+            <defs>
+              <marker id="material-arch-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+                <line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line>
+                <line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line>
+              </marker>
+            </defs>
+            <rect class="soft-box" x="15" y="110" width="205" height="140" rx="4"></rect>
+            <text class="svg-title" x="118" y="150" text-anchor="middle">Navegador</text>
+            <text class="svg-body" x="118" y="180" text-anchor="middle">estudante + professor</text>
+            <text class="svg-meta" x="118" y="210" text-anchor="middle">HTTPS</text>
+
+            <rect class="box" x="315" y="50" width="330" height="260" rx="4"></rect>
+            <text class="svg-meta" x="480" y="82" text-anchor="middle">RAILWAY · SERVIÇO METABASE</text>
+            <rect class="soft-box" x="345" y="105" width="270" height="150" rx="4"></rect>
+            <text class="svg-title" x="480" y="142" text-anchor="middle">Metabase</text>
+            <text class="svg-body" x="480" y="174" text-anchor="middle">construtor visual · SQL</text>
+            <text class="svg-body" x="480" y="199" text-anchor="middle">gráficos · dashboards · filtros</text>
+            <text class="svg-meta" x="480" y="229" text-anchor="middle">v0.63.10</text>
+
+            <rect class="box" x="740" y="25" width="325" height="315" rx="4"></rect>
+            <text class="svg-meta" x="902" y="57" text-anchor="middle">RAILWAY · SERVIÇO POSTGRESQL</text>
+            <rect class="soft-box" x="770" y="82" width="265" height="95" rx="4"></rect>
+            <text class="svg-title" x="902" y="114" text-anchor="middle">banco metabase</text>
+            <text class="svg-body" x="902" y="141" text-anchor="middle">coleções · perguntas · dashboards</text>
+            <text class="svg-body" x="902" y="162" text-anchor="middle">usuários · configurações</text>
+            <rect class="soft-box" x="770" y="215" width="265" height="95" rx="4"></rect>
+            <text class="svg-title" x="902" y="247" text-anchor="middle">banco olist</text>
+            <text class="svg-body" x="902" y="274" text-anchor="middle">9 tabelas analíticas</text>
+            <text class="svg-body" x="902" y="295" text-anchor="middle">pedidos · clientes · pagamentos…</text>
+
+            <line class="flow" x1="220" y1="180" x2="315" y2="180" marker-end="url(#material-arch-arrow)"></line>
+            <text class="svg-meta" x="267" y="164" text-anchor="middle">acesso</text>
+            <line class="flow" x1="645" y1="128" x2="770" y2="128" marker-end="url(#material-arch-arrow)"></line>
+            <text class="svg-meta" x="707" y="110" text-anchor="middle">salva</text>
+            <line class="flow" x1="645" y1="245" x2="770" y2="245" marker-end="url(#material-arch-arrow)"></line>
+            <text class="svg-meta" x="707" y="228" text-anchor="middle">consulta</text>
+            <line class="flow-dashed" x1="770" y1="285" x2="645" y2="285" marker-end="url(#material-arch-arrow)"></line>
+            <text class="svg-meta" x="707" y="312" text-anchor="middle">resultado</text>
+          </svg>
+          <figcaption class="diagram-caption">Arquitetura verificada por inspeção somente leitura do projeto no Railway e da instância Metabase.</figcaption>
+        </figure>
+
+        <h3>4.1 Percurso de uma pergunta</h3>
+        <ol class="steps">
+          <li>O estudante formula a pergunta com métrica, dimensão, filtros e contexto decisório.</li>
+          <li>Em <strong>New &rarr; Question</strong>, o editor registra a fonte e cada transformação: <strong>Join data</strong>, <strong>Filter</strong>, <strong>Summarize</strong>, agrupamento e ordenação.</li>
+          <li>Ao clicar em <strong>Visualize</strong>, o Metabase converte os blocos numa consulta, envia a operação ao PostgreSQL e recebe uma tabela de resultados.</li>
+          <li>A visualização codifica as colunas resultantes como barras, linha ou outra representação compatível.</li>
+          <li>Ao clicar em <strong>Save</strong>, a definição da pergunta é registrada no banco <code>metabase</code>. Os dados de origem permanecem no banco <code>olist</code>.</li>
+          <li>Um dashboard referencia perguntas salvas e aplica filtros parametrizados aos campos compatíveis de cada cartão.</li>
+        </ol>
+
+        <div class="note">
+          <strong>Implicação para a rastreabilidade</strong>
+          <p>Uma visualização persistida reúne a pergunta, as transformações, a configuração visual e sua localização numa coleção. Reabrir o botão <strong>Editor</strong> permite auditar a fonte, as junções, o filtro e a função de resumo responsáveis pelo resultado.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Esquema Olist e exercício de formulação de perguntas</h2>
+        <p>A inspeção do banco <code>olist</code> confirmou as nove tabelas abaixo. O banco físico não declara restrições de chave primária ou estrangeira em <code>information_schema</code>. A instância do Metabase possui relações semânticas configuradas para os principais identificadores, mas a validade analítica de cada junção continua dependente da granularidade observada.</p>
+
+        <table>
+          <thead>
+            <tr><th>Tabela</th><th>Linhas</th><th>Campos centrais</th><th>Grão e discussão</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>olist_orders</code></td><td>99.441</td><td><code>order_id</code>, <code>customer_id</code>, <code>order_status</code>, datas</td><td>uma linha por pedido; define status e tempo</td></tr>
+            <tr><td><code>olist_customers</code></td><td>99.441</td><td><code>customer_id</code>, <code>customer_unique_id</code>, cidade, UF, CEP</td><td>uma linha por cliente associado ao pedido; 96.096 compradores únicos</td></tr>
+            <tr><td><code>olist_order_items</code></td><td>112.650</td><td><code>order_id</code>, <code>order_item_id</code>, <code>product_id</code>, <code>seller_id</code>, preço, frete</td><td>uma linha por item do pedido; multiplica pedidos com diversos itens</td></tr>
+            <tr><td><code>olist_order_payments</code></td><td>103.886</td><td><code>order_id</code>, sequência, tipo, parcelas, <code>payment_value</code></td><td>uma linha por ocorrência de pagamento; admite mais de um pagamento por pedido</td></tr>
+            <tr><td><code>olist_order_reviews</code></td><td>99.224</td><td><code>review_id</code>, <code>order_id</code>, nota, comentário, datas</td><td>uma linha por registro de avaliação; há 98.410 identificadores de avaliação distintos</td></tr>
+            <tr><td><code>olist_products</code></td><td>32.951</td><td><code>product_id</code>, categoria, peso, dimensões, quantidade de fotos</td><td>uma linha por produto; 73 categorias em português</td></tr>
+            <tr><td><code>olist_sellers</code></td><td>3.095</td><td><code>seller_id</code>, CEP, cidade, UF</td><td>uma linha por vendedor</td></tr>
+            <tr><td><code>olist_geolocation</code></td><td>1.000.163</td><td>prefixo de CEP, latitude, longitude, cidade, UF</td><td>uma linha por coordenada observada; apenas 19.015 prefixos distintos</td></tr>
+            <tr><td><code>product_category_name_translation</code></td><td>71</td><td>categoria em português e categoria em inglês</td><td>uma linha por tradução disponível</td></tr>
+          </tbody>
+        </table>
+
+        <h3>5.1 Relações relevantes para a aula</h3>
+        <ul>
+          <li><code>olist_orders.customer_id = olist_customers.customer_id</code>: relação efetiva 1:1 no conjunto; disponibiliza UF do cliente sem multiplicar pedidos;</li>
+          <li><code>olist_orders.order_id = olist_order_payments.order_id</code>: relação 1:N; altera o grão para ocorrência de pagamento;</li>
+          <li><code>olist_orders.order_id = olist_order_items.order_id</code>: relação 1:N; altera o grão para item do pedido;</li>
+          <li><code>olist_order_items.product_id = olist_products.product_id</code>: associa categoria e atributos físicos ao item;</li>
+          <li><code>olist_order_items.seller_id = olist_sellers.seller_id</code>: associa o item ao vendedor;</li>
+          <li>prefixos de CEP em clientes, vendedores e geolocalização: associação 1:N que pode ampliar o resultado de forma substancial.</li>
+        </ul>
+
+        <h3>5.2 Discussão orientada: quais dados compõem o gráfico?</h3>
+        <p>Em trios, selecione uma das perguntas e prepare uma justificativa oral de dois minutos. A resposta deve indicar tabela inicial, grão, junções, métrica, dimensão, filtros, representação e teste de sanidade. O professor registrará no backlog coletivo apenas as hipóteses que permanecerem relevantes para as aulas seguintes.</p>
+
+        <table>
+          <thead>
+            <tr><th>Pergunta proposta</th><th>Composição candidata</th><th>Problema a resolver</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Quais UFs concentram mais pedidos entregues?</td><td><code>orders + customers</code>; contagem; UF; status entregue</td><td>justificar por que a junção preserva o grão de pedido</td></tr>
+            <tr><td>Como evoluiu o valor pago em pedidos entregues?</td><td><code>orders + payments</code>; soma; mês da compra; status entregue</td><td>explicar por que pagamentos sequenciais participam da soma</td></tr>
+            <tr><td>Quais categorias apresentam maior frete médio?</td><td><code>items + products</code>; média; categoria</td><td>definir se a unidade é item, pedido ou produto</td></tr>
+            <tr><td>Qual é a avaliação média por categoria?</td><td><code>reviews + orders + items + products</code>; média; categoria</td><td>tratar pedidos com vários itens e categorias sem replicar indevidamente a nota</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>Estrutura de formulação</strong>
+          <p>Use a forma: “Como <em>[métrica]</em> varia por <em>[dimensão]</em>, no universo <em>[filtros e período]</em>, para apoiar <em>[decisão]</em>?”. A formulação deve permitir que outra pessoa identifique as operações necessárias antes de abrir o Metabase.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>6. O construtor visual como registro do raciocínio</h2>
+        <p>O construtor visual do Metabase organiza a consulta em blocos que registram decisões analíticas. Uma pergunta adequadamente estruturada permite reconhecer a fonte, as relações entre tabelas, os filtros aplicados e a operação responsável pela métrica apresentada.</p>
 
         <table>
           <thead>
@@ -100,20 +268,20 @@
           </tbody>
         </table>
 
-        <h3>4.1 O grão antes e depois da junção</h3>
+        <h3>6.1 O grão antes e depois da junção</h3>
         <p>Em <code>olist_orders</code>, cada linha representa um pedido. A junção com <code>olist_customers</code> por <code>customer_id</code> é efetivamente 1:1 no conjunto: cada pedido referencia um registro de cliente. A contagem de linhas continua representando a contagem de pedidos.</p>
-        <p>A junção com <code>olist_order_payments</code> é diferente. Um pedido pode ter mais de um registro de pagamento, por exemplo quando há mais de uma forma ou sequência de pagamento. Depois dessa junção, contar linhas já não equivale necessariamente a contar pedidos. Para contar pedidos, seria preciso contar <code>order_id</code> distinto. Para calcular o valor recebido, somar <code>payment_value</code> é adequado porque os registros de pagamento compõem o total.</p>
+        <p>A relação entre <code>olist_orders</code> e <code>olist_order_payments</code> apresenta cardinalidade 1:N, pois um pedido pode possuir mais de um registro de pagamento. O resultado da junção passa a ter uma linha por ocorrência de pagamento. A contagem de pedidos exige, portanto, a contagem distinta de <code>order_id</code>, enquanto o cálculo do valor recebido utiliza a soma de <code>payment_value</code>.</p>
 
         <div class="note">
           <strong>Pergunta de controle obrigatória</strong>
-          <p>Depois de qualquer junção, pare e formule em voz alta: “o que uma linha representa agora?”. Se a resposta não estiver clara, ainda não é seguro resumir os dados.</p>
+          <p>Após cada junção, explicite a unidade observacional representada por uma linha do resultado. A operação de resumo deve ser definida somente depois dessa verificação.</p>
         </div>
       </section>
 
       <section class="content-block">
-        <h2>5. Percepção visual aplicada às duas perguntas</h2>
+        <h2>7. Percepção visual aplicada às duas perguntas</h2>
         <p>Uma visualização deve facilitar o trabalho cognitivo exigido pela pergunta. Quando o objetivo é comparar categorias, o observador precisa julgar diferenças de magnitude. Barras colocam os valores numa base comum e representam quantidade por comprimento, um canal que as pessoas comparam com boa precisão.</p>
-        <p>Quando o objetivo é observar evolução, a ordem dos pontos é parte do significado. Uma linha conecta posições sequenciais e faz o olho acompanhar continuidade, mudança de direção e ritmo. Ordenar meses pelo valor seria tão incorreto quanto ordenar palavras de uma frase alfabeticamente: os elementos continuariam presentes, mas a estrutura desapareceria.</p>
+        <p>Nas análises de evolução, a ordem dos pontos integra o significado dos dados. A linha conecta posições sequenciais e favorece a percepção de continuidade, direção e ritmo da mudança. A série deve preservar a sequência cronológica, pois a ordenação por magnitude elimina a estrutura temporal necessária à análise.</p>
 
         <table>
           <thead>
@@ -125,91 +293,111 @@
           </tbody>
         </table>
 
-        <h3>5.1 Título, unidade e recorte</h3>
-        <p>O título precisa declarar o que foi calculado, não apenas nomear o assunto. “Pedidos por estado” deixa em aberto se os pedidos são criados, aprovados, enviados ou entregues. “Pedidos entregues por estado” revela o filtro essencial. Do mesmo modo, o eixo de <code>payment_value</code> precisa ser formatado como moeda; sem unidade, o leitor não sabe se observa reais, milhares, contagens ou índices.</p>
-        <p>Use destaque com parcimônia. Quando tudo recebe cor, rótulo, borda e negrito, nada se torna prioritário. Nesta aula, a hierarquia virá da posição, do tamanho do cartão, da ordenação e de títulos claros, sem cores decorativas.</p>
+        <h3>7.1 Título, unidade e recorte</h3>
+        <p>O título deve declarar a métrica, a dimensão e os recortes relevantes. A formulação “Pedidos entregues por estado” explicita o filtro de status que delimita o universo observado. O eixo de <code>payment_value</code> deve ser formatado como moeda para identificar a unidade da medida e permitir sua interpretação correta.</p>
+        <p>O destaque visual deve ser empregado com parcimônia, pois o uso simultâneo de cor, rótulo, borda e negrito reduz a diferenciação hierárquica entre os elementos. Nesta aula, a hierarquia será estabelecida por posição, tamanho do cartão, ordenação e títulos claros, sem cores decorativas.</p>
       </section>
 
       <section class="content-block">
-        <h2>6. Atividade 1 — Pedidos entregues por estado</h2>
+        <h2>8. Atividade 1 — Pedidos entregues por estado</h2>
         <p>A primeira atividade constrói uma comparação categórica. A pergunta é: <em>quais estados concentram mais pedidos entregues?</em> A métrica é a quantidade de pedidos, a dimensão é o estado do cliente, o universo inclui apenas pedidos com status <code>delivered</code> e a decisão possível é onde priorizar acompanhamento operacional.</p>
 
-        <h3>6.1 Construir a consulta</h3>
+        <h3>8.1 Construir a consulta</h3>
         <ol class="steps">
-          <li>Na página inicial do Metabase, clique em <strong>+ New</strong> e escolha <strong>Question</strong>.</li>
-          <li>Selecione o banco <code>olist</code> e use <code>olist_orders</code> como tabela inicial. O grão neste ponto é uma linha por pedido.</li>
-          <li>Adicione o bloco <strong>Join data</strong> e escolha <code>olist_customers</code>.</li>
-          <li>Confirme a condição <code>olist_orders.customer_id = olist_customers.customer_id</code>. Se o Metabase sugerir a relação automaticamente, ainda assim leia os dois campos antes de aceitar.</li>
-          <li>Adicione um filtro em <code>order_status</code>, selecione a condição de igualdade e marque apenas <code>delivered</code>.</li>
-          <li>Adicione <strong>Summarize</strong>, escolha <strong>Count of rows</strong> e agrupe por <code>customer_state</code> da tabela de clientes.</li>
-          <li>Execute a consulta e confira se o resultado contém uma linha por sigla de estado, acompanhada de uma contagem.</li>
+          <li>Na página inicial, localize <strong>New</strong> na região superior esquerda. Clique nesse botão e selecione <strong>Question</strong> no menu aberto.</li>
+          <li>Na tela de seleção da fonte, identificada por <strong>Pick your starting data</strong>, clique no banco <strong>Olist</strong>.</li>
+          <li>Na lista das nove tabelas, clique em <strong>Olist Orders</strong>. O editor deve exibir o bloco <strong>Data</strong> com <strong>Olist Orders</strong> como fonte. Nesse ponto, uma linha representa um pedido.</li>
+          <li>Na linha da fonte, localize o ícone com o rótulo <strong>Join data</strong>. Ele fica no conjunto de ações do bloco <strong>Data</strong>. Clique no ícone.</li>
+          <li>No seletor da junção, clique em <strong>Olist</strong> e depois em <strong>Olist Customers</strong>.</li>
+          <li>Confira a condição sugerida na própria linha da junção: <strong>Olist Orders &rarr; Customer ID = Olist Customers &rarr; Customer ID</strong>. Os nomes das duas tabelas precisam aparecer no bloco <strong>Data</strong>.</li>
+          <li>Clique em <strong>Filter</strong> e abra o campo <strong>Olist Orders &rarr; Order Status</strong>. Selecione o operador <strong>Is</strong>, marque <strong>Delivered</strong> e aplique o filtro.</li>
+          <li>Clique em <strong>Summarize</strong>. Em <strong>Pick a function or metric</strong>, selecione <strong>Count of rows</strong>.</li>
+          <li>Ao lado de <strong>by</strong>, clique em <strong>Pick a column to group by</strong>. Abra <strong>Olist Customers</strong> e selecione <strong>Customer State</strong>.</li>
+          <li>Antes de gerar o gráfico, localize a ação <strong>Sort</strong> no editor. Escolha <strong>Count</strong> e a direção descendente.</li>
         </ol>
 
-        <h3>6.2 Construir a visualização</h3>
+        <div class="note">
+          <strong>Checkpoint visível no editor</strong>
+          <p>O bloco <strong>Data</strong> deve mostrar <strong>Olist Orders + Olist Customers</strong>; o bloco <strong>Filter</strong> deve mostrar <strong>Order Status is Delivered</strong>; o bloco <strong>Summarize</strong> deve mostrar <strong>Count by Customer State</strong>. Corrija o bloco divergente antes de clicar em <strong>Visualize</strong>.</p>
+        </div>
+
+        <h3>8.2 Construir a visualização</h3>
         <ol class="steps">
-          <li>Ordene a coluna de contagem do maior para o menor. A ordenação por magnitude reduz a busca e torna o ranking visível.</li>
-          <li>Escolha <strong>Row</strong>, o gráfico de barras horizontais indicado pelo Metabase para muitas categorias. Se a opção disponível for apenas <strong>Bar</strong>, use barras e confirme que as siglas continuam legíveis.</li>
-          <li>Use o título <strong>Pedidos entregues por estado</strong>. Não use “Gráfico 1” ou “Análise por UF”.</li>
-          <li>Mantenha a escala começando em zero e remova elementos que não ajudam a comparar as barras.</li>
-          <li>Salve a pergunta na coleção com o seu nome usando <code>A02_01_pedidos_entregues_por_estado</code>.</li>
+          <li>Clique em <strong>Visualize</strong>, no canto inferior direito do editor. Aguarde a conclusão da consulta.</li>
+          <li>No rodapé do resultado, clique em <strong>Visualization</strong>. No seletor que apresenta <strong>Bar</strong>, <strong>Row</strong>, <strong>Pie</strong>, <strong>Line</strong> e outras opções, escolha <strong>Row</strong> e clique em <strong>Done</strong>.</li>
+          <li>Confira a orientação horizontal das barras, a ordem decrescente e a presença das siglas das UFs. A instância de referência retorna 27 linhas estaduais; a soma das contagens corresponde a 96.478 pedidos entregues.</li>
+          <li>Abra as configurações pelo ícone ao lado de <strong>Visualization</strong>. Mantenha a escala quantitativa iniciando em zero e preserve os rótulos necessários para identificar as UFs.</li>
+          <li>Clique em <strong>Save</strong>. No campo de nome, informe <code>A02_01_pedidos_entregues_por_estado</code>.</li>
+          <li>No seletor da coleção, escolha a coleção com o seu nome e confirme em <strong>Save</strong>. A pergunta salva deve abrir pela coleção sem reconstrução dos blocos.</li>
         </ol>
 
-        <h3>6.3 Validar antes de avançar</h3>
+        <h3>8.3 Validar antes de avançar</h3>
         <ul>
-          <li>cada barra representa um estado, não um cliente nem uma cidade;</li>
+          <li>cada barra representa uma unidade federativa;</li>
           <li>o filtro <code>delivered</code> está visível na consulta;</li>
+          <li>o resultado apresenta 27 UFs e São Paulo ocupa a primeira posição;</li>
           <li>a ordem é decrescente;</li>
           <li>o título informa métrica, recorte e dimensão;</li>
           <li>a pergunta está salva na coleção correta.</li>
         </ul>
 
         <div class="note">
-          <strong>Leitura não é interpretação</strong>
-          <p>Dizer que São Paulo possui a maior barra é leitura do resultado. Dizer que o desempenho operacional de São Paulo é melhor seria interpretação sem suporte: volume não mede qualidade. O gráfico responde onde há mais pedidos entregues, mas não explica participação de mercado, atraso, satisfação ou eficiência.</p>
+          <strong>Descrição do resultado e limites da inferência</strong>
+          <p>A maior barra para São Paulo constitui uma descrição diretamente sustentada pelo resultado. Uma conclusão sobre desempenho operacional exigiria métricas adicionais de prazo, qualidade ou eficiência. O gráfico informa a distribuição do volume de pedidos entregues e delimita novas questões sobre participação de mercado, atraso e satisfação.</p>
         </div>
       </section>
 
       <section class="content-block">
-        <h2>7. Séries temporais e integridade da métrica</h2>
-        <p>A segunda consulta combina três tipos de informação: data e status em <code>olist_orders</code>, valor em <code>olist_order_payments</code> e estado em <code>olist_customers</code>. O campo geográfico não será exibido na linha, mas precisa estar disponível para que o futuro filtro do dashboard controle o cartão.</p>
-        <p>A métrica escolhida é a soma de <code>payment_value</code>. Como um pedido pode ter mais de um registro de pagamento, a soma agrega os componentes do valor. Essa mesma junção não autorizaria contar linhas como pedidos: métricas diferentes exigem verificações de grão diferentes.</p>
+        <h2>9. Séries temporais e integridade da métrica</h2>
+        <p>A segunda consulta combina data e status de <code>olist_orders</code>, valor de <code>olist_order_payments</code> e estado de <code>olist_customers</code>. O campo geográfico permanecerá disponível na consulta para permitir que o filtro do dashboard controle o cartão temporal.</p>
+        <p>A métrica corresponde à soma de <code>payment_value</code>. Como um pedido pode apresentar múltiplos registros de pagamento, a soma agrega os componentes do valor recebido. A contagem de pedidos nesse mesmo resultado exigiria uma operação distinta sobre <code>order_id</code>. O banco contém 99.441 pedidos e registros de pagamento para 99.440 deles. Entre os pedidos entregues, há 96.478 pedidos, dos quais 96.477 possuem pagamento associado. A demonstração utilizará <strong>Inner join</strong> com pagamentos para tornar esse recorte explícito.</p>
 
-        <h3>7.1 Granularidade mensal</h3>
-        <p>Agrupar por mês reduz ruído diário e oferece uma escala compatível com aproximadamente dois anos de dados. O agrupamento mensal não deve converter os meses em categorias independentes; eles permanecem uma sequência ordenada. Por isso, a consulta deve usar <code>order_purchase_timestamp</code> agrupado por mês e o gráfico deve permanecer em ordem cronológica.</p>
-        <p>Os limites da série exigem cautela. O primeiro e o último mês do conjunto podem estar incompletos. Uma queda no final pode indicar apenas encerramento da coleta, e não deterioração do negócio. Antes de narrar uma tendência, confirme o intervalo coberto pelo mês.</p>
+        <h3>9.1 Granularidade mensal</h3>
+        <p>O agrupamento mensal reduz a variação diária e oferece uma escala compatível com aproximadamente dois anos de dados. Os meses permanecem unidades sequenciais ordenadas. A consulta utiliza <code>order_purchase_timestamp</code> agregado por mês, e a representação preserva a ordem cronológica. Depois do recorte por pagamento registrado, o resultado apresenta 22 meses com valores, de outubro de 2016 a agosto de 2018.</p>
+        <p>Os limites da série exigem cautela, pois o primeiro e o último mês do conjunto podem estar incompletos. Uma redução na extremidade final pode decorrer do encerramento da coleta. O único pedido entregue adquirido em setembro de 2016 não possui pagamento correspondente e, por isso, fica fora da junção interna. A interpretação de tendência requer a verificação prévia do intervalo efetivamente coberto.</p>
       </section>
 
       <section class="content-block">
-        <h2>8. Atividade 2 — Valor pago por mês</h2>
-        <p>A pergunta é: <em>como evoluiu o valor pago em pedidos entregues ao longo dos meses?</em> A métrica é a soma de <code>payment_value</code>, a dimensão é o mês de compra, o filtro mantém pedidos entregues e a decisão é identificar períodos que merecem investigação.</p>
+        <h2>10. Atividade 2 — Valor pago por mês</h2>
+        <p>A pergunta é: <em>como evoluiu o valor registrado em pagamentos associados a pedidos entregues ao longo dos meses?</em> A métrica é a soma de <code>payment_value</code>, a dimensão é o mês de compra, o filtro mantém pedidos entregues com pagamento associado e a decisão é identificar períodos que merecem investigação.</p>
 
-        <h3>8.1 Conectar as tabelas</h3>
+        <h3>10.1 Conectar as tabelas</h3>
         <ol class="steps">
-          <li>Crie uma nova pergunta a partir de <code>olist_orders</code>.</li>
-          <li>Junte <code>olist_order_payments</code> usando <code>order_id</code> nos dois lados.</li>
-          <li>Junte também <code>olist_customers</code> usando <code>customer_id</code>. Essa segunda junção disponibiliza <code>customer_state</code> para o filtro do dashboard.</li>
-          <li>Adicione o filtro <code>order_status = delivered</code>.</li>
-          <li>Antes de resumir, lembre que agora pode haver mais de uma linha por pedido devido aos registros de pagamento.</li>
+          <li>Na página inicial, clique em <strong>New &rarr; Question</strong>. Em <strong>Pick your starting data</strong>, selecione <strong>Olist &rarr; Olist Orders</strong>.</li>
+          <li>No bloco <strong>Data</strong>, clique no ícone <strong>Join data</strong>. Selecione <strong>Olist &rarr; Olist Order Payments</strong>.</li>
+          <li>Confira a condição <strong>Olist Orders &rarr; Order ID = Olist Order Payments &rarr; Order ID</strong>.</li>
+          <li>Abra o seletor de estratégia da junção, que inicialmente pode mostrar <strong>Left join</strong>, e escolha <strong>Inner join</strong>. O universo passa a conter pedidos com ao menos um registro de pagamento.</li>
+          <li>No mesmo bloco <strong>Data</strong>, clique em outro ícone <strong>Join data</strong>. Selecione <strong>Olist &rarr; Olist Customers</strong>.</li>
+          <li>Confira a segunda condição: <strong>Olist Orders &rarr; Customer ID = Olist Customers &rarr; Customer ID</strong>. Essa junção disponibiliza <strong>Customer State</strong> para o filtro do dashboard.</li>
+          <li>Clique em <strong>Filter</strong>, selecione <strong>Olist Orders &rarr; Order Status</strong>, escolha <strong>Is</strong>, marque <strong>Delivered</strong> e aplique.</li>
+          <li>Declare o grão antes do resumo: cada linha representa uma ocorrência de pagamento de um pedido entregue, acompanhada dos atributos do pedido e do cliente.</li>
         </ol>
 
-        <h3>8.2 Calcular e visualizar</h3>
+        <div class="note">
+          <strong>Checkpoint de cardinalidade</strong>
+          <p>O recorte contém 100.756 ocorrências de pagamento pertencentes a 96.477 pedidos entregues. A diferença confirma a cardinalidade 1:N. Uma contagem de linhas nesse ponto mediria pagamentos; uma contagem distinta de <strong>Order ID</strong> mediria pedidos.</p>
+        </div>
+
+        <h3>10.2 Calcular e visualizar</h3>
         <ol class="steps">
-          <li>Adicione <strong>Summarize</strong> e selecione <strong>Sum of</strong> <code>payment_value</code>.</li>
-          <li>Em <strong>Group by</strong>, selecione <code>order_purchase_timestamp</code> e altere a unidade temporal para <strong>Month</strong>.</li>
-          <li>Execute a consulta. O resultado esperado é uma sequência de meses com um valor agregado para cada período.</li>
-          <li>Escolha <strong>Line</strong>. Confirme que o eixo horizontal está em ordem cronológica.</li>
-          <li>Nas configurações de visualização, formate o eixo vertical como moeda. Evite suavização que sugira valores intermediários não observados.</li>
-          <li>Use o título <strong>Valor pago por mês — pedidos entregues</strong>.</li>
-          <li>Salve na sua coleção como <code>A02_02_valor_pago_por_mes</code>.</li>
+          <li>Clique em <strong>Summarize</strong>. Em <strong>Pick a function or metric</strong>, selecione <strong>Sum of</strong>.</li>
+          <li>No seletor de campo, abra <strong>Olist Order Payments</strong> e escolha <strong>Payment Value</strong>.</li>
+          <li>Ao lado de <strong>by</strong>, clique em <strong>Pick a column to group by</strong>. Abra <strong>Olist Orders</strong>, selecione <strong>Order Purchase Timestamp</strong> e escolha a unidade <strong>Month</strong>.</li>
+          <li>Confirme que o resumo exibido no editor corresponde a <strong>Sum of Payment Value by month of Order Purchase Timestamp</strong>.</li>
+          <li>Clique em <strong>Visualize</strong>. O resultado deve conter 22 linhas mensais, de outubro de 2016 a agosto de 2018.</li>
+          <li>Clique em <strong>Visualization</strong>, selecione <strong>Line</strong> e confirme em <strong>Done</strong>.</li>
+          <li>Abra as configurações pelo ícone ao lado de <strong>Visualization</strong>. Na configuração da série <strong>Sum of Payment Value</strong>, selecione o estilo monetário e a moeda brasileira. Mantenha o eixo horizontal em ordem cronológica.</li>
+          <li>Clique em <strong>Save</strong>, informe <code>A02_02_valor_pago_por_mes</code>, selecione a coleção com o seu nome e confirme.</li>
         </ol>
 
-        <h3>8.3 Testes de sanidade</h3>
+        <h3>10.3 Testes de sanidade</h3>
         <table>
           <thead>
             <tr><th>Verificação</th><th>Sinal esperado</th><th>Se falhar</th></tr>
           </thead>
           <tbody>
-            <tr><td>Cobertura temporal</td><td>Meses entre 2016 e 2018</td><td>Confira o campo de data e o filtro</td></tr>
+            <tr><td>Cobertura temporal</td><td>22 meses, out./2016 a ago./2018</td><td>Confira data, junção interna e filtro</td></tr>
+            <tr><td>Total agregado</td><td>R$ 15.422.461,77</td><td>Confira se a métrica é soma de <code>payment_value</code></td></tr>
             <tr><td>Unidade</td><td>Valores monetários</td><td>Formate <code>payment_value</code> como moeda</td></tr>
             <tr><td>Sequência</td><td>Meses em ordem crescente</td><td>Remova ordenação por valor</td></tr>
             <tr><td>Filtro futuro</td><td><code>customer_state</code> disponível</td><td>Confira a junção com clientes</td></tr>
@@ -219,13 +407,13 @@
 
         <div class="note">
           <strong>Quando os nomes na interface forem diferentes</strong>
-          <p>A instância pode exibir nomes amigáveis, como “Order Purchase Timestamp”, em vez do nome físico <code>order_purchase_timestamp</code>. Use o significado e a tabela de origem para reconhecer o campo. Não escolha apenas porque o rótulo parece semelhante.</p>
+          <p>A instância exibe nomes amigáveis, como “Order Purchase Timestamp”, em vez do nome físico <code>order_purchase_timestamp</code>. Reconheça o campo pelo significado e pela tabela de origem, especialmente quando a mesma consulta contém identificadores ou datas com nomes semelhantes.</p>
         </div>
       </section>
 
       <section class="content-block">
-        <h2>9. Teste de cinco segundos</h2>
-        <p>O teste de cinco segundos verifica se a hierarquia visual entrega a mensagem principal sem uma explicação oral do autor. Ele não mede se o colega consegue reconstruir toda a consulta; mede se título, representação, ordem e unidade orientam a primeira leitura.</p>
+        <h2>11. Teste de cinco segundos</h2>
+        <p>O protocolo de cinco segundos avalia a legibilidade inicial da representação sem a mediação oral do autor. O procedimento examina se título, codificação visual, ordenação e unidade orientam a identificação da métrica, do recorte e do padrão predominante.</p>
 
         <ol class="steps">
           <li>Escolha um dos dois gráficos e mostre-o a um colega durante cinco segundos.</li>
@@ -236,12 +424,12 @@
           <li>Salve a versão revisada na mesma pergunta.</li>
         </ol>
 
-        <p>Se o colega disser apenas “era algo sobre vendas”, o título ainda está genérico. Se identificar a métrica, mas não perceber o filtro de pedidos entregues, o universo precisa ficar mais explícito. Se compreender tudo, mas demorar para localizar o maior estado, reveja a ordenação.</p>
+        <p>As respostas do avaliador orientam a revisão do artefato. A identificação imprecisa do assunto indica um título genérico; a ausência do status dos pedidos indica recorte insuficientemente explícito; a demora para localizar o maior estado indica necessidade de rever a ordenação.</p>
       </section>
 
       <section class="content-block">
-        <h2>10. Dashboard como superfície de decisão</h2>
-        <p>Um dashboard não é uma pasta visual de gráficos. Ele coordena perguntas relacionadas para que o leitor transite entre visão geral e recorte sem reconstruir mentalmente filtros, escalas e definições. Nesta aula, os dois cartões compartilham o mesmo universo — pedidos entregues — e a mesma dimensão geográfica disponível para interação.</p>
+        <h2>12. Dashboard como superfície de decisão</h2>
+        <p>Um dashboard coordena perguntas relacionadas em uma superfície analítica comum. Sua composição deve permitir a transição entre visão geral e recortes específicos com definições, escalas e filtros consistentes. Nesta aula, os dois cartões compartilham o universo de pedidos entregues e a dimensão geográfica utilizada para interação.</p>
 
         <table>
           <thead>
@@ -259,29 +447,44 @@
       </section>
 
       <section class="content-block">
-        <h2>11. Atividade 3 — Primeiro dashboard da disciplina</h2>
+        <h2>13. Atividade 3 — Composição do painel analítico</h2>
         <ol class="steps">
-          <li>Clique em <strong>+ New</strong> e escolha <strong>Dashboard</strong>.</li>
-          <li>Use o nome <code>A02_dashboard_operacao_olist</code> e salve o painel na coleção com o seu nome.</li>
-          <li>Adicione a pergunta <code>A02_02_valor_pago_por_mes</code> e posicione-a numa faixa larga na parte superior.</li>
-          <li>Adicione <code>A02_01_pedidos_entregues_por_estado</code> abaixo. Ajuste o tamanho sem comprimir rótulos nem eixos.</li>
-          <li>Entre no modo de edição, adicione um filtro <strong>Text or category</strong> e nomeie-o <strong>State</strong>.</li>
-          <li>Conecte o filtro ao campo <code>customer_state</code> do cartão de pedidos por estado.</li>
-          <li>Conecte o mesmo filtro a <code>customer_state</code> do cartão de valor pago por mês.</li>
-          <li>Salve o dashboard.</li>
-          <li>Selecione <strong>SP</strong> e confirme que barras e linha mudam. Repita com <strong>BA</strong>.</li>
-          <li>Limpe o filtro, recarregue o dashboard e confirme que a configuração permanece salva.</li>
+          <li>Na região superior esquerda da página, clique em <strong>New</strong> e escolha <strong>Dashboard</strong>.</li>
+          <li>Na janela <strong>New dashboard</strong>, preencha <strong>Name</strong> com <code>A02_dashboard_operacao_olist</code>.</li>
+          <li>Em <strong>Which collection should this go in?</strong>, abra o seletor e escolha a coleção com o seu nome. O campo <strong>Description</strong> pode registrar: “Volume estadual e evolução mensal de pagamentos em pedidos entregues”.</li>
+          <li>Clique em <strong>Create</strong>. O Metabase abre o dashboard em modo de edição.</li>
+          <li>Na barra de edição, clique em <strong>Add questions</strong>. Pesquise <code>A02_02_valor_pago_por_mes</code>, clique na pergunta e posicione o cartão numa faixa larga na parte superior.</li>
+          <li>Clique novamente em <strong>Add questions</strong>, pesquise <code>A02_01_pedidos_entregues_por_estado</code> e posicione o cartão abaixo. Arraste as bordas dos cartões para preservar meses, siglas e eixos legíveis.</li>
+          <li>Na barra de edição, clique no ícone de filtro. Selecione <strong>Text or category</strong>.</li>
+          <li>No painel de configuração, use o rótulo <strong>UF do cliente</strong> e o operador <strong>Is</strong>.</li>
+          <li>No mapeamento do primeiro cartão, selecione <strong>Olist Customers &rarr; Customer State</strong>. Repita exatamente o mesmo mapeamento para o segundo cartão.</li>
+          <li>Clique em <strong>Done</strong> para concluir a configuração do filtro e em <strong>Save</strong> para persistir o dashboard.</li>
+          <li>Fora do modo de edição, abra <strong>UF do cliente</strong>, selecione <strong>SP</strong> e aplique. O gráfico de barras deve mostrar o recorte estadual e a linha deve ser recalculada para São Paulo.</li>
+          <li>Troque o valor por <strong>BA</strong>, aplique e confirme nova alteração nos dois cartões. Em seguida, limpe o filtro, recarregue a página e confirme que estrutura e mapeamentos permanecem salvos.</li>
         </ol>
 
-        <h3>11.1 Se o filtro não puder ser conectado</h3>
+        <h3>13.1 Se o filtro não puder ser conectado</h3>
         <p>Edite a pergunta que não oferece <code>customer_state</code>. Confirme que <code>olist_customers</code> foi juntada antes do bloco de resumo e que a relação usa <code>customer_id</code>. Execute, salve novamente e retorne ao dashboard. Em alguns casos, é necessário reabrir a edição do filtro para que o campo recém-disponível apareça.</p>
 
-        <h3>11.2 Se um cartão não mudar</h3>
+        <h3>13.2 Se um cartão não mudar</h3>
         <p>Abra as configurações do filtro e verifique o mapeamento de cada cartão. O fato de ambos os gráficos estarem no mesmo dashboard não faz com que o filtro seja conectado automaticamente. Cada cartão precisa ter uma associação explícita com um campo compatível.</p>
+
+        <h3>13.3 Evidência de conclusão</h3>
+        <table>
+          <thead>
+            <tr><th>Ação</th><th>Evidência na tela</th><th>Diagnóstico quando divergir</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Aplicar SP</td><td>os dois cartões exibem somente o recorte de SP</td><td>um cartão sem alteração indica ausência de mapeamento</td></tr>
+            <tr><td>Aplicar BA</td><td>valores e forma da série mudam novamente</td><td>resultado idêntico indica filtro não executado ou cache ainda atualizando</td></tr>
+            <tr><td>Limpar</td><td>27 UFs retornam ao gráfico categórico</td><td>uma UF isolada indica filtro residual</td></tr>
+            <tr><td>Recarregar</td><td>cartões, tamanhos e filtro permanecem</td><td>perda da estrutura indica edição sem <strong>Save</strong></td></tr>
+          </tbody>
+        </table>
       </section>
 
       <section class="content-block">
-        <h2>12. Entregáveis e continuidade</h2>
+        <h2>14. Entregáveis e continuidade</h2>
         <table>
           <thead>
             <tr><th>Artefato</th><th>Nome obrigatório</th><th>Condição de conclusão</th></tr>
@@ -293,17 +496,17 @@
           </tbody>
         </table>
 
-        <p>Não há documento ou exercício escrito para entregar. Os artefatos são as próprias perguntas e o dashboard funcionando na coleção pessoal. A justificativa acontece oralmente no fechamento: cada aluno deve conseguir explicar o grão, as junções, o filtro e a escolha visual em aproximadamente um minuto.</p>
+        <p>A avaliação prática considera as duas perguntas e o dashboard em funcionamento na coleção pessoal. No fechamento, cada estudante apresentará oralmente, em aproximadamente um minuto, a justificativa do grão, das junções, do filtro e da representação visual. A aula não prevê exercício escrito.</p>
         <p>Na Aula 03, em 29 de agosto, o painel será ampliado com outros trabalhos de visualização numérica: distribuição, relação e comparação. Preserve os três artefatos; eles serão o ponto de partida da próxima construção.</p>
       </section>
 
       <section class="content-block">
-        <h2>13. Orientação final para a prática em sala</h2>
+        <h2>15. Orientação final para a prática em sala</h2>
         <div class="note">
           <strong>Sequência de trabalho</strong>
           <p>Execute todo o laboratório na <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a>. Trabalhe somente na coleção com o seu nome e salve cada pergunta antes de navegar para outra tela. Ao travar, localize primeiro a etapa: fonte, junção, filtro, resumo, visualização ou dashboard.</p>
-          <p>Não corrija um resultado inesperado alterando opções ao acaso. Volte ao grão, confira os campos usados na junção e explicite o universo do filtro. Quando o número estiver correto, ajuste a representação; quando a representação estiver clara, teste com um colega; somente então componha o dashboard.</p>
-          <p>Antes de encerrar, aplique o filtro de estado em pelo menos duas UFs, limpe o filtro, recarregue o painel e confirme que os três artefatos continuam acessíveis. O trabalho termina com o dashboard funcionando, não com uma resposta escrita.</p>
+          <p>Resultados inesperados devem ser diagnosticados pela revisão sequencial do grão, dos campos de junção, do universo definido pelo filtro e da operação de resumo. Após validar a métrica, revise a representação, aplique o protocolo de avaliação em pares e componha o dashboard.</p>
+          <p>Para concluir, aplique o filtro de estado em pelo menos duas UFs, limpe o filtro, recarregue o painel e confirme a persistência dos três artefatos. A conclusão da atividade corresponde ao funcionamento verificado do dashboard e à justificativa oral das decisões adotadas.</p>
         </div>
       </section>
 
