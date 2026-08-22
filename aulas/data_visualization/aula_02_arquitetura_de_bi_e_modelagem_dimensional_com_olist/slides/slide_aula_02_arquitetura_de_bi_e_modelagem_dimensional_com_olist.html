@@ -64,10 +64,10 @@
         <div>
           <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
           <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
-          <h1 class="deck-title">Arquitetura de BI e Modelagem Dimensional com Olist</h1>
+          <h1 class="deck-title">Arquitetura de Business Intelligence (BI) e Modelagem Dimensional com Olist</h1>
           <p class="deck-meta">Aula 02 &nbsp;&bull;&nbsp; 22/08/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Fluxos de dados em Power BI, Grafana e Metabase; fatos, dimensões, grão, SCD, esquemas estrela e barramento dimensional.</p>
+          <p class="deck-subtitle">Fluxos de dados em Power BI, Grafana e Metabase; nível de detalhe, contexto histórico e integração entre processos analíticos.</p>
         </div>
       </div>
     </div>
@@ -84,12 +84,12 @@
           <thead><tr><th>Horário</th><th>Momento</th><th>Resultado</th></tr></thead>
           <tbody>
             <tr><td>8h30&ndash;9h05</td><td>Arquiteturas de BI</td><td>Power BI, Grafana e Metabase comparados</td></tr>
-            <tr><td>9h05&ndash;9h25</td><td>Arquitetura de dados</td><td>DW, data marts, lakehouse e data mesh</td></tr>
-            <tr><td>9h25&ndash;10h00</td><td>Modelagem dimensional</td><td>Grão, fatos, dimensões, estrela, snowflake, SCD e barramento</td></tr>
+            <tr><td>9h05&ndash;9h25</td><td>Arquitetura de dados</td><td>Warehouse histórico, recortes por área, lakehouse e propriedade por domínio</td></tr>
+            <tr><td>9h25&ndash;10h00</td><td>Modelagem dimensional</td><td>Grão da linha, ocorrências, contextos, formatos estrela/snowflake e histórico</td></tr>
             <tr><td>10h00&ndash;10h15</td><td>Intervalo</td><td>Pausa</td></tr>
             <tr><td>10h15&ndash;10h30</td><td>Leitura do esquema</td><td>Metadados e perguntas de modelagem sobre o Olist</td></tr>
-            <tr><td>10h30&ndash;11h20</td><td>Laboratório orientado</td><td>Quatro dimensões e dois fatos reutilizáveis</td></tr>
-            <tr><td>11h20&ndash;11h40</td><td>Integração entre fatos</td><td>Fanout, CROSS JOIN, drill-across e barramento</td></tr>
+            <tr><td>10h30&ndash;11h20</td><td>Laboratório orientado</td><td>Quatro tabelas de contexto e duas de ocorrências</td></tr>
+            <tr><td>11h20&ndash;11h40</td><td>Integração</td><td>Multiplicação de linhas, grade de combinações e comparação entre processos</td></tr>
             <tr><td>11h40&ndash;12h05</td><td>Extensão assistida por IA</td><td>Novo modelo especificado e executado</td></tr>
             <tr><td>12h05&ndash;12h10</td><td>Validação</td><td>Gates e artefatos conferidos</td></tr>
           </tbody>
@@ -103,21 +103,21 @@
         <div>
           <span class="deck-kicker">Ponto de partida &middot; 8h30</span>
           <h2 class="deck-title">Verificação do ambiente e formação dos grupos</h2>
-          <p class="deck-summary">Cada grupo trabalhará em uma coleção própria e utilizará um prefixo comum em todos os artefatos.</p>
+          <p class="deck-summary">Cada grupo trabalhará em uma coleção própria e utilizará o mesmo identificador em perguntas e views.</p>
         </div>
         <div class="deck-placeholder">
           <article class="deck-panel">
             <strong>Na tela</strong>
             <ol>
               <li>abra o Metabase da disciplina;</li>
-              <li>confirme o banco <code>Olist</code>;</li>
+              <li>confirme <code>Olist</code> e <code>Olist — DDL Aula 02</code>;</li>
               <li>abra sua coleção;</li>
               <li>defina o código do grupo: <code>G01</code>, <code>G02</code>...</li>
             </ol>
           </article>
           <aside class="deck-callout">
             <strong>Convenção</strong>
-            <code>A02_G03_DIM_CLIENTE_SCD2</code> identifica aula, grupo, tipo e objeto. A coleção compartilhada exige nomes inequívocos.
+            <code>A02_G03_...</code> nomeia perguntas no Metabase; <code>bi_aula02.g03_...</code> nomeia views no PostgreSQL.
           </aside>
         </div>
       </div>
@@ -132,8 +132,8 @@
         </div>
         <div class="quality-gates">
           <article class="quality-gate"><strong>Arquitetura</strong><span>Localizar fonte, transformação, modelo semântico, estado da aplicação e camada de consumo.</span></article>
-          <article class="quality-gate"><strong>Modelagem</strong><span>Declarar processo, grão, dimensões, medidas, chaves e tratamento histórico.</span></article>
-          <article class="quality-gate"><strong>Validação</strong><span>Detectar duplicidade, órfãos, fanout e incompatibilidade entre fatos.</span></article>
+          <article class="quality-gate"><strong>Modelagem</strong><span>Declarar processo, significado da linha, contextos, valores, chaves e tratamento histórico.</span></article>
+          <article class="quality-gate"><strong>Validação</strong><span>Detectar duplicidade, chaves sem correspondente e multiplicação indevida de linhas.</span></article>
         </div>
       </div>
     </div>
@@ -146,9 +146,9 @@
           <h2 class="deck-title">Uma solução de BI distribui responsabilidades entre camadas</h2>
         </div>
         <div class="method-flow">
-          <article class="method-step"><strong>Fontes</strong><span>ERP, CRM, arquivos, APIs, logs e bancos operacionais.</span></article>
-          <article class="method-step"><strong>Movimentação</strong><span>Conectores, Power Query, ETL/ELT, streaming e gateway.</span></article>
-          <article class="method-step"><strong>Persistência</strong><span>Warehouse, lakehouse, marts, séries temporais e índices.</span></article>
+          <article class="method-step"><strong>Fontes</strong><span>ERP: gestão empresarial; CRM: relacionamento com clientes; APIs: interfaces; logs: registros de eventos.</span></article>
+          <article class="method-step"><strong>Movimentação</strong><span>Conectores; preparação no Power Query do Power BI; cargas em lote; eventos contínuos; ponte de rede.</span></article>
+          <article class="method-step"><strong>Persistência</strong><span>Warehouse integrado e histórico; lakehouse tabular sobre um lake; marts por área.</span></article>
           <article class="method-step"><strong>Semântica</strong><span>Relacionamentos, medidas, métricas, nomes e regras de acesso.</span></article>
           <article class="method-step"><strong>Consumo</strong><span>Relatórios, painéis, alertas, exploração e incorporação.</span></article>
         </div>
@@ -156,7 +156,29 @@
       </div>
     </div>
 
-    <!-- SLIDE 6 - ESTADO -->
+    <!-- SLIDE 6 - VOCABULÁRIO DE CAMADAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Vocabulário de arquitetura &middot; 8h43&ndash;8h48</span>
+          <h2 class="deck-title">Cada camada responde a uma pergunta diferente</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Termo</th><th>Definição direta</th><th>Exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>Fonte</td><td>sistema que mantém o registro original</td><td>banco Olist</td></tr>
+            <tr><td>Conector/driver</td><td>componente que implementa a comunicação com a fonte</td><td>driver PostgreSQL</td></tr>
+            <tr><td>Movimentação</td><td>extração, transporte e transformação dos dados</td><td>Power Query ou pipeline automatizado</td></tr>
+            <tr><td>Persistência</td><td>local em que o dado permanece armazenado</td><td>warehouse, lakehouse, Import ou cache</td></tr>
+            <tr><td>Camada semântica</td><td>relações, medidas, nomes e regras de negócio</td><td>modelo do Power BI ou model do Metabase</td></tr>
+            <tr><td>Consumo</td><td>interface pela qual a informação é utilizada</td><td>relatório, dashboard ou alerta</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note"><strong>ETL</strong> transforma antes de carregar; <strong>ELT</strong> carrega antes de transformar. Pipeline é a sequência automatizada dessas etapas.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - ESTADO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -166,16 +188,16 @@
         <table class="deck-table">
           <thead><tr><th>Pergunta</th><th>O que localizar</th><th>Implicação</th></tr></thead>
           <tbody>
-            <tr><td>Onde estão os dados analíticos?</td><td>Fonte externa, cópia importada ou cache</td><td>Atualidade, custo e desempenho</td></tr>
+            <tr><td>Onde estão os dados analíticos?</td><td>Fonte externa, cópia importada ou resultado temporário em cache</td><td>Atualidade, custo e desempenho</td></tr>
             <tr><td>Onde está o modelo?</td><td>Arquivo local, serviço, banco ou camada semântica</td><td>Reuso e governança</td></tr>
-            <tr><td>Quem executa a consulta?</td><td>Cliente, servidor de BI, gateway ou fonte</td><td>Rede, credenciais e carga</td></tr>
-            <tr><td>Onde ficam os artefatos?</td><td>PBIX, app DB, repositório, workspace ou catálogo</td><td>Backup, versionamento e colaboração</td></tr>
+            <tr><td>Quem executa a consulta?</td><td>Cliente, servidor de BI, ponte de rede chamada gateway ou fonte</td><td>Rede, credenciais e carga</td></tr>
+            <tr><td>Onde ficam os artefatos?</td><td>PBIX (arquivo do Power BI), banco da aplicação, repositório, espaço colaborativo ou catálogo</td><td>Backup, versionamento e colaboração</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- SLIDE 7 - POWER BI DESKTOP -->
+    <!-- SLIDE 8 - POWER BI DESKTOP -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -207,11 +229,11 @@
           <line class="flow" x1="835" y1="83" x2="905" y2="145" marker-end="url(#pbi-desktop-arrow)"></line>
           <line class="flow" x1="835" y1="247" x2="905" y2="177" marker-end="url(#pbi-desktop-arrow)"></line>
         </svg>
-        <div class="deck-callout"><strong>Arquivo PBIX</strong>Reúne definição de consultas, modelo semântico e relatório; no modo Import, também contém a cópia comprimida dos dados.</div>
+        <div class="deck-callout"><strong>Arquivo PBIX</strong>Reúne consultas, modelo e relatório; em Import, também contém os dados. DAX (Data Analysis Expressions) escreve medidas no modelo.</div>
       </div>
     </div>
 
-    <!-- SLIDE 8 - POWER BI SERVICE -->
+    <!-- SLIDE 9 - POWER BI SERVICE -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -227,8 +249,8 @@
           <text class="svg-body" x="122" y="192" text-anchor="middle">modelo + relatório</text>
           <rect class="soft-box" x="335" y="35" width="255" height="120" rx="4"></rect>
           <text class="svg-title" x="462" y="75" text-anchor="middle">Power BI Service</text>
-          <text class="svg-body" x="462" y="104" text-anchor="middle">workspace · modelo semântico</text>
-          <text class="svg-body" x="462" y="128" text-anchor="middle">refresh · RLS · relatórios</text>
+          <text class="svg-body" x="462" y="104" text-anchor="middle">espaço colaborativo · modelo</text>
+          <text class="svg-body" x="462" y="128" text-anchor="middle">atualização · RLS · relatórios</text>
           <rect class="soft-box" x="335" y="210" width="255" height="120" rx="4"></rect>
           <text class="svg-title" x="462" y="250" text-anchor="middle">Report Server</text>
           <text class="svg-body" x="462" y="279" text-anchor="middle">portal on-premises</text>
@@ -245,11 +267,28 @@
           <line class="flow" x1="860" y1="90" x2="920" y2="155" marker-end="url(#pbi-service-arrow)"></line>
           <line class="flow" x1="590" y1="270" x2="920" y2="205" marker-end="url(#pbi-service-arrow)"></line>
         </svg>
-        <p class="deck-note"><strong>Service:</strong> SaaS em nuvem. <strong>Report Server:</strong> hospedagem local, com ciclo e conjunto de recursos próprios. “Power BI Server” precisa ser qualificado para evitar ambiguidade.</p>
+        <p class="deck-note"><strong>Service:</strong> software como serviço em nuvem. <strong>Report Server:</strong> hospedagem local. <strong>Gateway:</strong> ponte para a rede privada. <strong>RLS:</strong> restrição de linhas por identidade.</p>
       </div>
     </div>
 
-    <!-- SLIDE 9 - GRAFANA -->
+    <!-- SLIDE 10 - VOCABULÁRIO DO POWER BI -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Vocabulário do Power BI &middot; 8h48&ndash;8h52</span>
+          <h2 class="deck-title">O modo de conexão define onde a consulta é executada</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Import</h3><p>Carrega uma cópia comprimida para o modelo. Os visuais consultam essa cópia.</p></article>
+          <article class="deck-card"><h3>Refresh</h3><p>Executa novamente a aquisição para atualizar os dados importados.</p></article>
+          <article class="deck-card"><h3>DirectQuery</h3><p>Mantém os registros na fonte e envia consultas quando o usuário interage.</p></article>
+          <article class="deck-card"><h3>Gateway</h3><p>Ponte instalada na rede privada para encaminhar refresh e consultas do Service.</p></article>
+        </div>
+        <p class="deck-note"><strong>Composite</strong> combina modos no mesmo modelo. <strong>Live connection</strong> conecta o relatório a um modelo semântico já publicado.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - GRAFANA -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -265,7 +304,7 @@
           <text class="svg-body" x="110" y="182" text-anchor="middle">painel · Explore</text>
           <rect class="box" x="300" y="70" width="300" height="195" rx="4"></rect>
           <text class="svg-meta" x="450" y="101" text-anchor="middle">SERVIDOR GRAFANA</text>
-          <text class="svg-title" x="450" y="142" text-anchor="middle">UI + API + alertas</text>
+          <text class="svg-title" x="450" y="142" text-anchor="middle">Interface + API + alertas</text>
           <text class="svg-body" x="450" y="177" text-anchor="middle">plugins de data source</text>
           <text class="svg-body" x="450" y="204" text-anchor="middle">query editor + data proxy</text>
           <text class="svg-body" x="450" y="231" text-anchor="middle">renderização de painéis</text>
@@ -281,11 +320,11 @@
           <line class="flow" x1="600" y1="145" x2="710" y2="90" marker-end="url(#grafana-arrow)"></line>
           <line class="flow-dashed" x1="600" y1="215" x2="710" y2="260" marker-end="url(#grafana-arrow)"></line>
         </svg>
-        <p class="deck-note">Grafana atende casos de BI quando o trabalho exige painéis, filtros, SQL e consumo recorrente; sua origem em observabilidade favorece séries temporais, atualização frequente e alertas.</p>
+        <p class="deck-note"><strong>Plugin</strong> é o componente que integra uma fonte ou visual. <strong>Data proxy</strong> é o encaminhamento da consulta pelo servidor, sem expor a credencial ao navegador.</p>
       </div>
     </div>
 
-    <!-- SLIDE 10 - METABASE -->
+    <!-- SLIDE 12 - METABASE -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -294,7 +333,7 @@
         </div>
         <svg class="deck-svg" viewBox="0 0 1080 360" role="img" aria-labelledby="metabase-title metabase-desc">
           <title id="metabase-title">Arquitetura do projeto Metabase Olist no Railway</title>
-          <desc id="metabase-desc">O navegador acessa o serviço Metabase. A aplicação guarda artefatos no banco metabase e envia consultas ao banco olist, ambos em PostgreSQL no Railway.</desc>
+          <desc id="metabase-desc">O navegador acessa o serviço Metabase. A aplicação guarda seus artefatos no banco de aplicação e envia consultas ao PostgreSQL analítico, que contém as tabelas Olist e as views da aula.</desc>
           <defs><marker id="metabase-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
           <rect class="soft-box" x="20" y="115" width="185" height="115" rx="4"></rect>
           <text class="svg-title" x="112" y="155" text-anchor="middle">Navegador</text>
@@ -303,26 +342,47 @@
           <rect class="box" x="310" y="70" width="300" height="205" rx="4"></rect>
           <text class="svg-meta" x="460" y="101" text-anchor="middle">RAILWAY · METABASE v0.63.10</text>
           <text class="svg-title" x="460" y="143" text-anchor="middle">Aplicação Metabase</text>
-          <text class="svg-body" x="460" y="178" text-anchor="middle">MBQL/SQL · metadados</text>
+          <text class="svg-body" x="460" y="178" text-anchor="middle">linguagem visual/SQL · metadados</text>
           <text class="svg-body" x="460" y="205" text-anchor="middle">visualizações · permissões</text>
-          <text class="svg-body" x="460" y="232" text-anchor="middle">pool JDBC · cache opcional</text>
+          <text class="svg-body" x="460" y="232" text-anchor="middle">conexões reutilizáveis · cache opcional</text>
           <rect class="soft-box" x="720" y="25" width="330" height="120" rx="4"></rect>
           <text class="svg-title" x="885" y="66" text-anchor="middle">banco metabase</text>
           <text class="svg-body" x="885" y="95" text-anchor="middle">contas · coleções · perguntas · painéis</text>
           <text class="svg-meta" x="885" y="121" text-anchor="middle">estado da aplicação</text>
           <rect class="dark-box" x="720" y="205" width="330" height="120" rx="4"></rect>
-          <text class="svg-title light-text" x="885" y="246" text-anchor="middle">banco olist</text>
-          <text class="svg-body light-text" x="885" y="275" text-anchor="middle">9 tabelas · 1,55 milhão de linhas</text>
-          <text class="svg-meta light-text" x="885" y="301" text-anchor="middle">conexão somente leitura</text>
+          <text class="svg-title light-text" x="885" y="246" text-anchor="middle">PostgreSQL analítico</text>
+          <text class="svg-body light-text" x="885" y="275" text-anchor="middle">tabelas public · views bi_aula02</text>
+          <text class="svg-meta light-text" x="885" y="301" text-anchor="middle">DDL restrito ao schema da aula</text>
           <line class="flow" x1="205" y1="172" x2="310" y2="172" marker-end="url(#metabase-arrow)"></line>
           <line class="flow-dashed" x1="610" y1="140" x2="720" y2="90" marker-end="url(#metabase-arrow)"></line>
           <line class="flow" x1="610" y1="213" x2="720" y2="265" marker-end="url(#metabase-arrow)"></line>
         </svg>
-        <p class="deck-note">As perguntas salvas guardam definições no banco da aplicação. A execução consulta o Olist; resultados persistentes exigiriam cache, modelo persistido ou transformação autorizada.</p>
+        <p class="deck-note">O Metabase envia o SQL ao PostgreSQL. O banco cria e executa as views; o Metabase guarda apenas conexão, permissões, perguntas e painéis no banco da aplicação.</p>
       </div>
     </div>
 
-    <!-- SLIDE 11 - COMPARAÇÃO -->
+    <!-- SLIDE 13 - VOCABULÁRIO DAS PLATAFORMAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Vocabulário das plataformas &middot; 8h52&ndash;8h55</span>
+          <h2 class="deck-title">Dados de negócio e estado da aplicação cumprem funções distintas</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Termo</th><th>O que contém</th><th>Exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>Backend/fonte analítica</td><td>registros e objetos SQL consultados para calcular o resultado</td><td>tabelas Olist e views no PostgreSQL</td></tr>
+            <tr><td>Banco da aplicação</td><td>usuários, permissões, conexões e definições dos artefatos</td><td>app DB do Grafana ou Metabase</td></tr>
+            <tr><td>Artefato</td><td>objeto criado e administrado na plataforma</td><td>pergunta, dashboard, PBIX ou alerta</td></tr>
+            <tr><td>Cache</td><td>cópia temporária de um resultado já calculado</td><td>resposta reutilizada sem consultar novamente a fonte</td></tr>
+            <tr><td>Model/semântica</td><td>estrutura curada com significado reutilizável</td><td>dimensão publicada para outras perguntas</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Pergunta de controle</strong>Ao excluir o banco da aplicação, os registros Olist permanecem; perguntas, painéis, usuários e configurações podem ser perdidos.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - COMPARAÇÃO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -335,19 +395,19 @@
             <tr><td>Power BI Desktop</td><td>Import no modelo ou DirectQuery</td><td>arquivo PBIX local</td><td>processo Desktop + fonte</td></tr>
             <tr><td>Power BI Service</td><td>modelo importado, DirectQuery ou composto</td><td>workspace e modelo semântico</td><td>capacidade Microsoft; gateway quando necessário</td></tr>
             <tr><td>Power BI Report Server</td><td>cache/import ou consulta à fonte, conforme suporte</td><td>catálogo on-premises</td><td>servidor e rede da organização</td></tr>
-            <tr><td>Grafana</td><td>consulta sob demanda às fontes</td><td>app DB + provisionamento</td><td>servidor, plugins e data proxy</td></tr>
+            <tr><td>Grafana</td><td>consulta sob demanda às fontes</td><td>app DB + configurações versionadas</td><td>servidor, plugins e data proxy</td></tr>
             <tr><td>Metabase</td><td>consulta ao warehouse; cache opcional</td><td>app DB com perguntas e painéis</td><td>servidor, driver e warehouse</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- SLIDE 12 - OLIST -->
+    <!-- SLIDE 15 - OLIST -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Olist &middot; Banco operacional para análise</span>
-          <h2 class="deck-title">Nove tabelas registram processos em grãos diferentes</h2>
+          <h2 class="deck-title">Nove tabelas registram unidades distintas do processo</h2>
         </div>
         <svg class="deck-svg" viewBox="0 0 1080 390" role="img" aria-labelledby="olist-title olist-desc">
           <title id="olist-title">Relações principais do esquema Olist</title>
@@ -388,7 +448,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 13 - PARADIGMAS -->
+    <!-- SLIDE 16 - PARADIGMAS -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -398,18 +458,18 @@
         <table class="deck-table">
           <thead><tr><th>Conceito</th><th>Responsabilidade principal</th><th>Aplicação ao Olist</th></tr></thead>
           <tbody>
-            <tr><td>Data Warehouse</td><td>dados integrados, históricos e orientados à análise</td><td>fatos e dimensões governados</td></tr>
+            <tr><td>Data Warehouse</td><td>dados integrados, históricos e orientados à análise</td><td>tabelas governadas de itens, pagamentos, clientes e datas</td></tr>
             <tr><td>Data Mart</td><td>recorte analítico para uma área ou processo</td><td>mart comercial ou logístico</td></tr>
             <tr><td>Data Lake</td><td>persistência de dados em formatos variados</td><td>arquivos brutos, logs e snapshots</td></tr>
-            <tr><td>Lakehouse</td><td>tabelas analíticas e governança sobre storage de lake</td><td>camadas raw, curated e serving</td></tr>
+            <tr><td>Lakehouse</td><td>tabelas analíticas e governança sobre armazenamento de lake</td><td>camadas bruta, tratada e de consumo</td></tr>
             <tr><td>Data Mesh</td><td>propriedade por domínio, dados como produto e governança federada</td><td>produtos Pedidos, Pagamentos e Logística</td></tr>
           </tbody>
         </table>
-        <div class="deck-callout"><strong>Critério de análise</strong>Data mesh organiza responsabilidades sociotécnicas. Esquema estrela organiza consumo analítico. Um produto de dados de domínio pode publicar fatos e dimensões conformadas.</div>
+        <div class="deck-callout"><strong>Critério de análise</strong>Data mesh organiza responsabilidades entre domínios, plataforma e governança. O modelo dimensional, estudado a seguir, organiza tabelas para consumo analítico. As duas decisões podem coexistir.</div>
       </div>
     </div>
 
-    <!-- SLIDE 14 - FLUXO DW -->
+    <!-- SLIDE 17 - FLUXO DW -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -419,20 +479,78 @@
         <div class="method-flow">
           <article class="method-step"><strong>Pergunta</strong><span>Qual decisão o gráfico precisa sustentar?</span></article>
           <article class="method-step"><strong>Processo</strong><span>Pedido, item, pagamento, entrega ou avaliação.</span></article>
-          <article class="method-step"><strong>Grão</strong><span>O significado exato de uma linha da tabela fato.</span></article>
+          <article class="method-step"><strong>Grão</strong><span>O significado exato de uma linha da tabela analítica.</span></article>
           <article class="method-step"><strong>Dimensões</strong><span>Contextos estáveis para filtrar, agrupar e comparar.</span></article>
           <article class="method-step"><strong>Medidas</strong><span>Valores aditivos ou derivados compatíveis com o grão.</span></article>
         </div>
-        <p class="deck-note">A declaração do grão precede a escolha de colunas e junções. Ela funciona como contrato para cada fato.</p>
+        <p class="deck-note">A declaração do grão precede a escolha de colunas e junções. Ela funciona como contrato para cada conjunto analítico.</p>
       </div>
     </div>
 
-    <!-- SLIDE 15 - FATO DIM GRÃO -->
+    <!-- SLIDE 18 - DEFINIÇÃO DE GRÃO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Modelagem dimensional &middot; 9h25&ndash;9h35</span>
-          <h2 class="deck-title">Fatos medem eventos; dimensões preservam contexto</h2>
+          <span class="deck-kicker">Modelagem dimensional &middot; 9h25&ndash;9h30</span>
+          <h2 class="deck-title">Grão responde: o que exatamente uma linha representa?</h2>
+        </div>
+        <div class="deck-callout">
+          <strong>Definição operacional</strong>
+          Imagine uma etiqueta anexada a cada linha: “esta linha representa ______”. A frase completa define o grão e fixa o nível de detalhe da tabela.
+        </div>
+        <div class="quality-gates">
+          <article class="quality-gate"><strong>Pedido</strong><span>cada linha representa um pedido identificado por <code>order_id</code>.</span></article>
+          <article class="quality-gate"><strong>Item</strong><span>cada linha representa um item numerado dentro de um pedido.</span></article>
+          <article class="quality-gate"><strong>Pagamento</strong><span>cada linha representa uma ocorrência sequencial de pagamento.</span></article>
+        </div>
+        <p class="deck-note">O grão define quais colunas podem coexistir, quais medidas podem ser somadas e quais junções preservam o significado de uma linha.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - UM PEDIDO EM TRÊS GRÃOS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Exemplo guiado &middot; 9h30&ndash;9h35</span>
+          <h2 class="deck-title">Uma compra pode produzir quantidades diferentes de linhas</h2>
+          <p class="deck-summary">Considere o pedido didático <code>PED-042</code>, composto por três itens e pago em duas ocorrências.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Tabela</th><th>Grão declarado</th><th>Linhas de PED-042</th><th>Chave candidata</th></tr></thead>
+          <tbody>
+            <tr><td><code>orders</code></td><td>um pedido</td><td><code>PED-042</code></td><td><code>order_id</code></td></tr>
+            <tr><td><code>order_items</code></td><td>um item do pedido</td><td><code>PED-042/01</code>, <code>/02</code>, <code>/03</code></td><td><code>order_id + order_item_id</code></td></tr>
+            <tr><td><code>payments</code></td><td>uma ocorrência de pagamento</td><td><code>PED-042/01</code>, <code>/02</code></td><td><code>order_id + payment_sequential</code></td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Previsão antes do SQL</strong>Unir itens e pagamentos diretamente pelo pedido produz <code>3 × 2 = 6</code> linhas. O crescimento é consequência da mistura de dois grãos.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - COMO DEFINIR O GRÃO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Procedimento &middot; 9h35&ndash;9h40</span>
+          <h2 class="deck-title">Defina e teste o grão antes de selecionar colunas</h2>
+        </div>
+        <div class="method-flow">
+          <article class="method-step"><strong>1. Pergunta</strong><span>“Qual é o valor bruto dos itens, com frete, por categoria?”</span></article>
+          <article class="method-step"><strong>2. Processo</strong><span>Venda de itens, pois a categoria pertence ao produto.</span></article>
+          <article class="method-step"><strong>3. Frase</strong><span>“Cada linha representa um item dentro de um pedido.”</span></article>
+          <article class="method-step"><strong>4. Chave</strong><span><code>order_id + order_item_id</code>.</span></article>
+          <article class="method-step"><strong>5. Teste</strong><span>Linhas = chaves distintas; junções preservam a quantidade esperada.</span></article>
+        </div>
+        <p class="deck-note">Se uma coluna descreve outro nível de detalhe, ela deve ser agregada previamente, movida para outra tabela ou tratada em outro conjunto de ocorrências.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - FATO DIM GRÃO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Fatos e dimensões &middot; 9h40&ndash;9h45</span>
+          <h2 class="deck-title">O fato registra a ocorrência; as dimensões descrevem seu contexto</h2>
         </div>
         <table class="deck-table">
           <thead><tr><th>Processo</th><th>Grão candidato</th><th>Medidas</th><th>Dimensões</th></tr></thead>
@@ -443,15 +561,47 @@
             <tr><td>Avaliação</td><td>1 linha por ocorrência de review</td><td>nota, tempo de resposta</td><td>cliente, data, produto derivado</td></tr>
           </tbody>
         </table>
-        <div class="deck-callout"><strong>Teste do grão</strong>Complete oralmente: “cada linha representa...”. Em seguida, escreva a chave candidata e verifique <code>COUNT(*) = COUNT(DISTINCT chave)</code>.</div>
+        <div class="deck-callout"><strong>Leitura de uma linha</strong>Uma linha de <code>fato_item</code> afirma que um item foi vendido por determinado preço e frete. Data, cliente, produto e vendedor respondem quando, para quem, o quê e por quem.</div>
       </div>
     </div>
 
-    <!-- SLIDE 16 - ESTRELA SNOWFLAKE -->
+    <!-- SLIDE 22 - VOCABULÁRIO DE CHAVES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Chaves &middot; 9h45&ndash;9h48</span><h2 class="deck-title">Cada tipo de chave cumpre uma função no modelo</h2></div>
+        <table class="deck-table">
+          <thead><tr><th>Termo</th><th>Função</th><th>Exemplo Olist</th></tr></thead>
+          <tbody>
+            <tr><td>Candidata</td><td>combinação mínima que identifica uma linha no grão</td><td><code>order_id + order_item_id</code></td></tr>
+            <tr><td>Primária</td><td>chave candidata escolhida para identificar a linha</td><td><code>product_id</code> na dimensão</td></tr>
+            <tr><td>Natural</td><td>identificador recebido do sistema de origem</td><td><code>product_id</code></td></tr>
+            <tr><td>Substituta</td><td>identificador técnico gerado no modelo analítico</td><td><code>sk_produto</code></td></tr>
+            <tr><td>Estrangeira</td><td>valor no fato que referencia uma dimensão</td><td><code>fato_item.sk_produto</code></td></tr>
+            <tr><td>Degenerada</td><td>identificador de negócio mantido no fato sem dimensão própria</td><td><code>order_id</code></td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note"><code>sk</code> abrevia surrogate key, ou chave substituta. A chave natural preserva a correspondência com a origem; a substituta controla a identidade analítica.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 23 - VOCABULÁRIO DE MEDIDAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Medidas &middot; 9h48&ndash;9h50</span><h2 class="deck-title">Aditividade define em quais direções uma medida pode ser somada</h2></div>
+        <div class="quality-gates">
+          <article class="quality-gate"><strong>Aditiva</strong><span>Pode ser somada nas dimensões compatíveis. Exemplo: preço do item por produto, cliente ou mês.</span></article>
+          <article class="quality-gate"><strong>Semiaditiva</strong><span>Pode ser somada em algumas dimensões, mas não em outra. Exemplo clássico: saldo entre contas, não entre datas.</span></article>
+          <article class="quality-gate"><strong>Não aditiva</strong><span>Taxa, média e percentual precisam ser recomputados a partir de seus componentes.</span></article>
+        </div>
+        <div class="deck-callout"><strong>Regra de implementação</strong>Para uma taxa, preserve numerador e denominador. A média das médias pode atribuir o mesmo peso a grupos de tamanhos diferentes.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 24 - ESTRELA SNOWFLAKE -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Esquemas dimensionais &middot; 9h35&ndash;9h43</span>
+          <span class="deck-kicker">Esquemas dimensionais &middot; 9h50&ndash;9h53</span>
           <h2 class="deck-title">Estrela reduz caminhos de junção; snowflake normaliza dimensões</h2>
         </div>
         <svg class="deck-svg" viewBox="0 0 1080 350" role="img" aria-labelledby="star-title star-desc">
@@ -476,14 +626,14 @@
           <rect class="soft-box" x="670" y="250" width="170" height="65" rx="4"></rect><text class="svg-body" x="755" y="289" text-anchor="middle">dim_departamento</text>
           <line class="flow" x1="655" y1="125" x2="655" y2="100"></line><line class="flow" x1="740" y1="170" x2="780" y2="158"></line><line class="flow" x1="865" y1="190" x2="945" y2="235"></line><line class="flow" x1="915" y1="300" x2="840" y2="285"></line>
         </svg>
-        <p class="deck-note">No Olist, uma dimensão produto estrela pode incorporar a tradução da categoria. Snowflake torna-se pertinente quando hierarquias são compartilhadas, governadas e atualizadas separadamente.</p>
+        <p class="deck-note"><strong>Desnormalizar</strong> reúne atributos relacionados na mesma dimensão. Snowflake os separa em tabelas quando hierarquias precisam de gestão independente.</p>
       </div>
     </div>
 
-    <!-- SLIDE 17 - SCD -->
+    <!-- SLIDE 25 - SCD -->
     <div class="slide">
       <div class="deck-shell is-dense">
-        <div><span class="deck-kicker">Slowly Changing Dimensions &middot; 9h43&ndash;9h50</span><h2 class="deck-title">A política histórica define o significado do atributo</h2></div>
+        <div><span class="deck-kicker">Slowly Changing Dimensions &middot; 9h53&ndash;9h57</span><h2 class="deck-title">SCD define como um atributo alterado será preservado</h2><p class="deck-summary">Slowly Changing Dimension é a política aplicada quando cidade, estado, categoria ou outro atributo dimensional muda ao longo do tempo.</p></div>
         <table class="deck-table">
           <thead><tr><th>Tipo</th><th>Operação</th><th>Pergunta respondida</th><th>Estrutura</th></tr></thead>
           <tbody>
@@ -499,10 +649,10 @@
       </div>
     </div>
 
-    <!-- SLIDE 18 - BUS MATRIX -->
+    <!-- SLIDE 26 - BUS MATRIX -->
     <div class="slide">
       <div class="deck-shell is-dense">
-        <div><span class="deck-kicker">Barramento dimensional &middot; 9h50&ndash;10h00</span><h2 class="deck-title">A matriz de barramento coordena processos e dimensões conformadas</h2></div>
+        <div><span class="deck-kicker">Barramento dimensional &middot; 9h57&ndash;10h00</span><h2 class="deck-title">A matriz de barramento coordena processos e dimensões conformadas</h2></div>
         <table class="deck-table">
           <thead><tr><th>Processo</th><th>Data</th><th>Cliente</th><th>Produto</th><th>Vendedor</th><th>Pagamento</th><th>Status</th></tr></thead>
           <tbody>
@@ -516,24 +666,24 @@
       </div>
     </div>
 
-    <!-- SLIDE 19 - INTERVALO -->
+    <!-- SLIDE 27 - INTERVALO -->
     <div class="slide">
       <div class="deck-shell"><div><span class="deck-kicker">Intervalo &middot; 10h00&ndash;10h15</span><h2 class="deck-title">Pausa de 15 minutos</h2><p class="deck-summary">No retorno, cada grupo abrirá o editor SQL e começará pela leitura programática do esquema Olist.</p></div></div>
     </div>
 
-    <!-- SLIDE 20 - CONTRATO DO LAB -->
+    <!-- SLIDE 28 - VIEWS -->
     <div class="slide">
       <div class="deck-shell is-dense">
-        <div><span class="deck-kicker">Laboratório &middot; Contrato técnico</span><h2 class="deck-title">A conexão Olist é somente leitura; os modelos serão consultas reutilizáveis</h2></div>
+        <div><span class="deck-kicker">Laboratório &middot; Objetos do banco</span><h2 class="deck-title">View não materializada guarda a consulta; materializada guarda o resultado</h2></div>
         <div class="deck-columns">
-          <article class="deck-panel"><strong>No ambiente da aula</strong><ol><li><strong>New &rarr; SQL query</strong>;</li><li>selecionar o banco <strong>Olist</strong>;</li><li>executar com <strong>Run</strong>;</li><li>salvar na coleção do grupo;</li><li>referenciar com <code>{{#nome}}</code>.</li></ol></article>
-          <article class="deck-panel"><strong>Em um warehouse gravável</strong><ol><li>criar schema de desenvolvimento;</li><li>envolver o <code>SELECT</code> em <code>CREATE VIEW</code>;</li><li>testar chaves e medidas;</li><li>promover por pipeline;</li><li>conceder <code>SELECT</code> ao BI.</li></ol></article>
+          <article class="deck-panel"><strong>View comum</strong><ol><li>guarda a definição do <code>SELECT</code>;</li><li>não mantém cópia própria das linhas;</li><li>recalcula quando é lida;</li><li>reflete os dados consultáveis naquele momento.</li></ol></article>
+          <article class="deck-panel"><strong>View materializada</strong><ol><li>guarda as linhas calculadas;</li><li>ocupa disco e pode receber índices;</li><li>lê o resultado persistido;</li><li>exige <code>REFRESH MATERIALIZED VIEW</code>.</li></ol></article>
         </div>
-        <p class="deck-note">O material contém as duas formas. DDL no editor SQL do Metabase não integra o laboratório e não é suportado como fluxo de administração.</p>
+        <div class="deck-callout"><strong>Decisão do laboratório</strong>Dimensões e fatos serão views comuns em <code>bi_aula02</code>. Como o editor do Metabase não oferece suporte oficial a DDL, o professor deve testar a execução antes da aula e manter uma migração administrativa como alternativa.</div>
       </div>
     </div>
 
-    <!-- SLIDE 21 - EXTRAIR SCHEMA -->
+    <!-- SLIDE 29 - EXTRAIR SCHEMA -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">Atividade 1 &middot; 10h15&ndash;10h22</span><h2 class="deck-title">Extraia o contrato estrutural do banco</h2></div>
@@ -549,7 +699,7 @@ ORDER BY table_name, ordinal_position;</code></div>
       </div>
     </div>
 
-    <!-- SLIDE 22 - PERGUNTAS -->
+    <!-- SLIDE 30 - PERGUNTAS -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">Discussão em grupos &middot; 10h22&ndash;10h30</span><h2 class="deck-title">Transforme perguntas de negócio em contratos dimensionais</h2></div>
@@ -566,59 +716,67 @@ ORDER BY table_name, ordinal_position;</code></div>
       </div>
     </div>
 
-    <!-- SLIDE 23 - DIM DATA -->
+    <!-- SLIDE 31 - DIM DATA -->
     <div class="slide">
       <div class="deck-shell is-dense">
-        <div><span class="deck-kicker">Atividade 2 &middot; 10h30&ndash;10h38</span><h2 class="deck-title">Construa e salve a dimensão data</h2></div>
-        <ol class="deck-steps"><li>Abra <strong>New &rarr; SQL query</strong> e selecione <strong>Olist</strong>.</li><li>Use <code>generate_series</code> entre a menor e a maior data de compra.</li><li>Crie <code>sk_data</code> no formato <code>AAAAMMDD</code> e atributos de ano, trimestre, mês e dia.</li><li>Execute; confirme uma linha por dia e ausência de duplicidade em <code>sk_data</code>.</li><li>Salve como <code>A02_GNN_01_DIM_DATA</code>.</li></ol>
-        <div class="deck-schema"><code>SELECT to_char(dia, 'YYYYMMDD')::integer AS sk_data,
-       dia::date AS data,
-       extract(year FROM dia)::integer AS ano,
-       extract(month FROM dia)::integer AS mes
-FROM generate_series(data_min, data_max, interval '1 day') AS c(dia);</code></div>
+        <div><span class="deck-kicker">Atividade 2 &middot; 10h30&ndash;10h38</span><h2 class="deck-title">Crie a view da dimensão data</h2></div>
+        <ol class="deck-steps"><li>Abra <strong>New &rarr; SQL query</strong> e selecione <strong>Olist — DDL Aula 02</strong>.</li><li>Troque <code>gnn</code> pelo código do grupo.</li><li>Use <code>generate_series</code> entre a menor e a maior compra.</li><li>Execute o <code>CREATE OR REPLACE VIEW</code> com <strong>Run</strong>.</li><li>Em outra consulta, valide <code>bi_aula02.gnn_dim_data</code>.</li></ol>
+        <div class="deck-schema"><code>CREATE OR REPLACE VIEW bi_aula02.gnn_dim_data AS
+WITH limites AS (
+  SELECT min(order_purchase_timestamp)::date AS data_min,
+         max(order_purchase_timestamp)::date AS data_max
+  FROM public.olist_orders
+)
+SELECT to_char(dia, 'YYYYMMDD')::integer AS sk_data,
+       dia::date AS data
+FROM limites
+CROSS JOIN LATERAL generate_series(
+  data_min, data_max, interval '1 day'
+) AS c(dia);</code></div>
+        <p class="deck-note"><code>generate_series</code> cria uma sequência contínua de datas. <code>sk_data</code> é a chave substituta usada pelos fatos para referenciar cada dia.</p>
       </div>
     </div>
 
-    <!-- SLIDE 24 - DIM CLIENTE -->
+    <!-- SLIDE 32 - DIM CLIENTE -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">Atividade 3 &middot; 10h38&ndash;10h50</span><h2 class="deck-title">Versione a dimensão cliente com SCD Tipo 2</h2></div>
-        <ol class="deck-steps"><li>Una <code>olist_customers</code> a <code>olist_orders</code> por <code>customer_id</code>.</li><li>Ordene observações por <code>customer_unique_id</code> e data de compra.</li><li>Compare CEP, cidade e estado com <code>LAG</code>; marque cada mudança.</li><li>Acumule as mudanças para numerar versões e calcule <code>valid_from</code>/<code>valid_to</code>.</li><li>Execute e salve como <code>A02_GNN_02_DIM_CLIENTE_SCD2</code>; depois, abra outra consulta e rode os testes do material.</li></ol>
-        <div class="deck-callout"><strong>Validade temporal</strong>Um fato de compra associa-se à versão em que <code>compra &gt;= valid_from</code> e <code>compra &lt; valid_to</code>; <code>valid_to</code> vazio identifica a versão vigente.</div>
+        <ol class="deck-steps"><li>Selecione <strong>Olist — DDL Aula 02</strong> e troque <code>gnn</code>.</li><li>Una <code>olist_customers</code> a <code>olist_orders</code> por <code>customer_id</code>.</li><li>Compare CEP, cidade e estado com <code>LAG</code>; marque cada mudança.</li><li>Calcule <code>valid_from</code>/<code>valid_to</code> e crie <code>bi_aula02.gnn_dim_cliente_scd2</code>.</li><li>Abra outra consulta e execute os testes sobre a view.</li></ol>
+        <div class="deck-callout"><strong>Funções e validade</strong><code>LAG</code> lê a observação anterior do cliente para detectar mudança. O fato associa-se à versão em que <code>compra &gt;= valid_from</code> e <code>compra &lt; valid_to</code>.</div>
       </div>
     </div>
 
-    <!-- SLIDE 25 - DIM PRODUTO E FATO -->
+    <!-- SLIDE 33 - DIM PRODUTO E FATO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">Atividades 4 e 5 &middot; 10h50&ndash;11h10</span><h2 class="deck-title">Monte as dimensões produto e vendedor e o fato item</h2></div>
         <div class="deck-columns">
-          <article class="deck-panel"><strong>Produto e vendedor</strong><ol><li>parta das respectivas fontes;</li><li>traduza a categoria de produto;</li><li>crie as chaves substitutas;</li><li>salve como <code>..._03_DIM_PRODUTO</code> e <code>..._03B_DIM_VENDEDOR</code>.</li></ol></article>
-          <article class="deck-panel"><strong>Fato item</strong><ol><li>declare o grão pedido + item;</li><li>referencie as três dimensões com <code>{{#}}</code>;</li><li>associe o cliente pela validade SCD2;</li><li>execute o SQL 06 e salve como <code>..._04_FATO_ITEM</code>.</li></ol></article>
+          <article class="deck-panel"><strong>Produto e vendedor</strong><ol><li>parta das respectivas fontes;</li><li>traduza a categoria de produto;</li><li>crie as chaves substitutas;</li><li>publique <code>gnn_dim_produto</code> e <code>gnn_dim_vendedor</code>.</li></ol></article>
+          <article class="deck-panel"><strong>Fato item</strong><ol><li>declare o grão pedido + item;</li><li>use as três views dimensionais;</li><li>associe o cliente pela validade SCD2;</li><li>publique <code>gnn_fato_item</code> com o SQL 06.</li></ol></article>
         </div>
-        <div class="deck-callout"><strong>Medidas</strong><code>preco</code>, <code>frete</code> e <code>valor_item = preco + frete</code>. <code>order_id</code> permanece como dimensão degenerada para rastreabilidade.</div>
+        <div class="deck-callout"><strong>Medidas e dimensão degenerada</strong><code>preco</code>, <code>frete</code> e <code>valor_item</code> quantificam a ocorrência. <code>order_id</code> é um identificador de negócio mantido no fato sem tabela dimensão própria.</div>
       </div>
     </div>
 
-    <!-- SLIDE 26 - FATO PAGAMENTO -->
+    <!-- SLIDE 34 - FATO PAGAMENTO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">Atividade 6 &middot; 11h10&ndash;11h20</span><h2 class="deck-title">Construa e valide o fato pagamento</h2></div>
         <ol class="deck-steps">
-          <li>Clique em <strong>New &rarr; SQL query</strong> e selecione <strong>Olist</strong>.</li>
-          <li>Digite <code>WITH dim_cliente AS {{#</code> e escolha <code>A02_GNN_02_DIM_CLIENTE_SCD2</code>.</li>
-          <li>Cole o restante do SQL 07 do material e clique em <strong>Run</strong>.</li>
-          <li>Salve como <code>A02_GNN_05_FATO_PAGAMENTO</code> na coleção do grupo.</li>
-          <li>Em outra consulta, referencie o fato e confirme 103.886 chaves, nenhuma dimensão ausente e R$ 16.008.872,12.</li>
+          <li>Abra <strong>New &rarr; SQL query</strong> e selecione <strong>Olist — DDL Aula 02</strong>.</li>
+          <li>Troque <code>gnn</code> pelo código do grupo no SQL 07.</li>
+          <li>Use <code>bi_aula02.gnn_dim_cliente_scd2</code> na junção temporal.</li>
+          <li>Execute e crie <code>bi_aula02.gnn_fato_pagamento</code>.</li>
+          <li>Em outra consulta, confirme 103.886 chaves e R$ 16.008.872,12.</li>
         </ol>
         <div class="deck-callout"><strong>Contrato temporal</strong>Cada linha representa uma ocorrência sequencial de pagamento. Como a fonte não registra o instante do pagamento, <code>sk_data_compra</code> mantém explicitamente a data de compra do pedido.</div>
       </div>
     </div>
 
-    <!-- SLIDE 27 - FANOUT -->
+    <!-- SLIDE 35 - FANOUT -->
     <div class="slide">
       <div class="deck-shell is-dense">
-        <div><span class="deck-kicker">Cardinalidade &middot; 11h20&ndash;11h26</span><h2 class="deck-title">A junção direta entre dois fatos multiplica ocorrências</h2></div>
+        <div><span class="deck-kicker">Fanout e cardinalidade &middot; 11h20&ndash;11h26</span><h2 class="deck-title">Fanout é a multiplicação de linhas causada pela junção</h2><p class="deck-summary">Cardinalidade descreve quantas linhas podem se relacionar. Dois lados “muitos” combinados pelo pedido repetem as medidas de ambos.</p></div>
         <table class="deck-table">
           <thead><tr><th>Conjunto</th><th>Linhas</th><th>Valor correto</th><th>Após itens × pagamentos</th></tr></thead>
           <tbody>
@@ -631,7 +789,7 @@ FROM generate_series(data_min, data_max, interval '1 day') AS c(dia);</code></di
       </div>
     </div>
 
-    <!-- SLIDE 28 - CROSS JOIN -->
+    <!-- SLIDE 36 - CROSS JOIN -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">CROSS JOIN &middot; 11h26&ndash;11h32</span><h2 class="deck-title">O produto cartesiano cria uma grade analítica completa</h2></div>
@@ -651,7 +809,7 @@ LEFT JOIN observado USING (mes, uf);</code></div>
       </div>
     </div>
 
-    <!-- SLIDE 29 - DRILL ACROSS -->
+    <!-- SLIDE 37 - DRILL ACROSS -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">Drill-across &middot; 11h32&ndash;11h38</span><h2 class="deck-title">Fatos separados são alinhados por dimensões conformadas</h2></div>
@@ -670,7 +828,7 @@ LEFT JOIN observado USING (mes, uf);</code></div>
       </div>
     </div>
 
-    <!-- SLIDE 30 - BARRAMENTO PROBLEMAS -->
+    <!-- SLIDE 38 - BARRAMENTO PROBLEMAS -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">Barramento &middot; 11h38&ndash;11h40</span><h2 class="deck-title">Problemas de conformidade aparecem como divergências semânticas</h2></div>
@@ -686,7 +844,7 @@ LEFT JOIN observado USING (mes, uf);</code></div>
       </div>
     </div>
 
-    <!-- SLIDE 31 - IA -->
+    <!-- SLIDE 39 - IA -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">IA como apoio de modelagem &middot; 11h40&ndash;11h47</span><h2 class="deck-title">Forneça metadados e exija um contrato verificável</h2></div>
@@ -695,16 +853,16 @@ LEFT JOIN observado USING (mes, uf);</code></div>
       </div>
     </div>
 
-    <!-- SLIDE 32 - EXTENSÃO -->
+    <!-- SLIDE 40 - EXTENSÃO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div><span class="deck-kicker">Atividade 7 &middot; 11h47&ndash;12h05</span><h2 class="deck-title">Especifique um novo fato e uma nova dimensão</h2></div>
         <div class="deck-columns"><article class="deck-panel"><strong>Escolha um processo</strong><ul><li>entrega;</li><li>avaliação;</li><li>cobertura geográfica.</li></ul></article><article class="deck-panel"><strong>Produza na coleção</strong><ul><li>consulta SQL executável;</li><li>declaração do grão;</li><li>matriz processo × dimensões;</li><li>quatro testes de qualidade.</li></ul></article></div>
-        <p class="deck-note">Salve o fato como <code>A02_GNN_07_FATO_NOME</code> e a dimensão como <code>A02_GNN_07_DIM_NOME</code>. Apresente a decisão principal e um risco de cardinalidade.</p>
+        <p class="deck-note">Crie <code>bi_aula02.gnn_fato_nome</code> e <code>bi_aula02.gnn_dim_nome</code>. Apresente a declaração do grão, a decisão histórica e um risco de cardinalidade.</p>
       </div>
     </div>
 
-    <!-- SLIDE 33 - GATES -->
+    <!-- SLIDE 41 - GATES -->
     <div class="slide">
       <div class="deck-shell">
         <div><span class="deck-kicker">Validação &middot; 12h05&ndash;12h10</span><h2 class="deck-title">Quatro gates encerram a construção</h2></div>
@@ -713,18 +871,18 @@ LEFT JOIN observado USING (mes, uf);</code></div>
       </div>
     </div>
 
-    <!-- SLIDE 34 - ENTREGÁVEIS -->
+    <!-- SLIDE 42 - ENTREGÁVEIS -->
     <div class="slide">
       <div class="deck-shell is-dense">
-        <div><span class="deck-kicker">Entregáveis e continuidade</span><h2 class="deck-title">A coleção do grupo registra o modelo analítico da aula</h2></div>
+        <div><span class="deck-kicker">Entregáveis e continuidade</span><h2 class="deck-title">O schema registra o modelo; a coleção preserva consultas e evidências</h2></div>
         <table class="deck-table">
           <thead><tr><th>Artefato</th><th>Nome</th><th>Condição</th></tr></thead>
           <tbody>
             <tr><td>Esquema</td><td><code>A02_GNN_00_SCHEMA_OLIST</code></td><td>metadados das nove tabelas</td></tr>
-            <tr><td>Dimensões</td><td><code>..._01_DIM_DATA</code>, <code>..._02_DIM_CLIENTE_SCD2</code>, <code>..._03_DIM_PRODUTO</code>, <code>..._03B_DIM_VENDEDOR</code></td><td>chaves e testes executados</td></tr>
-            <tr><td>Fatos</td><td><code>..._04_FATO_ITEM</code>, <code>..._05_FATO_PAGAMENTO</code></td><td>grãos e totais reconciliados</td></tr>
+            <tr><td>Dimensões</td><td><code>gnn_dim_data</code>, <code>gnn_dim_cliente_scd2</code>, <code>gnn_dim_produto</code>, <code>gnn_dim_vendedor</code></td><td>quatro views e testes executados</td></tr>
+            <tr><td>Fatos</td><td><code>gnn_fato_item</code>, <code>gnn_fato_pagamento</code></td><td>duas views, grãos e totais reconciliados</td></tr>
             <tr><td>Integração</td><td><code>..._06_DRILL_ACROSS_MES_UF</code></td><td>fatos agregados antes da junção</td></tr>
-            <tr><td>Extensão</td><td><code>..._07_FATO_*</code> + <code>..._07_DIM_*</code></td><td>SQL, contrato e validações</td></tr>
+            <tr><td>Extensão</td><td><code>gnn_fato_*</code> + <code>gnn_dim_*</code></td><td>views, contrato e validações</td></tr>
           </tbody>
         </table>
         <p class="deck-summary">Na Aula 03, fatos e dimensões serão consumidos para construir distribuições, relações e comparações numéricas com semântica controlada.</p>
