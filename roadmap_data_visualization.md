@@ -7,13 +7,9 @@ Documento vivo de planejamento das 8 aulas da disciplina. Sábados, 8h30 – 12h
 
 ## 1. Premissa da disciplina
 
-A ementa institucional pede percepção humana, representações para dados numéricos e não numéricos, tabelas, gráficos, mapas, indicadores de performance, dashboards e storytelling. O risco de uma disciplina assim é virar catálogo de tipos de gráfico — o aluno aprende a nomear um treemap e continua sem saber quando usá-lo.
+A ementa institucional contempla percepção humana, representações para dados numéricos e não numéricos, tabelas, gráficos, mapas, indicadores de performance, dashboards e storytelling. A disciplina organiza esses conteúdos como um processo analítico completo, no qual a representação visual depende de dados compreendidos, arquitetura identificável e semântica consistente.
 
-A trilha evita isso invertendo a ordem natural do catálogo:
-
-> *"Antes de escolher como mostrar, é preciso saber o que existe e o que se quer perguntar."*
-
-Por isso a Aula 01 não é sobre percepção — é sobre **descobrir os dados**. O aluno abre um dataset real que nunca viu, perfila, encontra buracos, formula perguntas de negócio e só então, na Aula 02, aprende por que certas representações comunicam melhor que outras. Toda escolha visual das aulas seguintes se apoia em perguntas que o próprio aluno levantou na primeira semana.
+A Aula 01 estabelece o perfil do conjunto Olist e formula perguntas de negócio. A Aula 02 localiza aquisição, persistência, camada semântica e consumo nas principais arquiteturas de BI e converte o esquema operacional em fatos e dimensões. As aulas seguintes utilizam esse modelo para estudar percepção, comparação, categorias, escolha de representação, espaço, indicadores e narrativa.
 
 ---
 
@@ -23,8 +19,8 @@ Oito aulas, uma progressão única:
 
 ```
 01  Descobrir os dados            Data Discovery, perfilamento, perguntas de negócio
-02  Entender a percepção          Gestalt, pré-atentivos, canais de codificação
-03  Comparar números              distribuições, séries temporais, magnitude
+02  Arquitetar e modelar          plataformas de BI, fatos, dimensões, SCD, barramento
+03  Comparar números              percepção, distribuições, séries temporais, magnitude
 04  Representar categorias        categóricos, hierarquias, texto livre
 05  Escolher a representação      tabela vs. gráfico, matriz de decisão
 06  Situar no espaço              mapas, geoespacial, escolha de projeção
@@ -66,12 +62,12 @@ O método é inspirado por quatro famílias de referência, sem alegar certifica
 
 ### Dossiê progressivo do aluno
 
-O produto da disciplina não é apenas um dashboard. É um dossiê auditável que mostra como cada decisão foi tomada:
+O produto da disciplina é um dossiê auditável que registra como cada decisão foi tomada e inclui o dashboard como uma de suas entregas:
 
 | Aula | Documento | Evidência profissional |
 |---|---|---|
 | 01 | `01_brief_e_qualidade.md` | brief, perfil ISO-aligned, regras e limitações |
-| 02 | `02_auditoria_heuristica.md` | problemas, severidade, evidência e correção |
+| 02 | `02_arquitetura_e_modelo.md` | fluxos de consumo, grãos, matriz de barramento e testes SQL |
 | 03 | `03_registro_numerico.md` | escala, agregação, incerteza e alternativas |
 | 04 | `04_protocolo_categorias.md` | taxonomia, corte, perda e viés de classificação |
 | 05 | `05_especificacao_visual.md` | matriz de decisão e alternativa acessível |
@@ -100,7 +96,7 @@ Uma crítica válida registra `evidência → heurística → severidade → con
 
 | Tópico da ementa | Onde é coberto |
 |---|---|
-| Percepção humana | Aula 02 (núcleo), reforçada em 03, 04 e 05 |
+| Percepção humana | Aulas 03, 04 e 05, aplicada aos diferentes trabalhos visuais |
 | Dados numéricos | Aula 03 |
 | Dados não numéricos | Aula 04 |
 | Tabelas e gráficos | Aula 05 |
@@ -109,7 +105,7 @@ Uma crítica válida registra `evidência → heurística → severidade → con
 | Dashboards | Aula 07 (construção), Aula 08 (narrativa) |
 | Storytelling com dados | Aula 08 |
 
-Data Discovery (Aula 01) não consta explicitamente na ementa — entra como pré-requisito prático e como setup da ferramenta, sem deslocar nenhum tópico obrigatório.
+Data Discovery (Aula 01) e arquitetura/modelagem de BI (Aula 02) funcionam como pré-requisitos práticos para os tópicos de representação e asseguram que os gráficos posteriores utilizem métricas rastreáveis.
 
 ---
 
@@ -174,7 +170,7 @@ O trabalho escrito acompanha o trabalho visual. Estrutura-alvo ao final da Aula 
 olist-dataviz/
 ├── docs/
 │   ├── 01_brief_e_qualidade.md       # Aula 01 — contexto, perfil e regras de dados
-│   ├── 02_auditoria_heuristica.md    # Aula 02 — achados, severidade e reteste
+│   ├── 02_arquitetura_e_modelo.md    # Aula 02 — arquitetura, grãos, barramento e testes
 │   ├── 03_registro_numerico.md       # Aula 03 — decisões numéricas e alternativas
 │   ├── 04_protocolo_categorias.md    # Aula 04 — taxonomia, corte, perda e viés
 │   ├── 05_especificacao_visual.md    # Aula 05 — matriz, especificação e acessibilidade
@@ -191,7 +187,7 @@ olist-dataviz/
 
 ## 4. Mapa detalhado das aulas
 
-Todas as aulas seguem o mesmo formato: **8h30 – 10h00 teoria**, **10h00 – 12h10 prática no Metabase**.
+Todas as aulas combinam fundamentação, demonstração e prática no Metabase. A distribuição de tempo varia conforme a complexidade conceitual e o encadeamento do laboratório.
 
 ### Aula 01 — 15/08/2026 — Data Discovery com Metabase
 **Conceitual:** o que é data discovery e por que antecede a visualização; perfilamento de dados (completude, cardinalidade, distribuição, outliers); tipos semânticos vs. tipos físicos; da pergunta vaga à pergunta respondível; grão da análise.
@@ -199,11 +195,11 @@ Todas as aulas seguem o mesmo formato: **8h30 – 10h00 teoria**, **10h00 – 12
 **Artefato:** coleção nomeada com 5 perguntas salvas + `docs/01_brief_e_qualidade.md` com contexto, perfil, regras, limitações e backlog.
 **Saída verificável:** o aluno consegue afirmar, com evidência na tela, quantos pedidos existem, qual o período coberto, onde há nulos e quais três perguntas de negócio valem ser investigadas no semestre.
 
-### Aula 02 — 22/08/2026 — Percepção Visual e Processo de Criação
-**Conceitual:** sistema visual humano e carga cognitiva; atributos pré-atentivos; princípios de Gestalt; ranking de canais de codificação (Cleveland & McGill); razão dado-tinta (Tufte); lie factor e distorção de escala; o ciclo de criação e interpretação.
-**Prática:** reconstrução de uma visualização deliberadamente ruim construída sobre uma das perguntas da Aula 01; ajuste de ordenação, cor, rótulo e eixo no Metabase; teste dos cinco segundos com um colega.
-**Artefato:** par antes/depois salvo na coleção + `docs/02_auditoria_heuristica.md` com achados, severidade, correção e reteste.
-**Saída verificável:** o colega consegue dizer a mensagem do gráfico revisado em cinco segundos; cada mudança tem justificativa perceptiva, não estética.
+### Aula 02 — 22/08/2026 — Arquitetura de BI e Modelagem Dimensional com Olist
+**Conceitual:** camadas de uma solução de BI; aquisição, persistência, estado da aplicação e consumo em Power BI Desktop, Power BI Service, Power BI Report Server, Grafana e Metabase; Data Warehouse, data mart, data lake, lakehouse e data mesh; processo, grão, fato, dimensão, chave substituta, esquema estrela, snowflake, SCD Tipo 1 e Tipo 2, matriz de barramento e dimensões conformadas.
+**Prática:** extração do schema Olist pelo `information_schema`; discussão de perguntas e contratos dimensionais; construção de `dim_data`, `dim_cliente_scd2`, `dim_produto`, `dim_vendedor`, `fato_item` e `fato_pagamento` como consultas reutilizáveis; demonstração de fanout; grade com `CROSS JOIN`; drill-across por mês e UF; extensão do modelo com metadados fornecidos a uma IA e validação humana.
+**Artefato:** consultas dimensionais salvas na coleção + `docs/02_arquitetura_e_modelo.md` com diagramas de fluxo, declarações de grão, matriz de barramento, SQL e resultados dos testes.
+**Saída verificável:** o grupo localiza onde dados e artefatos residem em cada plataforma, preserva 112.650 itens no fato, associa fatos às versões SCD2 corretas e reconcilia as medidas com as tabelas de origem.
 
 ### Aula 03 — 29/08/2026 — Visualização de Dados Numéricos
 **Conceitual:** os quatro trabalhos do gráfico numérico — comparar magnitude, mostrar distribuição, revelar evolução, expor relação; escolha do gráfico por trabalho; quando o eixo pode e não pode ser truncado; média vs. mediana em cauda longa; agregação e o paradoxo de Simpson.
@@ -307,7 +303,7 @@ Semanalmente:
 ## 8. Status de implementação do material
 
 - [ ] Aula 01 — 15/08/2026 — Data Discovery com Metabase
-- [ ] Aula 02 — 22/08/2026 — Percepção Visual e Processo de Criação
+- [x] Aula 02 — 22/08/2026 — Arquitetura de BI e Modelagem Dimensional com Olist
 - [ ] Aula 03 — 29/08/2026 — Visualização de Dados Numéricos
 - [ ] Aula 04 — 05/09/2026 — Visualização de Dados Não Numéricos
 - [ ] Aula 05 — 12/09/2026 — Tabelas, Gráficos e Escolha da Representação

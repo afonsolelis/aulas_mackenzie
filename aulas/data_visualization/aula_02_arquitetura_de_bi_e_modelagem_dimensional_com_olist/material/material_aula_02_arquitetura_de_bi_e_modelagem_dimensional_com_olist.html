@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 02 — Arquitetura de BI e Modelagem Dimensional com Olist</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+  <style>
+    .material-diagram {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 1.5rem 0 0.5rem;
+    }
+    .material-diagram .box { fill: #ffffff; stroke: #111111; stroke-width: 1.5; }
+    .material-diagram .soft-box { fill: #fafaf7; stroke: #111111; stroke-width: 1.25; }
+    .material-diagram .dark-box { fill: #111111; stroke: #111111; stroke-width: 1.5; }
+    .material-diagram .flow { fill: none; stroke: #111111; stroke-width: 1.75; }
+    .material-diagram .flow-dashed { fill: none; stroke: #111111; stroke-dasharray: 7 5; stroke-width: 1.5; }
+    .material-diagram text { fill: #111111; font-family: Inter, Arial, sans-serif; }
+    .material-diagram .light-text { fill: #ffffff; }
+    .material-diagram .svg-title { font-size: 18px; font-weight: 700; }
+    .material-diagram .svg-body { font-size: 14px; }
+    .material-diagram .svg-meta { font-family: "JetBrains Mono", monospace; font-size: 12px; }
+    .diagram-caption { font-size: 0.9rem; margin-top: 0.5rem; }
+    .sql-label {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid #111111;
+      border-radius: 4px;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    @media (max-width: 640px) {
+      .content-block table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub</a>
+      <a href="../../../../pages/home_data_visualization.html">Disciplina</a>
+      <a href="../slides/slide_aula_02_arquitetura_de_bi_e_modelagem_dimensional_com_olist.html">Slides &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 02 — Arquitetura de BI e Modelagem Dimensional com Olist</h1>
+      <p class="meta">Aula 02 &middot; 22/08/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block">
+        <h2>1. Visão geral</h2>
+        <p>Uma visualização confiável depende da arquitetura que movimenta os dados, do modelo que organiza seu significado e das regras que preservam a granularidade das medidas. Esta aula examina esses três elementos de forma integrada. A primeira parte localiza fontes, transformações, persistência, camada semântica e artefatos nas arquiteturas do Power BI, do Grafana e do Metabase. A segunda parte converte o esquema relacional do Olist em um modelo dimensional voltado para consumo analítico.</p>
+        <p>O laboratório utiliza o banco Olist hospedado no Railway e conectado à instância Metabase da disciplina. A conexão analítica possui permissão de leitura. Dimensões e fatos serão implementados como consultas SQL salvas e reutilizados por referência no editor do Metabase. Para relacionar a atividade a um ambiente de engenharia de dados, cada consulta também poderá ser materializada como <code>VIEW</code> em um warehouse com permissão de escrita; essa variante aparece no material como referência de implantação.</p>
+
+        <h3>Resultados esperados</h3>
+        <ul>
+          <li>explicar o percurso dos dados em Power BI Desktop, Power BI Service, Power BI Report Server, Grafana e Metabase;</li>
+          <li>distinguir dados analíticos, estado da aplicação, modelo semântico, cache e artefatos de consumo;</li>
+          <li>relacionar Data Warehouse, data mart, data lake, lakehouse e data mesh sem tratá-los como sinônimos;</li>
+          <li>declarar processo de negócio, grão, medidas, dimensões e chaves antes de escrever a consulta;</li>
+          <li>construir uma dimensão data, uma dimensão cliente SCD Tipo 2, dimensões de produto e vendedor e um fato no grão de item;</li>
+          <li>comparar esquema estrela e snowflake e justificar a escolha adotada;</li>
+          <li>identificar fanout em junções entre fatos, construir uma grade com <code>CROSS JOIN</code> e executar drill-across;</li>
+          <li>utilizar metadados do esquema em uma interação controlada com IA para propor uma extensão do modelo;</li>
+          <li>validar unicidade, integridade, reconciliação e cardinalidade.</li>
+        </ul>
+      </section>
+
+      <section class="content-block">
+        <h2>2. Roteiro da aula</h2>
+        <table>
+          <thead><tr><th>Horário</th><th>Condução</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>8h30&ndash;9h05</td><td>Arquiteturas de BI</td><td>Ambiente, Power BI, Grafana e Metabase comparados</td></tr>
+            <tr><td>9h05&ndash;9h25</td><td>Arquitetura de dados</td><td>Data Warehouse, data marts, lakehouse e data mesh</td></tr>
+            <tr><td>9h25&ndash;10h00</td><td>Modelagem orientada</td><td>Grão, fatos, dimensões, estrela, snowflake, SCD e barramento</td></tr>
+            <tr><td>10h00&ndash;10h15</td><td>Intervalo</td><td>Pausa de 15 minutos</td></tr>
+            <tr><td>10h15&ndash;10h30</td><td>Esquema e discussão</td><td>Metadados e contratos dimensionais para perguntas do Olist</td></tr>
+            <tr><td>10h30&ndash;11h20</td><td>Laboratório orientado</td><td>Quatro dimensões e dois fatos reutilizáveis</td></tr>
+            <tr><td>11h20&ndash;11h40</td><td>Laboratório de integração</td><td>Fanout, CROSS JOIN, drill-across e barramento</td></tr>
+            <tr><td>11h40&ndash;12h05</td><td>Extensão assistida por IA</td><td>Novo fato e nova dimensão especificados e executados</td></tr>
+            <tr><td>12h05&ndash;12h10</td><td>Validação</td><td>Gates executados e artefatos salvos</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>3. Preparação do ambiente</h2>
+        <p>Acesse a <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a> com as credenciais fornecidas na Aula 01. A interface está em inglês e foi verificada na versão 0.63.10. Os passos deste material empregam os rótulos atuais da interface.</p>
+        <ol class="steps">
+          <li>Abra o menu lateral e localize a coleção utilizada na Aula 01. Se o trabalho ocorrer em grupo, escolha uma única coleção para os artefatos da sessão.</li>
+          <li>Defina um código de grupo com dois algarismos, como <code>G03</code>. Todos os nomes começarão por <code>A02_G03_</code>.</li>
+          <li>Clique em <strong>New</strong>, selecione <strong>SQL query</strong> e confirme que o banco exibido acima do editor é <strong>Olist</strong>.</li>
+          <li>Execute <code>SELECT current_database();</code> com o botão <strong>Run</strong>. O resultado esperado é <code>olist</code>.</li>
+          <li>Feche a consulta de teste sem salvá-la e retorne à coleção do grupo.</li>
+        </ol>
+
+        <div class="note">
+          <strong>Conta e coleção compartilhadas</strong>
+          <p>A convenção de nomes fornece rastreabilidade em um ambiente no qual os estudantes compartilham a mesma identidade da aplicação. Edite apenas artefatos que contenham o código do seu grupo. Ao estudar uma consulta de outro grupo, duplique o artefato e salve a cópia na coleção do seu grupo.</p>
+        </div>
+
+        <div class="note">
+          <strong>Permissões verificadas</strong>
+          <p>A conexão Olist usada pelo Metabase possui permissão de uso e leitura no schema <code>public</code>, sem permissão <code>CREATE</code> no banco ou no schema e sem permissão para tabelas temporárias. Essa política reduz o risco operacional. O laboratório utiliza consultas salvas, que o Metabase pode referenciar como subconsultas.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Anatomia de uma arquitetura de BI</h2>
+        <p>Uma arquitetura de BI pode ser analisada por cinco responsabilidades. As fontes registram eventos operacionais; mecanismos de movimentação conectam e transformam os dados; a camada de persistência mantém conjuntos preparados para análise; a camada semântica acrescenta relações, medidas, nomes de negócio e políticas; a camada de consumo entrega relatórios, painéis, alertas e exploração.</p>
+        <p>Ferramentas comerciais e open source distribuem essas responsabilidades de maneiras diferentes. A comparação técnica começa com quatro perguntas:</p>
+        <ol>
+          <li><strong>Onde estão os dados usados pelo visual?</strong> Eles podem permanecer na fonte, ser importados para um modelo ou ser armazenados em cache.</li>
+          <li><strong>Onde está o modelo?</strong> O modelo pode residir em um arquivo local, em um serviço, em tabelas dimensionais ou em metadados da aplicação.</li>
+          <li><strong>Quem executa a consulta?</strong> Cliente, servidor de BI, gateway e banco assumem cargas diferentes conforme o modo de conexão.</li>
+          <li><strong>Onde ficam os artefatos?</strong> Consultas, métricas, painéis, permissões e agendas de atualização requerem persistência e backup próprios.</li>
+        </ol>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Power BI: Desktop, Service, gateway e Report Server</h2>
+
+        <h3>5.1 Power BI Desktop</h3>
+        <p>O Power BI Desktop é um cliente de autoria. A aquisição começa em <strong>Home &rarr; Get data</strong>. O conector lê a fonte e o Power Query registra etapas de transformação. Após a transformação, o modo de armazenamento determina onde o dado consultado pelo visual ficará disponível.</p>
+        <table>
+          <thead><tr><th>Modo</th><th>Local dos dados</th><th>Execução ao interagir</th><th>Atualização</th></tr></thead>
+          <tbody>
+            <tr><td>Import</td><td>Cópia comprimida no modelo semântico</td><td>Consulta ao modelo em memória</td><td>Refresh recarrega a cópia</td></tr>
+            <tr><td>DirectQuery</td><td>Dados permanecem na fonte</td><td>Consultas são enviadas à fonte</td><td>Visuais consultam o estado corrente</td></tr>
+            <tr><td>Composite</td><td>Combinação de Import, DirectQuery e agregações</td><td>Depende da tabela e da medida</td><td>Combina refresh e consulta pass-through</td></tr>
+            <tr><td>Live connection</td><td>Modelo semântico externo</td><td>Consultas seguem para o modelo publicado</td><td>Gerida no sistema que hospeda o modelo</td></tr>
+          </tbody>
+        </table>
+        <p>O arquivo <code>.pbix</code> registra consultas do Power Query, relacionamentos, medidas DAX, formatação e páginas do relatório. No modo Import, o arquivo também inclui a cópia de dados do modelo. O modelo criado no Desktop utiliza tecnologia tabular do Analysis Services.</p>
+
+        <h3>5.2 Power BI Service</h3>
+        <p>A publicação envia o relatório e o modelo semântico para um workspace no Power BI Service. Modelos Import são carregados na capacidade do serviço e dependem de refresh para incorporar alterações da fonte. Modelos DirectQuery enviam consultas à fonte quando os usuários interagem com os visuais. Modelos compostos podem combinar os dois comportamentos.</p>
+        <p>Quando a fonte está em uma rede privada, o on-premises data gateway estabelece uma ponte de saída entre essa rede e o serviço. A credencial e o mapeamento da fonte são configurados no Service. O gateway encaminha refresh e consultas DirectQuery sem exigir a exposição pública do banco. Fontes de nuvem diretamente acessíveis podem dispensar o gateway, mantendo a configuração de credenciais no serviço.</p>
+
+        <h3>5.3 Power BI Report Server</h3>
+        <p>O Power BI Report Server é um produto on-premises para hospedar e administrar relatórios. Ele utiliza uma edição compatível do Power BI Desktop para Report Server, mantém catálogo e agendas na infraestrutura da organização e alcança fontes pela rede disponível ao servidor. Seu ciclo de atualização e sua matriz de fontes e recursos diferem do Power BI Service. Em uma discussão arquitetural, a expressão “Power BI Server” deve ser substituída pelo destino preciso: Power BI Service ou Power BI Report Server.</p>
+
+        <figure>
+          <svg class="material-diagram" viewBox="0 0 1080 390" role="img" aria-labelledby="material-pbi-title material-pbi-desc">
+            <title id="material-pbi-title">Fluxos de publicação e consulta do Power BI</title>
+            <desc id="material-pbi-desc">O Desktop se conecta a fontes e publica no Service ou no Report Server. O gateway conecta o Service a fontes em rede privada.</desc>
+            <defs><marker id="material-pbi-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
+            <rect class="soft-box" x="20" y="130" width="180" height="105" rx="4"></rect>
+            <text class="svg-title" x="110" y="170" text-anchor="middle">Fontes</text>
+            <text class="svg-body" x="110" y="199" text-anchor="middle">nuvem · rede privada</text>
+            <rect class="box" x="290" y="130" width="220" height="105" rx="4"></rect>
+            <text class="svg-title" x="400" y="170" text-anchor="middle">Power BI Desktop</text>
+            <text class="svg-body" x="400" y="199" text-anchor="middle">Power Query · modelo · relatório</text>
+            <rect class="soft-box" x="630" y="30" width="260" height="125" rx="4"></rect>
+            <text class="svg-title" x="760" y="72" text-anchor="middle">Power BI Service</text>
+            <text class="svg-body" x="760" y="101" text-anchor="middle">workspace · modelo semântico</text>
+            <text class="svg-body" x="760" y="128" text-anchor="middle">refresh · RLS · consumo</text>
+            <rect class="soft-box" x="630" y="225" width="260" height="125" rx="4"></rect>
+            <text class="svg-title" x="760" y="267" text-anchor="middle">Report Server</text>
+            <text class="svg-body" x="760" y="296" text-anchor="middle">catálogo e portal on-premises</text>
+            <text class="svg-body" x="760" y="323" text-anchor="middle">refresh e acesso pela rede local</text>
+            <rect class="dark-box" x="940" y="48" width="120" height="90" rx="4"></rect>
+            <text class="svg-title light-text" x="1000" y="84" text-anchor="middle">Gateway</text>
+            <text class="svg-body light-text" x="1000" y="111" text-anchor="middle">ponte</text>
+            <line class="flow" x1="200" y1="182" x2="290" y2="182" marker-end="url(#material-pbi-arrow)"></line>
+            <line class="flow" x1="510" y1="155" x2="630" y2="92" marker-end="url(#material-pbi-arrow)"></line>
+            <line class="flow" x1="510" y1="210" x2="630" y2="287" marker-end="url(#material-pbi-arrow)"></line>
+            <line class="flow" x1="890" y1="92" x2="940" y2="92" marker-end="url(#material-pbi-arrow)"></line>
+            <line class="flow-dashed" x1="1000" y1="138" x2="200" y2="150" marker-end="url(#material-pbi-arrow)"></line>
+          </svg>
+          <figcaption class="diagram-caption">O local de execução varia com o modo de armazenamento e com o destino de publicação.</figcaption>
+        </figure>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Grafana como plataforma de consumo analítico</h2>
+        <p>Grafana organiza visualizações em dashboards compostos por painéis. Cada data source representa uma conexão com um backend que mantém os dados, como PostgreSQL, Prometheus, Loki ou um serviço de nuvem. O editor específico do plugin formula a consulta. Para fontes SQL usuais, o servidor Grafana usa o data source proxy e mantém conexões durante a execução.</p>
+        <p>O servidor Grafana possui um banco de aplicação para usuários, fontes configuradas, dashboards, organizações, alertas e outros metadados. A instalação local utiliza SQLite por padrão; ambientes de produção e alta disponibilidade normalmente empregam PostgreSQL ou MySQL. Esse banco de aplicação cumpre função distinta das fontes consultadas pelos painéis.</p>
+        <p>Casos de BI podem ser implementados no Grafana quando o consumo exige SQL, filtros, séries temporais, painéis operacionais e alertas. A modelagem do dado de negócio permanece uma responsabilidade da fonte ou de uma camada semântica anterior. A frequência de atualização e o auto-refresh dos painéis transferem carga para o servidor Grafana e para os backends.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Metabase e a arquitetura real da disciplina</h2>
+        <p>O projeto <code>metabase-olist</code> possui um serviço de aplicação Metabase e um serviço PostgreSQL no Railway. O PostgreSQL contém bancos lógicos distintos. O banco <code>metabase</code> armazena contas, coleções, perguntas, dashboards, configurações e metadados sincronizados. O banco <code>olist</code> armazena as tabelas analíticas. Essa separação permite tratar backup e disponibilidade de cada responsabilidade de maneira explícita.</p>
+        <p>Quando o estudante cria uma pergunta no construtor visual, o Metabase representa a operação em sua linguagem de consulta e o processador a traduz para SQL do driver. Quando utiliza o editor SQL, a consulta é enviada ao banco conectado. Definição, nome, visualização e localização da pergunta ficam registrados no banco de aplicação. O resultado é obtido do Olist a cada execução, salvo quando existe uma política de cache ou persistência configurada.</p>
+
+        <figure>
+          <svg class="material-diagram" viewBox="0 0 1080 390" role="img" aria-labelledby="material-metabase-title material-metabase-desc">
+            <title id="material-metabase-title">Arquitetura Metabase e Olist no Railway</title>
+            <desc id="material-metabase-desc">O navegador acessa a aplicação Metabase por HTTPS. A aplicação guarda artefatos no banco metabase e consulta dados no banco olist.</desc>
+            <defs><marker id="material-metabase-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
+            <rect class="soft-box" x="20" y="130" width="190" height="120" rx="4"></rect>
+            <text class="svg-title" x="115" y="172" text-anchor="middle">Navegador</text>
+            <text class="svg-body" x="115" y="202" text-anchor="middle">SQL · pergunta · painel</text>
+            <text class="svg-meta" x="115" y="228" text-anchor="middle">HTTPS</text>
+            <rect class="box" x="320" y="75" width="310" height="230" rx="4"></rect>
+            <text class="svg-meta" x="475" y="108" text-anchor="middle">RAILWAY · SERVIÇO METABASE</text>
+            <text class="svg-title" x="475" y="153" text-anchor="middle">Aplicação Metabase</text>
+            <text class="svg-body" x="475" y="190" text-anchor="middle">query builder · editor SQL</text>
+            <text class="svg-body" x="475" y="219" text-anchor="middle">processador · driver · pool JDBC</text>
+            <text class="svg-body" x="475" y="248" text-anchor="middle">visualização · permissões · cache</text>
+            <rect class="soft-box" x="745" y="35" width="310" height="125" rx="4"></rect>
+            <text class="svg-title" x="900" y="77" text-anchor="middle">banco metabase</text>
+            <text class="svg-body" x="900" y="107" text-anchor="middle">usuários · coleções · perguntas</text>
+            <text class="svg-meta" x="900" y="134" text-anchor="middle">estado da aplicação</text>
+            <rect class="dark-box" x="745" y="230" width="310" height="125" rx="4"></rect>
+            <text class="svg-title light-text" x="900" y="272" text-anchor="middle">banco olist</text>
+            <text class="svg-body light-text" x="900" y="302" text-anchor="middle">9 tabelas · dados de negócio</text>
+            <text class="svg-meta light-text" x="900" y="329" text-anchor="middle">conexão somente leitura</text>
+            <line class="flow" x1="210" y1="190" x2="320" y2="190" marker-end="url(#material-metabase-arrow)"></line>
+            <line class="flow-dashed" x1="630" y1="150" x2="745" y2="98" marker-end="url(#material-metabase-arrow)"></line>
+            <line class="flow" x1="630" y1="235" x2="745" y2="292" marker-end="url(#material-metabase-arrow)"></line>
+          </svg>
+          <figcaption class="diagram-caption">A pergunta salva pertence ao estado da aplicação; os registros Olist permanecem no banco analítico.</figcaption>
+        </figure>
+
+        <h3>7.1 Perguntas salvas como relações reutilizáveis</h3>
+        <p>O editor SQL permite referenciar uma pergunta ou modelo salvo com a sintaxe <code>{{#ID-nome}}</code>. Ao digitar <code>{{#</code>, o autocomplete pesquisa artefatos da mesma conexão. Na execução, o Metabase substitui a referência pela consulta correspondente entre parênteses. Esse mecanismo permitirá que uma dimensão salva seja usada na construção do fato.</p>
+        <pre><code>WITH dim_cliente AS {{#123-a02-g03-02-dim-cliente-scd2}}
+SELECT *
+FROM dim_cliente
+WHERE is_current = true;</code></pre>
+        <p>O número <code>123</code> é ilustrativo. Durante a atividade, digite o início do nome e escolha a pergunta correta no autocomplete. Uma consulta SQL salva também pode ser convertida em model por <strong>… &rarr; Turn this into a model</strong> quando a permissão da coleção disponibiliza essa ação. A referência SQL funciona com perguntas e models.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Comparação operacional das plataformas</h2>
+        <table>
+          <thead><tr><th>Questão arquitetural</th><th>Power BI</th><th>Grafana</th><th>Metabase</th></tr></thead>
+          <tbody>
+            <tr><td>Dados usados pelo visual</td><td>Import, DirectQuery, Composite ou conexão live</td><td>Backends externos consultados pelo plugin</td><td>Banco conectado; cache opcional</td></tr>
+            <tr><td>Modelo semântico</td><td>Modelo tabular com relações, medidas e RLS</td><td>Queries, transformações e convenções do painel; semântica costuma vir da fonte</td><td>Metadados, models, métricas e perguntas</td></tr>
+            <tr><td>Estado da aplicação</td><td>PBIX local, workspace no Service ou catálogo do Report Server</td><td>SQLite, PostgreSQL ou MySQL</td><td>App DB separada do warehouse</td></tr>
+            <tr><td>Ponte para rede privada</td><td>On-premises data gateway no Service</td><td>Servidor Grafana implantado com alcance à fonte ou conectividade privada</td><td>Servidor Metabase com alcance à fonte, SSL ou túnel</td></tr>
+            <tr><td>Execução</td><td>Modelo em memória, fonte ou combinação</td><td>Servidor/plugins e backend</td><td>Servidor/driver e warehouse</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>9. Data Warehouse, data mart, data lake, lakehouse e data mesh</h2>
+        <p>Data Warehouse descreve uma arquitetura de dados integrados, históricos e preparados para análise. Um data mart é um recorte orientado a uma área ou processo. Data lake concentra dados em formatos variados e preserva flexibilidade de armazenamento. Lakehouse acrescenta formato tabular, transações, metadados e mecanismos de consulta analítica sobre storage de lake.</p>
+        <p>Data mesh trata principalmente de propriedade e organização. Seus princípios incluem responsabilidade orientada por domínio, dados como produto, plataforma self-service e governança federada. Um domínio de Pagamentos pode publicar um produto de dados com contrato, qualidade, documentação e controle de acesso. Esse produto pode ser fisicamente entregue como tabelas de warehouse, arquivos de lakehouse, tópicos de eventos ou APIs.</p>
+        <p>A modelagem dimensional resolve outro problema: organizar dados para consulta consistente. Um produto de dados em uma organização data mesh pode publicar <code>fato_pagamento</code> e reutilizar <code>dim_cliente</code> e <code>dim_data</code> conformadas. A matriz de barramento funciona como instrumento de coordenação entre processos e domínios.</p>
+
+        <table>
+          <thead><tr><th>Decisão</th><th>Instrumento</th><th>Exemplo Olist</th></tr></thead>
+          <tbody>
+            <tr><td>Onde integrar e historizar?</td><td>Warehouse ou lakehouse</td><td>camada analítica com fatos e dimensões</td></tr>
+            <tr><td>Qual recorte atenderá uma área?</td><td>Data mart</td><td>mart logístico para prazos e frete</td></tr>
+            <tr><td>Quem assume propriedade e qualidade?</td><td>Data mesh</td><td>domínio Pagamentos mantém seu produto</td></tr>
+            <tr><td>Como os consumidores filtram e agregam?</td><td>Modelo dimensional/semântico</td><td>fatos ligados a dimensões conformadas</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>10. Esquema Olist e grãos de origem</h2>
+        <p>O banco possui nove tabelas e aproximadamente 1,55 milhão de linhas. A ausência de constraints declaradas de chave primária e estrangeira torna a validação explícita especialmente importante. O Metabase possui relações semânticas configuradas para as junções principais, mas o banco aceita combinações inadequadas quando a consulta ignora o grão.</p>
+        <table>
+          <thead><tr><th>Tabela</th><th>Linhas</th><th>Grão observado</th><th>Chave candidata</th></tr></thead>
+          <tbody>
+            <tr><td><code>olist_orders</code></td><td>99.441</td><td>pedido</td><td><code>order_id</code></td></tr>
+            <tr><td><code>olist_customers</code></td><td>99.441</td><td>identificador de cliente associado ao pedido</td><td><code>customer_id</code></td></tr>
+            <tr><td><code>olist_order_items</code></td><td>112.650</td><td>item dentro do pedido</td><td><code>order_id + order_item_id</code></td></tr>
+            <tr><td><code>olist_order_payments</code></td><td>103.886</td><td>ocorrência sequencial de pagamento</td><td><code>order_id + payment_sequential</code></td></tr>
+            <tr><td><code>olist_order_reviews</code></td><td>99.224</td><td>revisão registrada para pedido</td><td>avaliar <code>review_id</code> e <code>order_id</code></td></tr>
+            <tr><td><code>olist_products</code></td><td>32.951</td><td>produto</td><td><code>product_id</code></td></tr>
+            <tr><td><code>olist_sellers</code></td><td>3.095</td><td>vendedor</td><td><code>seller_id</code></td></tr>
+            <tr><td><code>olist_geolocation</code></td><td>1.000.163</td><td>coordenada observada para prefixo postal</td><td>prefixo + latitude + longitude</td></tr>
+            <tr><td><code>product_category_name_translation</code></td><td>71</td><td>tradução de categoria</td><td><code>product_category_name</code></td></tr>
+          </tbody>
+        </table>
+
+        <h3>10.1 Identidade do cliente</h3>
+        <p><code>customer_id</code> aparece uma vez na tabela de clientes e corresponde à ocorrência de cliente usada no pedido. <code>customer_unique_id</code> representa a pessoa identificada ao longo de múltiplos pedidos. Há 96.096 valores únicos, dos quais 2.997 aparecem em mais de uma ocorrência de pedido. A modelagem de cliente precisa escolher conscientemente qual dessas entidades representa.</p>
+
+        <h3>10.2 Geolocalização e muitos-para-muitos</h3>
+        <p><code>olist_geolocation</code> possui múltiplas coordenadas para um mesmo prefixo postal. Uma junção direta entre clientes e geolocalização pelo prefixo replica clientes. Uma dimensão geográfica pode escolher uma coordenada representativa, como a mediana por prefixo, ou preservar a multiplicidade por meio de uma ponte com regra de ponderação. O requisito do mapa determina a decisão.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>11. Fundamentos da modelagem dimensional</h2>
+
+        <h3>11.1 Processo e grão</h3>
+        <p>O processo de negócio identifica o evento ou estado observado. O grão declara o significado de cada linha da tabela fato. A frase “uma linha por pedido” conduz a medidas diferentes de “uma linha por item do pedido”. A declaração precede o SQL e permanece anexada ao artefato como documentação.</p>
+
+        <h3>11.2 Fatos e dimensões</h3>
+        <p>Tabelas fato armazenam eventos mensuráveis e chaves para dimensões. Tabelas dimensão armazenam atributos descritivos utilizados para filtrar, agrupar e rotular. O lado “muitos” da relação costuma ser o fato; o lado “um” costuma ser a dimensão. Medidas devem ser avaliadas quanto à aditividade: preço e frete podem ser somados no grão de item; percentuais e médias exigem numerador e denominador ou recomputação no grão consultado.</p>
+
+        <h3>11.3 Chave natural e chave substituta</h3>
+        <p>A chave natural vem do sistema de origem, como <code>product_id</code>. A chave substituta é gerada no warehouse e desacopla o modelo analítico da chave operacional. Ela também permite múltiplas versões da mesma chave natural em SCD Tipo 2. Neste laboratório, <code>ROW_NUMBER</code> gera chaves substitutas determinísticas para um snapshot completo. Um pipeline incremental de produção empregaria sequência/identity, tabela de lookup e operação de upsert.</p>
+
+        <h3>11.4 Estrela e snowflake</h3>
+        <p>O esquema estrela liga o fato diretamente a dimensões relativamente desnormalizadas. Ele reduz o número de junções e apresenta uma superfície mais simples à ferramenta de BI. Snowflake normaliza partes das dimensões, criando caminhos adicionais, por exemplo produto → categoria → departamento. A normalização pode ser adequada quando hierarquias são reutilizadas e governadas de forma independente; o custo é maior complexidade de consulta e de propagação de filtros.</p>
+
+        <h3>11.5 Slowly Changing Dimensions</h3>
+        <table>
+          <thead><tr><th>Tipo</th><th>Política</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td>Tipo 0</td><td>preservar o valor inicial</td><td>atributo imutável por regra</td></tr>
+            <tr><td>Tipo 1</td><td>atualizar a linha existente</td><td>relatórios sempre com a classificação corrente</td></tr>
+            <tr><td>Tipo 2</td><td>inserir nova versão com intervalo de validade</td><td>relatórios com contexto histórico do evento</td></tr>
+          </tbody>
+        </table>
+        <p>No Olist, 252 clientes apresentam mais de uma localização observada e 39 mudam de estado. Uma análise histórica por estado de compra requer SCD Tipo 2. A dimensão precisa de <code>sk_cliente</code>, <code>valid_from</code>, <code>valid_to</code> e <code>is_current</code>. A associação do fato utiliza a chave natural e a data do evento.</p>
+
+        <h3>11.6 Matriz de barramento</h3>
+        <p>A matriz de barramento dispõe processos nas linhas e dimensões conformadas nas colunas. Ela registra oportunidades de integração e expõe divergências. No Olist, os processos Pedidos, Itens, Pagamentos e Avaliações compartilham Cliente e Data. A dimensão Data assume papéis distintos: compra, aprovação, envio, entrega, prazo estimado e criação da avaliação.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>12. Atividade 1 — Extração do esquema e perguntas de modelagem</h2>
+        <p>Esta atividade produz o recorte de metadados que será utilizado pela turma e, posteriormente, pelo prompt de extensão. O resultado contém estrutura, sem registros de clientes.</p>
+        <ol class="steps">
+          <li>Clique em <strong>New</strong> no canto superior direito e selecione <strong>SQL query</strong>.</li>
+          <li>No seletor acima do editor, confirme <strong>Olist</strong>.</li>
+          <li>Cole a consulta abaixo e clique em <strong>Run</strong>.</li>
+          <li>Confirme que a coluna <code>table_name</code> contém as tabelas iniciadas por <code>olist_</code> e a tabela de tradução.</li>
+          <li>Clique em <strong>Save</strong>. Em <strong>Name</strong>, informe <code>A02_GNN_00_SCHEMA_OLIST</code>, substituindo <code>GNN</code>. Em <strong>Collection</strong>, escolha a coleção do grupo e conclua com <strong>Save</strong>.</li>
+        </ol>
+
+        <span class="sql-label">SQL 01 — catálogo do Olist</span>
+        <pre><code>SELECT
+  table_name,
+  ordinal_position,
+  column_name,
+  data_type,
+  is_nullable
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND (
+    table_name LIKE 'olist_%'
+    OR table_name = 'product_category_name_translation'
+  )
+ORDER BY table_name, ordinal_position;</code></pre>
+
+        <h3>12.1 Perguntas para discussão aplicada</h3>
+        <p>Cada grupo escolhe uma pergunta e apresenta oralmente um contrato dimensional de 60 segundos. A apresentação deve declarar processo, frase do grão, medidas, dimensões, caminhos de junção e risco principal.</p>
+        <table>
+          <thead><tr><th>Pergunta de negócio</th><th>Pontos a decidir antes do gráfico</th></tr></thead>
+          <tbody>
+            <tr><td>Qual categoria gera maior valor de itens em cada estado?</td><td>item como fato; categoria traduzida; estado histórico do cliente; preço e frete</td></tr>
+            <tr><td>Quais vendedores apresentam maior diferença entre prazo prometido e entrega realizada?</td><td>grão de pedido ou item; papéis de data; pedidos sem entrega; vendedor em pedido com múltiplos itens</td></tr>
+            <tr><td>O número de parcelas se associa ao valor pago e à nota da avaliação?</td><td>pagamento e avaliação em grãos diferentes; agregação por pedido antes da comparação</td></tr>
+            <tr><td>Como preservar o estado do cliente no momento da compra?</td><td><code>customer_unique_id</code>; validade SCD2; chave substituta; ordenação temporal</td></tr>
+            <tr><td>Quais produtos apresentam maior proporção de frete sobre valor do item?</td><td>razão recomputada; tratamento de preço zero; produto e categoria; distribuição</td></tr>
+            <tr><td>Como criar um mapa de clientes sem replicar pedidos?</td><td>múltiplas coordenadas por prefixo; dimensão geográfica deduplicada ou ponte</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>13. Forma de implementação no Metabase e no warehouse</h2>
+
+        <h3>13.1 Consulta reutilizável no Metabase</h3>
+        <ol class="steps">
+          <li>Crie a consulta no editor SQL e execute com <strong>Run</strong>.</li>
+          <li>Analise a tabela resultante; a primeira validação ocorre antes de salvar.</li>
+          <li>Clique em <strong>Save</strong>, aplique o nome obrigatório e escolha a coleção do grupo.</li>
+          <li>Para usar o resultado em outra consulta, abra <strong>New &rarr; SQL query</strong>, digite <code>{{#</code> e continue com parte do nome.</li>
+          <li>No menu de autocomplete, clique no artefato correto. O editor insere o ID e o nome.</li>
+          <li>Use a referência depois de <code>AS</code> em uma CTE e execute a consulta que a consome.</li>
+        </ol>
+
+        <h3>13.2 View em ambiente gravável</h3>
+        <p>Em um warehouse de desenvolvimento com DDL autorizado, o mesmo <code>SELECT</code> pode ser publicado como view. Essa operação deve ocorrer por migração ou pipeline administrado, fora do editor da instância compartilhada.</p>
+        <pre><code>CREATE SCHEMA IF NOT EXISTS bi_dev;
+
+CREATE OR REPLACE VIEW bi_dev.dim_vendedor AS
+SELECT
+  row_number() OVER (ORDER BY seller_id)::bigint AS sk_vendedor,
+  seller_id,
+  seller_zip_code_prefix,
+  seller_city,
+  seller_state
+FROM public.olist_sellers;
+
+GRANT SELECT ON bi_dev.dim_vendedor TO role_bi_readonly;</code></pre>
+        <p>Esse DDL é uma referência para um warehouse administrado. Não o execute no Metabase compartilhado, cuja conexão Olist possui somente leitura.</p>
+        <p>Views executam a consulta ao serem lidas. Tabelas ou materialized views introduzem persistência e exigem estratégia de carga, atualização, observabilidade e recuperação. A escolha pertence à arquitetura de dados, não à ferramenta de visualização.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>14. Atividade 2 — Dimensão data</h2>
+        <p><strong>Contrato:</strong> cada linha representa um dia entre a primeira e a última compra observadas no Olist. A chave substituta é um inteiro no formato <code>AAAAMMDD</code>.</p>
+        <ol class="steps">
+          <li>Abra <strong>New &rarr; SQL query</strong> e selecione <strong>Olist</strong>.</li>
+          <li>Cole o SQL abaixo e clique em <strong>Run</strong>.</li>
+          <li>Ordene visualmente a coluna <code>data</code> e confirme a continuidade diária entre 04/09/2016 e 17/10/2018.</li>
+          <li>Clique em <strong>Save</strong>, use <code>A02_GNN_01_DIM_DATA</code> e selecione a coleção do grupo.</li>
+        </ol>
+
+        <span class="sql-label">SQL 02 — dim_data</span>
+        <pre><code>WITH limites AS (
+  SELECT
+    min(order_purchase_timestamp)::date AS data_min,
+    max(order_purchase_timestamp)::date AS data_max
+  FROM olist_orders
+)
+SELECT
+  to_char(cal.dia, 'YYYYMMDD')::integer AS sk_data,
+  cal.dia::date AS data,
+  extract(year FROM cal.dia)::integer AS ano,
+  extract(quarter FROM cal.dia)::integer AS trimestre,
+  extract(month FROM cal.dia)::integer AS mes_numero,
+  to_char(cal.dia, 'YYYY-MM') AS ano_mes,
+  extract(day FROM cal.dia)::integer AS dia_mes,
+  extract(isodow FROM cal.dia)::integer AS dia_semana_numero,
+  trim(to_char(cal.dia, 'TMDay')) AS dia_semana_nome,
+  (extract(isodow FROM cal.dia) IN (6, 7)) AS fim_de_semana
+FROM limites
+CROSS JOIN LATERAL generate_series(
+  limites.data_min,
+  limites.data_max,
+  interval '1 day'
+) AS cal(dia)
+ORDER BY cal.dia;</code></pre>
+
+        <h3>14.1 Validação da dimensão data</h3>
+        <ol class="steps">
+          <li>Abra outra consulta SQL.</li>
+          <li>Digite <code>WITH dim_data AS {{#</code> e escolha <code>A02_GNN_01_DIM_DATA</code> no autocomplete.</li>
+          <li>Complete a consulta com o bloco abaixo e execute.</li>
+          <li>Confirme <code>chaves_duplicadas = 0</code> e <code>datas_duplicadas = 0</code>.</li>
+        </ol>
+        <pre><code>WITH dim_data AS {{#ID_DIM_DATA}}
+SELECT
+  count(*) AS linhas,
+  count(*) - count(DISTINCT sk_data) AS chaves_duplicadas,
+  count(*) - count(DISTINCT data) AS datas_duplicadas,
+  min(data) AS primeira_data,
+  max(data) AS ultima_data
+FROM dim_data;</code></pre>
+        <p>Substitua <code>{{#ID_DIM_DATA}}</code> selecionando a pergunta real pelo autocomplete. O editor exibirá o ID numérico inserido.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>15. Atividade 3 — Dimensão cliente SCD Tipo 2</h2>
+        <p><strong>Contrato:</strong> cada linha representa uma versão de localização de <code>customer_unique_id</code>. <code>valid_from</code> é inclusivo e <code>valid_to</code> é exclusivo. A última versão possui <code>valid_to</code> vazio e <code>is_current = true</code>.</p>
+
+        <h3>15.1 Comparação com SCD Tipo 1</h3>
+        <p>Uma dimensão Tipo 1 pode selecionar a observação mais recente de cada cliente e produzir uma linha por chave natural. Esse desenho responde perguntas segundo a localização corrente observada no dataset.</p>
+        <span class="sql-label">SQL 03A — dim_cliente tipo 1</span>
+        <pre><code>WITH observacoes AS (
+  SELECT
+    c.customer_unique_id,
+    c.customer_zip_code_prefix,
+    c.customer_city,
+    c.customer_state,
+    o.order_purchase_timestamp,
+    row_number() OVER (
+      PARTITION BY c.customer_unique_id
+      ORDER BY o.order_purchase_timestamp DESC, c.customer_id DESC
+    ) AS ordem_recente
+  FROM olist_customers AS c
+  JOIN olist_orders AS o
+    ON o.customer_id = c.customer_id
+)
+SELECT
+  row_number() OVER (ORDER BY customer_unique_id)::bigint AS sk_cliente,
+  customer_unique_id,
+  customer_zip_code_prefix,
+  customer_city,
+  customer_state
+FROM observacoes
+WHERE ordem_recente = 1;</code></pre>
+
+        <h3>15.2 Construção da versão SCD Tipo 2</h3>
+        <p>A consulta ordena observações, compara a localização com <code>LAG</code>, marca o início de cada versão, acumula a marca para formar segmentos e calcula os intervalos de validade. Essa reconstrução é possível porque cada <code>customer_id</code> se associa a um pedido com data de compra.</p>
+        <ol class="steps">
+          <li>Abra <strong>New &rarr; SQL query</strong>, selecione <strong>Olist</strong> e cole o SQL 03B.</li>
+          <li>Clique em <strong>Run</strong>. Localize as colunas <code>sk_cliente</code>, <code>versao</code>, <code>valid_from</code>, <code>valid_to</code> e <code>is_current</code>.</li>
+          <li>Clique em <strong>Save</strong>, use <code>A02_GNN_02_DIM_CLIENTE_SCD2</code> e selecione a coleção do grupo.</li>
+        </ol>
+
+        <span class="sql-label">SQL 03B — dim_cliente SCD2</span>
+        <pre><code>WITH observacoes_base AS (
+  SELECT
+    c.customer_unique_id,
+    c.customer_id,
+    c.customer_zip_code_prefix,
+    c.customer_city,
+    c.customer_state,
+    o.order_purchase_timestamp AS observado_em,
+    concat_ws(
+      '|',
+      c.customer_zip_code_prefix::text,
+      c.customer_city,
+      c.customer_state
+    ) AS assinatura_localizacao
+  FROM olist_customers AS c
+  JOIN olist_orders AS o
+    ON o.customer_id = c.customer_id
+),
+comparadas AS (
+  SELECT
+    *,
+    lag(assinatura_localizacao) OVER (
+      PARTITION BY customer_unique_id
+      ORDER BY observado_em, customer_id
+    ) AS assinatura_anterior
+  FROM observacoes_base
+),
+marcadas AS (
+  SELECT
+    *,
+    CASE
+      WHEN assinatura_anterior IS NULL THEN 1
+      WHEN assinatura_localizacao &lt;&gt; assinatura_anterior THEN 1
+      ELSE 0
+    END AS inicio_versao
+  FROM comparadas
+),
+numeradas AS (
+  SELECT
+    *,
+    sum(inicio_versao) OVER (
+      PARTITION BY customer_unique_id
+      ORDER BY observado_em, customer_id
+      ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    )::integer AS versao
+  FROM marcadas
+),
+periodos AS (
+  SELECT
+    customer_unique_id,
+    versao,
+    min(observado_em) AS valid_from,
+    max(customer_zip_code_prefix) AS customer_zip_code_prefix,
+    max(customer_city) AS customer_city,
+    max(customer_state) AS customer_state
+  FROM numeradas
+  GROUP BY customer_unique_id, versao
+),
+com_fim AS (
+  SELECT
+    *,
+    lead(valid_from) OVER (
+      PARTITION BY customer_unique_id
+      ORDER BY versao
+    ) AS valid_to
+  FROM periodos
+)
+SELECT
+  row_number() OVER (
+    ORDER BY customer_unique_id, versao
+  )::bigint AS sk_cliente,
+  customer_unique_id,
+  versao,
+  customer_zip_code_prefix,
+  customer_city,
+  customer_state,
+  valid_from,
+  valid_to,
+  (valid_to IS NULL) AS is_current
+FROM com_fim
+ORDER BY customer_unique_id, versao;</code></pre>
+
+        <h3>15.3 Validações da SCD Tipo 2</h3>
+        <p>Abra uma nova consulta, referencie a dimensão salva como CTE e execute:</p>
+        <pre><code>WITH dim_cliente AS {{#ID_DIM_CLIENTE_SCD2}}
+SELECT
+  count(*) AS linhas_dimensao,
+  count(DISTINCT customer_unique_id) AS clientes_naturais,
+  count(*) FILTER (WHERE is_current) AS versoes_correntes,
+  count(*) - count(DISTINCT sk_cliente) AS sk_duplicadas,
+  count(*) FILTER (
+    WHERE valid_to IS NOT NULL
+      AND valid_to &lt;= valid_from
+  ) AS intervalos_invalidos
+FROM dim_cliente;</code></pre>
+        <p>O resultado deve apresentar 96.096 clientes naturais e 96.096 versões correntes. <code>sk_duplicadas</code> e <code>intervalos_invalidos</code> devem ser zero.</p>
+
+        <h3>15.4 Clientes com mudança de estado</h3>
+        <pre><code>WITH dim_cliente AS {{#ID_DIM_CLIENTE_SCD2}}
+SELECT
+  customer_unique_id,
+  versao,
+  customer_state,
+  valid_from,
+  valid_to
+FROM dim_cliente
+WHERE customer_unique_id IN (
+  SELECT customer_unique_id
+  FROM dim_cliente
+  GROUP BY customer_unique_id
+  HAVING count(DISTINCT customer_state) &gt; 1
+)
+ORDER BY customer_unique_id, versao;</code></pre>
+        <p>Há 39 clientes com mais de um estado observado. Selecione um deles e explique qual versão será associada a cada compra.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>16. Atividade 4 — Dimensões produto e vendedor</h2>
+
+        <h3>16.1 Dimensão produto em estrela</h3>
+        <p>A dimensão produto incorpora a tradução de categoria. Essa desnormalização reduz um salto de junção no consumo e representa a opção estrela adotada para o laboratório.</p>
+        <ol class="steps">
+          <li>Abra <strong>New &rarr; SQL query</strong>, selecione <strong>Olist</strong> e cole o SQL 04.</li>
+          <li>Execute e confirme uma linha por <code>product_id</code>.</li>
+          <li>Salve como <code>A02_GNN_03_DIM_PRODUTO</code> na coleção do grupo.</li>
+        </ol>
+        <span class="sql-label">SQL 04 — dim_produto</span>
+        <pre><code>SELECT
+  row_number() OVER (ORDER BY p.product_id)::bigint AS sk_produto,
+  p.product_id,
+  coalesce(
+    t.product_category_name_english,
+    p.product_category_name,
+    'sem_categoria'
+  ) AS categoria,
+  p.product_category_name AS categoria_origem,
+  p.product_name_lenght AS nome_tamanho,
+  p.product_description_lenght AS descricao_tamanho,
+  p.product_photos_qty AS fotos_quantidade,
+  p.product_weight_g AS peso_g,
+  p.product_length_cm AS comprimento_cm,
+  p.product_height_cm AS altura_cm,
+  p.product_width_cm AS largura_cm
+FROM olist_products AS p
+LEFT JOIN product_category_name_translation AS t
+  ON t.product_category_name = p.product_category_name
+ORDER BY p.product_id;</code></pre>
+
+        <h3>16.2 Dimensão vendedor</h3>
+        <ol class="steps">
+          <li>Crie outra consulta SQL com o SQL 05.</li>
+          <li>Execute e confirme 3.095 linhas e 3.095 chaves naturais.</li>
+          <li>Salve como <code>A02_GNN_03B_DIM_VENDEDOR</code>.</li>
+        </ol>
+        <span class="sql-label">SQL 05 — dim_vendedor</span>
+        <pre><code>SELECT
+  row_number() OVER (ORDER BY seller_id)::bigint AS sk_vendedor,
+  seller_id,
+  seller_zip_code_prefix,
+  seller_city,
+  seller_state
+FROM olist_sellers
+ORDER BY seller_id;</code></pre>
+
+        <h3>16.3 Validação das dimensões</h3>
+        <pre><code>WITH dim_produto AS {{#ID_DIM_PRODUTO}},
+dim_vendedor AS {{#ID_DIM_VENDEDOR}}
+SELECT
+  (SELECT count(*) FROM dim_produto) AS produtos,
+  (SELECT count(DISTINCT sk_produto) FROM dim_produto) AS sk_produtos,
+  (SELECT count(*) FROM dim_vendedor) AS vendedores,
+  (SELECT count(DISTINCT sk_vendedor) FROM dim_vendedor) AS sk_vendedores;</code></pre>
+        <p>Os pares esperados são 32.951/32.951 e 3.095/3.095.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>17. Atividade 5 — Fato item de pedido</h2>
+        <p><strong>Contrato:</strong> cada linha representa um item numerado dentro de um pedido. A chave candidata é <code>order_id + order_item_id</code>. As medidas aditivas são <code>preco</code>, <code>frete</code> e <code>valor_item</code>. <code>order_id</code> permanece como dimensão degenerada para rastreabilidade.</p>
+        <p>Antes de colar a consulta, anote os nomes das três perguntas dimensionais. As referências da primeira linha devem ser inseridas pelo autocomplete do Metabase.</p>
+
+        <ol class="steps">
+          <li>Clique em <strong>New &rarr; SQL query</strong> e confirme o banco <strong>Olist</strong>.</li>
+          <li>Digite <code>WITH dim_cliente AS {{#</code> e selecione <code>A02_GNN_02_DIM_CLIENTE_SCD2</code>.</li>
+          <li>Na linha seguinte, digite <code>dim_produto AS {{#</code> e selecione <code>A02_GNN_03_DIM_PRODUTO</code>.</li>
+          <li>Repita para <code>dim_vendedor</code> e <code>A02_GNN_03B_DIM_VENDEDOR</code>.</li>
+          <li>Complete a consulta com o <code>SELECT</code> abaixo. Mantenha a vírgula entre as CTEs.</li>
+          <li>Clique em <strong>Run</strong>. Confirme as colunas de chaves, medidas e datas.</li>
+          <li>Clique em <strong>Save</strong> e use <code>A02_GNN_04_FATO_ITEM</code>.</li>
+        </ol>
+
+        <span class="sql-label">SQL 06 — fato_item_pedido</span>
+        <pre><code>WITH dim_cliente AS {{#ID_DIM_CLIENTE_SCD2}},
+dim_produto AS {{#ID_DIM_PRODUTO}},
+dim_vendedor AS {{#ID_DIM_VENDEDOR}}
+SELECT
+  concat(
+    i.order_id,
+    '-',
+    lpad(i.order_item_id::text, 2, '0')
+  ) AS nk_item_pedido,
+  i.order_id,
+  i.order_item_id,
+  to_char(o.order_purchase_timestamp, 'YYYYMMDD')::integer AS sk_data_compra,
+  dc.sk_cliente,
+  dp.sk_produto,
+  dv.sk_vendedor,
+  o.order_status,
+  o.order_purchase_timestamp,
+  i.shipping_limit_date,
+  i.price::numeric(14, 2) AS preco,
+  i.freight_value::numeric(14, 2) AS frete,
+  (i.price + i.freight_value)::numeric(14, 2) AS valor_item
+FROM olist_order_items AS i
+JOIN olist_orders AS o
+  ON o.order_id = i.order_id
+JOIN olist_customers AS c
+  ON c.customer_id = o.customer_id
+LEFT JOIN dim_cliente AS dc
+  ON dc.customer_unique_id = c.customer_unique_id
+ AND o.order_purchase_timestamp &gt;= dc.valid_from
+ AND (
+   dc.valid_to IS NULL
+   OR o.order_purchase_timestamp &lt; dc.valid_to
+ )
+LEFT JOIN dim_produto AS dp
+  ON dp.product_id = i.product_id
+LEFT JOIN dim_vendedor AS dv
+  ON dv.seller_id = i.seller_id;</code></pre>
+
+        <h3>17.1 Validação do grão e das dimensões</h3>
+        <pre><code>WITH fato_item AS {{#ID_FATO_ITEM}}
+SELECT
+  count(*) AS linhas,
+  count(DISTINCT nk_item_pedido) AS chaves_naturais,
+  count(*) FILTER (WHERE sk_cliente IS NULL) AS cliente_sem_dimensao,
+  count(*) FILTER (WHERE sk_produto IS NULL) AS produto_sem_dimensao,
+  count(*) FILTER (WHERE sk_vendedor IS NULL) AS vendedor_sem_dimensao,
+  round(sum(valor_item), 2) AS valor_total
+FROM fato_item;</code></pre>
+        <p>O resultado esperado é 112.650 linhas e 112.650 chaves naturais. Chaves dimensionais ausentes devem ser zero. O valor total esperado é R$ 15.843.553,24.</p>
+
+        <h3>17.2 Variante física</h3>
+        <p>Em um warehouse gravável, substitua cada referência <code>{{#...}}</code> pelo nome qualificado da view correspondente e publique:</p>
+        <pre><code>CREATE OR REPLACE VIEW bi_dev.fato_item_pedido AS
+SELECT
+  concat(
+    i.order_id,
+    '-',
+    lpad(i.order_item_id::text, 2, '0')
+  ) AS nk_item_pedido,
+  i.order_id,
+  i.order_item_id,
+  to_char(o.order_purchase_timestamp, 'YYYYMMDD')::integer AS sk_data_compra,
+  dc.sk_cliente,
+  dp.sk_produto,
+  dv.sk_vendedor,
+  o.order_status,
+  o.order_purchase_timestamp,
+  i.shipping_limit_date,
+  i.price::numeric(14, 2) AS preco,
+  i.freight_value::numeric(14, 2) AS frete,
+  (i.price + i.freight_value)::numeric(14, 2) AS valor_item
+FROM public.olist_order_items AS i
+JOIN public.olist_orders AS o
+  ON o.order_id = i.order_id
+JOIN public.olist_customers AS c
+  ON c.customer_id = o.customer_id
+LEFT JOIN bi_dev.dim_cliente_scd2 AS dc
+  ON dc.customer_unique_id = c.customer_unique_id
+ AND o.order_purchase_timestamp &gt;= dc.valid_from
+ AND (
+   dc.valid_to IS NULL
+   OR o.order_purchase_timestamp &lt; dc.valid_to
+ )
+LEFT JOIN bi_dev.dim_produto AS dp
+  ON dp.product_id = i.product_id
+LEFT JOIN bi_dev.dim_vendedor AS dv
+  ON dv.seller_id = i.seller_id;
+
+GRANT SELECT ON bi_dev.fato_item_pedido TO role_bi_readonly;</code></pre>
+        <p>Esse DDL também é uma referência para execução controlada fora do Metabase compartilhado. Um pipeline incremental de produção trataria late-arriving dimensions, chaves desconhecidas e manutenção da SCD em etapas próprias.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>18. Atividade 6 — Fato pagamento</h2>
+        <p><strong>Contrato:</strong> cada linha representa uma ocorrência sequencial de pagamento em um pedido. A chave candidata é <code>order_id + payment_sequential</code>. O dataset não contém timestamp do pagamento; por isso, <code>sk_data_compra</code> representa a data de compra do pedido e deve ser rotulada dessa forma.</p>
+        <ol class="steps">
+          <li>Clique em <strong>New &rarr; SQL query</strong> e confirme o banco <strong>Olist</strong> acima do editor.</li>
+          <li>Digite <code>WITH dim_cliente AS {{#</code> e selecione <code>A02_GNN_02_DIM_CLIENTE_SCD2</code> no autocomplete.</li>
+          <li>Cole o restante do SQL 07, preservando a referência inserida, e clique em <strong>Run</strong>.</li>
+          <li>Confira as colunas <code>nk_pagamento</code>, <code>sk_data_compra</code>, <code>sk_cliente</code> e <code>valor_pagamento</code>.</li>
+          <li>Clique em <strong>Save</strong>, informe <code>A02_GNN_05_FATO_PAGAMENTO</code>, selecione a coleção do grupo e conclua com <strong>Save</strong>.</li>
+          <li>Clique novamente em <strong>New &rarr; SQL query</strong>, insira a referência ao fato salvo, cole a validação da seção 18.1 e clique em <strong>Run</strong>.</li>
+        </ol>
+        <span class="sql-label">SQL 07 — fato_pagamento</span>
+        <pre><code>WITH dim_cliente AS {{#ID_DIM_CLIENTE_SCD2}}
+SELECT
+  concat(
+    p.order_id,
+    '-',
+    lpad(p.payment_sequential::text, 2, '0')
+  ) AS nk_pagamento,
+  p.order_id,
+  p.payment_sequential,
+  to_char(o.order_purchase_timestamp, 'YYYYMMDD')::integer AS sk_data_compra,
+  dc.sk_cliente,
+  p.payment_type,
+  p.payment_installments,
+  p.payment_value::numeric(14, 2) AS valor_pagamento
+FROM olist_order_payments AS p
+JOIN olist_orders AS o
+  ON o.order_id = p.order_id
+JOIN olist_customers AS c
+  ON c.customer_id = o.customer_id
+LEFT JOIN dim_cliente AS dc
+  ON dc.customer_unique_id = c.customer_unique_id
+ AND o.order_purchase_timestamp &gt;= dc.valid_from
+ AND (
+   dc.valid_to IS NULL
+   OR o.order_purchase_timestamp &lt; dc.valid_to
+ );</code></pre>
+
+        <h3>18.1 Validação</h3>
+        <pre><code>WITH fato_pagamento AS {{#ID_FATO_PAGAMENTO}}
+SELECT
+  count(*) AS linhas,
+  count(DISTINCT nk_pagamento) AS chaves_naturais,
+  count(*) FILTER (WHERE sk_cliente IS NULL) AS cliente_sem_dimensao,
+  round(sum(valor_pagamento), 2) AS valor_total
+FROM fato_pagamento;</code></pre>
+        <p>O resultado esperado é 103.886 linhas, 103.886 chaves naturais e R$ 16.008.872,12 em pagamentos.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>19. Fanout, CROSS JOIN e drill-across</h2>
+
+        <h3>19.1 Demonstração do fanout entre fatos</h3>
+        <p>Itens e pagamentos possuem relação um-para-muitos com pedido. Uma junção direta por <code>order_id</code> produz o produto entre as ocorrências de cada pedido. No conjunto real, 112.650 itens e 103.886 pagamentos geram 117.601 linhas combinadas. O valor de itens cresce de R$ 15.843.553,24 para R$ 16.566.543,85; pagamentos crescem de R$ 16.008.872,12 para R$ 20.308.134,71.</p>
+        <span class="sql-label">SQL 08 — evidência do fanout</span>
+        <pre><code>WITH juncao_direta AS (
+  SELECT
+    count(*) AS linhas_apos_juncao,
+    sum(i.price + i.freight_value) AS itens_repetidos,
+    sum(p.payment_value) AS pagamentos_repetidos
+  FROM olist_order_items AS i
+  JOIN olist_order_payments AS p
+    ON p.order_id = i.order_id
+),
+itens_corretos AS (
+  SELECT
+    count(*) AS linhas_itens,
+    sum(price + freight_value) AS valor_itens
+  FROM olist_order_items
+),
+pagamentos_corretos AS (
+  SELECT
+    count(*) AS linhas_pagamentos,
+    sum(payment_value) AS valor_pagamentos
+  FROM olist_order_payments
+)
+SELECT *
+FROM juncao_direta
+CROSS JOIN itens_corretos
+CROSS JOIN pagamentos_corretos;</code></pre>
+
+        <h3>19.2 CROSS JOIN para uma grade completa</h3>
+        <p><code>CROSS JOIN</code> produz todas as combinações entre dois conjuntos. No relatório mensal por UF, ele pode construir uma grade de meses e estados para que combinações sem pedido apareçam com zero. O custo cresce pelo produto das cardinalidades; os domínios devem ser delimitados antes do cruzamento.</p>
+        <span class="sql-label">SQL 09 — meses × UFs</span>
+        <pre><code>WITH meses AS (
+  SELECT DISTINCT
+    date_trunc('month', order_purchase_timestamp)::date AS mes
+  FROM olist_orders
+),
+ufs AS (
+  SELECT DISTINCT customer_state AS uf
+  FROM olist_customers
+),
+grade AS (
+  SELECT meses.mes, ufs.uf
+  FROM meses
+  CROSS JOIN ufs
+),
+observado AS (
+  SELECT
+    date_trunc('month', o.order_purchase_timestamp)::date AS mes,
+    c.customer_state AS uf,
+    count(*) AS pedidos
+  FROM olist_orders AS o
+  JOIN olist_customers AS c
+    ON c.customer_id = o.customer_id
+  GROUP BY 1, 2
+)
+SELECT
+  grade.mes,
+  grade.uf,
+  coalesce(observado.pedidos, 0) AS pedidos
+FROM grade
+LEFT JOIN observado
+  ON observado.mes = grade.mes
+ AND observado.uf = grade.uf
+ORDER BY grade.mes, grade.uf;</code></pre>
+        <p>O dataset possui 25 meses de compra e 27 UFs de cliente; a grade completa possui 675 linhas antes do <code>LEFT JOIN</code>.</p>
+
+        <h3>19.3 Drill-across entre fatos</h3>
+        <p>Drill-across agrega fatos separados pelo mesmo conjunto de dimensões conformadas e alinha os resultados agregados. A operação abaixo compara valor de itens e pagamentos por mês de compra e estado histórico do cliente. Cada fato é agregado antes da junção.</p>
+        <ol class="steps">
+          <li>Abra uma consulta SQL e insira referências para <code>fato_item</code>, <code>fato_pagamento</code> e <code>dim_cliente</code>.</li>
+          <li>Cole o restante do SQL 10.</li>
+          <li>Execute e confira as colunas <code>valor_itens</code>, <code>valor_pagamentos</code> e <code>diferenca</code>.</li>
+          <li>Salve como <code>A02_GNN_06_DRILL_ACROSS_MES_UF</code>.</li>
+        </ol>
+        <span class="sql-label">SQL 10 — drill-across</span>
+        <pre><code>WITH fato_item AS {{#ID_FATO_ITEM}},
+fato_pagamento AS {{#ID_FATO_PAGAMENTO}},
+dim_cliente AS {{#ID_DIM_CLIENTE_SCD2}},
+itens_agregados AS (
+  SELECT
+    (fi.sk_data_compra / 100)::integer AS sk_mes,
+    dc.customer_state AS uf,
+    sum(fi.valor_item) AS valor_itens
+  FROM fato_item AS fi
+  JOIN dim_cliente AS dc
+    ON dc.sk_cliente = fi.sk_cliente
+  GROUP BY 1, 2
+),
+pagamentos_agregados AS (
+  SELECT
+    (fp.sk_data_compra / 100)::integer AS sk_mes,
+    dc.customer_state AS uf,
+    sum(fp.valor_pagamento) AS valor_pagamentos
+  FROM fato_pagamento AS fp
+  JOIN dim_cliente AS dc
+    ON dc.sk_cliente = fp.sk_cliente
+  GROUP BY 1, 2
+)
+SELECT
+  coalesce(i.sk_mes, p.sk_mes) AS sk_mes,
+  coalesce(i.uf, p.uf) AS uf,
+  round(i.valor_itens, 2) AS valor_itens,
+  round(p.valor_pagamentos, 2) AS valor_pagamentos,
+  round(p.valor_pagamentos - i.valor_itens, 2) AS diferenca
+FROM itens_agregados AS i
+FULL OUTER JOIN pagamentos_agregados AS p
+  ON p.sk_mes = i.sk_mes
+ AND p.uf = i.uf
+ORDER BY sk_mes, uf;</code></pre>
+      </section>
+
+      <section class="content-block">
+        <h2>20. Problemas de barramento e estratégias de resolução</h2>
+        <table>
+          <thead><tr><th>Problema</th><th>Sintoma no BI</th><th>Resolução de modelagem</th></tr></thead>
+          <tbody>
+            <tr><td>Um fato usa <code>customer_id</code>; outro usa <code>customer_unique_id</code></td><td>contagens de clientes divergem e filtros não se alinham</td><td>mesma <code>sk_cliente</code> e mesma política SCD</td></tr>
+            <tr><td>Compra, entrega e avaliação usam uma coluna genérica “data”</td><td>séries temporalmente incomparáveis</td><td>dimensão role-playing com papéis declarados</td></tr>
+            <tr><td>Um mart usa categoria em português; outro, tradução em inglês</td><td>membros se fragmentam em filtros e drill-across</td><td>dimensão produto/categoria conformada e regra de ausência</td></tr>
+            <tr><td>Fatos são unidos diretamente pelo pedido</td><td>medidas infladas por fanout</td><td>agregação separada no grão comum e drill-across</td></tr>
+            <tr><td>Geolocalização contém múltiplas coordenadas por CEP</td><td>pedidos replicados no mapa</td><td>dimensão deduplicada ou bridge com ponderação</td></tr>
+            <tr><td>Domínios publicam fatos sem contrato compartilhado</td><td>mesmo nome expressa métricas diferentes</td><td>matriz de barramento, catálogo, testes e governança federada</td></tr>
+          </tbody>
+        </table>
+        <p>Uma dimensão é conformada quando apresenta significado, conteúdo e regras compatíveis entre processos. Igualdade de nome não garante conformidade. Chaves, política histórica, valores desconhecidos, traduções e hierarquias precisam ser coordenados.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>21. Atividade 7 — Extensão assistida por IA com metadados do Olist</h2>
+        <p>A IA será empregada como revisora e geradora de alternativas. O grupo continua responsável pela declaração do grão, pela validação de colunas e pela execução dos testes. O contexto enviado contém metadados estruturais e contagens agregadas.</p>
+
+        <h3>21.1 Preparar o contexto</h3>
+        <ol class="steps">
+          <li>Abra <code>A02_GNN_00_SCHEMA_OLIST</code>.</li>
+          <li>Abra o menu de download dos resultados e selecione <strong>Download results</strong>; escolha CSV quando o formato for solicitado.</li>
+          <li>Acrescente ao contexto a tabela de grãos e contagens da seção 10.</li>
+          <li>Retire URL de conexão, nomes de usuário, senha, tokens e qualquer amostra de registro.</li>
+          <li>Escolha um processo ainda não modelado: entrega, avaliação ou cobertura geográfica.</li>
+        </ol>
+
+        <h3>21.2 Prompt orientado a contrato</h3>
+        <pre><code>Você atuará como revisor de modelagem dimensional em PostgreSQL.
+
+Pergunta de negócio:
+[escreva uma pergunta objetiva]
+
+Metadados disponíveis:
+[cole somente tabela, coluna, tipo, nulabilidade e contagens agregadas]
+
+Produza:
+1. processo de negócio e declaração inequívoca do grão;
+2. fato proposto, medidas e classificação de aditividade;
+3. dimensões, chaves naturais e chaves substitutas;
+4. política SCD por atributo que pode mudar;
+5. caminhos de junção e cardinalidade esperada;
+6. linha correspondente na matriz de barramento;
+7. SQL PostgreSQL executável sem inventar colunas;
+8. quatro consultas de validação: unicidade, integridade,
+   reconciliação e cardinalidade;
+9. suposições e limitações do esquema.
+
+Regras:
+- use apenas colunas presentes nos metadados;
+- agregue fatos separadamente antes de compará-los;
+- preserve linhas do fato com LEFT JOIN para dimensões;
+- sinalize toda decisão que depende de requisito de negócio.</code></pre>
+
+        <h3>21.3 Revisão antes da execução</h3>
+        <table>
+          <thead><tr><th>Verificação</th><th>Pergunta de revisão</th></tr></thead>
+          <tbody>
+            <tr><td>Colunas</td><td>cada nome existe no resultado do <code>information_schema</code>?</td></tr>
+            <tr><td>Grão</td><td>a chave candidata é única na fonte transformada?</td></tr>
+            <tr><td>Cardinalidade</td><td>cada junção preserva ou altera o número de linhas conforme previsto?</td></tr>
+            <tr><td>Histórico</td><td>atributos mutáveis receberam política Tipo 1 ou Tipo 2 explícita?</td></tr>
+            <tr><td>Medidas</td><td>somas, médias e razões são válidas no grão proposto?</td></tr>
+            <tr><td>Barramento</td><td>dimensões compartilhadas usam as mesmas chaves e definições?</td></tr>
+          </tbody>
+        </table>
+
+        <h3>21.4 Produção do grupo</h3>
+        <p>O grupo ajusta o SQL, executa no Metabase e salva o fato como <code>A02_GNN_07_FATO_NOME</code>. A nova dimensão recebe <code>A02_GNN_07_DIM_NOME</code>. A apresentação final declara o grão, uma decisão de SCD ou conformidade e o principal risco de cardinalidade.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>22. Referências técnicas</h2>
+        <ul>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/connect-data/desktop-use-directquery">Microsoft Learn — Use DirectQuery in Power BI Desktop</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-understand">Microsoft Learn — Semantic models in the Power BI service</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/report-server/">Microsoft Learn — Power BI Report Server</a></li>
+          <li><a href="https://learn.microsoft.com/en-us/power-bi/guidance/star-schema">Microsoft Learn — Understand star schema and the importance for Power BI</a></li>
+          <li><a href="https://grafana.com/docs/grafana/latest/setup-grafana/installation/">Grafana Documentation — Install Grafana and application database</a></li>
+          <li><a href="https://grafana.com/docs/grafana/latest/datasources/">Grafana Documentation — Data sources</a></li>
+          <li><a href="https://www.metabase.com/docs/latest/installation-and-operation/configuring-application-database">Metabase Documentation — Configuring the application database</a></li>
+          <li><a href="https://www.metabase.com/docs/latest/questions/native-editor/referencing-saved-questions-in-queries">Metabase Documentation — Referencing models and saved questions</a></li>
+          <li><a href="https://www.metabase.com/docs/latest/data-modeling/models">Metabase Documentation — Models</a></li>
+          <li><a href="https://www.kimballgroup.com/wp-content/uploads/2013/08/2013.09-Kimball-Dimensional-Modeling-Techniques11.pdf">Kimball Group — Dimensional Modeling Techniques</a></li>
+          <li><a href="https://aws.amazon.com/blogs/architecture/lets-architect-architecting-a-data-mesh/">AWS Architecture Blog — Architecting a data mesh</a></li>
+        </ul>
+      </section>
+
+      <section class="content-block">
+        <h2>23. Orientação final para a prática em sala</h2>
+        <div class="note">
+          <strong>Sequência de execução</strong>
+          <p>Trabalhe na coleção do grupo e mantenha aberta a consulta de esquema. Produza <code>DIM_DATA</code>, <code>DIM_CLIENTE_SCD2</code>, <code>DIM_PRODUTO</code>, <code>DIM_VENDEDOR</code>, <code>FATO_ITEM</code> e <code>FATO_PAGAMENTO</code> nessa ordem, pois os fatos dependem das dimensões salvas.</p>
+          <p>Após cada <strong>Run</strong>, examine as colunas e a contagem básica e clique em <strong>Save</strong>. Em seguida, abra <strong>New &rarr; SQL query</strong>, insira a referência ao artefato salvo com <code>{{#}}</code> e execute o teste correspondente. Se um gate falhar, retorne à pergunta, clique em <strong>Edit</strong>, corrija o SQL, execute e salve novamente. Registre a frase do grão na descrição da pergunta e confirme o código do grupo no nome selecionado pelo autocomplete.</p>
+          <p>Conclua com a consulta de drill-across e com a extensão assistida por IA. O encerramento requer todos os artefatos na coleção, zero duplicidade nas chaves declaradas, ausência explicada de chaves dimensionais, reconciliação das medidas e apresentação oral do contrato do novo fato.</p>
+        </div>
+        <p>Esses fatos e dimensões serão consumidos na Aula 03 para construir distribuições, relações e comparações numéricas. A modelagem desta sessão constitui a base semântica dos gráficos seguintes.</p>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>

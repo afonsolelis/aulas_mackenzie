@@ -154,7 +154,7 @@ Header em JetBrains Mono 600 uppercase letter-spacing 0.08em — aparece como "t
 
 ### Anime.js v4 (content-level)
 
-Diagramas interativos (ex.: loop SDD da Aula 02) podem usar **Anime.js v4** via ESM jsdelivr:
+Diagramas interativos de processo podem usar **Anime.js v4** via ESM jsdelivr:
 
 ```html
 <script type="module">

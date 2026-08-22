@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 02 — Arquitetura de BI e Modelagem Dimensional com Olist</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style>
+    .deck-svg { display: block; width: 100%; max-height: 420px; }
+    .deck-svg .box { fill: #ffffff; stroke: #111111; stroke-width: 1.5; }
+    .deck-svg .soft-box { fill: #fafaf7; stroke: #111111; stroke-width: 1.25; }
+    .deck-svg .dark-box { fill: #111111; stroke: #111111; stroke-width: 1.5; }
+    .deck-svg .flow { fill: none; stroke: #111111; stroke-width: 1.75; }
+    .deck-svg .flow-dashed { fill: none; stroke: #111111; stroke-dasharray: 7 5; stroke-width: 1.5; }
+    .deck-svg text { fill: #111111; font-family: Inter, Arial, sans-serif; }
+    .deck-svg .light-text { fill: #ffffff; }
+    .deck-svg .svg-title { font-size: 18px; font-weight: 700; }
+    .deck-svg .svg-body { font-size: 14px; }
+    .deck-svg .svg-meta { font-family: "JetBrains Mono", monospace; font-size: 12px; }
+    .deck-metric { font-family: "JetBrains Mono", monospace; font-size: 1.55em; font-weight: 700; }
+    .deck-shell[data-aula-number]::after { right: 0; bottom: 32px; }
+    .deck-schema { white-space: pre-wrap; }
+    .deck-schema code { color: inherit; background: transparent; border: 0; padding: 0; }
+    @media (max-width: 900px) {
+      .slide { overflow-y: auto; }
+      .deck-shell { flex-shrink: 0; overflow: visible; }
+      .deck-table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    @media (max-height: 800px) and (min-width: 901px) {
+      .deck-shell { min-height: 600px; gap: 12px; margin: 14px; padding: 24px 36px; }
+      .deck-kicker { margin-bottom: 8px; }
+      .deck-title { font-size: 2.05em; margin-bottom: 9px; }
+      .deck-shell.is-dense .deck-title { font-size: 1.7em; }
+      .deck-summary, .deck-note { font-size: 0.88em; line-height: 1.36; margin: 0; }
+      .deck-table { font-size: 0.82em; line-height: 1.24; }
+      .deck-shell.is-dense .deck-table th,
+      .deck-shell.is-dense .deck-table td,
+      .deck-table th,
+      .deck-table td { padding: 5px 8px; }
+      .deck-callout { padding: 9px 15px; font-size: 0.86em; line-height: 1.32; }
+      .deck-callout strong:first-child { margin-bottom: 3px; }
+      .deck-steps { margin-top: 3px; }
+      .deck-steps > li { margin-bottom: 5px; line-height: 1.28; }
+      .deck-grid, .deck-columns { gap: 11px; }
+      .deck-card, .deck-panel, .deck-shell.is-dense .deck-card { padding: 12px 15px; }
+      .deck-svg { max-height: 315px; }
+      pre { font-size: 0.72em !important; line-height: 1.38 !important; margin-top: 7px; padding: 23px 18px 15px !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="02" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Arquitetura de BI e Modelagem Dimensional com Olist</h1>
+          <p class="deck-meta">Aula 02 &nbsp;&bull;&nbsp; 22/08/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Fluxos de dados em Power BI, Grafana e Metabase; fatos, dimensões, grão, SCD, esquemas estrela e barramento dimensional.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda &middot; Fundamentação + laboratório SQL</span>
+          <h2 class="deck-title">Percurso da aula</h2>
+          <p class="deck-summary">A sessão parte da arquitetura das plataformas, formaliza a modelagem dimensional e termina com a construção de modelos reutilizáveis sobre o banco Olist.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Horário</th><th>Momento</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td>8h30&ndash;9h05</td><td>Arquiteturas de BI</td><td>Power BI, Grafana e Metabase comparados</td></tr>
+            <tr><td>9h05&ndash;9h25</td><td>Arquitetura de dados</td><td>DW, data marts, lakehouse e data mesh</td></tr>
+            <tr><td>9h25&ndash;10h00</td><td>Modelagem dimensional</td><td>Grão, fatos, dimensões, estrela, snowflake, SCD e barramento</td></tr>
+            <tr><td>10h00&ndash;10h15</td><td>Intervalo</td><td>Pausa</td></tr>
+            <tr><td>10h15&ndash;10h30</td><td>Leitura do esquema</td><td>Metadados e perguntas de modelagem sobre o Olist</td></tr>
+            <tr><td>10h30&ndash;11h20</td><td>Laboratório orientado</td><td>Quatro dimensões e dois fatos reutilizáveis</td></tr>
+            <tr><td>11h20&ndash;11h40</td><td>Integração entre fatos</td><td>Fanout, CROSS JOIN, drill-across e barramento</td></tr>
+            <tr><td>11h40&ndash;12h05</td><td>Extensão assistida por IA</td><td>Novo modelo especificado e executado</td></tr>
+            <tr><td>12h05&ndash;12h10</td><td>Validação</td><td>Gates e artefatos conferidos</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - PLACEHOLDER / AMBIENTE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Ponto de partida &middot; 8h30</span>
+          <h2 class="deck-title">Verificação do ambiente e formação dos grupos</h2>
+          <p class="deck-summary">Cada grupo trabalhará em uma coleção própria e utilizará um prefixo comum em todos os artefatos.</p>
+        </div>
+        <div class="deck-placeholder">
+          <article class="deck-panel">
+            <strong>Na tela</strong>
+            <ol>
+              <li>abra o Metabase da disciplina;</li>
+              <li>confirme o banco <code>Olist</code>;</li>
+              <li>abra sua coleção;</li>
+              <li>defina o código do grupo: <code>G01</code>, <code>G02</code>...</li>
+            </ol>
+          </article>
+          <aside class="deck-callout">
+            <strong>Convenção</strong>
+            <code>A02_G03_DIM_CLIENTE_SCD2</code> identifica aula, grupo, tipo e objeto. A coleção compartilhada exige nomes inequívocos.
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - OBJETIVOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Objetivos de aprendizagem</span>
+          <h2 class="deck-title">Competências demonstradas ao final da sessão</h2>
+        </div>
+        <div class="quality-gates">
+          <article class="quality-gate"><strong>Arquitetura</strong><span>Localizar fonte, transformação, modelo semântico, estado da aplicação e camada de consumo.</span></article>
+          <article class="quality-gate"><strong>Modelagem</strong><span>Declarar processo, grão, dimensões, medidas, chaves e tratamento histórico.</span></article>
+          <article class="quality-gate"><strong>Validação</strong><span>Detectar duplicidade, órfãos, fanout e incompatibilidade entre fatos.</span></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - CAMADAS DE BI -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Arquitetura de BI &middot; 8h35&ndash;8h43</span>
+          <h2 class="deck-title">Uma solução de BI distribui responsabilidades entre camadas</h2>
+        </div>
+        <div class="method-flow">
+          <article class="method-step"><strong>Fontes</strong><span>ERP, CRM, arquivos, APIs, logs e bancos operacionais.</span></article>
+          <article class="method-step"><strong>Movimentação</strong><span>Conectores, Power Query, ETL/ELT, streaming e gateway.</span></article>
+          <article class="method-step"><strong>Persistência</strong><span>Warehouse, lakehouse, marts, séries temporais e índices.</span></article>
+          <article class="method-step"><strong>Semântica</strong><span>Relacionamentos, medidas, métricas, nomes e regras de acesso.</span></article>
+          <article class="method-step"><strong>Consumo</strong><span>Relatórios, painéis, alertas, exploração e incorporação.</span></article>
+        </div>
+        <p class="deck-note">A mesma ferramenta pode ocupar mais de uma camada. A análise arquitetural identifica onde cada responsabilidade está efetivamente executada e persistida.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - ESTADO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Arquitetura de BI &middot; Estado e execução</span>
+          <h2 class="deck-title">Quatro perguntas localizam o funcionamento de qualquer plataforma</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Pergunta</th><th>O que localizar</th><th>Implicação</th></tr></thead>
+          <tbody>
+            <tr><td>Onde estão os dados analíticos?</td><td>Fonte externa, cópia importada ou cache</td><td>Atualidade, custo e desempenho</td></tr>
+            <tr><td>Onde está o modelo?</td><td>Arquivo local, serviço, banco ou camada semântica</td><td>Reuso e governança</td></tr>
+            <tr><td>Quem executa a consulta?</td><td>Cliente, servidor de BI, gateway ou fonte</td><td>Rede, credenciais e carga</td></tr>
+            <tr><td>Onde ficam os artefatos?</td><td>PBIX, app DB, repositório, workspace ou catálogo</td><td>Backup, versionamento e colaboração</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - POWER BI DESKTOP -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Power BI Desktop &middot; Aquisição local</span>
+          <h2 class="deck-title">Power Query prepara os dados; o modo de armazenamento define a execução</h2>
+        </div>
+        <svg class="deck-svg" viewBox="0 0 1080 330" role="img" aria-labelledby="pbi-desktop-title pbi-desktop-desc">
+          <title id="pbi-desktop-title">Fluxos Import e DirectQuery no Power BI Desktop</title>
+          <desc id="pbi-desktop-desc">A fonte passa pelo conector e Power Query. Em Import, uma cópia entra no modelo local. Em DirectQuery, interações geram consultas para a fonte.</desc>
+          <defs><marker id="pbi-desktop-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
+          <rect class="soft-box" x="20" y="105" width="190" height="110" rx="4"></rect>
+          <text class="svg-title" x="115" y="145" text-anchor="middle">Fonte</text>
+          <text class="svg-body" x="115" y="174" text-anchor="middle">SQL · arquivo · API</text>
+          <rect class="box" x="300" y="105" width="210" height="110" rx="4"></rect>
+          <text class="svg-title" x="405" y="145" text-anchor="middle">Power Query</text>
+          <text class="svg-body" x="405" y="174" text-anchor="middle">conectar · transformar</text>
+          <rect class="soft-box" x="600" y="25" width="235" height="110" rx="4"></rect>
+          <text class="svg-title" x="717" y="65" text-anchor="middle">Import</text>
+          <text class="svg-body" x="717" y="94" text-anchor="middle">cópia no modelo local</text>
+          <rect class="soft-box" x="600" y="195" width="235" height="110" rx="4"></rect>
+          <text class="svg-title" x="717" y="235" text-anchor="middle">DirectQuery</text>
+          <text class="svg-body" x="717" y="264" text-anchor="middle">consulta enviada à fonte</text>
+          <rect class="dark-box" x="905" y="105" width="155" height="110" rx="4"></rect>
+          <text class="svg-title light-text" x="982" y="145" text-anchor="middle">Relatório</text>
+          <text class="svg-body light-text" x="982" y="174" text-anchor="middle">visuais · DAX</text>
+          <line class="flow" x1="210" y1="160" x2="300" y2="160" marker-end="url(#pbi-desktop-arrow)"></line>
+          <line class="flow" x1="510" y1="150" x2="600" y2="83" marker-end="url(#pbi-desktop-arrow)"></line>
+          <line class="flow" x1="510" y1="170" x2="600" y2="247" marker-end="url(#pbi-desktop-arrow)"></line>
+          <line class="flow" x1="835" y1="83" x2="905" y2="145" marker-end="url(#pbi-desktop-arrow)"></line>
+          <line class="flow" x1="835" y1="247" x2="905" y2="177" marker-end="url(#pbi-desktop-arrow)"></line>
+        </svg>
+        <div class="deck-callout"><strong>Arquivo PBIX</strong>Reúne definição de consultas, modelo semântico e relatório; no modo Import, também contém a cópia comprimida dos dados.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - POWER BI SERVICE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Power BI &middot; Publicação e consumo</span>
+          <h2 class="deck-title">Service e Report Server constituem destinos distintos</h2>
+        </div>
+        <svg class="deck-svg" viewBox="0 0 1080 355" role="img" aria-labelledby="pbi-service-title pbi-service-desc">
+          <title id="pbi-service-title">Publicação do Power BI Desktop para Service ou Report Server</title>
+          <desc id="pbi-service-desc">O Desktop publica no serviço em nuvem ou no Report Server local. O gateway conecta o serviço a fontes privadas. O Report Server alcança fontes pela rede local.</desc>
+          <defs><marker id="pbi-service-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
+          <rect class="box" x="25" y="125" width="195" height="105" rx="4"></rect>
+          <text class="svg-title" x="122" y="163" text-anchor="middle">Desktop</text>
+          <text class="svg-body" x="122" y="192" text-anchor="middle">modelo + relatório</text>
+          <rect class="soft-box" x="335" y="35" width="255" height="120" rx="4"></rect>
+          <text class="svg-title" x="462" y="75" text-anchor="middle">Power BI Service</text>
+          <text class="svg-body" x="462" y="104" text-anchor="middle">workspace · modelo semântico</text>
+          <text class="svg-body" x="462" y="128" text-anchor="middle">refresh · RLS · relatórios</text>
+          <rect class="soft-box" x="335" y="210" width="255" height="120" rx="4"></rect>
+          <text class="svg-title" x="462" y="250" text-anchor="middle">Report Server</text>
+          <text class="svg-body" x="462" y="279" text-anchor="middle">portal on-premises</text>
+          <text class="svg-body" x="462" y="303" text-anchor="middle">catálogo · refresh · relatórios</text>
+          <rect class="box" x="700" y="45" width="160" height="90" rx="4"></rect>
+          <text class="svg-title" x="780" y="82" text-anchor="middle">Gateway</text>
+          <text class="svg-body" x="780" y="109" text-anchor="middle">ponte de saída</text>
+          <rect class="dark-box" x="920" y="125" width="140" height="105" rx="4"></rect>
+          <text class="svg-title light-text" x="990" y="164" text-anchor="middle">Fonte</text>
+          <text class="svg-body light-text" x="990" y="193" text-anchor="middle">rede privada</text>
+          <line class="flow" x1="220" y1="160" x2="335" y2="95" marker-end="url(#pbi-service-arrow)"></line>
+          <line class="flow" x1="220" y1="195" x2="335" y2="270" marker-end="url(#pbi-service-arrow)"></line>
+          <line class="flow" x1="590" y1="95" x2="700" y2="90" marker-end="url(#pbi-service-arrow)"></line>
+          <line class="flow" x1="860" y1="90" x2="920" y2="155" marker-end="url(#pbi-service-arrow)"></line>
+          <line class="flow" x1="590" y1="270" x2="920" y2="205" marker-end="url(#pbi-service-arrow)"></line>
+        </svg>
+        <p class="deck-note"><strong>Service:</strong> SaaS em nuvem. <strong>Report Server:</strong> hospedagem local, com ciclo e conjunto de recursos próprios. “Power BI Server” precisa ser qualificado para evitar ambiguidade.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - GRAFANA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Grafana &middot; Consulta orientada a painéis</span>
+          <h2 class="deck-title">O servidor consulta fontes externas e mantém seu próprio estado</h2>
+        </div>
+        <svg class="deck-svg" viewBox="0 0 1080 340" role="img" aria-labelledby="grafana-title grafana-desc">
+          <title id="grafana-title">Arquitetura simplificada do Grafana</title>
+          <desc id="grafana-desc">O navegador acessa o servidor Grafana. O servidor usa plugins e proxy para consultar fontes e usa um banco da aplicação para guardar usuários, fontes e dashboards.</desc>
+          <defs><marker id="grafana-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
+          <rect class="soft-box" x="20" y="115" width="180" height="105" rx="4"></rect>
+          <text class="svg-title" x="110" y="153" text-anchor="middle">Navegador</text>
+          <text class="svg-body" x="110" y="182" text-anchor="middle">painel · Explore</text>
+          <rect class="box" x="300" y="70" width="300" height="195" rx="4"></rect>
+          <text class="svg-meta" x="450" y="101" text-anchor="middle">SERVIDOR GRAFANA</text>
+          <text class="svg-title" x="450" y="142" text-anchor="middle">UI + API + alertas</text>
+          <text class="svg-body" x="450" y="177" text-anchor="middle">plugins de data source</text>
+          <text class="svg-body" x="450" y="204" text-anchor="middle">query editor + data proxy</text>
+          <text class="svg-body" x="450" y="231" text-anchor="middle">renderização de painéis</text>
+          <rect class="soft-box" x="710" y="25" width="330" height="115" rx="4"></rect>
+          <text class="svg-title" x="875" y="64" text-anchor="middle">Fontes de dados</text>
+          <text class="svg-body" x="875" y="93" text-anchor="middle">PostgreSQL · Prometheus · Loki · APIs</text>
+          <text class="svg-meta" x="875" y="118" text-anchor="middle">dados permanecem no backend</text>
+          <rect class="soft-box" x="710" y="205" width="330" height="110" rx="4"></rect>
+          <text class="svg-title" x="875" y="244" text-anchor="middle">Banco da aplicação</text>
+          <text class="svg-body" x="875" y="273" text-anchor="middle">usuários · fontes · dashboards</text>
+          <text class="svg-meta" x="875" y="297" text-anchor="middle">SQLite local · PostgreSQL/MySQL produção</text>
+          <line class="flow" x1="200" y1="167" x2="300" y2="167" marker-end="url(#grafana-arrow)"></line>
+          <line class="flow" x1="600" y1="145" x2="710" y2="90" marker-end="url(#grafana-arrow)"></line>
+          <line class="flow-dashed" x1="600" y1="215" x2="710" y2="260" marker-end="url(#grafana-arrow)"></line>
+        </svg>
+        <p class="deck-note">Grafana atende casos de BI quando o trabalho exige painéis, filtros, SQL e consumo recorrente; sua origem em observabilidade favorece séries temporais, atualização frequente e alertas.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - METABASE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Metabase &middot; Arquitetura da disciplina</span>
+          <h2 class="deck-title">O projeto separa estado da aplicação e dados analíticos</h2>
+        </div>
+        <svg class="deck-svg" viewBox="0 0 1080 360" role="img" aria-labelledby="metabase-title metabase-desc">
+          <title id="metabase-title">Arquitetura do projeto Metabase Olist no Railway</title>
+          <desc id="metabase-desc">O navegador acessa o serviço Metabase. A aplicação guarda artefatos no banco metabase e envia consultas ao banco olist, ambos em PostgreSQL no Railway.</desc>
+          <defs><marker id="metabase-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
+          <rect class="soft-box" x="20" y="115" width="185" height="115" rx="4"></rect>
+          <text class="svg-title" x="112" y="155" text-anchor="middle">Navegador</text>
+          <text class="svg-body" x="112" y="184" text-anchor="middle">pergunta · painel</text>
+          <text class="svg-meta" x="112" y="208" text-anchor="middle">HTTPS</text>
+          <rect class="box" x="310" y="70" width="300" height="205" rx="4"></rect>
+          <text class="svg-meta" x="460" y="101" text-anchor="middle">RAILWAY · METABASE v0.63.10</text>
+          <text class="svg-title" x="460" y="143" text-anchor="middle">Aplicação Metabase</text>
+          <text class="svg-body" x="460" y="178" text-anchor="middle">MBQL/SQL · metadados</text>
+          <text class="svg-body" x="460" y="205" text-anchor="middle">visualizações · permissões</text>
+          <text class="svg-body" x="460" y="232" text-anchor="middle">pool JDBC · cache opcional</text>
+          <rect class="soft-box" x="720" y="25" width="330" height="120" rx="4"></rect>
+          <text class="svg-title" x="885" y="66" text-anchor="middle">banco metabase</text>
+          <text class="svg-body" x="885" y="95" text-anchor="middle">contas · coleções · perguntas · painéis</text>
+          <text class="svg-meta" x="885" y="121" text-anchor="middle">estado da aplicação</text>
+          <rect class="dark-box" x="720" y="205" width="330" height="120" rx="4"></rect>
+          <text class="svg-title light-text" x="885" y="246" text-anchor="middle">banco olist</text>
+          <text class="svg-body light-text" x="885" y="275" text-anchor="middle">9 tabelas · 1,55 milhão de linhas</text>
+          <text class="svg-meta light-text" x="885" y="301" text-anchor="middle">conexão somente leitura</text>
+          <line class="flow" x1="205" y1="172" x2="310" y2="172" marker-end="url(#metabase-arrow)"></line>
+          <line class="flow-dashed" x1="610" y1="140" x2="720" y2="90" marker-end="url(#metabase-arrow)"></line>
+          <line class="flow" x1="610" y1="213" x2="720" y2="265" marker-end="url(#metabase-arrow)"></line>
+        </svg>
+        <p class="deck-note">As perguntas salvas guardam definições no banco da aplicação. A execução consulta o Olist; resultados persistentes exigiriam cache, modelo persistido ou transformação autorizada.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - COMPARAÇÃO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Comparação arquitetural &middot; 8h55&ndash;9h05</span>
+          <h2 class="deck-title">Onde os componentes ficam e como os dados são consumidos</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Plataforma</th><th>Dados para o visual</th><th>Estado/artefatos</th><th>Execução recorrente</th></tr></thead>
+          <tbody>
+            <tr><td>Power BI Desktop</td><td>Import no modelo ou DirectQuery</td><td>arquivo PBIX local</td><td>processo Desktop + fonte</td></tr>
+            <tr><td>Power BI Service</td><td>modelo importado, DirectQuery ou composto</td><td>workspace e modelo semântico</td><td>capacidade Microsoft; gateway quando necessário</td></tr>
+            <tr><td>Power BI Report Server</td><td>cache/import ou consulta à fonte, conforme suporte</td><td>catálogo on-premises</td><td>servidor e rede da organização</td></tr>
+            <tr><td>Grafana</td><td>consulta sob demanda às fontes</td><td>app DB + provisionamento</td><td>servidor, plugins e data proxy</td></tr>
+            <tr><td>Metabase</td><td>consulta ao warehouse; cache opcional</td><td>app DB com perguntas e painéis</td><td>servidor, driver e warehouse</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - OLIST -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Olist &middot; Banco operacional para análise</span>
+          <h2 class="deck-title">Nove tabelas registram processos em grãos diferentes</h2>
+        </div>
+        <svg class="deck-svg" viewBox="0 0 1080 390" role="img" aria-labelledby="olist-title olist-desc">
+          <title id="olist-title">Relações principais do esquema Olist</title>
+          <desc id="olist-desc">Orders se relaciona a customers, items, payments e reviews. Items se relaciona a products e sellers. Products se relaciona à tradução de categorias.</desc>
+          <rect class="dark-box" x="430" y="135" width="220" height="110" rx="4"></rect>
+          <text class="svg-title light-text" x="540" y="177" text-anchor="middle">olist_orders</text>
+          <text class="svg-body light-text" x="540" y="207" text-anchor="middle">99.441 · 1 linha/pedido</text>
+          <rect class="soft-box" x="30" y="35" width="230" height="90" rx="4"></rect>
+          <text class="svg-title" x="145" y="72" text-anchor="middle">customers</text>
+          <text class="svg-body" x="145" y="101" text-anchor="middle">99.441 · 1 linha/pedido</text>
+          <rect class="soft-box" x="30" y="260" width="230" height="90" rx="4"></rect>
+          <text class="svg-title" x="145" y="297" text-anchor="middle">reviews</text>
+          <text class="svg-body" x="145" y="326" text-anchor="middle">99.224 · revisão registrada</text>
+          <rect class="soft-box" x="820" y="20" width="230" height="90" rx="4"></rect>
+          <text class="svg-title" x="935" y="57" text-anchor="middle">payments</text>
+          <text class="svg-body" x="935" y="86" text-anchor="middle">103.886 · ocorrência</text>
+          <rect class="soft-box" x="820" y="145" width="230" height="90" rx="4"></rect>
+          <text class="svg-title" x="935" y="182" text-anchor="middle">order_items</text>
+          <text class="svg-body" x="935" y="211" text-anchor="middle">112.650 · item do pedido</text>
+          <rect class="soft-box" x="820" y="270" width="230" height="90" rx="4"></rect>
+          <text class="svg-title" x="935" y="307" text-anchor="middle">products + tradução</text>
+          <text class="svg-body" x="935" y="336" text-anchor="middle">32.951 produtos · 71 traduções</text>
+          <rect class="soft-box" x="430" y="300" width="220" height="70" rx="4"></rect>
+          <text class="svg-title" x="540" y="329" text-anchor="middle">sellers</text>
+          <text class="svg-body" x="540" y="353" text-anchor="middle">3.095 vendedores</text>
+          <line class="flow" x1="260" y1="90" x2="430" y2="165"></line>
+          <line class="flow" x1="260" y1="305" x2="430" y2="215"></line>
+          <line class="flow" x1="650" y1="165" x2="820" y2="70"></line>
+          <line class="flow" x1="650" y1="190" x2="820" y2="190"></line>
+          <line class="flow" x1="935" y1="235" x2="935" y2="270"></line>
+          <line class="flow" x1="820" y1="215" x2="650" y2="325"></line>
+          <text class="svg-meta" x="725" y="88">order_id</text>
+          <text class="svg-meta" x="688" y="184">order_id</text>
+          <text class="svg-meta" x="947" y="257">product_id</text>
+          <text class="svg-meta" x="704" y="286">seller_id</text>
+        </svg>
+        <p class="deck-note"><code>geolocation</code> possui 1.000.163 linhas e múltiplas coordenadas por prefixo postal. Uma junção direta por CEP cria relação muitos-para-muitos.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - PARADIGMAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Arquitetura de dados &middot; 9h05&ndash;9h15</span>
+          <h2 class="deck-title">Tecnologias de armazenamento e modelos operacionais respondem a decisões diferentes</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Conceito</th><th>Responsabilidade principal</th><th>Aplicação ao Olist</th></tr></thead>
+          <tbody>
+            <tr><td>Data Warehouse</td><td>dados integrados, históricos e orientados à análise</td><td>fatos e dimensões governados</td></tr>
+            <tr><td>Data Mart</td><td>recorte analítico para uma área ou processo</td><td>mart comercial ou logístico</td></tr>
+            <tr><td>Data Lake</td><td>persistência de dados em formatos variados</td><td>arquivos brutos, logs e snapshots</td></tr>
+            <tr><td>Lakehouse</td><td>tabelas analíticas e governança sobre storage de lake</td><td>camadas raw, curated e serving</td></tr>
+            <tr><td>Data Mesh</td><td>propriedade por domínio, dados como produto e governança federada</td><td>produtos Pedidos, Pagamentos e Logística</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Critério de análise</strong>Data mesh organiza responsabilidades sociotécnicas. Esquema estrela organiza consumo analítico. Um produto de dados de domínio pode publicar fatos e dimensões conformadas.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - FLUXO DW -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Arquitetura de dados &middot; 9h15&ndash;9h25</span>
+          <h2 class="deck-title">O processo de negócio determina o modelo analítico</h2>
+        </div>
+        <div class="method-flow">
+          <article class="method-step"><strong>Pergunta</strong><span>Qual decisão o gráfico precisa sustentar?</span></article>
+          <article class="method-step"><strong>Processo</strong><span>Pedido, item, pagamento, entrega ou avaliação.</span></article>
+          <article class="method-step"><strong>Grão</strong><span>O significado exato de uma linha da tabela fato.</span></article>
+          <article class="method-step"><strong>Dimensões</strong><span>Contextos estáveis para filtrar, agrupar e comparar.</span></article>
+          <article class="method-step"><strong>Medidas</strong><span>Valores aditivos ou derivados compatíveis com o grão.</span></article>
+        </div>
+        <p class="deck-note">A declaração do grão precede a escolha de colunas e junções. Ela funciona como contrato para cada fato.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - FATO DIM GRÃO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Modelagem dimensional &middot; 9h25&ndash;9h35</span>
+          <h2 class="deck-title">Fatos medem eventos; dimensões preservam contexto</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Processo</th><th>Grão candidato</th><th>Medidas</th><th>Dimensões</th></tr></thead>
+          <tbody>
+            <tr><td>Pedido</td><td>1 linha por <code>order_id</code></td><td>itens, valor, prazo, atraso</td><td>cliente, datas, status</td></tr>
+            <tr><td>Item vendido</td><td>1 linha por <code>order_id + order_item_id</code></td><td>preço, frete, valor do item</td><td>produto, vendedor, cliente, data</td></tr>
+            <tr><td>Pagamento</td><td>1 linha por <code>order_id + payment_sequential</code></td><td>valor, parcelas</td><td>cliente, data, tipo de pagamento</td></tr>
+            <tr><td>Avaliação</td><td>1 linha por ocorrência de review</td><td>nota, tempo de resposta</td><td>cliente, data, produto derivado</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Teste do grão</strong>Complete oralmente: “cada linha representa...”. Em seguida, escreva a chave candidata e verifique <code>COUNT(*) = COUNT(DISTINCT chave)</code>.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - ESTRELA SNOWFLAKE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Esquemas dimensionais &middot; 9h35&ndash;9h43</span>
+          <h2 class="deck-title">Estrela reduz caminhos de junção; snowflake normaliza dimensões</h2>
+        </div>
+        <svg class="deck-svg" viewBox="0 0 1080 350" role="img" aria-labelledby="star-title star-desc">
+          <title id="star-title">Comparação de esquema estrela e snowflake</title>
+          <desc id="star-desc">À esquerda, fato item liga-se diretamente a quatro dimensões. À direita, a dimensão produto se desdobra em categoria e departamento.</desc>
+          <text class="svg-meta" x="255" y="30" text-anchor="middle">ESTRELA</text>
+          <rect class="dark-box" x="170" y="125" width="170" height="95" rx="4"></rect>
+          <text class="svg-title light-text" x="255" y="164" text-anchor="middle">fato_item</text>
+          <text class="svg-body light-text" x="255" y="191" text-anchor="middle">preço · frete</text>
+          <rect class="soft-box" x="20" y="35" width="150" height="65" rx="4"></rect><text class="svg-body" x="95" y="74" text-anchor="middle">dim_data</text>
+          <rect class="soft-box" x="340" y="35" width="150" height="65" rx="4"></rect><text class="svg-body" x="415" y="74" text-anchor="middle">dim_cliente</text>
+          <rect class="soft-box" x="20" y="250" width="150" height="65" rx="4"></rect><text class="svg-body" x="95" y="289" text-anchor="middle">dim_produto</text>
+          <rect class="soft-box" x="340" y="250" width="150" height="65" rx="4"></rect><text class="svg-body" x="415" y="289" text-anchor="middle">dim_vendedor</text>
+          <line class="flow" x1="170" y1="145" x2="145" y2="100"></line><line class="flow" x1="340" y1="145" x2="390" y2="100"></line><line class="flow" x1="170" y1="200" x2="145" y2="250"></line><line class="flow" x1="340" y1="200" x2="390" y2="250"></line>
+          <line class="flow-dashed" x1="540" y1="20" x2="540" y2="330"></line>
+          <text class="svg-meta" x="810" y="30" text-anchor="middle">SNOWFLAKE</text>
+          <rect class="dark-box" x="570" y="125" width="170" height="95" rx="4"></rect>
+          <text class="svg-title light-text" x="655" y="164" text-anchor="middle">fato_item</text><text class="svg-body light-text" x="655" y="191" text-anchor="middle">preço · frete</text>
+          <rect class="soft-box" x="570" y="35" width="170" height="65" rx="4"></rect><text class="svg-body" x="655" y="74" text-anchor="middle">dim_cliente</text>
+          <rect class="soft-box" x="780" y="125" width="170" height="65" rx="4"></rect><text class="svg-body" x="865" y="164" text-anchor="middle">dim_produto</text>
+          <rect class="soft-box" x="880" y="235" width="170" height="65" rx="4"></rect><text class="svg-body" x="965" y="274" text-anchor="middle">dim_categoria</text>
+          <rect class="soft-box" x="670" y="250" width="170" height="65" rx="4"></rect><text class="svg-body" x="755" y="289" text-anchor="middle">dim_departamento</text>
+          <line class="flow" x1="655" y1="125" x2="655" y2="100"></line><line class="flow" x1="740" y1="170" x2="780" y2="158"></line><line class="flow" x1="865" y1="190" x2="945" y2="235"></line><line class="flow" x1="915" y1="300" x2="840" y2="285"></line>
+        </svg>
+        <p class="deck-note">No Olist, uma dimensão produto estrela pode incorporar a tradução da categoria. Snowflake torna-se pertinente quando hierarquias são compartilhadas, governadas e atualizadas separadamente.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - SCD -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Slowly Changing Dimensions &middot; 9h43&ndash;9h50</span><h2 class="deck-title">A política histórica define o significado do atributo</h2></div>
+        <table class="deck-table">
+          <thead><tr><th>Tipo</th><th>Operação</th><th>Pergunta respondida</th><th>Estrutura</th></tr></thead>
+          <tbody>
+            <tr><td>SCD Tipo 0</td><td>preserva valor original</td><td>qual era o atributo inicial?</td><td>uma linha estável</td></tr>
+            <tr><td>SCD Tipo 1</td><td>sobrescreve pelo valor atual</td><td>qual é a classificação vigente?</td><td>uma linha por chave natural</td></tr>
+            <tr><td>SCD Tipo 2</td><td>insere uma nova versão</td><td>qual era o contexto na data do evento?</td><td>chave substituta + validade + atual</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-columns">
+          <article class="deck-card"><span class="deck-metric">252</span><p>clientes Olist apresentam mais de uma localização observada.</p></article>
+          <article class="deck-card"><span class="deck-metric">39</span><p>clientes mudam de estado entre observações.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - BUS MATRIX -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Barramento dimensional &middot; 9h50&ndash;10h00</span><h2 class="deck-title">A matriz de barramento coordena processos e dimensões conformadas</h2></div>
+        <table class="deck-table">
+          <thead><tr><th>Processo</th><th>Data</th><th>Cliente</th><th>Produto</th><th>Vendedor</th><th>Pagamento</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Pedidos</td><td>●</td><td>●</td><td></td><td></td><td></td><td>●</td></tr>
+            <tr><td>Itens vendidos</td><td>●</td><td>●</td><td>●</td><td>●</td><td></td><td>●</td></tr>
+            <tr><td>Pagamentos</td><td>●</td><td>●</td><td></td><td></td><td>●</td><td>●</td></tr>
+            <tr><td>Avaliações</td><td>●</td><td>●</td><td>derivada</td><td></td><td></td><td>●</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Conformidade</strong><code>dim_cliente</code> precisa representar a mesma entidade, chave e política histórica em todos os processos. A dimensão data reaparece em papéis como compra, aprovação, entrega e avaliação.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - INTERVALO -->
+    <div class="slide">
+      <div class="deck-shell"><div><span class="deck-kicker">Intervalo &middot; 10h00&ndash;10h15</span><h2 class="deck-title">Pausa de 15 minutos</h2><p class="deck-summary">No retorno, cada grupo abrirá o editor SQL e começará pela leitura programática do esquema Olist.</p></div></div>
+    </div>
+
+    <!-- SLIDE 20 - CONTRATO DO LAB -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Laboratório &middot; Contrato técnico</span><h2 class="deck-title">A conexão Olist é somente leitura; os modelos serão consultas reutilizáveis</h2></div>
+        <div class="deck-columns">
+          <article class="deck-panel"><strong>No ambiente da aula</strong><ol><li><strong>New &rarr; SQL query</strong>;</li><li>selecionar o banco <strong>Olist</strong>;</li><li>executar com <strong>Run</strong>;</li><li>salvar na coleção do grupo;</li><li>referenciar com <code>{{#nome}}</code>.</li></ol></article>
+          <article class="deck-panel"><strong>Em um warehouse gravável</strong><ol><li>criar schema de desenvolvimento;</li><li>envolver o <code>SELECT</code> em <code>CREATE VIEW</code>;</li><li>testar chaves e medidas;</li><li>promover por pipeline;</li><li>conceder <code>SELECT</code> ao BI.</li></ol></article>
+        </div>
+        <p class="deck-note">O material contém as duas formas. DDL no editor SQL do Metabase não integra o laboratório e não é suportado como fluxo de administração.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - EXTRAIR SCHEMA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Atividade 1 &middot; 10h15&ndash;10h22</span><h2 class="deck-title">Extraia o contrato estrutural do banco</h2></div>
+        <ol class="deck-steps"><li>Clique em <strong>New &rarr; SQL query</strong> e selecione <strong>Olist</strong>.</li><li>Cole a consulta de metadados fornecida no material.</li><li>Clique em <strong>Run</strong> e confirme as nove tabelas.</li><li>Clique em <strong>Save</strong>, use <code>A02_GNN_00_SCHEMA_OLIST</code> e escolha a coleção do grupo.</li></ol>
+        <div class="deck-schema"><code>SELECT table_name, ordinal_position, column_name, data_type
+FROM information_schema.columns
+WHERE table_schema = 'public'
+  AND (
+    table_name LIKE 'olist_%'
+    OR table_name = 'product_category_name_translation'
+  )
+ORDER BY table_name, ordinal_position;</code></div>
+      </div>
+    </div>
+
+    <!-- SLIDE 22 - PERGUNTAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Discussão em grupos &middot; 10h22&ndash;10h30</span><h2 class="deck-title">Transforme perguntas de negócio em contratos dimensionais</h2></div>
+        <table class="deck-table">
+          <thead><tr><th>Pergunta</th><th>O grupo deve declarar</th></tr></thead>
+          <tbody>
+            <tr><td>Qual categoria gera maior valor de itens por estado?</td><td>fato, grão, medidas, dimensões e junções</td></tr>
+            <tr><td>O prazo prometido difere do prazo realizado por vendedor?</td><td>papéis de data e medida derivada</td></tr>
+            <tr><td>O parcelamento se associa ao valor e à avaliação?</td><td>fatos envolvidos e risco de fanout</td></tr>
+            <tr><td>Como preservar o estado do cliente no momento da compra?</td><td>chave natural, chave substituta e SCD</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Relato de 60 segundos</strong>Use a fórmula: “processo..., cada linha representa..., mede..., é analisado por..., exige cuidado com...”.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 23 - DIM DATA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Atividade 2 &middot; 10h30&ndash;10h38</span><h2 class="deck-title">Construa e salve a dimensão data</h2></div>
+        <ol class="deck-steps"><li>Abra <strong>New &rarr; SQL query</strong> e selecione <strong>Olist</strong>.</li><li>Use <code>generate_series</code> entre a menor e a maior data de compra.</li><li>Crie <code>sk_data</code> no formato <code>AAAAMMDD</code> e atributos de ano, trimestre, mês e dia.</li><li>Execute; confirme uma linha por dia e ausência de duplicidade em <code>sk_data</code>.</li><li>Salve como <code>A02_GNN_01_DIM_DATA</code>.</li></ol>
+        <div class="deck-schema"><code>SELECT to_char(dia, 'YYYYMMDD')::integer AS sk_data,
+       dia::date AS data,
+       extract(year FROM dia)::integer AS ano,
+       extract(month FROM dia)::integer AS mes
+FROM generate_series(data_min, data_max, interval '1 day') AS c(dia);</code></div>
+      </div>
+    </div>
+
+    <!-- SLIDE 24 - DIM CLIENTE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Atividade 3 &middot; 10h38&ndash;10h50</span><h2 class="deck-title">Versione a dimensão cliente com SCD Tipo 2</h2></div>
+        <ol class="deck-steps"><li>Una <code>olist_customers</code> a <code>olist_orders</code> por <code>customer_id</code>.</li><li>Ordene observações por <code>customer_unique_id</code> e data de compra.</li><li>Compare CEP, cidade e estado com <code>LAG</code>; marque cada mudança.</li><li>Acumule as mudanças para numerar versões e calcule <code>valid_from</code>/<code>valid_to</code>.</li><li>Execute e salve como <code>A02_GNN_02_DIM_CLIENTE_SCD2</code>; depois, abra outra consulta e rode os testes do material.</li></ol>
+        <div class="deck-callout"><strong>Validade temporal</strong>Um fato de compra associa-se à versão em que <code>compra &gt;= valid_from</code> e <code>compra &lt; valid_to</code>; <code>valid_to</code> vazio identifica a versão vigente.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 25 - DIM PRODUTO E FATO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Atividades 4 e 5 &middot; 10h50&ndash;11h10</span><h2 class="deck-title">Monte as dimensões produto e vendedor e o fato item</h2></div>
+        <div class="deck-columns">
+          <article class="deck-panel"><strong>Produto e vendedor</strong><ol><li>parta das respectivas fontes;</li><li>traduza a categoria de produto;</li><li>crie as chaves substitutas;</li><li>salve como <code>..._03_DIM_PRODUTO</code> e <code>..._03B_DIM_VENDEDOR</code>.</li></ol></article>
+          <article class="deck-panel"><strong>Fato item</strong><ol><li>declare o grão pedido + item;</li><li>referencie as três dimensões com <code>{{#}}</code>;</li><li>associe o cliente pela validade SCD2;</li><li>execute o SQL 06 e salve como <code>..._04_FATO_ITEM</code>.</li></ol></article>
+        </div>
+        <div class="deck-callout"><strong>Medidas</strong><code>preco</code>, <code>frete</code> e <code>valor_item = preco + frete</code>. <code>order_id</code> permanece como dimensão degenerada para rastreabilidade.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 26 - FATO PAGAMENTO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Atividade 6 &middot; 11h10&ndash;11h20</span><h2 class="deck-title">Construa e valide o fato pagamento</h2></div>
+        <ol class="deck-steps">
+          <li>Clique em <strong>New &rarr; SQL query</strong> e selecione <strong>Olist</strong>.</li>
+          <li>Digite <code>WITH dim_cliente AS {{#</code> e escolha <code>A02_GNN_02_DIM_CLIENTE_SCD2</code>.</li>
+          <li>Cole o restante do SQL 07 do material e clique em <strong>Run</strong>.</li>
+          <li>Salve como <code>A02_GNN_05_FATO_PAGAMENTO</code> na coleção do grupo.</li>
+          <li>Em outra consulta, referencie o fato e confirme 103.886 chaves, nenhuma dimensão ausente e R$ 16.008.872,12.</li>
+        </ol>
+        <div class="deck-callout"><strong>Contrato temporal</strong>Cada linha representa uma ocorrência sequencial de pagamento. Como a fonte não registra o instante do pagamento, <code>sk_data_compra</code> mantém explicitamente a data de compra do pedido.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 27 - FANOUT -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Cardinalidade &middot; 11h20&ndash;11h26</span><h2 class="deck-title">A junção direta entre dois fatos multiplica ocorrências</h2></div>
+        <table class="deck-table">
+          <thead><tr><th>Conjunto</th><th>Linhas</th><th>Valor correto</th><th>Após itens × pagamentos</th></tr></thead>
+          <tbody>
+            <tr><td>Itens</td><td>112.650</td><td>R$ 15.843.553,24</td><td>R$ 16.566.543,85</td></tr>
+            <tr><td>Pagamentos</td><td>103.886</td><td>R$ 16.008.872,12</td><td>R$ 20.308.134,71</td></tr>
+            <tr><td>Junção direta</td><td colspan="3">117.601 combinações por <code>order_id</code></td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Diagnóstico</strong>Um pedido com 3 itens e 2 pagamentos gera 6 linhas. Cada medida é repetida pela cardinalidade do outro fato. A solução analítica agrega cada fato no grão comum antes de alinhá-los.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 28 - CROSS JOIN -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">CROSS JOIN &middot; 11h26&ndash;11h32</span><h2 class="deck-title">O produto cartesiano cria uma grade analítica completa</h2></div>
+        <div class="deck-schema"><code>WITH meses AS (...),
+ufs AS (...),
+grade AS (
+  SELECT mes, uf
+  FROM meses
+  CROSS JOIN ufs
+),
+observado AS (...)
+SELECT grade.mes, grade.uf,
+       coalesce(observado.pedidos, 0) AS pedidos
+FROM grade
+LEFT JOIN observado USING (mes, uf);</code></div>
+        <div class="deck-columns"><article class="deck-card"><h3>Aplicação</h3><p>Mostrar meses sem pedido com valor zero e preservar comparações entre UFs.</p></article><article class="deck-card"><h3>Controle</h3><p>O total de linhas da grade é o produto das cardinalidades. Filtre domínios antes do cruzamento.</p></article></div>
+      </div>
+    </div>
+
+    <!-- SLIDE 29 - DRILL ACROSS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Drill-across &middot; 11h32&ndash;11h38</span><h2 class="deck-title">Fatos separados são alinhados por dimensões conformadas</h2></div>
+        <svg class="deck-svg" viewBox="0 0 1080 325" role="img" aria-labelledby="drill-title drill-desc">
+          <title id="drill-title">Fluxo de drill-across entre fato item e fato pagamento</title>
+          <desc id="drill-desc">Cada fato é agregado por mês e estado. Os resultados agregados são unidos pelas chaves conformadas.</desc>
+          <defs><marker id="drill-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
+          <rect class="soft-box" x="25" y="45" width="210" height="90" rx="4"></rect><text class="svg-title" x="130" y="82" text-anchor="middle">fato_item</text><text class="svg-body" x="130" y="109" text-anchor="middle">grão: item</text>
+          <rect class="soft-box" x="25" y="205" width="210" height="90" rx="4"></rect><text class="svg-title" x="130" y="242" text-anchor="middle">fato_pagamento</text><text class="svg-body" x="130" y="269" text-anchor="middle">grão: ocorrência</text>
+          <rect class="box" x="355" y="45" width="245" height="90" rx="4"></rect><text class="svg-title" x="477" y="82" text-anchor="middle">agregar itens</text><text class="svg-body" x="477" y="109" text-anchor="middle">mês + UF</text>
+          <rect class="box" x="355" y="205" width="245" height="90" rx="4"></rect><text class="svg-title" x="477" y="242" text-anchor="middle">agregar pagamentos</text><text class="svg-body" x="477" y="269" text-anchor="middle">mês + UF</text>
+          <rect class="dark-box" x="735" y="105" width="315" height="120" rx="4"></rect><text class="svg-title light-text" x="892" y="148" text-anchor="middle">FULL OUTER JOIN</text><text class="svg-body light-text" x="892" y="178" text-anchor="middle">dim_data + dim_cliente</text><text class="svg-meta light-text" x="892" y="202" text-anchor="middle">resultado drill-across</text>
+          <line class="flow" x1="235" y1="90" x2="355" y2="90" marker-end="url(#drill-arrow)"></line><line class="flow" x1="235" y1="250" x2="355" y2="250" marker-end="url(#drill-arrow)"></line><line class="flow" x1="600" y1="90" x2="735" y2="145" marker-end="url(#drill-arrow)"></line><line class="flow" x1="600" y1="250" x2="735" y2="190" marker-end="url(#drill-arrow)"></line>
+        </svg>
+        <p class="deck-note">Drill-across é uma operação de integração analítica entre processos. Drill-down descreve navegação para maior detalhe dentro de uma hierarquia.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 30 - BARRAMENTO PROBLEMAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Barramento &middot; 11h38&ndash;11h40</span><h2 class="deck-title">Problemas de conformidade aparecem como divergências semânticas</h2></div>
+        <table class="deck-table">
+          <thead><tr><th>Problema</th><th>Efeito</th><th>Tratamento</th></tr></thead>
+          <tbody>
+            <tr><td><code>customer_id</code> em um fato e <code>customer_unique_id</code> em outro</td><td>clientes incompatíveis</td><td>mesma <code>sk_cliente</code> e regra SCD</td></tr>
+            <tr><td>fato pagamento usa a data de compra sem declarar seu papel</td><td>período interpretado como data do pagamento</td><td>rotular <code>sk_data_compra</code> e documentar a ausência do timestamp</td></tr>
+            <tr><td>categoria PT em um mart e EN em outro</td><td>grupos fragmentados</td><td>dimensão produto conformada</td></tr>
+            <tr><td>CEP ligado a várias coordenadas</td><td>duplicação geográfica</td><td>dimensão geográfica deduplicada ou ponte</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 31 - IA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">IA como apoio de modelagem &middot; 11h40&ndash;11h47</span><h2 class="deck-title">Forneça metadados e exija um contrato verificável</h2></div>
+        <ol class="deck-steps"><li>Abra a pergunta <code>..._00_SCHEMA_OLIST</code> e use <strong>Download results &rarr; CSV</strong>.</li><li>Envie ao ChatGPT apenas nomes de tabelas, colunas, tipos e cardinalidades agregadas.</li><li>Informe a pergunta de negócio e solicite: processo, grão, fatos, dimensões, chaves, SCD e matriz de barramento.</li><li>Exija SQL PostgreSQL, consultas de validação e uma lista explícita de suposições.</li><li>Confira cada coluna proposta no esquema antes de executar.</li></ol>
+        <div class="deck-callout"><strong>Governança</strong>Credenciais, URL privada, dados pessoais e amostras de clientes ficam fora do prompt. Metadados estruturais e contagens agregadas bastam para o exercício.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 32 - EXTENSÃO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Atividade 7 &middot; 11h47&ndash;12h05</span><h2 class="deck-title">Especifique um novo fato e uma nova dimensão</h2></div>
+        <div class="deck-columns"><article class="deck-panel"><strong>Escolha um processo</strong><ul><li>entrega;</li><li>avaliação;</li><li>cobertura geográfica.</li></ul></article><article class="deck-panel"><strong>Produza na coleção</strong><ul><li>consulta SQL executável;</li><li>declaração do grão;</li><li>matriz processo × dimensões;</li><li>quatro testes de qualidade.</li></ul></article></div>
+        <p class="deck-note">Salve o fato como <code>A02_GNN_07_FATO_NOME</code> e a dimensão como <code>A02_GNN_07_DIM_NOME</code>. Apresente a decisão principal e um risco de cardinalidade.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 33 - GATES -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div><span class="deck-kicker">Validação &middot; 12h05&ndash;12h10</span><h2 class="deck-title">Quatro gates encerram a construção</h2></div>
+        <div class="quality-gates"><article class="quality-gate"><strong>Unicidade</strong><span><code>COUNT(*)</code> coincide com a chave declarada no grão.</span></article><article class="quality-gate"><strong>Integridade</strong><span>Chaves de dimensão ausentes são contadas e explicadas.</span></article><article class="quality-gate"><strong>Reconciliação</strong><span>Somas e contagens são comparadas com as fontes.</span></article></div>
+        <div class="deck-callout"><strong>Cardinalidade</strong>Conte linhas antes e depois de cada junção. Crescimentos são aceitos apenas quando previstos pelo contrato do grão.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 34 - ENTREGÁVEIS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div><span class="deck-kicker">Entregáveis e continuidade</span><h2 class="deck-title">A coleção do grupo registra o modelo analítico da aula</h2></div>
+        <table class="deck-table">
+          <thead><tr><th>Artefato</th><th>Nome</th><th>Condição</th></tr></thead>
+          <tbody>
+            <tr><td>Esquema</td><td><code>A02_GNN_00_SCHEMA_OLIST</code></td><td>metadados das nove tabelas</td></tr>
+            <tr><td>Dimensões</td><td><code>..._01_DIM_DATA</code>, <code>..._02_DIM_CLIENTE_SCD2</code>, <code>..._03_DIM_PRODUTO</code>, <code>..._03B_DIM_VENDEDOR</code></td><td>chaves e testes executados</td></tr>
+            <tr><td>Fatos</td><td><code>..._04_FATO_ITEM</code>, <code>..._05_FATO_PAGAMENTO</code></td><td>grãos e totais reconciliados</td></tr>
+            <tr><td>Integração</td><td><code>..._06_DRILL_ACROSS_MES_UF</code></td><td>fatos agregados antes da junção</td></tr>
+            <tr><td>Extensão</td><td><code>..._07_FATO_*</code> + <code>..._07_DIM_*</code></td><td>SQL, contrato e validações</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-summary">Na Aula 03, fatos e dimensões serão consumidos para construir distribuições, relações e comparações numéricas com semântica controlada.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
+      <a href="../material/material_aula_02_arquitetura_de_bi_e_modelagem_dimensional_com_olist.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

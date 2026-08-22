@@ -114,7 +114,7 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 | Aula | Data | Tema Principal |
 |------|------|----------------|
 | 01 | 15/08/2026 | Data Discovery com Metabase |
-| 02 | 22/08/2026 | Percepção Visual e Processo de Criação |
+| 02 | 22/08/2026 | Arquitetura de BI e Modelagem Dimensional com Olist |
 | 03 | 29/08/2026 | Visualização de Dados Numéricos |
 | 04 | 05/09/2026 | Visualização de Dados Não Numéricos |
 | 05 | 12/09/2026 | Tabelas, Gráficos e Escolha da Representação |
