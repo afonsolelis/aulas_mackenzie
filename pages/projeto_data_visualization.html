@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+    <title>Projeto do Módulo — Data Visualization</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <div class="material-nav" style="margin-bottom: 2rem;">
+        <a href="home_data_visualization.html">&larr; Data Visualization</a>
+        <a href="../index.html">Hub de Disciplinas</a>
+        <a href="../professor.html">Professor Afonso</a>
+      </div>
+
+      <section class="hero" data-year="2026">
+        <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+        <span class="kicker">MBA Engenharia de Dados &middot; Data Visualization &middot; Projeto do módulo</span>
+        <h1>Dashboard do Processo PBL</h1>
+        <p>
+          O projeto da disciplina não usa um conjunto de dados de vitrine. Cada grupo constrói um dashboard sobre dados educacionais reais: o rastro de trabalho deixado por alunos de graduação no GitLab ao longo de um módulo de Aprendizagem Baseada em Projetos — commits, merge requests, branches e movimentação de cartões no quadro kanban.
+        </p>
+        <p class="meta">Entrega final &middot; 03/10/2026 &middot; Dashboard, dossiê e defesa</p>
+      </section>
+
+      <section class="content-block">
+        <h2>O referente: o processo, não a ferramenta</h2>
+        <p>A primeira decisão do projeto é conceitual e antecede qualquer gráfico. O objeto observado é o <strong>processo de aprendizagem de um grupo</strong>, situado em um módulo e em uma turma. O GitLab não é esse objeto — é uma <em>superfície de observação</em> por onde o processo deixa rastro. Confundir os dois é o erro mais comum e o mais caro: produz um painel que descreve o funcionamento de uma ferramenta e não responde a nenhuma pergunta pedagógica.</p>
+        <p>A consequência prática aparece no título de cada gráfico. "Commits por semana" descreve a ferramenta. "Distribuição do esforço do grupo ao longo do módulo" descreve o processo — e é a mesma consulta.</p>
+
+        <h2>Duas naturezas de observação</h2>
+        <p>Os dados chegam por dois canais que não são redundantes. Cada um enxerga o que o outro não alcança, e a diferença entre eles tem consequência direta sobre o que o dashboard pode afirmar.</p>
+        <table>
+          <thead><tr><th>&nbsp;</th><th>Estado</th><th>Atividade</th></tr></thead>
+          <tbody>
+            <tr><td><strong>O que é</strong></td><td>O artefato que sobreviveu: commit, diff, merge request, branch, cartão</td><td>O ato de trabalhar: clonar, ler código, revisar um diff, mover um cartão</td></tr>
+            <tr><td><strong>Pergunta</strong></td><td>O que existe no repositório e o que há dentro dele?</td><td>O que aconteceu, e quando de fato aconteceu?</td></tr>
+            <tr><td><strong>Captura</strong></td><td>Apenas a escrita persistida</td><td>Leitura e escrita, o processo em curso</td></tr>
+            <tr><td><strong>Cegueira</strong></td><td>Não vê quem leu o código nem quem clonou</td><td>Não reconstrói o que ocorreu antes do início da captura</td></tr>
+          </tbody>
+        </table>
+        <p>Um detalhe decisivo para qualquer afirmação temporal: a data de um commit é gravada pelo cliente e pode ser reescrita por <em>rebase</em>; a hora registrada pelo servidor, não. Toda leitura de cadência precisa declarar qual das duas está usando.</p>
+
+        <h2>Seis dimensões de análise</h2>
+        <div class="method-flow">
+          <div class="method-step"><strong>Versionamento</strong><span>Cadência, autoria e distribuição do trabalho dentro do grupo.</span></div>
+          <div class="method-step"><strong>Conteúdo</strong><span>O que há dentro do commit: código, teste, documentação, configuração, arquivo gerado.</span></div>
+          <div class="method-step"><strong>Integração</strong><span>Merge requests, revisores, tempo de vida e aprovação.</span></div>
+          <div class="method-step"><strong>Conformidade</strong><span>O fluxo de ramificação declarado contra o fluxo efetivamente praticado.</span></div>
+          <div class="method-step"><strong>Fluxo</strong><span>Kanban: cartões, colunas, trabalho em progresso e tempo de ciclo.</span></div>
+          <div class="method-step"><strong>Coerência</strong><span>O que o quadro afirma contra o que o repositório demonstra.</span></div>
+        </div>
+        <p>As quatro primeiras dimensões descrevem a base de código versionada. As duas últimas ligam o quadro de tarefas ao repositório — é ali que aparecem as contradições mais informativas, como um cartão concluído sem nenhuma entrega correspondente no período.</p>
+
+        <h2>Origem e proveniência dos dados</h2>
+        <p>A extração é responsabilidade do professor e o grupo recebe o banco já populado. Construir o pipeline não faz parte da avaliação; compreender de onde os dados vieram e o que eles não conseguem enxergar, sim — essa é a substância do Gate 2 do método da disciplina.</p>
+        <table>
+          <thead><tr><th>Etapa</th><th>O que acontece</th></tr></thead>
+          <tbody>
+            <tr><td>1 &middot; Extração</td><td>API do GitLab institucional, via CLI administrativo: projetos, membros, commits, diffs, merge requests, branches, issues e eventos de quadro</td></tr>
+            <tr><td>2 &middot; Staging</td><td>Banco SQLite com o recorte completo do módulo — cópia imutável e auditável da extração</td></tr>
+            <tr><td>3 &middot; Carga</td><td>Ingestão no Postgres da instância Metabase da disciplina, por túnel seguro</td></tr>
+            <tr><td>4 &middot; Modelagem</td><td>Conversão do esquema operacional em fatos e dimensões, sobre a base já carregada</td></tr>
+            <tr><td>5 &middot; Consumo</td><td>Perguntas salvas, coleção organizada e dashboard narrativo no Metabase</td></tr>
+          </tbody>
+        </table>
+        <p>O que o recorte <strong>não</strong> observa também precisa constar do dossiê: conversas fora da plataforma, trabalho em pares no mesmo teclado, código escrito e descartado antes do commit, e qualquer esforço que não tenha deixado rastro versionado. Um integrante pouco visível nos dados não é, por isso, um integrante ausente — é um integrante sobre o qual esta fonte não tem evidência.</p>
+
+        <h2>Perguntas de decisão que o dashboard precisa sustentar</h2>
+        <p>O dashboard existe para um leitor específico — o docente que orienta o grupo — e para uma decisão específica: intervir ou não intervir, e em quê. Toda visualização precisa se ligar a pelo menos uma destas perguntas.</p>
+        <table>
+          <thead><tr><th>Pergunta</th><th>Evidência que a sustenta</th></tr></thead>
+          <tbody>
+            <tr><td>O trabalho foi distribuído ou concentrado em poucos integrantes?</td><td>Autoria por sprint, concentração da contribuição, participação em revisão</td></tr>
+            <tr><td>O grupo trabalhou ao longo do módulo ou apenas na véspera?</td><td>Distribuição temporal de commits e merges contra o calendário de sprints</td></tr>
+            <tr><td>O que foi entregue é código, documentação ou ruído?</td><td>Composição do diff por classe de arquivo, incluindo arquivos gerados automaticamente</td></tr>
+            <tr><td>A revisão de código foi genuína?</td><td>Tempo entre abertura e aprovação, tamanho do diff, presença de comentário substantivo</td></tr>
+            <tr><td>O quadro reflete o repositório?</td><td>Cartões concluídos contra entregas versionadas no mesmo período</td></tr>
+            <tr><td>Há sinal que justifique intervenção pedagógica agora?</td><td>Desvio contra o esperado, com evidência rastreável até o registro de origem</td></tr>
+          </tbody>
+        </table>
+        <p>Cada painel do dashboard final precisa permitir o caminho inverso: do número exibido até a linha de origem que o produziu. Um indicador que não pode ser aberto não sustenta decisão.</p>
+
+        <h2>Restrições inegociáveis</h2>
+        <div class="note">
+          <strong>Confidencialidade</strong>
+          <p>Os dados são reais e identificados. O acesso é restrito à turma fechada do MBA e ao ambiente Metabase da disciplina. É vedada qualquer reprodução fora desse ambiente: sem exportação para repositório pessoal, sem captura de tela em redes sociais ou portfólio, sem compartilhamento com terceiros. A entrega final é apresentada dentro do ambiente da disciplina.</p>
+        </div>
+        <div class="note">
+          <strong>Autoridade humana</strong>
+          <p>O dashboard produz evidência, análise e pergunta — nunca veredito. Ele não atribui nota, não classifica aluno e não recomenda sanção. Quem interpreta e decide é o docente. Um painel que ranqueia pessoas está fora do escopo e será avaliado como incorreto, ainda que tecnicamente bem construído.</p>
+        </div>
+        <div class="note">
+          <strong>Unidade de análise</strong>
+          <p>A saída é sempre o <strong>grupo</strong>. O indivíduo aparece apenas como componente da distribuição interna do grupo, para responder sobre equilíbrio de participação — jamais como sujeito de comparação entre grupos ou turmas.</p>
+        </div>
+
+        <h2>Entregáveis</h2>
+        <table>
+          <thead><tr><th>Entregável</th><th>Descrição</th><th>Peso</th></tr></thead>
+          <tbody>
+            <tr><td>Artefatos semanais</td><td>Perguntas salvas no Metabase e registros escritos, produzidos nas aulas 01 a 07</td><td>40%</td></tr>
+            <tr><td>Dashboard narrativo</td><td>Organizado em abas, respondendo às perguntas de decisão com filtros e detalhamento por clique</td><td>30%</td></tr>
+            <tr><td>Defesa</td><td>Apresentação de 12 minutos, da pergunta de negócio à recomendação sustentada por evidência</td><td>20%</td></tr>
+            <tr><td>Revisão por pares</td><td>Participação nas auditorias heurísticas das entregas dos outros grupos</td><td>10%</td></tr>
+          </tbody>
+        </table>
+        <p>O critério transversal da disciplina permanece válido aqui: toda escolha de representação precisa de justificativa explícita, alternativa descartada, auditoria heurística e evidência de teste. Um painel visualmente correto que responde à pergunta errada não tem valor.</p>
+
+        <div class="actions">
+          <a class="button" href="home_data_visualization.html">&larr; Voltar para a disciplina</a>
+          <a class="button" href="https://metabase-production-76b0.up.railway.app/" target="_blank" rel="noopener noreferrer">Acessar Metabase &rarr;</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

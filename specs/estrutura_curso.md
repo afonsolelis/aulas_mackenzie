@@ -71,9 +71,9 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 
 - O horário de cada disciplina é definido em seu cronograma.
 - Aulas noturnas ocorrem das `19h00` às `22h00`; aulas de sábado de Data Collection and Storage e Data Visualization ocorrem das `8h30` às `12h10`.
-- O bloco inicial da aula é sempre teórico.
+- O bloco inicial da aula é sempre teórico, exceto na Aula 04 de Data Visualization. Nela, a aula é 100% prática e os conceitos aparecem durante a execução guiada no terminal.
 - O restante da aula é reservado à prática, conforme os intervalos publicados no cronograma e na agenda.
-- O ambiente prático varia por disciplina: Cloud Computing e SRE e Data Collection and Storage usam o `AWS Student Lab`; Data Visualization usa a instância `Metabase` hospedada, por não ter componente de infraestrutura em nuvem e exigir persistência do trabalho ao longo das 8 semanas.
+- O ambiente prático varia por disciplina: Cloud Computing e SRE e Data Collection and Storage usam o `AWS Student Lab`; Data Visualization usa a instância `Metabase` hospedada nas aulas regulares. A Aula 03 usa `GitHub Codespaces`, `D3` e assistência de IA sobre uma API segura; a Aula 04 usa Codespaces e OpenCode Zen para transformar arquivos Excel em SQLite e DuckDB e gerar relatórios HTML reproduzíveis.
 
 ---
 
@@ -116,8 +116,8 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 | 01 | 15/08/2026 | Data Discovery com Metabase |
 | 02 | 22/08/2026 | Arquitetura de BI e Modelagem Dimensional com Olist |
 | 03 | 29/08/2026 | Visualização de Dados Numéricos |
-| 04 | 05/09/2026 | Visualização de Dados Não Numéricos |
-| 05 | 12/09/2026 | Tabelas, Gráficos e Escolha da Representação |
+| 04 | 05/09/2026 | Do Excel ao OLAP com SQLite, DuckDB e IA |
+| 05 | 12/09/2026 | Visualização de Dados Não Numéricos |
 | 06 | 19/09/2026 | Mapas e Visualização Geoespacial |
 | 07 | 26/09/2026 | Indicadores de Performance e Dashboards |
 | 08 | 03/10/2026 | Storytelling com Dados e Projeto Final |

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard Olist — D3 + IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js" defer></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="kicker">Data Visualization · Aula 03 · 2026</p>
+      <h1>Dashboard analítico Olist</h1>
+      <p class="summary">Quatro trabalhos numéricos em uma interface de decisão. Copilot e OpenCode ajudam a construir; você valida o dado e responde pela conclusão.</p>
+    </div>
+    <div class="status" aria-live="polite">
+      <span id="app-status">API: verificando</span>
+      <span id="data-status">Dados: verificando</span>
+      <span id="ai-status">IA: verificando</span>
+    </div>
+  </header>
+
+  <section class="dashboard-overview" aria-labelledby="overview-title">
+    <div class="overview-heading">
+      <p class="kicker">Visão executiva</p>
+      <h2 id="overview-title">O que o dashboard permite investigar</h2>
+    </div>
+    <div class="kpi-grid" id="dashboard-kpis" aria-live="polite">
+      <article><span>Evolução</span><strong id="kpi-evolution">Carregando</strong><small>pico de pedidos no período</small></article>
+      <article><span>Distribuição</span><strong id="kpi-distribution">Carregando</strong><small>mediana aproximada de preço</small></article>
+      <article><span>Magnitude</span><strong id="kpi-magnitude">Carregando</strong><small>categoria líder em faturamento</small></article>
+      <article><span>Relação</span><strong id="kpi-relation">Carregando</strong><small>itens visíveis na dispersão</small></article>
+    </div>
+  </section>
+
+  <main class="dashboard-grid">
+    <section class="chart-card" data-chart="evolution">
+      <header class="card-header">
+        <div><p class="kicker">01 · Evolução</p><h2>Pedidos entregues ao longo do tempo</h2></div>
+        <label>Granularidade
+          <select id="evolution-grain"><option value="day">Dia</option><option value="week">Semana</option><option value="month" selected>Mês</option></select>
+        </label>
+      </header>
+      <div class="chart" id="evolution-chart" role="img" aria-label="Série temporal de pedidos entregues" aria-describedby="evolution-description evolution-meta"></div>
+      <p class="chart-description" id="evolution-description"></p>
+      <dl class="metadata" id="evolution-meta"></dl>
+      <div class="decision"><label for="evolution-decision">Decisão registrada</label><textarea id="evolution-decision">Escolhi a granularidade mensal para reduzir ruído sem ocultar a tendência.</textarea><button data-agent="evolution">Pedir crítica à IA</button></div>
+      <article class="agent-output" id="evolution-agent" aria-live="polite"><p>Recomendação revisável: solicite uma crítica quando terminar sua escolha.</p></article>
+    </section>
+
+    <section class="chart-card" data-chart="distribution">
+      <header class="card-header">
+        <div><p class="kicker">02 · Distribuição</p><h2>Distribuição do preço dos itens</h2></div>
+        <label>Quantidade de bins
+          <input id="distribution-bins" type="range" min="5" max="40" value="12"><output id="distribution-bins-value">12</output>
+        </label>
+      </header>
+      <div class="chart" id="distribution-chart" role="img" aria-label="Histograma do preço dos itens" aria-describedby="distribution-description distribution-meta"></div>
+      <p class="chart-description" id="distribution-description"></p>
+      <dl class="metadata" id="distribution-meta"></dl>
+      <div class="decision"><label for="distribution-decision">Decisão registrada</label><textarea id="distribution-decision">Mantive a cauda e testei diferentes bins para não esconder a assimetria.</textarea><button data-agent="distribution">Pedir crítica à IA</button></div>
+      <article class="agent-output" id="distribution-agent" aria-live="polite"><p>Recomendação revisável: solicite uma crítica quando terminar sua escolha.</p></article>
+    </section>
+
+    <section class="chart-card" data-chart="magnitude">
+      <header class="card-header">
+        <div><p class="kicker">03 · Magnitude</p><h2>Faturamento por categoria</h2></div>
+        <label>Top N
+          <select id="magnitude-top"><option>5</option><option selected>10</option><option>15</option><option>20</option></select>
+        </label>
+      </header>
+      <div class="chart" id="magnitude-chart" role="img" aria-label="Barras de faturamento por categoria" aria-describedby="magnitude-description magnitude-meta"></div>
+      <p class="chart-description" id="magnitude-description"></p>
+      <dl class="metadata" id="magnitude-meta"></dl>
+      <div class="decision"><label for="magnitude-decision">Decisão registrada</label><textarea id="magnitude-decision">Usei barras horizontais e Top 10 para preservar rótulos e comparação.</textarea><button data-agent="magnitude">Pedir crítica à IA</button></div>
+      <article class="agent-output" id="magnitude-agent" aria-live="polite"><p>Recomendação revisável: solicite uma crítica quando terminar sua escolha.</p></article>
+    </section>
+
+    <section class="chart-card" data-chart="relation">
+      <header class="card-header">
+        <div><p class="kicker">04 · Relação</p><h2>Preço contra frete</h2></div>
+        <label class="checkbox"><input id="relation-trim" type="checkbox"> Remover valores acima do P95</label>
+      </header>
+      <div class="chart" id="relation-chart" role="img" aria-label="Dispersão entre preço e valor do frete" aria-describedby="relation-description relation-meta"></div>
+      <p class="chart-description" id="relation-description"></p>
+      <dl class="metadata" id="relation-meta"></dl>
+      <div class="decision"><label for="relation-decision">Decisão registrada</label><textarea id="relation-decision">Descrevi associação entre preço e frete sem afirmar relação causal.</textarea><button data-agent="relation">Pedir crítica à IA</button></div>
+      <article class="agent-output" id="relation-agent" aria-live="polite"><p>Recomendação revisável: solicite uma crítica quando terminar sua escolha.</p></article>
+    </section>
+  </main>
+
+  <footer><p>Fonte: Olist · A IA oferece recomendações; a responsabilidade analítica permanece com você.</p></footer>
+</body>
+</html>

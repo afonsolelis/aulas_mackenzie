@@ -9,7 +9,7 @@ Documento vivo de planejamento das 8 aulas da disciplina. Sábados, 8h30 – 12h
 
 A ementa institucional contempla percepção humana, representações para dados numéricos e não numéricos, tabelas, gráficos, mapas, indicadores de performance, dashboards e storytelling. A disciplina organiza esses conteúdos como um processo analítico completo, no qual a representação visual depende de dados compreendidos, arquitetura identificável e semântica consistente.
 
-A Aula 01 estabelece o perfil do conjunto Olist e formula perguntas de negócio. A Aula 02 localiza aquisição, persistência, camada semântica e consumo nas principais arquiteturas de BI e converte o esquema operacional em fatos e dimensões. As aulas seguintes utilizam esse modelo para estudar percepção, comparação, categorias, escolha de representação, espaço, indicadores e narrativa.
+A Aula 01 estabelece o perfil do conjunto Olist e formula perguntas de negócio. A Aula 02 localiza aquisição, persistência, camada semântica e consumo nas principais arquiteturas de BI e converte o esquema operacional em fatos e dimensões. As aulas seguintes utilizam esse modelo para estudar percepção, comparação, construção de uma cadeia analítica local, categorias, espaço, indicadores e narrativa.
 
 ---
 
@@ -21,14 +21,14 @@ Oito aulas, uma progressão única:
 01  Descobrir os dados            Data Discovery, perfilamento, perguntas de negócio
 02  Arquitetar e modelar          plataformas de BI, fatos, dimensões, SCD, barramento
 03  Comparar números              percepção, distribuições, séries temporais, magnitude
-04  Representar categorias        categóricos, hierarquias, texto livre
-05  Escolher a representação      tabela vs. gráfico, matriz de decisão
+04  Construir a cadeia local      Excel, SQLite, HTML, DuckDB, OLAP e IA
+05  Representar categorias        categóricos, texto, tabela vs. gráfico
 06  Situar no espaço              mapas, geoespacial, escolha de projeção
 07  Medir desempenho              KPI, SLA, dashboards, filtros e alertas
 08  Contar a história             storytelling, narrativa, defesa do projeto
 ```
 
-Cada aula produz **um artefato no Metabase** (perguntas salvas, dashboard, coleção organizada) e **um registro escrito** (`docs/NN_*.md` no repositório do aluno). A aula seguinte consome os dois.
+Cada aula produz artefatos verificáveis e um registro escrito no repositório do aluno. Nas aulas regulares, o artefato principal fica no **Metabase**; a Aula 03 produz uma visualização D3 e a Aula 04 produz scripts, dois bancos, dois HTMLs e reconciliações no Codespaces.
 
 ### Método transversal C-D-P-V-D
 
@@ -69,8 +69,8 @@ O produto da disciplina é um dossiê auditável que registra como cada decisão
 | 01 | `01_brief_e_qualidade.md` | brief, perfil ISO-aligned, regras e limitações |
 | 02 | `02_arquitetura_e_modelo.md` | fluxos de consumo, grãos, matriz de barramento e testes SQL |
 | 03 | `03_registro_numerico.md` | escala, agregação, incerteza e alternativas |
-| 04 | `04_protocolo_categorias.md` | taxonomia, corte, perda e viés de classificação |
-| 05 | `05_especificacao_visual.md` | matriz de decisão e alternativa acessível |
+| 04 | `04_pipeline_excel_olap.md` | proveniência, reconciliação, tempos e limitações dos dois bancos |
+| 05 | `05_protocolo_categorias.md` | taxonomia, corte, perda, viés e alternativa de representação |
 | 06 | `06_revisao_geoespacial.md` | normalização, unidade espacial, privacidade e risco |
 | 07 | `07_kpis_e_teste.md` | dicionário de KPI e teste de tarefas do dashboard |
 | 08 | `08_estudo_de_caso.md` | narrativa, evidências, limitações e recomendação |
@@ -96,10 +96,11 @@ Uma crítica válida registra `evidência → heurística → severidade → con
 
 | Tópico da ementa | Onde é coberto |
 |---|---|
-| Percepção humana | Aulas 03, 04 e 05, aplicada aos diferentes trabalhos visuais |
+| Percepção humana | Aulas 03 e 05, aplicada aos diferentes trabalhos visuais |
 | Dados numéricos | Aula 03 |
-| Dados não numéricos | Aula 04 |
-| Tabelas e gráficos | Aula 05 |
+| Dados não numéricos | Aula 05 |
+| Tabelas e gráficos | Aulas 03 e 05 |
+| Integração de fontes e publicação | Aula 04, do Excel aos HTMLs via SQLite e DuckDB |
 | Mapas | Aula 06 |
 | Indicadores de performance | Aula 07 |
 | Dashboards | Aula 07 (construção), Aula 08 (narrativa) |
@@ -172,8 +173,8 @@ olist-dataviz/
 │   ├── 01_brief_e_qualidade.md       # Aula 01 — contexto, perfil e regras de dados
 │   ├── 02_arquitetura_e_modelo.md    # Aula 02 — arquitetura, grãos, barramento e testes
 │   ├── 03_registro_numerico.md       # Aula 03 — decisões numéricas e alternativas
-│   ├── 04_protocolo_categorias.md    # Aula 04 — taxonomia, corte, perda e viés
-│   ├── 05_especificacao_visual.md    # Aula 05 — matriz, especificação e acessibilidade
+│   ├── 04_pipeline_excel_olap.md      # Aula 04 — reconciliação, tempos e limitações
+│   ├── 05_protocolo_categorias.md    # Aula 05 — taxonomia, corte, perda e viés
 │   ├── 06_revisao_geoespacial.md     # Aula 06 — normalização, risco e privacidade
 │   ├── 07_kpis_e_teste.md            # Aula 07 — fichas de KPI e teste de tarefas
 │   └── 08_estudo_de_caso.md          # Aula 08 — narrativa, evidências e limitações
@@ -187,7 +188,7 @@ olist-dataviz/
 
 ## 4. Mapa detalhado das aulas
 
-Todas as aulas combinam fundamentação, demonstração e prática no Metabase. A distribuição de tempo varia conforme a complexidade conceitual e o encadeamento do laboratório.
+As aulas combinam fundamentação, demonstração e prática. A Aula 04 é a exceção deliberada: 100% prática, com os conceitos introduzidos durante a execução guiada. O Metabase sustenta as aulas regulares; as Aulas 03 e 04 usam GitHub Codespaces e assistência de IA para produzir artefatos versionáveis.
 
 ### Aula 01 — 15/08/2026 — Data Discovery com Metabase
 **Conceitual:** o que é data discovery e por que antecede a visualização; perfilamento de dados (completude, cardinalidade, distribuição, outliers); tipos semânticos vs. tipos físicos; da pergunta vaga à pergunta respondível; grão da análise.
@@ -207,17 +208,17 @@ Todas as aulas combinam fundamentação, demonstração e prática no Metabase. 
 **Artefato:** 4 perguntas numéricas salvas, uma por tipo de trabalho + `docs/03_registro_numerico.md`.
 **Saída verificável:** cada gráfico declara qual dos quatro trabalhos executa e por que o tipo escolhido é superior às alternativas descartadas.
 
-### Aula 04 — 05/09/2026 — Visualização de Dados Não Numéricos
-**Conceitual:** o que muda quando o dado é categórico, hierárquico, textual ou relacional; cardinalidade alta e a armadilha do "top N + outros"; ordenação de categorias nominais vs. ordinais; por que gráficos de pizza falham; representação de texto livre.
-**Prática:** ranking de 71 categorias de produto; agrupamento de cauda longa; análise dos comentários de review por score; construção de uma hierarquia categoria → produto.
-**Artefato:** 3 perguntas categóricas + uma análise textual + `docs/04_protocolo_categorias.md`.
-**Saída verificável:** o aluno defende o corte da cauda longa com critério explícito e mostra o que se perde nesse corte.
+### Aula 04 — 05/09/2026 — Do Excel ao OLAP com SQLite, DuckDB e IA
+**Conceitos em execução:** diferença entre planilha, banco e relatório; SQLite como banco embutido orientado a linhas; DuckDB como mecanismo colunar vetorizado para OLAP; grão, fanout, reconciliação e limites de comparação de desempenho.
+**Prática integral:** configuração do OpenCode Zen no terminal do Codespaces; download e perfil de nove Excels Olist; carga em SQLite; geração de HTML operacional; materialização em DuckDB; construção de fato e mart; geração de HTML analítico.
+**Artefato:** seis scripts, `olist.sqlite`, `olist.duckdb`, dois relatórios HTML, registros de reconciliação e `docs/04_pipeline_excel_olap.md`.
+**Saída verificável:** o grupo reconstrói os dois HTMLs a partir dos Excels, demonstra a fonte de cada número e compara a mesma consulta nos dois mecanismos sem exceder a evidência medida.
 
-### Aula 05 — 12/09/2026 — Tabelas, Gráficos e Escolha da Representação
-**Conceitual:** quando a tabela é a resposta certa; tabela como instrumento de leitura precisa vs. gráfico como instrumento de padrão; tabela dinâmica; formatação condicional e micrográficos embutidos; construção coletiva de uma matriz de decisão de representação.
-**Prática:** mesma pergunta respondida como tabela, tabela dinâmica e gráfico; formatação condicional; consolidação da matriz de decisão da turma.
-**Artefato:** matriz de decisão consolidada + `docs/05_especificacao_visual.md`.
-**Saída verificável:** dada uma pergunta nova, o aluno percorre a matriz e justifica a representação escolhida em menos de um minuto.
+### Aula 05 — 12/09/2026 — Visualização de Dados Não Numéricos
+**Conceitual:** dado categórico, hierárquico, textual ou relacional; cardinalidade alta e a armadilha do "top N + outros"; ordenação nominal e ordinal; tabela simples, tabela dinâmica, formatação condicional e gráfico conforme a tarefa.
+**Prática:** ranking de 71 categorias em tabela, forma híbrida e barras; corte da cauda longa; comentários por score; hierarquia categoria → produto; construção e teste de uma matriz coletiva de representação.
+**Artefato:** tabela completa, versão híbrida, perguntas categóricas, análise textual e `docs/05_protocolo_categorias.md` com a matriz.
+**Saída verificável:** o aluno defende corte, ordem e representação com critério explícito, mostra o que se perde em cada decisão e testa a matriz contra uma pergunta nova.
 
 ### Aula 06 — 19/09/2026 — Mapas e Visualização Geoespacial
 **Conceitual:** quando o espaço é a variável relevante e quando é distração; mapa de pontos vs. mapa de regiões; o problema do mapa que só mostra densidade populacional; normalização por população ou por base de clientes; projeções e distorção de área.
@@ -259,7 +260,7 @@ A tese da disciplina: **a qualidade da pergunta determina a qualidade da visuali
 
 | Componente | Peso | Quando |
 |---|---|---|
-| Artefatos semanais no Metabase e no repositório | 40% | Aulas 01 a 07 |
+| Artefatos semanais no ambiente da aula e no repositório | 40% | Aulas 01 a 07 |
 | Dashboard narrativo final | 30% | Aula 08 |
 | Apresentação e defesa | 20% | Aula 08 |
 | Participação nas revisões por pares | 10% | Contínuo |
@@ -305,8 +306,8 @@ Semanalmente:
 - [ ] Aula 01 — 15/08/2026 — Data Discovery com Metabase
 - [x] Aula 02 — 22/08/2026 — Arquitetura de BI e Modelagem Dimensional com Olist
 - [ ] Aula 03 — 29/08/2026 — Visualização de Dados Numéricos
-- [ ] Aula 04 — 05/09/2026 — Visualização de Dados Não Numéricos
-- [ ] Aula 05 — 12/09/2026 — Tabelas, Gráficos e Escolha da Representação
+- [x] Aula 04 — 05/09/2026 — Do Excel ao OLAP com SQLite, DuckDB e IA
+- [x] Aula 05 — 12/09/2026 — Visualização de Dados Não Numéricos
 - [ ] Aula 06 — 19/09/2026 — Mapas e Visualização Geoespacial
 - [ ] Aula 07 — 26/09/2026 — Indicadores de Performance e Dashboards
 - [ ] Aula 08 — 03/10/2026 — Storytelling com Dados e Projeto Final

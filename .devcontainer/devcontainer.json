@@ -1,0 +1,31 @@
+{
+  "name": "Aulas Mackenzie — Data Visualization e IA",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12",
+      "installTools": false
+    }
+  },
+  "forwardPorts": [3000, 8000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Laboratório Aula 03",
+      "onAutoForward": "openPreview"
+    },
+    "8000": {
+      "label": "Relatórios HTML Aula 04",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y sqlite3 && npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "github.copilot",
+        "github.copilot-chat"
+      ]
+    }
+  }
+}

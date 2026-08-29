@@ -30,7 +30,7 @@
         <p>Desenvolver a capacidade de escolher e construir representações gráficas efetivas, adequadas ao público e à mensagem, para gerar insights de negócio e apoiar a tomada de decisão com ferramentas de visualização de dados.</p>
         <h2>Como a disciplina funciona</h2>
         <p>A trilha foi estruturada como uma progressão cumulativa. Cada semana utiliza o trabalho da anterior sobre um único conjunto de dados — o Olist, e-commerce brasileiro com cerca de cem mil pedidos — até a apresentação de uma narrativa analítica defensável.</p>
-        <p>A ferramenta é o <strong>Metabase</strong>, em instância hospedada, com o banco em modo somente leitura e uma coleção por aluno. Cada aula começa com fundamentação teórica e avança para blocos práticos guiados nos horários publicados na agenda; as construções ficam salvas na coleção do aluno e são retomadas nas semanas seguintes.</p>
+        <p>A disciplina combina o <strong>Metabase</strong> hospedado com artefatos versionáveis. Na Aula 03, o laboratório no <strong>GitHub Codespaces</strong> usa D3 e uma API segura. Na Aula 04, o OpenCode Zen orienta no terminal a transformação de nove Excels em SQLite e DuckDB, com dois relatórios HTML gerados por consultas reproduzíveis.</p>
         <p>Critério transversal de avaliação: toda escolha de representação precisa de justificativa explícita, alternativa considerada, auditoria e evidência de teste — nunca apenas uma preferência estética.</p>
 
         <h2>Método C-D-P-V-D</h2>
@@ -86,10 +86,11 @@
           <span class="card-num">03</span>
           <h2>Aula 03</h2>
           <p><strong>29/08/2026</strong></p>
-          <p>Visualização de Dados Numéricos. Os quatro trabalhos do gráfico numérico: magnitude, distribuição, evolução e relação.</p>
+          <p>Visualização de Dados Numéricos. Magnitude, distribuição, evolução e relação em um laboratório GitHub Codespaces com D3 e IA.</p>
           <div class="actions">
             <a class="button" href="../aulas/data_visualization/aula_03_visualizacao_de_dados_numericos/slides/slide_aula_03_visualizacao_de_dados_numericos.html">Slide</a>
             <a class="button" href="../aulas/data_visualization/aula_03_visualizacao_de_dados_numericos/material/material_aula_03_visualizacao_de_dados_numericos.html">Material</a>
+            <a class="button" href="https://codespaces.new/afonsolelis/aulas_mackenzie?quickstart=1" target="_blank" rel="noopener noreferrer">Abrir Codespace</a>
           </div>
         </article>
 
@@ -97,10 +98,11 @@
           <span class="card-num">04</span>
           <h2>Aula 04</h2>
           <p><strong>05/09/2026</strong></p>
-          <p>Visualização de Dados Não Numéricos. Categorias, cauda longa, hierarquias e texto livre como dado.</p>
+          <p>Do Excel ao OLAP com SQLite, DuckDB e IA. Laboratório no Codespaces: nove planilhas, dois bancos e dois HTMLs auditáveis.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_visualization/aula_04_visualizacao_de_dados_nao_numericos/slides/slide_aula_04_visualizacao_de_dados_nao_numericos.html">Slide</a>
-            <a class="button" href="../aulas/data_visualization/aula_04_visualizacao_de_dados_nao_numericos/material/material_aula_04_visualizacao_de_dados_nao_numericos.html">Material</a>
+            <a class="button" href="../aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/slides/slide_aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia.html">Slide</a>
+            <a class="button" href="../aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/material/material_aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia.html">Material</a>
+            <a class="button" href="https://codespaces.new/afonsolelis/aulas_mackenzie?quickstart=1" target="_blank" rel="noopener noreferrer">Abrir Codespace</a>
           </div>
         </article>
 
@@ -108,10 +110,10 @@
           <span class="card-num">05</span>
           <h2>Aula 05</h2>
           <p><strong>12/09/2026</strong></p>
-          <p>Tabelas, Gráficos e Escolha da Representação. Construção coletiva da matriz de decisão da turma.</p>
+          <p>Visualização de Dados Não Numéricos. Categorias, cauda longa, hierarquias, texto livre e escolha entre tabela e gráfico.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_visualization/aula_05_tabelas_graficos_e_escolha_da_representacao/slides/slide_aula_05_tabelas_graficos_e_escolha_da_representacao.html">Slide</a>
-            <a class="button" href="../aulas/data_visualization/aula_05_tabelas_graficos_e_escolha_da_representacao/material/material_aula_05_tabelas_graficos_e_escolha_da_representacao.html">Material</a>
+            <a class="button" href="../aulas/data_visualization/aula_05_visualizacao_de_dados_nao_numericos/slides/slide_aula_05_visualizacao_de_dados_nao_numericos.html">Slide</a>
+            <a class="button" href="../aulas/data_visualization/aula_05_visualizacao_de_dados_nao_numericos/material/material_aula_05_visualizacao_de_dados_nao_numericos.html">Material</a>
           </div>
         </article>
 
@@ -147,6 +149,14 @@
             <a class="button" href="../aulas/data_visualization/aula_08_storytelling_com_dados_e_projeto_final/material/material_aula_08_storytelling_com_dados_e_projeto_final.html">Material</a>
           </div>
         </article>
+      </section>
+
+      <section class="content-block" aria-labelledby="projeto-modulo-title">
+        <h2 id="projeto-modulo-title">Projeto do módulo</h2>
+        <p>A entrega final da disciplina é um <strong>dashboard sobre o processo PBL de um grupo de graduação</strong>, construído a partir do rastro real de trabalho no GitLab: commits, merge requests, branches e movimentação de cartões no kanban. Os direcionamentos completos &mdash; referente, dimensões de análise, proveniência dos dados, perguntas de decisão, restrições e entregáveis &mdash; estão na página do projeto.</p>
+        <div class="actions">
+          <a class="button" href="projeto_data_visualization.html">Ver direcionamentos do projeto &rarr;</a>
+        </div>
       </section>
 
       <section class="content-block" aria-labelledby="metabase-access-title">

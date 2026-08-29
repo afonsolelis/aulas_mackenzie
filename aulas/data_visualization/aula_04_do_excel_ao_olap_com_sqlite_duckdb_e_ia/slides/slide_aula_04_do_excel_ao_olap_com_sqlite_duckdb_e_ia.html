@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 04 — Do Excel ao OLAP com SQLite, DuckDB e IA</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="04" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Visualization &middot; Laboratório com IA no terminal</span>
+          <h1 class="deck-title">Do Excel ao OLAP com SQLite, DuckDB e IA</h1>
+          <p class="deck-meta">Aula 04 &nbsp;&bull;&nbsp; 05/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Nove planilhas entram. Dois bancos e dois HTMLs auditáveis saem.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Uma aula para construir, medir e comparar</h2>
+          <p class="deck-summary">Prática do início ao fim no GitHub Codespaces, com os conceitos introduzidos enquanto o OpenCode Zen constrói e valida o pipeline no terminal.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h00 &middot; Prática guiada</h3>
+            <ul>
+              <li>Abrir o terminal e inspecionar os nove arquivos</li>
+              <li>Executar as primeiras leituras de esquema e contagem</li>
+              <li>Mapear Excel &rarr; SQLite &rarr; HTML &rarr; DuckDB &rarr; HTML</li>
+              <li>Observar mecanismo, grão e fanout durante a execução</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>9h00 &ndash; 12h10 &middot; Construção assistida</h3>
+            <ul>
+              <li>Configurar Codespaces, OpenCode e Zen</li>
+              <li>Baixar e auditar nove arquivos Excel</li>
+              <li>Excel &rarr; SQLite &rarr; HTML operacional</li>
+              <li>SQLite &rarr; DuckDB &rarr; HTML analítico</li>
+              <li>Medir, reconciliar e registrar as limitações</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Construção do conteúdo &middot; Problema</span>
+          <h2 class="deck-title">Abrir nove planilhas não cria uma fonte de verdade</h2>
+          <p class="deck-summary">Filtros, tipos, relações e métricas continuam espalhados. Cada arquivo pode ser lido, mas o conjunto ainda não pode ser interrogado como sistema.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Resultado observável da aula</strong>
+          <p style="margin:8px 0 0;">Um pipeline reproduzível, executado por scripts criados com IA, que conserva os arquivos de entrada, reconcilia as linhas e gera dois relatórios HTML a partir de dois mecanismos de banco distintos.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Fluxo de trabalho</span>
+          <h2 class="deck-title">A transformação precisa deixar rastro</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step is-current"><strong>Excel</strong><span>Nove fontes imutáveis.</span></div>
+          <div class="method-step"><strong>SQLite</strong><span>Tipos, tabelas e relações.</span></div>
+          <div class="method-step"><strong>HTML 1</strong><span>Leitura operacional.</span></div>
+          <div class="method-step"><strong>DuckDB</strong><span>Cópia colunar e mart OLAP.</span></div>
+          <div class="method-step"><strong>HTML 2</strong><span>Leitura analítica.</span></div>
+        </div>
+        <div class="deck-callout">
+          <strong>Regra</strong>
+          <p style="margin:8px 0 0;">O HTML nunca contém números digitados manualmente. Todo valor publicado nasce de uma consulta registrada no script.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Mecanismo</span>
+          <h2 class="deck-title">SQLite e DuckDB respondem a trabalhos diferentes</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Critério</th><th>SQLite</th><th>DuckDB</th></tr></thead>
+          <tbody>
+            <tr><td>Unidade física</td><td>linhas e páginas</td><td>colunas e vetores</td></tr>
+            <tr><td>Força didática</td><td>ingestão, integridade e consulta direta</td><td>agregação, join, janela e leitura ampla</td></tr>
+            <tr><td>Arquivo</td><td><code>olist.sqlite</code></td><td><code>olist.duckdb</code></td></tr>
+            <tr><td>Relatório</td><td>inventário operacional</td><td>painel OLAP</td></tr>
+            <tr><td>Conclusão permitida</td><td colspan="2">medimos esta carga, nesta máquina; não declaramos vencedor universal</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">IA no terminal</span>
+          <h2 class="deck-title">Delegar código não significa delegar evidência</h2>
+        </div>
+        <ol class="deck-steps">
+          <li><strong>Contextualize:</strong> declare arquivos, restrições e resultado esperado.</li>
+          <li><strong>Peça um plano:</strong> separe leitura, transformação, validação e publicação.</li>
+          <li><strong>Inspecione o diff:</strong> procure caminhos errados, segredos e números fixos.</li>
+          <li><strong>Execute:</strong> rode um artefato por vez no terminal.</li>
+          <li><strong>Reconcilie:</strong> compare linhas, nulos, chaves e métricas com a entrada.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 0 &middot; Codespaces</span>
+          <h2 class="deck-title">Abra um terminal reproduzível</h2>
+          <p class="deck-summary">Entre no GitHub, crie o Codespace deste repositório e aguarde o terminal ficar disponível.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Abrir o ambiente</strong>
+          <p style="margin:8px 0 0;"><a href="https://codespaces.new/afonsolelis/aulas_mackenzie?quickstart=1" target="_blank" rel="noopener noreferrer">Criar Codespace da disciplina &rarr;</a></p>
+        </div>
+        <pre><code>pwd
+git status --short
+python3 --version
+node --version</code></pre>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 0 &middot; OpenCode</span>
+          <h2 class="deck-title">Instale o agente no terminal</h2>
+          <p class="deck-summary">O Codespace já fornece Node.js. A instalação oficial por npm mantém o comando disponível na sessão.</p>
+        </div>
+        <pre><code>npm install -g opencode-ai
+opencode --version
+cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
+opencode</code></pre>
+        <div class="deck-callout">
+          <strong>Não feche este terminal</strong>
+          <p style="margin:8px 0 0;">Os próximos comandos com barra são digitados dentro da interface do OpenCode, não no shell.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 0 &middot; OpenCode Zen</span>
+          <h2 class="deck-title">Conecte o modelo sem expor a chave</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Digite <code>/connect</code> e selecione <strong>OpenCode Zen</strong>.</li>
+          <li>Abra <code>opencode.ai/auth</code>, autentique-se e adicione créditos.</li>
+          <li>Copie a API key e cole somente no campo seguro solicitado.</li>
+          <li>Digite <code>/models</code> e escolha um modelo disponível.</li>
+          <li>Peça: <code>Leia ../../../../AGENTS.md e README.md; resuma as restrições.</code></li>
+          <li>Mantenha o agente aberto e use um segundo terminal para executar os scripts.</li>
+        </ol>
+        <div class="deck-callout">
+          <strong>Segredo não é contexto</strong>
+          <p style="margin:8px 0 0;">Não cole a chave no prompt, no HTML, em arquivo <code>.env</code> versionado ou em commit.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Download</span>
+          <h2 class="deck-title">Pedidos, clientes e localização</h2>
+          <p class="deck-summary">Baixe os arquivos ou use as cópias já disponíveis no repositório do Codespace.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Clientes &middot; 99.441</h3><p><a href="../dados/olist_customers.xlsx" download>Baixar olist_customers.xlsx</a></p></article>
+          <article class="deck-card"><h3>Pedidos &middot; 99.441</h3><p><a href="../dados/olist_orders.xlsx" download>Baixar olist_orders.xlsx</a></p></article>
+          <article class="deck-card"><h3>Geolocalização &middot; 1.000.163</h3><p><a href="../dados/olist_geolocation.xlsx" download>Baixar olist_geolocation.xlsx</a></p></article>
+          <article class="deck-card"><h3>Itens &middot; 112.650</h3><p><a href="../dados/olist_order_items.xlsx" download>Baixar olist_order_items.xlsx</a></p></article>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Download</span>
+          <h2 class="deck-title">Pagamentos, avaliações e catálogo</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Tabela</th><th>Linhas</th><th>Arquivo</th></tr></thead>
+          <tbody>
+            <tr><td>Pagamentos</td><td>103.886</td><td><a href="../dados/olist_order_payments.xlsx" download>Baixar olist_order_payments.xlsx</a></td></tr>
+            <tr><td>Avaliações</td><td>99.224</td><td><a href="../dados/olist_order_reviews.xlsx" download>Baixar olist_order_reviews.xlsx</a></td></tr>
+            <tr><td>Produtos</td><td>32.951</td><td><a href="../dados/olist_products.xlsx" download>Baixar olist_products.xlsx</a></td></tr>
+            <tr><td>Vendedores</td><td>3.095</td><td><a href="../dados/olist_sellers.xlsx" download>Baixar olist_sellers.xlsx</a></td></tr>
+            <tr><td>Tradução</td><td>71</td><td><a href="../dados/product_category_name_translation.xlsx" download>Baixar product_category_name_translation.xlsx</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Gate de entrada</span>
+          <h2 class="deck-title">Antes de transformar, prove o que recebeu</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Teste</th><th>Evidência</th><th>Falha</th></tr></thead>
+          <tbody>
+            <tr><td>Quantidade</td><td>nove arquivos <code>.xlsx</code></td><td>fonte ausente</td></tr>
+            <tr><td>Cabeçalho</td><td>colunas registradas por arquivo</td><td>campo deslocado</td></tr>
+            <tr><td>Linhas</td><td>contagem igual ao manifesto</td><td>carga parcial</td></tr>
+            <tr><td>Imutabilidade</td><td>entrada nunca sobrescrita</td><td>perda de proveniência</td></tr>
+            <tr><td>Memória</td><td>leitura <code>read_only</code> em lotes</td><td>um milhão de linhas em RAM</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Etapa 1 &middot; Workspace</span>
+          <h2 class="deck-title">Separe entrada, código e saída</h2>
+        </div>
+        <pre><code>cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
+mkdir -p entrada src saida
+cp ../dados/*.xlsx entrada/
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt</code></pre>
+        <div class="deck-callout">
+          <strong>Contrato de diretórios</strong>
+          <p style="margin:8px 0 0;"><code>entrada/</code> é imutável; <code>src/</code> contém scripts; <code>saida/</code> recebe bancos, logs e HTMLs.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">OpenCode &middot; Prompt 1</span>
+          <h2 class="deck-title">Primeiro peça perfil, não transformação</h2>
+        </div>
+        <pre><code>Leia README.md. Inspecione entrada/*.xlsx em modo
+read_only, sem carregar a planilha inteira em memória. Crie
+src/00_perfil_excel.py para registrar arquivo, aba, cabeçalhos,
+quantidade de linhas e amostra de tipos. Grave saida/perfil_excel.json.
+Não altere a entrada. Mostre o plano antes de editar.</code></pre>
+        <div class="deck-callout">
+          <strong>Depois do diff</strong>
+          <p style="margin:8px 0 0;"><code>python src/00_perfil_excel.py</code> e compare as nove contagens com o manifesto.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">OpenCode &middot; Prompt 2</span>
+          <h2 class="deck-title">Transforme Excel em SQLite por lotes</h2>
+        </div>
+        <pre><code>Crie src/01_excel_para_sqlite.py. Use openpyxl em read_only,
+sqlite3 da biblioteca padrão, esquema explícito para as nove tabelas,
+transação por arquivo e inserção em lotes de 5.000 linhas. Converta
+datas para ISO 8601 e preserve nulos. Ative PRAGMA foreign_keys=ON,
+declare as seis FKs do material e carregue pais antes de filhos. Crie
+índices após a carga e grave saida/olist.sqlite. Reconcilie contagens,
+unicidade e FKs; falhe em qualquer divergência. Não use pandas.</code></pre>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Gate SQLite</span>
+          <h2 class="deck-title">Arquivo criado não significa carga correta</h2>
+        </div>
+        <pre><code>python src/01_excel_para_sqlite.py
+sqlite3 saida/olist.sqlite ".tables"
+sqlite3 saida/olist.sqlite \
+  "SELECT 'orders', count(*) FROM olist_orders;"
+sqlite3 saida/olist.sqlite "PRAGMA integrity_check;"
+sqlite3 saida/olist.sqlite "PRAGMA foreign_key_check;"</code></pre>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>9 tabelas</strong><span>nomes iguais aos arquivos.</span></div>
+          <div class="quality-gate"><strong>Linhas</strong><span>todas reconciliadas.</span></div>
+          <div class="quality-gate"><strong>Tipos</strong><span>data e número não viram texto acidental.</span></div>
+          <div class="quality-gate"><strong>Integridade + FKs</strong><span><code>ok</code> e nenhuma relação órfã.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">OpenCode &middot; Prompt 3</span>
+          <h2 class="deck-title">Leia o SQLite e publique o primeiro HTML</h2>
+        </div>
+        <pre><code>Crie src/02_html_sqlite.py. Abra saida/olist.sqlite em modo somente
+leitura e gere saida/relatorio_sqlite.html com HTML semântico e CSS
+embutido. Mostre contagem das nove tabelas, pedidos por status, cinco
+pedidos recentes e duração de cada consulta. Escape texto, registre a
+fonte e a data de geração. Nenhuma métrica pode ser digitada no HTML.</code></pre>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Gate HTML 1</span>
+          <h2 class="deck-title">O relatório precisa provar sua origem</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Execute <code>python src/02_html_sqlite.py</code>.</li>
+          <li>Sirva a saída com <code>python -m http.server 8000 -d saida</code>.</li>
+          <li>Abra a porta 8000 e escolha <code>relatorio_sqlite.html</code>.</li>
+          <li>Compare uma contagem do HTML com a consulta no terminal.</li>
+          <li>Procure no código: o número deve vir do cursor, não de uma string.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Mudança de mecanismo</span>
+          <h2 class="deck-title">O mesmo arquivo pode ser lido; a cópia muda o trabalho</h2>
+          <p class="deck-summary">Anexar o SQLite permite consultar a fonte. Materializar tabelas no DuckDB cria um arquivo analítico próprio, com tipos rígidos, armazenamento colunar e estatísticas para joins.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel"><strong>Anexar</strong><p>DuckDB consulta as tabelas que continuam fisicamente no SQLite.</p></div>
+          <div class="deck-panel"><strong>Materializar</strong><p><code>CREATE TABLE AS SELECT</code> copia os dados para <code>olist.duckdb</code>.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">OpenCode &middot; Prompt 4</span>
+          <h2 class="deck-title">Transforme SQLite em DuckDB</h2>
+        </div>
+        <pre><code>Crie src/03_sqlite_para_duckdb.py. Conecte a saida/olist.duckdb,
+instale e carregue a extensão sqlite, anexe saida/olist.sqlite como
+sqlite_src e materialize as nove tabelas no catálogo main com
+CREATE OR REPLACE TABLE ... AS SELECT. Execute ANALYZE, reconcilie as
+contagens entre os dois bancos e grave saida/reconciliacao_duckdb.json.
+Falhe se qualquer tabela divergir.</code></pre>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">OLAP &middot; Grão</span>
+          <h2 class="deck-title">Construa um mart sem multiplicar receita</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Objeto</th><th>Grão</th><th>Uso</th></tr></thead>
+          <tbody>
+            <tr><td><code>fato_item_venda</code></td><td>um item dentro de um pedido</td><td>preço, frete, produto e vendedor</td></tr>
+            <tr><td><code>mart_vendas_mensais</code></td><td>mês × estado × categoria</td><td>receita, frete e itens: medidas aditivas</td></tr>
+            <tr><td>pagamentos</td><td>uma parcela/sequência do pedido</td><td>não juntar direto à fato de itens</td></tr>
+            <tr><td>avaliações</td><td>uma avaliação do pedido</td><td>agregar antes de combinar</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Fanout</strong><p style="margin:8px 0 0;">Itens × pagamentos produz múltiplas linhas por pedido. Somar preço depois desse join duplica valor.</p></div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">OpenCode &middot; Prompt 5</span>
+          <h2 class="deck-title">Peça o mart com contrato de métrica</h2>
+        </div>
+        <pre><code>Crie src/04_criar_mart_olap.py. No DuckDB, materialize
+fato_item_venda no grão order_id + order_item_id, juntando pedidos,
+clientes, itens, produtos e tradução; derive mes da data de compra.
+Depois crie mart_vendas_mensais
+no grão mês + estado_cliente + categoria apenas com receita_produtos,
+frete e itens. Calcule pedidos e ticket da fato_item_venda com
+count(distinct order_id) no grão consultado. Nunca some distintos entre
+categorias. Não junte pagamentos sem pré-agregar. Teste fanout.</code></pre>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Evidência de execução</span>
+          <h2 class="deck-title">Perfil antes de afirmar desempenho</h2>
+        </div>
+        <pre><code>EXPLAIN ANALYZE
+SELECT mes,
+       sum(price) AS receita,
+       count(DISTINCT order_id) AS pedidos
+FROM fato_item_venda
+GROUP BY mes
+ORDER BY mes;</code></pre>
+        <div class="deck-callout">
+          <strong>Compare com cuidado</strong>
+          <p style="margin:8px 0 0;">Rode a mesma pergunta cinco vezes em cada banco, separe execução fria e aquecida e registre a mediana. Esta evidência vale para o Codespace e para esta consulta.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">OpenCode &middot; Prompt 6</span>
+          <h2 class="deck-title">Leia o DuckDB e publique o segundo HTML</h2>
+        </div>
+        <pre><code>Crie src/05_html_duckdb.py. Leia somente saida/olist.duckdb e gere
+saida/dashboard_duckdb.html. Mostre KPIs de receita, pedidos e ticket;
+série mensal; top 10 categorias com cobertura; estados com receita e
+pedidos. Calcule pedidos e ticket da fato_item_venda com count(distinct
+order_id) no grão consultado; nunca some distintos do mart categórico.
+Inclua duração, SQL resumido, HTML semântico e tabela equivalente.
+Não use números fixos nem leia o SQLite.</code></pre>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Comparação final</span>
+          <h2 class="deck-title">Os HTMLs precisam revelar o mecanismo</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Prova</th><th>HTML SQLite</th><th>HTML DuckDB</th></tr></thead>
+          <tbody>
+            <tr><td>Fonte declarada</td><td><code>olist.sqlite</code></td><td><code>olist.duckdb</code></td></tr>
+            <tr><td>Trabalho principal</td><td>inventário e consulta direta</td><td>agregação multidimensional</td></tr>
+            <tr><td>Números reconciliados</td><td>linhas da entrada</td><td>linhas do SQLite e totais do mart</td></tr>
+            <tr><td>Acessibilidade</td><td>tabelas e cabeçalhos</td><td>resumo e tabela equivalente</td></tr>
+            <tr><td>Limitação</td><td colspan="2">dataset público, caso único e execução local</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega &middot; 12h00</span>
+          <h2 class="deck-title">Um pipeline pequeno, mas auditável</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Código</h3><p>Seis scripts em <code>src/</code>, legíveis e executáveis em ordem.</p></article>
+          <article class="deck-card"><h3>Bancos</h3><p><code>olist.sqlite</code> e <code>olist.duckdb</code>, ambos reconciliados.</p></article>
+          <article class="deck-card"><h3>Publicação</h3><p>Dois HTMLs com fonte, data, consulta e limitação.</p></article>
+          <article class="deck-card"><h3>Evidência</h3><p>Perfil, contagens, integridade, fanout e tempos medidos.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento prático</span>
+          <h2 class="deck-title">A IA acelera a escrita; os gates sustentam a conclusão</h2>
+          <p class="deck-summary">O produto da aula não é um prompt bonito. É uma cadeia em que cada transformação pode ser repetida, medida e contestada.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Antes de encerrar</strong>
+          <p style="margin:8px 0 0;">Peça ao OpenCode para revisar os seis scripts contra o manifesto, execute tudo numa pasta de saída vazia e gere <code>docs/04_pipeline_excel_olap.md</code> apenas com evidências medidas.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
+      <a href="../material/material_aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[index].classList.add("active");
+      currentSlide = index;
+      document.getElementById("current-slide").textContent = currentSlide + 1;
+      document.getElementById("prev-btn").disabled = currentSlide === 0;
+      document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft") previousSlide();
+      if (event.key.toLowerCase() === "f") toggleFullScreen();
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>

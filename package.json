@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Hub de Disciplinas - MBA em Engenharia de Dados - Universidade Presbiteriana Mackenzie",
   "scripts": {
+    "inspect:aula03": "node aulas/data_visualization/aula_03_visualizacao_de_dados_numericos/laboratorio/scripts/inspect_schema.js",
+    "lab:aula03": "node aulas/data_visualization/aula_03_visualizacao_de_dados_numericos/laboratorio/server/index.js",
+    "test:lab:aula03": "node --test aulas/data_visualization/aula_03_visualizacao_de_dados_numericos/laboratorio/tests/*.test.js",
+    "test:e2e:lab:aula03": "playwright test --config=playwright.lab.config.js",
     "test": "playwright test",
     "test:headed": "playwright test --headed",
     "test:ui": "playwright test --ui",
@@ -10,5 +14,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.45.0"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "openai": "^7.7.0",
+    "pg": "^8.23.0",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
   }
 }

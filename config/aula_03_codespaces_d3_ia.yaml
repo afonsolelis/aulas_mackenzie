@@ -1,0 +1,16 @@
+server:
+  port: 3000
+  log_level: info
+database:
+  pool_max: 5
+  statement_timeout_ms: 5000
+  ssl: true
+api:
+  max_rows: 500
+  request_timeout_ms: 8000
+agent:
+  enabled: true
+  model: gpt-5-mini
+  max_output_tokens: 500
+lab:
+  fallback_data: true

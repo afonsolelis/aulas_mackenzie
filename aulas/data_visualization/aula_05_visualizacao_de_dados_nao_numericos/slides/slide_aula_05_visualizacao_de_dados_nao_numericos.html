@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 05 — Visualização de Dados Não Numéricos</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="05" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Visualização de Dados Não Numéricos</h1>
+          <p class="deck-meta">Aula 05 &nbsp;&bull;&nbsp; 12/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Sem ordem natural e sem distância entre valores, todas as regras mudam.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">O que vai acontecer hoje</h2>
+          <p class="deck-summary">Categorias, hierarquias e texto livre exigem decisões que dados numéricos não exigem — a começar pela decisão sobre o que <em>não</em> mostrar.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <ul>
+              <li>Taxonomia e protocolo auditável de categorização</li>
+              <li>Nominal e ordinal: o problema da ordem</li>
+              <li>Cardinalidade, cauda longa e critérios de corte</li>
+              <li>Hierarquias e suas representações</li>
+              <li>Texto livre como dado</li>
+              <li>Tabela, gráfico, híbridos e matriz de decisão</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>10h00 &ndash; 12h10 &middot; Prática</h3>
+            <ul>
+              <li>Ranking das 71 categorias do Olist</li>
+              <li>Decisão de corte da cauda longa</li>
+              <li>Hierarquia categoria para produto</li>
+              <li>Score de avaliação como ordinal</li>
+              <li>Análise dos comentários por score</li>
+              <li>Teste de perda, sensibilidade e viés</li>
+              <li>Matriz coletiva de representação</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - RECAP -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Construção do Conteúdo &middot; Recap</span>
+          <h2 class="deck-title">O problema que ficou em aberto</h2>
+          <p class="deck-summary">Na Aula 03 você somou faturamento por categoria e encontrou setenta e uma delas. O gráfico comporta dez. O que fazer com as outras sessenta e uma é o tema de hoje.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Por que isso não é um detalhe</strong>
+          <p style="margin:8px 0 0;">A decisão de corte é a decisão analítica mais consequente numa visualização de categorias — e é a menos documentada. Quase todo dashboard corporativo mostra "top 10" sem dizer o que ficou de fora nem quanto isso representa.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÉTODO TRANSVERSAL -->
+    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Método C-D-P-V-D &middot; Aula 05</span><h2 class="deck-title">Categoria é uma decisão sobre o mundo</h2></div><div class="method-flow"><div class="method-step"><strong>Contexto</strong><span>Quem nomeia e quem é afetado?</span></div><div class="method-step is-current"><strong>Dados</strong><span>Domínio, ausência e cardinalidade.</span></div><div class="method-step is-current"><strong>Pergunta</strong><span>Comparar, ordenar, agrupar ou classificar.</span></div><div class="method-step"><strong>Visual</strong><span>Ordem, corte, hierarquia e texto.</span></div><div class="method-step"><strong>Decisão</strong><span>O que desaparece no agrupamento?</span></div></div></div></div>
+
+    <div class="slide"><div class="deck-shell"><div><span class="deck-kicker">Protocolo de categorização</span><h2 class="deck-title">Do valor bruto à categoria publicada</h2></div><div class="quality-gates"><div class="quality-gate"><strong>1 · Domínio</strong><span>Valores, frequências, ausências e variações.</span></div><div class="quality-gate"><strong>2 · Semântica</strong><span>Nominal, ordinal, hierárquico, relacional ou textual.</span></div><div class="quality-gate"><strong>3 · Regra</strong><span>Inclusão, exclusão, precedência e tratamento do nulo.</span></div><div class="quality-gate"><strong>4 · Perda</strong><span>Volume e diversidade ocultados por “Outros”.</span></div><div class="quality-gate"><strong>5 · Viés</strong><span>Quem fica invisível ou parece menos importante?</span></div><div class="quality-gate"><strong>6 · Versão</strong><span>Regra, data, autor e impacto da mudança.</span></div></div></div></div>
+
+    <div class="slide"><div class="deck-shell is-dense"><div><span class="deck-kicker">Gate de integridade</span><h2 class="deck-title">“Top 10 + Outros” precisa prestar contas</h2></div><table class="deck-table"><thead><tr><th>Pergunta</th><th>Evidência</th><th>Falha grave</th></tr></thead><tbody><tr><td>Por que dez?</td><td>limiar de decisão ou cobertura acumulada</td><td>número arbitrário</td></tr><tr><td>Quanto ficou fora?</td><td>% de volume e nº de categorias</td><td>“Outros” sem dimensão</td></tr><tr><td>A cauda é homogênea?</td><td>distribuição e exemplos</td><td>misturar comportamentos opostos</td></tr><tr><td>O corte muda a conclusão?</td><td>comparação antes/depois</td><td>não testar sensibilidade</td></tr><tr><td>É reproduzível?</td><td>regra escrita e consulta salva</td><td>agrupamento manual sem versão</td></tr></tbody></table></div></div>
+
+    <!-- SLIDE 4 - TESE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">Sem ordem natural, a ordem é sua responsabilidade</h2>
+          <p class="deck-summary">Num gráfico numérico o eixo se ordena sozinho: 10 vem depois de 5, e a distância entre eles é conhecida. Em dados categóricos não existe nem ordem nem distância — o que significa que toda ordenação é uma escolha sua, e escolhas precisam de justificativa.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - TAXONOMIA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Framework</span>
+          <h2 class="deck-title">Cinco tipos de dado não numérico</h2>
+          <p class="deck-summary">Cada um com uma restrição própria e uma família de representações.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Tipo</th><th>Característica</th><th>Exemplo no Olist</th><th>Representação típica</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Nominal</td><td>Sem ordem alguma</td><td>Categoria de produto</td><td>Barras ordenadas por valor</td></tr>
+            <tr><td>Ordinal</td><td>Ordem sim, distância não</td><td>Score de avaliação 1 a 5</td><td>Barras na ordem natural</td></tr>
+            <tr><td>Hierárquico</td><td>Aninhamento em níveis</td><td>Categoria → produto</td><td>Treemap, barras aninhadas</td></tr>
+            <tr><td>Textual</td><td>Livre, não estruturado</td><td>Comentário da avaliação</td><td>Categorização e depois contagem</td></tr>
+            <tr><td>Relacional</td><td>Conexão entre entidades</td><td>Vendedor → cliente</td><td>Fluxo, matriz</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - NOMINAL VS ORDINAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Ordem</span>
+          <h2 class="deck-title">A regra da ordenação</h2>
+          <p class="deck-summary">Depende inteiramente de qual dos dois tipos você tem em mãos. Trocar um pelo outro produz erro grave.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Nominal &rarr; ordene por valor</strong>
+            <ul>
+              <li>Não existe ordem correta intrínseca</li>
+              <li>Ordenar por valor torna a comparação imediata</li>
+              <li>Exceção: audiência precisa localizar item conhecido</li>
+              <li>Ordem alfabética é quase sempre desperdício</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Ordinal &rarr; preserve a ordem natural</strong>
+            <ul>
+              <li>A ordem carrega significado</li>
+              <li>Ordenar por valor destrói a informação</li>
+              <li>Score 1,2,3,4,5 sempre nessa sequência</li>
+              <li>O padrão de forma é o que importa</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - ORDINAL DISFARCADO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Ordem &middot; Armadilha</span>
+          <h2 class="deck-title">O ordinal disfarçado de número</h2>
+          <p class="deck-summary">O score de avaliação do Olist é um inteiro de 1 a 5. Fisicamente é número; conceitualmente não é.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Por que somar ou tirar média de score é problemático</strong>
+          <p style="margin:8px 0 0;">A distância entre 1 e 2 não é necessariamente igual à distância entre 4 e 5. Um cliente que dá 1 está muito mais insatisfeito do que a diferença entre 4 e 5 sugere. A média de 4,2 esconde a distribuição: pode vir de todo mundo dando 4, ou de metade dando 5 e um quinto dando 1 — situações operacionalmente opostas.</p>
+          <p style="margin:10px 0 0;">Prefira mostrar a distribuição completa dos cinco valores, ou converter para uma métrica declarada, como percentual de avaliações 1 e 2.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - CARDINALIDADE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Cardinalidade</span>
+          <h2 class="deck-title">O problema das setenta e uma categorias</h2>
+          <p class="deck-summary">Toda distribuição de categorias em negócio real tem a mesma forma: poucas categorias concentram a maior parte do valor e uma cauda longa carrega o resto.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Mostrar todas</strong>
+            <ul>
+              <li>Rótulos ilegíveis</li>
+              <li>Barras minúsculas indistinguíveis</li>
+              <li>Nenhuma comparação é possível</li>
+              <li>Honesto e inútil</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Mostrar só as maiores</strong>
+            <ul>
+              <li>Legível e comparável</li>
+              <li>Esconde o tamanho da cauda</li>
+              <li>Sugere que o mostrado é o todo</li>
+              <li>Útil e potencialmente enganoso</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - CRITERIOS DE CORTE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Cardinalidade &middot; Decisão</span>
+          <h2 class="deck-title">Quatro critérios de corte</h2>
+          <p class="deck-summary">Qualquer um é aceitável desde que declarado. Nenhum é aceitável em silêncio.</p>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Critério</th><th>Regra</th><th>Quando serve</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Top N fixo</td><td>As N maiores</td><td>Espaço visual é a restrição principal</td></tr>
+            <tr><td>Cobertura acumulada</td><td>Até somar X% do total</td><td>A pergunta é sobre concentração</td></tr>
+            <tr><td>Limiar absoluto</td><td>Acima de um valor mínimo</td><td>Existe piso de relevância no negócio</td></tr>
+            <tr><td>Quebra natural</td><td>Onde há salto grande na série</td><td>A distribuição tem degrau visível</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout" style="margin-top:14px;">
+          <strong>A regra da barra "Outros"</strong>
+          <p style="margin:8px 0 0;">Se você agrupar o restante numa barra "Outros", ela precisa aparecer no gráfico com seu tamanho real — e o rótulo precisa informar quantas categorias ela contém. "Outros (61 categorias)" é honesto; "Outros" não é.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - PIZZA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Cardinalidade &middot; Aplicação</span>
+          <h2 class="deck-title">Por que a pizza falha justamente aqui</h2>
+          <p class="deck-summary">O gráfico de pizza é oferecido como padrão para dados categóricos e é, quase sempre, a pior escolha disponível.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Três problemas somados</strong>
+          <ol style="margin:10px 0 0; padding-left:22px;">
+            <li><strong>Canal ruim</strong> — ângulo e área ficam nos últimos lugares do ranking de precisão.</li>
+            <li><strong>Escala com cardinalidade</strong> — cinco fatias já são difíceis; setenta são impossíveis.</li>
+            <li><strong>Comparação entre gráficos</strong> — comparar duas pizzas lado a lado é ainda pior que comparar fatias dentro de uma.</li>
+          </ol>
+          <p style="margin:8px 0 0;">Onde ela ainda serve: duas ou três categorias, quando a mensagem é "a maior parte é isto" e nenhuma comparação precisa é necessária.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - HIERARQUIAS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Hierarquia</span>
+          <h2 class="deck-title">Quando a categoria tem níveis</h2>
+          <p class="deck-summary">No Olist, categoria contém produtos e produtos aparecem em itens de pedido. A hierarquia permite duas leituras: o todo por nível e a composição interna.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Treemap serve quando</strong>
+            <ul>
+              <li>Há muitos itens em vários níveis</li>
+              <li>A mensagem é sobre proporção do todo</li>
+              <li>Não se exige comparação precisa</li>
+              <li>O espaço de tela é limitado</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Barras aninhadas servem quando</strong>
+            <ul>
+              <li>Poucos níveis e poucos itens</li>
+              <li>A comparação precisa importar</li>
+              <li>O leitor vai extrair valores</li>
+              <li>Há espaço vertical disponível</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - TREEMAP LIMITE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Hierarquia &middot; Limite</span>
+          <h2 class="deck-title">O treemap é bonito e impreciso</h2>
+          <p class="deck-summary">Ele codifica quantidade por área — quinto lugar no ranking. As pessoas subestimam sistematicamente áreas grandes e superestimam pequenas.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Regra de uso</strong>
+          <p style="margin:8px 0 0;">Use treemap para dar a visão do todo e permitir que alguém identifique rapidamente os grandes blocos. Não use quando a pergunta for "quanto o bloco A é maior que o bloco B" — para isso, volte para barras.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - TEXTO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Texto</span>
+          <h2 class="deck-title">Texto livre não se visualiza direto</h2>
+          <p class="deck-summary">O Olist tem dezenas de milhares de comentários de avaliação. Nenhuma visualização consome texto bruto: é preciso transformá-lo em categoria ou em contagem antes.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Transformações possíveis</strong>
+            <ul>
+              <li>Presença ou ausência de comentário</li>
+              <li>Comprimento do comentário</li>
+              <li>Contagem de termos escolhidos</li>
+              <li>Classificação manual de uma amostra</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Cuidados</strong>
+            <ul>
+              <li>Nuvem de palavras codifica por área e ignora contexto</li>
+              <li>Frequência de termo não é importância</li>
+              <li>Negação inverte o sentido e some na contagem</li>
+              <li>Amostra pequena não generaliza</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - TEXTO COMO SINAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Texto &middot; Método</span>
+          <h2 class="deck-title">O sinal mais barato do texto</h2>
+          <p class="deck-summary">Antes de qualquer análise sofisticada, duas variáveis derivadas costumam carregar informação real.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Presença e comprimento</strong>
+          <p style="margin:8px 0 0;">A decisão de escrever um comentário já é um sinal — clientes indiferentes tendem a não escrever. E o comprimento do texto costuma se relacionar com a intensidade da experiência, em qualquer direção. Cruzar essas duas variáveis com o score produz um achado defensável sem nenhuma técnica de linguagem natural.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Escolha da representação</span>
+          <h2 class="deck-title">Gráfico mostra padrão; tabela entrega valor</h2>
+          <p class="deck-summary">Dados categóricos não obrigam um gráfico. A forma depende da tarefa que a pessoa precisa executar.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Use tabela quando</strong>
+            <ul>
+              <li>o leitor procura um valor exato;</li>
+              <li>precisa localizar uma categoria conhecida;</li>
+              <li>vai copiar ou auditar o resultado.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Use gráfico quando</strong>
+            <ul>
+              <li>a pergunta envolve padrão ou comparação;</li>
+              <li>a ordem e a cauda precisam aparecer;</li>
+              <li>o tempo de leitura é curto.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Tabela &middot; Construção</span>
+          <h2 class="deck-title">Tabela também tem gramática visual</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Elemento</th><th>Regra</th><th>Mecanismo</th></tr></thead>
+          <tbody>
+            <tr><td>Rótulos</td><td>alinhados à esquerda</td><td>acelera a varredura das categorias</td></tr>
+            <tr><td>Números</td><td>à direita e com precisão constante</td><td>expõe ordem de grandeza</td></tr>
+            <tr><td>Ordem</td><td>segue a tarefa e o tipo semântico</td><td>ranking, localização ou escala ordinal</td></tr>
+            <tr><td>Híbrido</td><td>uma escala ou microbarra por vez</td><td>mantém o valor e revela o padrão</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Tabela dinâmica</strong><p style="margin:8px 0 0;">Serve para duas dimensões e uma métrica quando células e totais cabem na tela. Se exige rolagem em duas direções, a estrutura deixou de servir à tarefa.</p></div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Escolha &middot; Matriz</span>
+          <h2 class="deck-title">Cinco perguntas antes de escolher a forma</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Dimensão</th><th>Pergunta de controle</th></tr></thead>
+          <tbody>
+            <tr><td>Trabalho</td><td>localizar, comparar, distribuir, evoluir ou relacionar?</td></tr>
+            <tr><td>Tipo</td><td>nominal, ordinal, hierárquico, textual, temporal ou geográfico?</td></tr>
+            <tr><td>Cardinalidade</td><td>quantos itens precisam aparecer juntos?</td></tr>
+            <tr><td>Precisão</td><td>valor exato, padrão ou ambos?</td></tr>
+            <tr><td>Tempo</td><td>cinco segundos ou cinco minutos?</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-summary">A escolha inclui uma alternativa descartada e uma equivalência acessível; cor nunca carrega a mensagem sozinha.</p>
+      </div>
+    </div>
+
+    <!-- ABERTURA PRATICA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 10h00 &ndash; 12h10</span>
+          <h2 class="deck-title">Laboratório: categorias, hierarquia e texto</h2>
+          <p class="deck-summary">Quatro etapas e um fechamento coletivo. A decisão de corte e a forma escolhida precisam ser declaradas e defendidas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - ETAPA 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 1</span>
+          <h2 class="deck-title">O ranking completo</h2>
+          <p class="deck-summary">Vinte minutos. Antes de cortar, é preciso ver a forma inteira da distribuição.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Some o faturamento por categoria de produto, com todas as categorias.</li>
+          <li>Construa a tabela completa: alinhamento, unidade e ordem decrescente.</li>
+          <li>Duplique como barras e compare valor exato versus padrão.</li>
+          <li>Aplique uma escala condicional ou microbarra sem esconder o número.</li>
+          <li>Calcule cobertura do top 10 e quantas categorias atingem 80%.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - ETAPA 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 2</span>
+          <h2 class="deck-title">A decisão de corte</h2>
+          <p class="deck-summary">Trinta minutos. Escolha um dos quatro critérios, aplique e documente o que se perde.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Escolha um critério de corte e justifique a escolha em uma frase.</li>
+          <li>Aplique o corte e construa o gráfico resultante.</li>
+          <li>Adicione a barra "Outros" com o total agregado e a contagem de categorias.</li>
+          <li>Escreva o que a versão cortada esconde em relação à versão completa.</li>
+          <li>Salve as duas versões, completa e cortada, na sua coleção.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - ETAPA 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 3</span>
+          <h2 class="deck-title">Score de avaliação como ordinal</h2>
+          <p class="deck-summary">Trinta minutos. Trate o score como o que ele é e observe a diferença.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Calcule a média simples do <code>review_score</code> e anote o valor.</li>
+          <li>Agora construa a distribuição completa dos cinco valores.</li>
+          <li>Compare: a média representa bem a forma que você está vendo?</li>
+          <li>Construa a distribuição de score quebrada por estado ou por categoria.</li>
+          <li>Defina uma métrica declarada, como percentual de notas 1 e 2, e justifique.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - ETAPA 4 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 4</span>
+          <h2 class="deck-title">Texto como dado</h2>
+          <p class="deck-summary">Trinta minutos. Sem técnica de linguagem natural — apenas transformação e contagem.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Calcule o percentual de avaliações que têm comentário escrito, por score.</li>
+          <li>Observe se clientes insatisfeitos escrevem mais que satisfeitos.</li>
+          <li>Calcule o comprimento médio do comentário por score.</li>
+          <li>Leia uma amostra de dez comentários de score 1 e dez de score 5.</li>
+          <li>Escreva o que a leitura revelou que a contagem não revelava.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Fechamento coletivo</span>
+          <h2 class="deck-title">Consolide e teste a matriz da turma</h2>
+          <p class="deck-summary">Vinte minutos. A matriz só vale se resolver uma pergunta que não participou de sua construção.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Cada grupo apresenta uma regra extraída da comparação.</li>
+          <li>Consolide duplicatas e transforme conflitos em condições explícitas.</li>
+          <li>Teste a matriz contra uma pergunta categórica nova.</li>
+          <li>Registre a falha encontrada e ajuste a regra.</li>
+          <li>Versione a matriz no protocolo da Aula 05.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - ENTREGAVEL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega</span>
+          <h2 class="deck-title">O que sai daqui hoje</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>No Metabase</h3>
+            <p>Tabela completa, versão híbrida, ranking cortado, distribuição de score e análise dos comentários.</p>
+          </article>
+          <article class="deck-card">
+            <h3>No repositório</h3>
+            <p><code>docs/05_protocolo_categorias.md</code> com taxonomia, cobertura, perda, matriz, acessibilidade e risco de invisibilidade.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - CRITERIOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Avaliação</span>
+          <h2 class="deck-title">Como este trabalho é avaliado</h2>
+        </div>
+        <table class="deck-table">
+          <thead>
+            <tr><th>Critério</th><th>O que se espera</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Corte declarado</td><td>Critério nomeado, aplicado e justificado</td></tr>
+            <tr><td>Transparência da perda</td><td>Está escrito o que a versão cortada esconde</td></tr>
+            <tr><td>Ordinal respeitado</td><td>O score não é tratado como número contínuo</td></tr>
+            <tr><td>Texto transformado</td><td>A análise textual parte de uma transformação explícita</td></tr>
+            <tr><td>Forma defendida</td><td>Tabela, híbrido e gráfico são comparados pela tarefa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 22 - PROXIMA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Próxima aula &middot; 19/09</span>
+          <h2 class="deck-title">Mapas e Visualização Geoespacial</h2>
+          <p class="deck-summary">Depois de controlar categorias, vamos controlar o território: normalização, escala e o risco de confundir volume com densidade populacional.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Traga pronto</strong>
+          <p style="margin:8px 0 0;">A matriz consolidada, uma pergunta que depende de localização e a unidade geográfica que realmente responde a ela.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
+      <a href="../material/material_aula_05_visualizacao_de_dados_nao_numericos.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

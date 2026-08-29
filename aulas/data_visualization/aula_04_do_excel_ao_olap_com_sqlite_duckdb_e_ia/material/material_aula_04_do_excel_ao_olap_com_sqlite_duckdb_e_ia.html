@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 04 — Do Excel ao OLAP com SQLite, DuckDB e IA</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia.html">Ver Slide &rarr;</a>
+      <a href="../laboratorio/README.md">Roteiro do laboratório &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 04 — Do Excel ao OLAP com SQLite, DuckDB e IA</h1>
+      <p class="meta">Aula 04 &middot; 05/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p>Laboratório integral no GitHub Codespaces com OpenCode Zen: nove arquivos Excel são perfilados, carregados em SQLite, lidos para produzir um HTML operacional, materializados em DuckDB e consultados para produzir um segundo HTML orientado a OLAP.</p>
+    </header>
+
+    <article class="material">
+      <section class="content-block">
+        <h2>1. O problema concreto</h2>
+        <p>Uma pasta com nove planilhas pode conter todos os dados de um negócio e ainda assim não oferecer uma fonte analítica confiável. Cada arquivo possui cabeçalho e linhas, mas relações, tipos, chaves, métricas e critérios de atualização permanecem implícitos. Quando alguém abre uma planilha, filtra e copia um total para uma apresentação, o cálculo se separa da evidência que o produziu.</p>
+        <p>A aula transforma esse cenário em uma cadeia reproduzível. Preservamos os Excels como entrada imutável, usamos SQLite para tornar tabelas e relacionamentos consultáveis, geramos um primeiro HTML diretamente desse banco, copiamos os dados para DuckDB, construímos um mart analítico e geramos um segundo HTML. A comparação não serve para declarar um vencedor universal. Ela mostra como mecanismos diferentes respondem a trabalhos diferentes sob a mesma carga e no mesmo Codespace.</p>
+
+        <div class="note">
+          <strong>Resultado esperado</strong>
+          <p>Ao final, cada grupo terá seis scripts versionados, dois arquivos de banco, dois HTMLs, relatórios de reconciliação, tempos de consulta e <code>docs/04_pipeline_excel_olap.md</code>. A IA escreve e revisa o código; o grupo responde pela origem, pelos testes e pelas conclusões.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>2. O mecanismo que será comparado</h2>
+        <p>SQLite e DuckDB compartilham uma propriedade decisiva para esta aula: ambos funcionam dentro do processo e persistem um banco em arquivo, sem exigir servidor. A semelhança operacional permite isolar melhor a diferença de mecanismo.</p>
+        <p>O módulo <code>sqlite3</code> do Python fornece um banco leve em disco, sem processo de servidor separado. Ele é adequado para ingestão controlada, integridade, índices e consultas operacionais sobre linhas. O DuckDB, por sua vez, foi projetado para cargas analíticas: processa vetores de valores e organiza o trabalho em colunas, reduzindo o custo por valor em agregações e joins que atravessam parcelas grandes do conjunto.</p>
+        <table>
+          <thead><tr><th>Dimensão</th><th>SQLite</th><th>DuckDB</th></tr></thead>
+          <tbody>
+            <tr><td>Trabalho principal da aula</td><td>ingestão, reconciliação, consulta direta</td><td>agregação, join, janela, mart OLAP</td></tr>
+            <tr><td>Organização enfatizada</td><td>linhas e páginas</td><td>colunas e execução vetorizada</td></tr>
+            <tr><td>Arquivo gerado</td><td><code>saida/olist.sqlite</code></td><td><code>saida/olist.duckdb</code></td></tr>
+            <tr><td>HTML</td><td>inventário operacional</td><td>painel analítico multidimensional</td></tr>
+            <tr><td>Limite da evidência</td><td colspan="2">um dataset público, uma máquina e consultas registradas</td></tr>
+          </tbody>
+        </table>
+        <p>Referências técnicas: <a href="https://docs.python.org/3/library/sqlite3.html" target="_blank" rel="noopener noreferrer">documentação do <code>sqlite3</code> em Python</a>, <a href="https://duckdb.org/why_duckdb" target="_blank" rel="noopener noreferrer">mecanismo OLAP do DuckDB</a> e <a href="https://duckdb.org/docs/current/core_extensions/sqlite" target="_blank" rel="noopener noreferrer">extensão oficial para SQLite</a>.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>3. Configuração do GitHub Codespaces e OpenCode Zen</h2>
+        <p>Todo o trabalho ocorre no terminal do Codespace. O ambiente elimina diferenças de sistema operacional e preserva o rastro dos arquivos criados. O OpenCode funciona como agente de desenvolvimento: pode ler o repositório, propor mudanças e executar ferramentas, portanto cada autorização precisa ser tratada como autorização dada a um programador.</p>
+
+        <h3>3.1 Criar o Codespace</h3>
+        <ol class="steps">
+          <li>Entre em sua conta GitHub.</li>
+          <li><a href="https://codespaces.new/afonsolelis/aulas_mackenzie?quickstart=1" target="_blank" rel="noopener noreferrer">Abra o criador de Codespace deste repositório</a>.</li>
+          <li>Mantenha o repositório <code>afonsolelis/aulas_mackenzie</code>, escolha a branch indicada pelo professor e clique em <strong>Create codespace</strong>.</li>
+          <li>Aguarde a instalação do ambiente. Abra <strong>Terminal → New Terminal</strong>.</li>
+          <li>Confirme a raiz do projeto e as versões disponíveis:</li>
+        </ol>
+        <pre><code>pwd
+git status --short
+python3 --version
+node --version</code></pre>
+
+        <h3>3.2 Instalar o OpenCode</h3>
+        <p>A documentação oficial oferece várias formas de instalação. No Codespace, já temos Node.js; portanto, usamos npm:</p>
+        <pre><code>npm install -g opencode-ai
+opencode --version
+cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
+opencode</code></pre>
+        <p>O terceiro comando abre a interface textual. A partir desse ponto, comandos iniciados por barra são digitados dentro do OpenCode. Consulte a <a href="https://opencode.ai/docs" target="_blank" rel="noopener noreferrer">documentação oficial de instalação e início</a> se a interface mudar.</p>
+
+        <h3>3.3 Conectar o OpenCode Zen</h3>
+        <ol class="steps">
+          <li>Na interface do OpenCode, digite <code>/connect</code>.</li>
+          <li>Selecione <strong>OpenCode Zen</strong>.</li>
+          <li>Abra o endereço de autenticação mostrado, entre em sua conta, adicione os dados de cobrança e créditos necessários e copie a API key.</li>
+          <li>Cole a chave somente no campo seguro solicitado pelo OpenCode.</li>
+          <li>Digite <code>/models</code> e escolha um dos modelos disponíveis no Zen.</li>
+          <li>Faça o teste inicial: <code>Leia ../../../../AGENTS.md e README.md; resuma as restrições que devem orientar a Aula 04.</code></li>
+          <li>Mantenha o OpenCode aberto nesse terminal e abra um segundo terminal para executar os comandos do laboratório.</li>
+        </ol>
+        <p>O Zen é cobrado por uso e a lista de modelos muda. Por isso a aula não fixa um modelo. O procedimento atual está na <a href="https://opencode.ai/docs/zen" target="_blank" rel="noopener noreferrer">documentação oficial do OpenCode Zen</a>.</p>
+        <div class="note">
+          <strong>Controle de credenciais</strong>
+          <p>Não cole a chave no prompt, em captura de tela, no HTML, em um <code>.env</code> versionado ou em commit. Se uma chave aparecer no diff, interrompa o trabalho, remova-a e faça a rotação no provedor.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Download dos nove arquivos Excel</h2>
+        <p>Os arquivos abaixo são cópias completas das nove tabelas Olist usadas na disciplina. Cada arquivo possui uma única planilha, cabeçalho na primeira linha e quantidade validada contra a fonte. O arquivo de geolocalização contém 1.000.163 registros e cabe no limite do Excel por uma margem pequena.</p>
+        <table>
+          <thead><tr><th>Arquivo</th><th>Linhas de dados</th><th>Grão</th><th>Chave candidata</th></tr></thead>
+          <tbody>
+            <tr><td><a href="../dados/olist_customers.xlsx" download><code>olist_customers.xlsx</code></a></td><td>99.441</td><td>um identificador de cliente por pedido</td><td><code>customer_id</code></td></tr>
+            <tr><td><a href="../dados/olist_geolocation.xlsx" download><code>olist_geolocation.xlsx</code></a></td><td>1.000.163</td><td>um ponto geográfico observado</td><td>sem chave única</td></tr>
+            <tr><td><a href="../dados/olist_order_items.xlsx" download><code>olist_order_items.xlsx</code></a></td><td>112.650</td><td>um item dentro de um pedido</td><td><code>order_id + order_item_id</code></td></tr>
+            <tr><td><a href="../dados/olist_order_payments.xlsx" download><code>olist_order_payments.xlsx</code></a></td><td>103.886</td><td>uma sequência de pagamento do pedido</td><td><code>order_id + payment_sequential</code></td></tr>
+            <tr><td><a href="../dados/olist_order_reviews.xlsx" download><code>olist_order_reviews.xlsx</code></a></td><td>99.224</td><td>uma avaliação associada ao pedido</td><td><code>review_id + order_id</code></td></tr>
+            <tr><td><a href="../dados/olist_orders.xlsx" download><code>olist_orders.xlsx</code></a></td><td>99.441</td><td>um pedido</td><td><code>order_id</code></td></tr>
+            <tr><td><a href="../dados/olist_products.xlsx" download><code>olist_products.xlsx</code></a></td><td>32.951</td><td>um produto</td><td><code>product_id</code></td></tr>
+            <tr><td><a href="../dados/olist_sellers.xlsx" download><code>olist_sellers.xlsx</code></a></td><td>3.095</td><td>um vendedor</td><td><code>seller_id</code></td></tr>
+            <tr><td><a href="../dados/product_category_name_translation.xlsx" download><code>product_category_name_translation.xlsx</code></a></td><td>71</td><td>uma categoria traduzida</td><td><code>product_category_name</code></td></tr>
+          </tbody>
+        </table>
+        <p>No Codespace, essas planilhas já estão dentro do repositório. O link serve para download individual; para o laboratório, copie os nove arquivos para a área de entrada:</p>
+        <pre><code>cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
+mkdir -p entrada src saida
+cp ../dados/*.xlsx entrada/
+ls -lh entrada</code></pre>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Preparar o ambiente Python</h2>
+        <p>O banco SQLite vem com a biblioteca padrão do Python. Usamos <code>openpyxl</code> para ler Excel em modo de streaming e o cliente Python do DuckDB para criar o banco analítico. O ambiente virtual impede que a aula altere pacotes globais do Codespace.</p>
+        <pre><code>python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -c "import openpyxl, duckdb; print(openpyxl.__version__, duckdb.__version__)"</code></pre>
+        <p>A entrada não será editada. Scripts ficam em <code>src/</code>; bancos, relatórios e logs ficam em <code>saida/</code>. Essa separação permite apagar apenas a saída e reconstruir todo o pipeline.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Protocolo de trabalho com IA no terminal</h2>
+        <p>Um agente pode produzir muito código rapidamente, inclusive código incorreto. O controle não acontece por confiança subjetiva na resposta, mas por uma sequência repetida de ações observáveis.</p>
+        <ol class="steps">
+          <li><strong>Forneça contexto suficiente:</strong> caminho dos arquivos, contrato de diretórios, mecanismo do banco e critérios de aceite.</li>
+          <li><strong>Peça um plano antes da edição:</strong> isso torna visível se o agente confundiu leitura, carga, análise e publicação.</li>
+          <li><strong>Trabalhe em uma etapa por vez:</strong> perfil, SQLite, HTML SQLite, DuckDB, mart e HTML DuckDB.</li>
+          <li><strong>Inspecione o diff:</strong> procure dados fixos, acesso à rede, sobrescrita da entrada, caminhos absolutos e segredos.</li>
+          <li><strong>Execute no terminal:</strong> uma resposta textual não é evidência de funcionamento.</li>
+          <li><strong>Reconcilie:</strong> toda transformação precisa explicar quantas linhas entraram, quantas saíram e por quê.</li>
+        </ol>
+        <div class="note"><strong>Prompt de abertura da sessão</strong><p><code>Leia ../../../../AGENTS.md e README.md. Não edite ainda. Resuma o pipeline, os arquivos permitidos, os artefatos de saída e os gates de validação.</code></p></div>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Fase A — perfil dos arquivos Excel</h2>
+        <p>A primeira leitura não cria banco. Ela verifica se os arquivos recebidos correspondem ao contrato. A geolocalização impede uma solução ingênua: carregar um milhão de linhas em um DataFrame pode consumir a memória do Codespace sem produzir evidência adicional. O modo <code>read_only</code> do <code>openpyxl</code> percorre as linhas sem construir a planilha inteira em memória.</p>
+        <h3>Prompt para o OpenCode</h3>
+        <pre><code>Leia README.md. Inspecione entrada/*.xlsx em modo
+read_only, sem carregar a planilha inteira em memória. Crie
+src/00_perfil_excel.py para registrar arquivo, aba, cabeçalhos,
+quantidade de linhas e amostra de tipos. Grave saida/perfil_excel.json.
+Não altere a entrada. Mostre o plano antes de editar.</code></pre>
+        <h3>Execução e gate</h3>
+        <pre><code>python src/00_perfil_excel.py
+python -m json.tool saida/perfil_excel.json | less</code></pre>
+        <p>O gate passa quando existem nove registros de arquivo, todos os cabeçalhos estão presentes e as contagens coincidem com a tabela da Seção 4. Uma divergência interrompe a carga; ela não é corrigida ajustando o número esperado.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Fase B — transformar Excel em SQLite</h2>
+        <p>O script precisa criar esquema explícito antes da primeira inserção. Identificadores e categorias são <code>TEXT</code>; contagens e prefixos de CEP são <code>INTEGER</code>; valores monetários e coordenadas são <code>REAL</code>; datas são normalizadas como texto ISO 8601 para comparação e ordenação previsíveis. A carga acontece em transação e em lotes de 5.000 linhas.</p>
+        <p>Índices são criados depois da inserção em massa, porque manter cada índice durante um milhão de inserções acrescenta trabalho sem melhorar a etapa de carga. Chaves únicas são impostas nas candidatas validadas; geolocalização permanece sem chave primária porque contém múltiplos pontos por prefixo.</p>
+        <p>O script também precisa executar <code>PRAGMA foreign_keys = ON</code>, declarar as relações abaixo e carregar primeiro as tabelas-pai. Sem constraints declaradas, <code>PRAGMA foreign_key_check</code> pode retornar zero linhas sem ter validado relação alguma.</p>
+        <table>
+          <thead><tr><th>Tabela filha</th><th>Coluna</th><th>Tabela pai</th></tr></thead>
+          <tbody>
+            <tr><td><code>olist_orders</code></td><td><code>customer_id</code></td><td><code>olist_customers(customer_id)</code></td></tr>
+            <tr><td><code>olist_order_items</code></td><td><code>order_id</code></td><td><code>olist_orders(order_id)</code></td></tr>
+            <tr><td><code>olist_order_items</code></td><td><code>product_id</code></td><td><code>olist_products(product_id)</code></td></tr>
+            <tr><td><code>olist_order_items</code></td><td><code>seller_id</code></td><td><code>olist_sellers(seller_id)</code></td></tr>
+            <tr><td><code>olist_order_payments</code></td><td><code>order_id</code></td><td><code>olist_orders(order_id)</code></td></tr>
+            <tr><td><code>olist_order_reviews</code></td><td><code>order_id</code></td><td><code>olist_orders(order_id)</code></td></tr>
+          </tbody>
+        </table>
+        <p>Geolocalização não recebe uma chave estrangeira por prefixo de CEP: o campo não é único. A tradução de categoria também permanece como tabela de referência auditada por consulta, pois categorias nulas ou sem tradução precisam continuar visíveis.</p>
+
+        <h3>Prompt para o OpenCode</h3>
+        <pre><code>Crie src/01_excel_para_sqlite.py. Use openpyxl em read_only,
+sqlite3 da biblioteca padrão, esquema explícito para as nove tabelas,
+transação por arquivo e inserção em lotes de 5.000 linhas. Converta
+datas para ISO 8601 e preserve nulos. Ative PRAGMA foreign_keys=ON,
+declare as seis FKs descritas no material e carregue pais antes de filhos.
+Crie índices após a carga e grave saida/olist.sqlite. Ao final,
+reconcilie contagens, unicidade e FKs; falhe em qualquer divergência.
+Não use pandas nem números de resultado fixos.</code></pre>
+
+        <h3>Gate de carga</h3>
+        <pre><code>python src/01_excel_para_sqlite.py
+sqlite3 saida/olist.sqlite ".tables"
+sqlite3 saida/olist.sqlite "PRAGMA integrity_check;"
+sqlite3 saida/olist.sqlite "PRAGMA foreign_key_check;"
+sqlite3 saida/olist.sqlite \
+  "SELECT 'olist_orders', count(*) FROM olist_orders;"</code></pre>
+        <p>O gate exige <code>integrity_check = ok</code> e nenhuma linha em <code>foreign_key_check</code>. Além das contagens, peça ao agente para testar unicidade das chaves candidatas e registrar o resultado. Uma restrição criada sem esse teste apenas desloca a descoberta do problema para o momento da inserção.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>9. Direcionamentos de leitura no SQLite</h2>
+        <p>A primeira leitura privilegia estrutura, integridade e consultas que localizam linhas ou pequenos conjuntos. O objetivo não é simular OLAP no SQLite, mas aprender a interrogar a fonte consolidada antes de publicar qualquer número.</p>
+
+        <h3>9.1 Ler o catálogo</h3>
+        <pre><code>sqlite3 saida/olist.sqlite ".tables"
+sqlite3 saida/olist.sqlite "PRAGMA table_info('olist_orders');"
+sqlite3 saida/olist.sqlite "PRAGMA index_list('olist_order_items');"
+sqlite3 saida/olist.sqlite "PRAGMA foreign_key_check;"</code></pre>
+
+        <h3>9.2 Ler o estado operacional</h3>
+        <pre><code>sqlite3 -header -column saida/olist.sqlite "
+SELECT order_status,
+       count(*) AS pedidos,
+       round(100.0 * count(*) / sum(count(*)) OVER (), 2) AS percentual
+FROM olist_orders
+GROUP BY order_status
+ORDER BY pedidos DESC;"</code></pre>
+        <p>Essa consulta responde quantos pedidos existem por estado e qual a participação de cada estado. O percentual é calculado no banco, não no HTML. A leitura deve observar categorias dominantes, estados residuais e a presença de estados que indicam falha ou cancelamento.</p>
+
+        <h3>9.3 Fazer uma leitura pontual com relação</h3>
+        <pre><code>sqlite3 -header -column saida/olist.sqlite "
+SELECT o.order_id, o.order_status, o.order_purchase_timestamp,
+       c.customer_city, c.customer_state
+FROM olist_orders AS o
+JOIN olist_customers AS c ON c.customer_id = o.customer_id
+ORDER BY o.order_purchase_timestamp DESC
+LIMIT 10;"</code></pre>
+        <p>A consulta combina pedido e cliente sem alterar o grão: continua existindo uma linha por pedido porque <code>customer_id</code> é único na tabela de clientes. Esse raciocínio precisa ser repetido antes de qualquer join.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>10. Gerar o primeiro HTML a partir do SQLite</h2>
+        <p>O primeiro HTML funciona como inventário operacional. Ele mostra o volume de cada tabela, a distribuição dos pedidos por status e os pedidos mais recentes. O script abre o banco em modo somente leitura, executa consultas registradas e monta uma página estática com CSS embutido. Nenhuma métrica é escrita manualmente.</p>
+
+        <h3>Prompt para o OpenCode</h3>
+        <pre><code>Crie src/02_html_sqlite.py. Abra saida/olist.sqlite em modo somente
+leitura e gere saida/relatorio_sqlite.html com HTML semântico e CSS
+embutido. Mostre contagem das nove tabelas, pedidos por status, cinco
+pedidos recentes e duração de cada consulta. Escape texto, registre a
+fonte e a data de geração. Nenhuma métrica pode ser digitada no HTML.</code></pre>
+
+        <h3>Executar e abrir</h3>
+        <pre><code>python src/02_html_sqlite.py
+python -m http.server 8000 -d saida</code></pre>
+        <p>No painel <strong>Ports</strong> do Codespaces, abra a porta 8000 e selecione <code>relatorio_sqlite.html</code>. Compare pelo menos uma contagem exibida com a mesma consulta executada no terminal. Depois procure esse número no código: ele deve aparecer apenas como resultado em tempo de execução, nunca como literal.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>11. Fase C — transformar SQLite em DuckDB</h2>
+        <p>A extensão oficial <code>sqlite</code> permite anexar o banco de origem. Anexar não significa converter: nesse estado, os dados ainda são lidos do arquivo SQLite. A conversão acontece quando o script cria tabelas no catálogo principal do DuckDB com <code>CREATE TABLE AS SELECT</code>. Essa cópia produz armazenamento nativo e tipos rígidos no arquivo <code>olist.duckdb</code>.</p>
+
+        <h3>Prompt para o OpenCode</h3>
+        <pre><code>Crie src/03_sqlite_para_duckdb.py. Conecte a saida/olist.duckdb,
+instale e carregue a extensão sqlite, anexe saida/olist.sqlite como
+sqlite_src e materialize as nove tabelas no catálogo main com
+CREATE OR REPLACE TABLE ... AS SELECT. Execute ANALYZE, reconcilie as
+contagens entre os dois bancos e grave saida/reconciliacao_duckdb.json.
+Falhe se qualquer tabela divergir.</code></pre>
+
+        <h3>Executar e verificar</h3>
+        <pre><code>python src/03_sqlite_para_duckdb.py
+python -m json.tool saida/reconciliacao_duckdb.json
+python -c "import duckdb; duckdb.connect('saida/olist.duckdb').sql('SHOW TABLES').show()"</code></pre>
+        <p>O gate exige as mesmas nove tabelas e as mesmas contagens. Tipos incompatíveis devem produzir falha explícita; convertê-los todos para texto esconderia a causa e enfraqueceria o banco analítico.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>12. Construir o mart OLAP sem fanout</h2>
+        <p>OLAP não é apenas executar <code>GROUP BY</code>. É declarar dimensões, métricas e grão de forma que cada agregação conserve o significado. A fato de itens terá uma linha por <code>order_id + order_item_id</code>. Pedidos, clientes, produtos, vendedores e tradução podem ser ligados a esse grão por relações muitos-para-um.</p>
+        <p>Pagamentos e avaliações não entram diretamente. Um pedido pode conter vários itens e vários pagamentos; juntar as duas coleções multiplica linhas. Somar preço após esse join duplica receita. Se uma pergunta exigir pagamento, primeiro agregamos pagamentos para uma linha por pedido e apenas depois combinamos.</p>
+
+        <h3>Prompt para o OpenCode</h3>
+        <pre><code>Crie src/04_criar_mart_olap.py. No DuckDB, materialize
+fato_item_venda no grão order_id + order_item_id, juntando pedidos,
+clientes, itens, produtos e tradução; derive mes da data de compra.
+Depois crie mart_vendas_mensais
+no grão mês + estado_cliente + categoria, somente com medidas aditivas:
+receita_produtos, frete e itens. Pedidos e ticket devem ser calculados
+da fato_item_venda, com count(distinct order_id) no grão da consulta.
+Nunca some contagens distintas entre categorias. Não junte pagamentos
+ou avaliações sem pré-agregar. Inclua testes de unicidade e fanout.</code></pre>
+
+        <table>
+          <thead><tr><th>Métrica</th><th>Fórmula</th><th>Grão de cálculo</th></tr></thead>
+          <tbody>
+            <tr><td>Receita de produtos</td><td><code>sum(price)</code></td><td>item</td></tr>
+            <tr><td>Frete</td><td><code>sum(freight_value)</code></td><td>item</td></tr>
+            <tr><td>Pedidos</td><td><code>count(distinct order_id)</code></td><td>fato, no grão consultado</td></tr>
+            <tr><td>Itens</td><td><code>count(*)</code></td><td>item</td></tr>
+            <tr><td>Ticket médio de produtos</td><td><code>sum(price) / count(distinct order_id)</code></td><td>fato, no grão consultado</td></tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>Métrica não aditiva</strong>
+          <p>Um pedido pode conter itens de categorias diferentes. Por isso, somar <code>pedidos_distintos</code> calculados por categoria conta o mesmo pedido mais de uma vez. O mart categórico guarda apenas medidas aditivas; pedidos e ticket voltam à fato e calculam <code>count(distinct order_id)</code> no recorte solicitado.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>13. Direcionamentos de leitura no DuckDB</h2>
+        <p>A leitura agora atravessa grande parte do conjunto para comparar períodos, estados e categorias. Essas operações caracterizam OLAP: agregações, joins, ordenações e janelas sobre muitos registros.</p>
+
+        <h3>13.1 Agregar por mês</h3>
+        <pre><code>SELECT mes,
+       round(sum(price), 2) AS receita,
+       count(DISTINCT order_id) AS pedidos,
+       round(sum(price) / count(DISTINCT order_id), 2) AS ticket
+FROM fato_item_venda
+GROUP BY mes
+ORDER BY mes;</code></pre>
+
+        <h3>13.2 Comparar categoria e cobertura</h3>
+        <pre><code>WITH categoria AS (
+  SELECT categoria, sum(receita_produtos) AS receita
+  FROM mart_vendas_mensais
+  GROUP BY categoria
+)
+SELECT categoria,
+       round(receita, 2) AS receita,
+       round(100 * receita / sum(receita) OVER (), 2) AS percentual,
+       round(100 * sum(receita) OVER (ORDER BY receita DESC)
+             / sum(receita) OVER (), 2) AS cobertura_acumulada
+FROM categoria
+ORDER BY receita DESC
+LIMIT 10;</code></pre>
+        <p>A janela calcula participação e cobertura sem perder uma linha por categoria. O resultado permite discutir um corte de top 10 com evidência: quanto do valor ficou visível e quanto foi deslocado para a cauda.</p>
+
+        <h3>13.3 Ler o plano e o tempo</h3>
+        <pre><code>EXPLAIN ANALYZE
+SELECT estado_cliente, sum(receita_produtos) AS receita
+FROM mart_vendas_mensais
+GROUP BY estado_cliente
+ORDER BY receita DESC;</code></pre>
+        <p><code>EXPLAIN ANALYZE</code> executa a consulta e mostra tempos e cardinalidades por operador. A documentação oficial descreve essa saída em <a href="https://duckdb.org/docs/current/guides/meta/explain_analyze" target="_blank" rel="noopener noreferrer">Profiling Queries</a>.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>14. Gerar o segundo HTML a partir do DuckDB</h2>
+        <p>O segundo HTML apresenta o resultado analítico: KPIs, série mensal, categorias com cobertura e estados. O relatório precisa declarar que lê <code>olist.duckdb</code> e não pode abrir o SQLite. Essa separação é o teste arquitetural da etapa.</p>
+
+        <h3>Prompt para o OpenCode</h3>
+        <pre><code>Crie src/05_html_duckdb.py. Leia somente saida/olist.duckdb e gere
+saida/dashboard_duckdb.html. Mostre KPIs de receita, pedidos e ticket;
+série mensal; top 10 categorias com cobertura; estados com receita e
+pedidos; duração e SQL resumido de cada consulta. Calcule pedidos e
+ticket da fato_item_venda com count(distinct order_id) no grão de cada
+consulta; nunca some contagens distintas do mart categórico. Use HTML
+semântico, CSS embutido e tabela equivalente aos gráficos. Não use
+números fixos nem leia o SQLite neste script.</code></pre>
+
+        <h3>Abrir e reconciliar</h3>
+        <pre><code>python src/05_html_duckdb.py
+python -m http.server 8000 -d saida</code></pre>
+        <p>Abra <code>dashboard_duckdb.html</code> pela porta 8000. O total de receita precisa coincidir com a soma de <code>price</code> na fato de itens, dentro dos mesmos filtros. O top 10 precisa informar cobertura. Gráficos devem ter título, unidade e uma tabela ou resumo textual equivalente.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>15. Comparar sem exceder a evidência</h2>
+        <p>Uma comparação útil controla a pergunta. Escolha uma consulta mensal que possa ser executada nos dois bancos, rode cinco vezes em cada mecanismo e registre a mediana. Separe a primeira execução das seguintes, porque caches e inicialização podem alterar o tempo.</p>
+        <p>O resultado permite afirmar que, nesta máquina e nesta consulta, um mecanismo executou em determinado tempo. Ele não demonstra superioridade geral. SQLite pode responder rapidamente ao dataset inteiro porque a carga é modesta; DuckDB pode pagar custo de inicialização; diferenças de índice, ordem de carga e cache mudam a comparação.</p>
+        <table>
+          <thead><tr><th>Dimensão</th><th>Prova exigida</th></tr></thead>
+          <tbody>
+            <tr><td>Correção</td><td>mesmas linhas e mesmos totais sob o mesmo filtro</td></tr>
+            <tr><td>Tempo</td><td>consulta registrada, cinco execuções e mediana</td></tr>
+            <tr><td>Mecanismo</td><td>SQLite lê a fonte; DuckDB lê tabelas nativas e o mart</td></tr>
+            <tr><td>Publicação</td><td>cada HTML declara banco, geração e limitações</td></tr>
+            <tr><td>Conclusão</td><td>delimitada ao Codespace e ao caso observado</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>16. Roteiro de execução prática em sala</h2>
+        <table>
+          <thead><tr><th>Horário</th><th>Ação</th><th>Gate</th></tr></thead>
+          <tbody>
+            <tr><td>8h30–9h00</td><td>prática guiada: inspecionar arquivos, comandos, pipeline e risco de fanout</td><td>grupo executa a primeira leitura no terminal</td></tr>
+            <tr><td>9h00–9h20</td><td>Codespaces, OpenCode e Zen</td><td>agente lê <code>AGENTS.md</code></td></tr>
+            <tr><td>9h20–9h40</td><td>download, cópia e perfil dos Excels</td><td>nove contagens reconciliadas</td></tr>
+            <tr><td>9h40–10h20</td><td>carga SQLite</td><td><code>integrity_check = ok</code></td></tr>
+            <tr><td>10h20–10h40</td><td>leitura e HTML SQLite</td><td>um valor conferido no terminal</td></tr>
+            <tr><td>10h40–11h10</td><td>materialização DuckDB</td><td>nove tabelas reconciliadas</td></tr>
+            <tr><td>11h10–11h40</td><td>fato, mart e teste de fanout</td><td>grão e métricas declarados</td></tr>
+            <tr><td>11h40–12h00</td><td>HTML DuckDB</td><td>fonte e cobertura visíveis</td></tr>
+            <tr><td>12h00–12h10</td><td>comparação e revisão final</td><td>pipeline reexecutável</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>Orientação final para a atividade prática</strong>
+          <p>Ao terminar, peça ao OpenCode: <code>Revise os seis scripts contra README.md. Liste divergências sem editar. Depois proponha a menor correção para cada gate que falhou.</code> Inspecione cada correção, esvazie apenas a pasta <code>saida/</code>, execute os scripts em ordem e confirme que os dois HTMLs podem ser reconstruídos a partir dos Excels.</p>
+          <p>Depois dos gates, peça: <code>Crie docs/04_pipeline_excel_olap.md somente a partir dos manifestos, relatórios e medições produzidos. Registre proveniência, contagens, FKs, reconciliação, consulta comparada, mediana, limitações e caminhos dos dois HTMLs. Não invente números.</code></p>
+          <p>O laboratório termina quando a cadeia inteira é reproduzível e reconciliada, não quando a primeira página visualmente convincente abre no navegador.</p>
+        </div>
+      </section>
+    </article>
+  </main>
+</body>
+</html>
