@@ -902,3 +902,59 @@ pre code {
 .deck-shell.is-dense .deck-card { padding: 18px 20px; }
 .deck-shell.is-dense .deck-table th,
 .deck-shell.is-dense .deck-table td { padding: 7px 10px; font-size: 0.86em; }
+
+/* Modelos comparativos de gráficos — galeria didática da Aula 03. */
+.chart-model {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.12fr) minmax(280px, 0.88fr);
+  gap: 22px;
+  align-items: stretch;
+}
+
+.chart-frame {
+  min-height: 300px;
+  padding: 18px;
+  background: var(--deck-surface);
+  border: 1px solid var(--deck-line);
+  border-radius: 4px;
+}
+
+.chart-frame svg { display: block; width: 100%; height: 100%; min-height: 264px; }
+.chart-frame .axis { stroke: var(--deck-text); stroke-width: 1.2; }
+.chart-frame .gridline { stroke: var(--deck-line); stroke-width: 1; stroke-dasharray: 3 4; }
+.chart-frame .mark { fill: var(--deck-text); }
+.chart-frame .mark-light { fill: var(--deck-surface-2); stroke: var(--deck-text); stroke-width: 1.2; }
+.chart-frame .series { fill: none; stroke: var(--deck-text); stroke-width: 3; }
+.chart-frame .series-light { fill: none; stroke: var(--deck-muted); stroke-width: 2; stroke-dasharray: 5 4; }
+.chart-frame text { fill: var(--deck-muted); font-family: var(--font-mono); font-size: 11px; }
+.chart-frame .label-strong { fill: var(--deck-text); font-weight: 700; }
+
+.chart-guide {
+  display: grid;
+  grid-template-rows: repeat(4, auto);
+  border-top: 2px solid var(--deck-border);
+  border-bottom: 1px solid var(--deck-border);
+}
+
+.chart-guide div { padding: 12px 2px; border-bottom: 1px solid var(--deck-line-soft); }
+.chart-guide div:last-child { border-bottom: 0; }
+.chart-guide strong { display: block; margin-bottom: 4px; font-family: var(--font-mono); font-size: 0.7em; letter-spacing: 0.1em; text-transform: uppercase; }
+.chart-guide span { display: block; font-size: 0.88em; line-height: 1.42; }
+
+.chart-compare {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.chart-option { padding: 16px; border: 1px solid var(--deck-line); border-radius: 4px; background: var(--deck-panel); }
+.chart-option h3 { margin: 0 0 6px; font-family: var(--font-mono); font-size: 0.76em; letter-spacing: 0.08em; text-transform: uppercase; }
+.chart-option p { margin: 6px 0 0; font-size: 0.78em; line-height: 1.35; }
+.chart-option svg { display: block; width: 100%; height: 148px; background: var(--deck-surface); }
+
+@media (max-width: 900px) {
+  .chart-model { grid-template-columns: 1fr; }
+  .chart-frame { min-height: 230px; }
+  .chart-frame svg { min-height: 200px; }
+  .chart-compare { grid-template-columns: 1fr; }
+}

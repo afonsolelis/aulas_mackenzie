@@ -54,6 +54,50 @@
       </section>
 
       <section class="content-block">
+        <h2>2.1 Atlas comparativo: pergunta, dados e forma</h2>
+        <p>Os modelos apresentados nos slides não são uma coleção de receitas. Eles formam um espaço de decisão. A escolha começa pela pergunta, passa pelo grão disponível e só então chega ao desenho. Se o modelo mínimo exigido pelo gráfico não existe na consulta, a visualização pode até ser renderizada, mas não sustentará a interpretação.</p>
+
+        <table>
+          <thead><tr><th>Modelo visual</th><th>Pergunta que responde</th><th>Modelo mínimo dos dados</th><th>Uso preferencial</th></tr></thead>
+          <tbody>
+            <tr><td>Barras ordenadas</td><td>Quem é maior e quanto maior?</td><td>Categoria + medida agregada</td><td>Ranking e diferença absoluta; eixo de valor começa em zero</td></tr>
+            <tr><td>Pontos alinhados</td><td>Quais grupos estão acima ou abaixo?</td><td>Categoria + medida agregada</td><td>Muitas categorias, valores próximos ou eixo truncado justificável</td></tr>
+            <tr><td>Dumbbell</td><td>Quanto cada grupo mudou?</td><td>Categoria + exatamente dois períodos + medida</td><td>Antes/depois com magnitude da mudança</td></tr>
+            <tr><td>Slopegraph</td><td>Quem subiu, caiu ou trocou de posição?</td><td>Categoria + exatamente dois períodos + medida</td><td>Direção e mudança de ranking; poucos grupos</td></tr>
+            <tr><td>Histograma</td><td>Qual é a forma dos valores individuais?</td><td>Uma linha por observação + medida contínua</td><td>Concentração, assimetria, modas, vazios e cauda</td></tr>
+            <tr><td>ECDF</td><td>Que percentual está abaixo de um limite?</td><td>Uma linha por observação + medida contínua</td><td>Percentis e comparação de distribuições sem escolher bins</td></tr>
+            <tr><td>Boxplot</td><td>Centro e dispersão diferem entre grupos?</td><td>Categoria + N observações + medida</td><td>Comparar muitas distribuições com pouco espaço</td></tr>
+            <tr><td>Violino</td><td>Como a densidade difere entre grupos?</td><td>Categoria + N suficiente + medida</td><td>Forma multimodal; deve mostrar mediana, pontos ou N</td></tr>
+            <tr><td>Strip plot</td><td>Quais casos formam cada grupo?</td><td>Categoria + identificador + medida</td><td>Amostras pequenas, transparência sobre os casos</td></tr>
+            <tr><td>Linha</td><td>Como a medida evolui?</td><td>Tempo ordenado + medida, intervalos coerentes</td><td>Trajetória e tendência em processo contínuo</td></tr>
+            <tr><td>Barras temporais</td><td>Quanto ocorreu em cada janela?</td><td>Período discreto + medida</td><td>Volume por mês, semana ou trimestre</td></tr>
+            <tr><td>Área</td><td>Como o volume acumulado evolui?</td><td>Tempo + medida não negativa</td><td>Magnitude total; menos precisa para comparação fina</td></tr>
+            <tr><td>Dispersão</td><td>Duas medidas variam juntas?</td><td>Duas medidas no mesmo grão + identificador</td><td>Direção, força, clusters e outliers</td></tr>
+            <tr><td>Bolhas</td><td>Como uma terceira medida contextualiza a relação?</td><td>Duas posições + terceira medida positiva</td><td>Poucos pontos e diferenças grandes de área</td></tr>
+            <tr><td>Hexbin / heatmap</td><td>Onde existe maior densidade de casos?</td><td>Duas medidas + muitos registros</td><td>Sobreposição intensa; agrega casos em células</td></tr>
+            <tr><td>Pequenos múltiplos</td><td>O padrão se repete nos segmentos?</td><td>Dimensão de painel + eixos e medidas equivalentes</td><td>Substituir muitas séries sobrepostas e auditar agregados</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Leia o modelo de dados antes do gráfico</h3>
+        <p><strong>Categoria + medida</strong> produz comparações de magnitude. <strong>Identificador + medida sem agregação</strong> permite examinar distribuição. <strong>Tempo + medida</strong> produz evolução, desde que lacunas e intervalos sejam tratados. <strong>Duas medidas no mesmo grão</strong> permitem relação; se preço estiver no grão de item e prazo no grão de pedido, a junção multiplica o prazo e fabrica pontos duplicados. O requisito “mesmo grão” não é detalhe de implementação: é condição de validade.</p>
+
+        <h3>Comparações que devem ser feitas antes de publicar</h3>
+        <ol class="steps">
+          <li><strong>Barras × pontos:</strong> o leitor precisa perceber comprimento desde zero ou posição em uma escala estreita?</li>
+          <li><strong>Histograma × boxplot:</strong> a forma completa importa ou o objetivo é comparar resumos entre grupos?</li>
+          <li><strong>Linha × barras temporais:</strong> existe continuidade entre instantes ou são janelas discretas de volume?</li>
+          <li><strong>Dispersão × heatmap:</strong> cada caso ainda é visível ou a sobreposição já exige agregação espacial?</li>
+          <li><strong>Uma visão × pequenos múltiplos:</strong> as séries podem ser identificadas sem legenda e cruzamentos?</li>
+        </ol>
+
+        <div class="note">
+          <strong>Modelos deliberadamente secundários</strong>
+          <p>Pizza, rosca, radar, gauge e gráficos 3D não são primeiras escolhas para comparação numérica. Eles podem produzir uma figura familiar, mas trocam posição e comprimento — canais precisos — por ângulo, área, perspectiva ou preenchimento. Se forem usados, precisam vencer uma alternativa mais precisa em um teste explícito com a pergunta real.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
         <h2>3. Trabalho 1 — Comparar magnitude</h2>
         <p>É o trabalho mais comum em relatórios de negócio e, por isso mesmo, aquele em que os erros se propagam mais. A ferramenta oferece opções vistosas — pizza, rosca, bolha, barras tridimensionais — que degradam sistematicamente a precisão do julgamento.</p>
 
@@ -178,12 +222,62 @@
         <ol class="steps"><li>Classifique a pergunta em magnitude, distribuição, evolução ou relação.</li><li>Desenhe duas representações candidatas antes de construir.</li><li>Compare os canais visuais usados e a precisão necessária.</li><li>Teste agregações e granularidades alternativas.</li><li>Identifique a conclusão mais forte que os dados autorizam.</li><li>Escreva uma frase com a principal limitação ou incerteza.</li><li>Documente por que a alternativa foi descartada.</li></ol>
         <div class="audit-template"><strong>Modelo de <code>docs/03_registro_numerico.md</code></strong><p><code>Pergunta → trabalho analítico → cálculo → candidatas → escolha → escala → incerteza → alternativa descartada → decisão autorizada → limitação.</code></p></div>
 
-        <h2>8. Laboratório — quatro trabalhos, quatro gráficos</h2>
-        <p>Duração aproximada de duas horas e dez minutos. Você vai construir um gráfico para cada trabalho, declarando explicitamente qual trabalho ele executa e por que o tipo escolhido vence as alternativas.</p>
+        <h2>8. Laboratório — PostgreSQL, Copilot e dashboard em D3</h2>
+        <p>Duração aproximada de duas horas e dez minutos. O Metabase deixa de ser o ambiente principal de construção e passa a funcionar como instrumento de descoberta e reconciliação. Cada dupla criará um pequeno aplicativo no Codespaces: uma API local consulta o PostgreSQL analítico, devolve JSON e um HTML usa D3 para desenhar os gráficos.</p>
+
+        <h3>8.1 Conexões e segurança</h3>
+        <p>A aplicação web do Metabase está em <a href="https://metabase-production-76b0.up.railway.app">metabase-production-76b0.up.railway.app</a>. Esse endereço pode aparecer no material porque contém apenas a interface pública. A conexão didática da turma é <code>postgresql://postgres:DKjApbFBANNAcWzUSYuTeouiBWlEeFJj@yamanote.proxy.rlwy.net:56714/olist</code>. A credencial pode ser usada no Codespaces; o dashboard continua acessando o banco pela API Node.js, não diretamente pelo navegador.</p>
+        <ol class="steps">
+          <li>O professor disponibiliza a string externa do PostgreSQL como secret chamado <code>POSTGRES_URL</code>.</li>
+          <li>No GitHub, abra as configurações de Codespaces Secrets e autorize o repositório da atividade.</li>
+          <li>Crie o Codespace e confirme apenas a existência da variável com <code>Boolean(process.env.POSTGRES_URL)</code>; não imprima seu valor.</li>
+          <li>A conexão é aberta somente em <code>server.js</code>. O código em <code>public/</code> nunca acessa <code>process.env</code>.</li>
+          <li>Se a instância Railway exigir SSL, configure o cliente PostgreSQL no servidor conforme a política fornecida pelo professor.</li>
+        </ol>
+        <div class="note"><strong>URL interna não serve no Codespaces</strong><p>Um host terminado em <code>railway.internal</code> só é resolvido entre serviços do mesmo projeto Railway. Para o Codespaces é necessária a URL TCP pública, com host e porta externos. Essa URL deve ser compartilhada como secret, não publicada neste repositório.</p></div>
+
+        <h3>8.2 O primeiro produto da IA é o modelo do banco</h3>
+        <p>Antes de pedir um dashboard, use o Copilot para criar <code>docs/modelo_olist.md</code>. O prompt deve exigir consulta ao <code>information_schema</code>, grão por tabela, chaves candidatas, cardinalidades, diagrama Mermaid e consultas de validação. Toda hipótese não comprovada deve aparecer como “a confirmar”.</p>
+        <pre>Contexto: PostgreSQL com o dataset Olist.
+Objetivo: criar docs/modelo_olist.md a partir do banco, sem inventar colunas.
+
+Liste tabelas e colunas via information_schema.
+Para cada tabela, declare o grão e proponha a chave.
+Classifique relações como 1:1, 1:N ou N:N.
+Gere Mermaid ER e SQL para validar unicidade e integridade.
+Não revele POSTGRES_URL, usuário ou senha.</pre>
+        <p>Depois da geração, execute as consultas propostas. Se uma chave candidata tiver duplicatas, o documento precisa ser corrigido. Se uma relação multiplicar linhas, registre a cardinalidade real antes de construir qualquer métrica.</p>
+
+        <h3>8.3 Arquitetura mínima do aplicativo</h3>
+        <table><thead><tr><th>Arquivo</th><th>Responsabilidade</th><th>Não pode fazer</th></tr></thead><tbody><tr><td><code>server.js</code></td><td>Abrir pool PostgreSQL, executar SQL parametrizado e expor <code>/api/*</code></td><td>Retornar segredo ou aceitar SQL arbitrário do navegador</td></tr><tr><td><code>public/index.html</code></td><td>Estrutura semântica, títulos, filtros e contêineres</td><td>Conter usuário, senha ou string de conexão</td></tr><tr><td><code>public/dashboard.js</code></td><td>Usar <code>fetch()</code>, escalas D3 e SVG responsivo</td><td>Calcular métricas que deveriam ser definidas no SQL</td></tr><tr><td><code>docs/modelo_olist.md</code></td><td>Registrar grãos, relações, testes e limitações</td><td>Apresentar suposição de IA como fato confirmado</td></tr></tbody></table>
+
+        <h3>8.4 Perguntas para o dashboard</h3>
+        <p>Cada dupla escolhe quatro perguntas, cobrindo magnitude, distribuição, evolução e relação. A resposta é o gráfico funcionando acompanhado de uma frase de leitura; não há questionário escrito separado.</p>
+        <ol class="steps">
+          <li><strong>Magnitude:</strong> quais cinco categorias concentram mais faturamento entregue e qual percentual do total elas cobrem?</li>
+          <li><strong>Distribuição:</strong> o preço mediano representa os itens ou a média é puxada pela cauda?</li>
+          <li><strong>Evolução:</strong> o crescimento mensal de pedidos se repete nas diferentes regiões?</li>
+          <li><strong>Relação:</strong> preço e frete continuam associados quando os itens são separados por região?</li>
+          <li><strong>Operação:</strong> quais estados combinam grande volume e prazo mediano elevado?</li>
+          <li><strong>Qualidade:</strong> quanto a conclusão muda quando nulos e extremos são tratados explicitamente?</li>
+          <li><strong>Comparação:</strong> barras e pontos levam o leitor ao mesmo ranking quando os valores são próximos?</li>
+          <li><strong>Granularidade:</strong> qual padrão desaparece ao trocar pedidos diários por semanas e meses?</li>
+        </ol>
+
+        <h3>8.5 D3 como implementação principal</h3>
+        <p>D3 será a implementação principal porque torna visíveis as decisões de escala, domínio, eixo, marca e interação. ApexCharts pode ser usado depois para reproduzir um dos gráficos e comparar produtividade e controle. A biblioteca não decide pergunta, grão, agregação nem interpretação.</p>
+        <ol class="steps">
+          <li>Crie um endpoint por pergunta e teste o JSON diretamente no navegador.</li>
+          <li>Reconcilie contagem e soma com uma pergunta equivalente no Metabase.</li>
+          <li>No D3, defina primeiro margem, domínio, escala e eixos; desenhe marcas depois.</li>
+          <li>Inclua unidade, período, universo e estado vazio/erro no componente.</li>
+          <li>Faça o SVG responder à largura do contêiner por <code>viewBox</code>.</li>
+          <li>Peça ao Copilot uma revisão focada em vazamento de segredo, SQL injection, grão e acessibilidade.</li>
+        </ol>
 
         <div class="note">
           <strong>Regra do laboratório</strong>
-          <p>Para cada gráfico você precisa nomear duas alternativas que descartou e dizer por quê. Escolha sem alternativa descartada não é escolha — é hábito.</p>
+          <p>Para cada gráfico, compare o resultado da API com o Metabase e nomeie uma alternativa visual descartada. Código gerado por IA só é aceito depois de uma consulta de validação e nunca pode imprimir a variável <code>POSTGRES_URL</code>.</p>
         </div>
 
         <h3>Etapa 1 — Evolução: série temporal de pedidos (30 minutos)</h3>
@@ -230,8 +324,9 @@
             <tr><th>Onde</th><th>O quê</th></tr>
           </thead>
           <tbody>
-            <tr><td>Metabase</td><td>Quatro perguntas salvas, uma por trabalho, nomeadas de modo a declarar qual trabalho cada uma executa</td></tr>
-            <tr><td>Repositório</td><td><code>docs/03_registro_numerico.md</code> com trabalho, cálculo, alternativas, escala, incerteza e limitações</td></tr>
+            <tr><td>Codespaces</td><td>Dashboard HTML/D3 com quatro gráficos consumindo endpoints locais, sem credenciais no cliente</td></tr>
+            <tr><td>Repositório</td><td><code>docs/modelo_olist.md</code>, SQL validado e <code>docs/03_registro_numerico.md</code></td></tr>
+            <tr><td>Metabase</td><td>Perguntas de conferência usadas para reconciliar totais e agregações da API</td></tr>
           </tbody>
         </table>
 
@@ -258,7 +353,7 @@
         <h2>11. Orientação para a prática em sala</h2>
         <div class="note">
           <strong>Como conduzir o laboratório</strong>
-          <p>As quatro etapas são executadas durante a aula, na <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a>, com as mesmas credenciais da Aula 01. Salve cada gráfico assim que terminar a etapa — a justificativa escrita pode ser completada depois, mas a construção precisa acontecer em sala, onde há apoio para depurar.</p>
+          <p>As etapas são executadas no GitHub Codespaces. A <a href="https://metabase-production-76b0.up.railway.app">instância Metabase da disciplina</a> permanece aberta para exploração e reconciliação, mas o produto principal é o dashboard HTML/D3 consumindo a API criada pela dupla.</p>
           <p>Ao final, apresente a um colega apenas o gráfico da Etapa 4, sem explicar nada, e peça que ele descreva a relação que enxerga. Se a descrição dele usar verbo causal, discuta por quê — essa conversa é o objetivo real da etapa.</p>
         </div>
       </section>
