@@ -34,7 +34,7 @@
           <article class="deck-card">
             <h3>8h30 &ndash; 9h00 &middot; Prática guiada</h3>
             <ul>
-              <li>Abrir o terminal e inspecionar os nove arquivos</li>
+              <li>Abrir o terminal e inspecionar quatro arquivos e nove abas</li>
               <li>Executar as primeiras leituras de esquema e contagem</li>
               <li>Mapear Excel &rarr; SQLite &rarr; HTML &rarr; DuckDB &rarr; HTML</li>
               <li>Observar mecanismo, grão e fanout durante a execução</li>
@@ -44,7 +44,7 @@
             <h3>9h00 &ndash; 12h10 &middot; Construção assistida</h3>
             <ul>
               <li>Configurar Codespaces, OpenCode e Zen</li>
-              <li>Baixar e auditar nove arquivos Excel</li>
+              <li>Baixar e auditar quatro arquivos Excel com todo o Olist</li>
               <li>Excel &rarr; SQLite &rarr; HTML operacional</li>
               <li>SQLite &rarr; DuckDB &rarr; HTML analítico</li>
               <li>Medir, reconciliar e registrar as limitações</li>
@@ -184,14 +184,14 @@ opencode</code></pre>
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Etapa 1 &middot; Download</span>
-          <h2 class="deck-title">Pedidos, clientes e localização</h2>
-          <p class="deck-summary">Baixe os arquivos ou use as cópias já disponíveis no repositório do Codespace.</p>
+          <h2 class="deck-title">Quatro downloads, nove tabelas Olist</h2>
+          <p class="deck-summary">Cada arquivo reúne tabelas relacionadas em abas; juntos, eles formam o dataset completo usado no laboratório.</p>
         </div>
         <div class="deck-grid">
-          <article class="deck-card"><h3>Clientes &middot; 99.441</h3><p><a href="../dados/olist_customers.xlsx" download>Baixar olist_customers.xlsx</a></p></article>
-          <article class="deck-card"><h3>Pedidos &middot; 99.441</h3><p><a href="../dados/olist_orders.xlsx" download>Baixar olist_orders.xlsx</a></p></article>
-          <article class="deck-card"><h3>Geolocalização &middot; 1.000.163</h3><p><a href="../dados/olist_geolocation.xlsx" download>Baixar olist_geolocation.xlsx</a></p></article>
-          <article class="deck-card"><h3>Itens &middot; 112.650</h3><p><a href="../dados/olist_order_items.xlsx" download>Baixar olist_order_items.xlsx</a></p></article>
+          <article class="deck-card"><h3>Pedidos + clientes</h3><p><a href="../dados/olist_pedidos_clientes.xlsx" download>Baixar olist_pedidos_clientes.xlsx</a></p></article>
+          <article class="deck-card"><h3>Itens + pagamentos + avaliações</h3><p><a href="../dados/olist_itens_pagamentos_avaliacoes.xlsx" download>Baixar olist_itens_pagamentos_avaliacoes.xlsx</a></p></article>
+          <article class="deck-card"><h3>Catálogo</h3><p><a href="../dados/olist_catalogo.xlsx" download>Baixar olist_catalogo.xlsx</a></p></article>
+          <article class="deck-card"><h3>Geolocalização · 1.000.163</h3><p><a href="../dados/olist_geolocalizacao.xlsx" download>Baixar olist_geolocalizacao.xlsx</a></p></article>
         </div>
       </div>
     </div>
@@ -200,16 +200,15 @@ opencode</code></pre>
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Etapa 1 &middot; Download</span>
-          <h2 class="deck-title">Pagamentos, avaliações e catálogo</h2>
+          <h2 class="deck-title">O contrato continua sendo de nove tabelas</h2>
         </div>
         <table class="deck-table">
-          <thead><tr><th>Tabela</th><th>Linhas</th><th>Arquivo</th></tr></thead>
+          <thead><tr><th>Workbook</th><th>Abas</th><th>Linhas</th></tr></thead>
           <tbody>
-            <tr><td>Pagamentos</td><td>103.886</td><td><a href="../dados/olist_order_payments.xlsx" download>Baixar olist_order_payments.xlsx</a></td></tr>
-            <tr><td>Avaliações</td><td>99.224</td><td><a href="../dados/olist_order_reviews.xlsx" download>Baixar olist_order_reviews.xlsx</a></td></tr>
-            <tr><td>Produtos</td><td>32.951</td><td><a href="../dados/olist_products.xlsx" download>Baixar olist_products.xlsx</a></td></tr>
-            <tr><td>Vendedores</td><td>3.095</td><td><a href="../dados/olist_sellers.xlsx" download>Baixar olist_sellers.xlsx</a></td></tr>
-            <tr><td>Tradução</td><td>71</td><td><a href="../dados/product_category_name_translation.xlsx" download>Baixar product_category_name_translation.xlsx</a></td></tr>
+            <tr><td>Pedidos + clientes</td><td><code>orders</code>, <code>customers</code></td><td>99.441 + 99.441</td></tr>
+            <tr><td>Itens + pagamentos + avaliações</td><td><code>order_items</code>, <code>order_payments</code>, <code>order_reviews</code></td><td>112.650 + 103.886 + 99.224</td></tr>
+            <tr><td>Catálogo</td><td><code>products</code>, <code>sellers</code>, <code>translation</code></td><td>32.951 + 3.095 + 71</td></tr>
+            <tr><td>Geolocalização</td><td><code>geolocation</code></td><td>1.000.163</td></tr>
           </tbody>
         </table>
       </div>
@@ -224,8 +223,8 @@ opencode</code></pre>
         <table class="deck-table">
           <thead><tr><th>Teste</th><th>Evidência</th><th>Falha</th></tr></thead>
           <tbody>
-            <tr><td>Quantidade</td><td>nove arquivos <code>.xlsx</code></td><td>fonte ausente</td></tr>
-            <tr><td>Cabeçalho</td><td>colunas registradas por arquivo</td><td>campo deslocado</td></tr>
+            <tr><td>Quantidade</td><td>quatro arquivos e nove abas</td><td>fonte ausente</td></tr>
+            <tr><td>Cabeçalho</td><td>colunas registradas por aba</td><td>campo deslocado</td></tr>
             <tr><td>Linhas</td><td>contagem igual ao manifesto</td><td>carga parcial</td></tr>
             <tr><td>Imutabilidade</td><td>entrada nunca sobrescrita</td><td>perda de proveniência</td></tr>
             <tr><td>Memória</td><td>leitura <code>read_only</code> em lotes</td><td>um milhão de linhas em RAM</td></tr>

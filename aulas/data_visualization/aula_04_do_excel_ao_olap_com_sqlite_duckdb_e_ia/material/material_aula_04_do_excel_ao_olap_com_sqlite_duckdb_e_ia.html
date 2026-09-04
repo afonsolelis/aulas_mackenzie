@@ -21,7 +21,7 @@
       <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
       <h1>Aula 04 — Do Excel ao OLAP com SQLite, DuckDB e IA</h1>
       <p class="meta">Aula 04 &middot; 05/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>Laboratório integral no GitHub Codespaces com OpenCode Zen: nove arquivos Excel são perfilados, carregados em SQLite, lidos para produzir um HTML operacional, materializados em DuckDB e consultados para produzir um segundo HTML orientado a OLAP.</p>
+      <p>Laboratório integral no GitHub Codespaces com OpenCode Zen: quatro arquivos Excel, com as nove tabelas Olist distribuídas em abas, são perfilados, carregados em SQLite, lidos para produzir um HTML operacional, materializados em DuckDB e consultados para produzir um segundo HTML orientado a OLAP.</p>
     </header>
 
     <article class="material">
@@ -96,23 +96,18 @@ opencode</code></pre>
       </section>
 
       <section class="content-block">
-        <h2>4. Download dos nove arquivos Excel</h2>
-        <p>Os arquivos abaixo são cópias completas das nove tabelas Olist usadas na disciplina. Cada arquivo possui uma única planilha, cabeçalho na primeira linha e quantidade validada contra a fonte. O arquivo de geolocalização contém 1.000.163 registros e cabe no limite do Excel por uma margem pequena.</p>
+        <h2>4. Download de todo o Olist em quatro arquivos Excel</h2>
+        <p>Os quatro downloads abaixo cobrem as nove tabelas Olist usadas na disciplina. Cada aba contém uma tabela completa, com cabeçalho na primeira linha e quantidade validada contra a fonte. A aba de geolocalização contém 1.000.163 registros e cabe no limite do Excel por uma margem pequena.</p>
         <table>
-          <thead><tr><th>Arquivo</th><th>Linhas de dados</th><th>Grão</th><th>Chave candidata</th></tr></thead>
+          <thead><tr><th>Arquivo</th><th>Abas e linhas de dados</th><th>Cobertura</th></tr></thead>
           <tbody>
-            <tr><td><a href="../dados/olist_customers.xlsx" download><code>olist_customers.xlsx</code></a></td><td>99.441</td><td>um identificador de cliente por pedido</td><td><code>customer_id</code></td></tr>
-            <tr><td><a href="../dados/olist_geolocation.xlsx" download><code>olist_geolocation.xlsx</code></a></td><td>1.000.163</td><td>um ponto geográfico observado</td><td>sem chave única</td></tr>
-            <tr><td><a href="../dados/olist_order_items.xlsx" download><code>olist_order_items.xlsx</code></a></td><td>112.650</td><td>um item dentro de um pedido</td><td><code>order_id + order_item_id</code></td></tr>
-            <tr><td><a href="../dados/olist_order_payments.xlsx" download><code>olist_order_payments.xlsx</code></a></td><td>103.886</td><td>uma sequência de pagamento do pedido</td><td><code>order_id + payment_sequential</code></td></tr>
-            <tr><td><a href="../dados/olist_order_reviews.xlsx" download><code>olist_order_reviews.xlsx</code></a></td><td>99.224</td><td>uma avaliação associada ao pedido</td><td><code>review_id + order_id</code></td></tr>
-            <tr><td><a href="../dados/olist_orders.xlsx" download><code>olist_orders.xlsx</code></a></td><td>99.441</td><td>um pedido</td><td><code>order_id</code></td></tr>
-            <tr><td><a href="../dados/olist_products.xlsx" download><code>olist_products.xlsx</code></a></td><td>32.951</td><td>um produto</td><td><code>product_id</code></td></tr>
-            <tr><td><a href="../dados/olist_sellers.xlsx" download><code>olist_sellers.xlsx</code></a></td><td>3.095</td><td>um vendedor</td><td><code>seller_id</code></td></tr>
-            <tr><td><a href="../dados/product_category_name_translation.xlsx" download><code>product_category_name_translation.xlsx</code></a></td><td>71</td><td>uma categoria traduzida</td><td><code>product_category_name</code></td></tr>
+            <tr><td><a href="../dados/olist_pedidos_clientes.xlsx" download><code>olist_pedidos_clientes.xlsx</code></a></td><td><code>olist_orders</code> · 99.441<br><code>olist_customers</code> · 99.441</td><td>pedidos e clientes</td></tr>
+            <tr><td><a href="../dados/olist_itens_pagamentos_avaliacoes.xlsx" download><code>olist_itens_pagamentos_avaliacoes.xlsx</code></a></td><td><code>olist_order_items</code> · 112.650<br><code>olist_order_payments</code> · 103.886<br><code>olist_order_reviews</code> · 99.224</td><td>itens, pagamentos e avaliações</td></tr>
+            <tr><td><a href="../dados/olist_catalogo.xlsx" download><code>olist_catalogo.xlsx</code></a></td><td><code>olist_products</code> · 32.951<br><code>olist_sellers</code> · 3.095<br><code>product_category_name_translation</code> · 71</td><td>produtos, vendedores e tradução</td></tr>
+            <tr><td><a href="../dados/olist_geolocalizacao.xlsx" download><code>olist_geolocalizacao.xlsx</code></a></td><td><code>olist_geolocation</code> · 1.000.163</td><td>geolocalização</td></tr>
           </tbody>
         </table>
-        <p>No Codespace, essas planilhas já estão dentro do repositório. O link serve para download individual; para o laboratório, copie os nove arquivos para a área de entrada:</p>
+        <p>No Codespace, essas planilhas já estão dentro do repositório. O link serve para download; para o laboratório, copie os quatro arquivos para a área de entrada:</p>
         <pre><code>cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
 mkdir -p entrada src saida
 cp ../dados/*.xlsx entrada/
@@ -156,7 +151,7 @@ Não altere a entrada. Mostre o plano antes de editar.</code></pre>
         <h3>Execução e gate</h3>
         <pre><code>python src/00_perfil_excel.py
 python -m json.tool saida/perfil_excel.json | less</code></pre>
-        <p>O gate passa quando existem nove registros de arquivo, todos os cabeçalhos estão presentes e as contagens coincidem com a tabela da Seção 4. Uma divergência interrompe a carga; ela não é corrigida ajustando o número esperado.</p>
+        <p>O gate passa quando existem quatro arquivos, nove abas, todos os cabeçalhos e as contagens coincidem com a tabela da Seção 4. Uma divergência interrompe a carga; ela não é corrigida ajustando o número esperado.</p>
       </section>
 
       <section class="content-block">

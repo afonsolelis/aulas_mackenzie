@@ -2,7 +2,7 @@
 
 [Abrir no GitHub Codespaces](https://codespaces.new/afonsolelis/aulas_mackenzie?quickstart=1)
 
-Esta prática usa o OpenCode Zen no terminal para construir um pipeline reproduzível. A IA propõe o código; o grupo inspeciona o diff, executa cada etapa e valida a evidência. Os nove Excels permanecem imutáveis.
+Esta prática usa o OpenCode Zen no terminal para construir um pipeline reproduzível. A IA propõe o código; o grupo inspeciona o diff, executa cada etapa e valida a evidência. Os quatro Excels, com as nove tabelas distribuídas em abas, permanecem imutáveis.
 
 ## Resultado esperado
 
@@ -10,7 +10,7 @@ Esta prática usa o OpenCode Zen no terminal para construir um pipeline reproduz
 laboratorio/
 ├── docs/
 │   └── 04_pipeline_excel_olap.md
-├── entrada/                         # cópia local dos nove .xlsx
+├── entrada/                         # cópia local dos quatro .xlsx
 ├── src/
 │   ├── 00_perfil_excel.py
 │   ├── 01_excel_para_sqlite.py
@@ -62,7 +62,7 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-O contrato de origem está em [`../dados/manifesto_olist.json`](../dados/manifesto_olist.json). O gate de entrada exige nove arquivos e as contagens abaixo.
+O contrato de origem está em [`../dados/manifesto_olist.json`](../dados/manifesto_olist.json). O gate de entrada exige quatro arquivos, nove abas e as contagens abaixo.
 
 | Tabela | Linhas |
 |---|---:|
@@ -83,8 +83,8 @@ Execute um prompt por vez. Inspecione o diff antes de autorizar a execução.
 ### A. Perfil dos Excels
 
 ```text
-Leia README.md. Inspecione entrada/*.xlsx em modo
-read_only, sem carregar a planilha inteira em memória. Crie
+Leia README.md. Inspecione os quatro arquivos em entrada/*.xlsx e suas
+nove abas em modo read_only, sem carregar uma aba inteira em memória. Crie
 src/00_perfil_excel.py para registrar arquivo, aba, cabeçalhos,
 quantidade de linhas e amostra de tipos. Grave saida/perfil_excel.json.
 Não altere a entrada. Mostre o plano antes de editar.
@@ -95,14 +95,14 @@ python src/00_perfil_excel.py
 python -m json.tool saida/perfil_excel.json
 ```
 
-Gate: nove contagens iguais ao manifesto.
+Gate: quatro arquivos, nove abas e nove contagens iguais ao manifesto.
 
 ### B. Excel para SQLite
 
 ```text
 Crie src/01_excel_para_sqlite.py. Use openpyxl em read_only,
 sqlite3 da biblioteca padrão, esquema explícito para as nove tabelas,
-transação por arquivo e inserção em lotes de 5.000 linhas. Converta
+localize cada tabela pela aba indicada no manifesto, use transação por aba e inserção em lotes de 5.000 linhas. Converta
 datas para ISO 8601 e preserve nulos. Ative PRAGMA foreign_keys=ON,
 declare as seis FKs abaixo e carregue pais antes de filhos. Crie índices
 após a carga e grave saida/olist.sqlite. Reconcilie contagens, unicidade
@@ -205,7 +205,7 @@ reconciliação, consulta comparada, mediana, limitações e caminhos dos
 dois HTMLs. Não invente números.
 ```
 
-O laboratório termina quando a pasta `saida/` pode ser reconstruída integralmente a partir dos nove Excels e o registro em `docs/` aponta para as evidências realmente produzidas.
+O laboratório termina quando a pasta `saida/` pode ser reconstruída integralmente a partir dos quatro Excels e o registro em `docs/` aponta para as evidências realmente produzidas.
 
 ## Diagnóstico
 
