@@ -46,7 +46,7 @@
         <h2>Seis dimensões de análise</h2>
         <div class="method-flow">
           <div class="method-step"><strong>Versionamento</strong><span>Cadência, autoria e distribuição do trabalho dentro do grupo.</span></div>
-          <div class="method-step"><strong>Conteúdo</strong><span>O que há dentro do commit: código, teste, documentação, configuração, arquivo gerado.</span></div>
+          <div class="method-step"><strong>Volume</strong><span>O tamanho de cada mudança: linhas adicionadas, removidas e o perfil dos commits.</span></div>
           <div class="method-step"><strong>Integração</strong><span>Merge requests, revisores, tempo de vida e aprovação.</span></div>
           <div class="method-step"><strong>Conformidade</strong><span>O fluxo de ramificação declarado contra o fluxo efetivamente praticado.</span></div>
           <div class="method-step"><strong>Fluxo</strong><span>Kanban: cartões, colunas, trabalho em progresso e tempo de ciclo.</span></div>
@@ -59,14 +59,48 @@
         <table>
           <thead><tr><th>Etapa</th><th>O que acontece</th></tr></thead>
           <tbody>
-            <tr><td>1 &middot; Extração</td><td>API do GitLab institucional, via CLI administrativo: projetos, membros, commits, diffs, merge requests, branches, issues e eventos de quadro</td></tr>
+            <tr><td>1 &middot; Extração</td><td>API do GitLab institucional: projetos, membros, commits, merge requests, branches, sprints, cartões e movimento de quadro</td></tr>
             <tr><td>2 &middot; Staging</td><td>Banco SQLite com o recorte completo do módulo — cópia imutável e auditável da extração</td></tr>
-            <tr><td>3 &middot; Carga</td><td>Ingestão no Postgres da instância Metabase da disciplina, por túnel seguro</td></tr>
+            <tr><td>3 &middot; Carga</td><td>Ingestão no Postgres da disciplina, no schema <code>pbl</code>, com chaves primárias e índices</td></tr>
             <tr><td>4 &middot; Modelagem</td><td>Conversão do esquema operacional em fatos e dimensões, sobre a base já carregada</td></tr>
             <tr><td>5 &middot; Consumo</td><td>Perguntas salvas, coleção organizada e dashboard narrativo no Metabase</td></tr>
           </tbody>
         </table>
         <p>O que o recorte <strong>não</strong> observa também precisa constar do dossiê: conversas fora da plataforma, trabalho em pares no mesmo teclado, código escrito e descartado antes do commit, e qualquer esforço que não tenha deixado rastro versionado. Um integrante pouco visível nos dados não é, por isso, um integrante ausente — é um integrante sobre o qual esta fonte não tem evidência.</p>
+
+        <h2>Acesso aos dados</h2>
+        <p>O recorte do ciclo <strong>2026-1B</strong> está carregado no mesmo Postgres que o Metabase da disciplina já consulta, no schema <code>pbl</code>. Não é preciso configurar conexão nem abrir túnel: entre no Metabase, escolha a fonte <em>Olist</em> e o schema <code>pbl</code> estará ao lado dos schemas usados nas aulas.</p>
+        <div class="note">
+          <strong>Metabase da disciplina</strong>
+          <p>Endereço: <a href="https://metabase-production-76b0.up.railway.app/">metabase-production-76b0.up.railway.app</a></p>
+          <p>Login: <code>alunos@aula.local</code> &middot; Senha: <code>OlistAula2026!</code></p>
+          <p>Fonte: <em>Olist</em> &middot; Schema do projeto: <code>pbl</code></p>
+        </div>
+        <div class="note">
+          <strong>Postgres do laboratório da Aula 03</strong>
+          <p><code>postgresql://postgres:NvPGMeTWIFOUMTTiAxpUctgqwvQYSMxA@mainline.proxy.rlwy.net:12120/railway?sslmode=require</code></p>
+          <p>Este é o banco do laboratório em Codespaces, um servidor distinto do que o Metabase consulta. Os dados do projeto <strong>não</strong> estão nele.</p>
+        </div>
+
+        <h2>O que existe no banco</h2>
+        <p>Onze tabelas descrevem 75 grupos de 15 turmas ao longo de um módulo completo. Os nomes seguem o vocabulário do processo, não o da API de origem: o que o GitLab chama de <em>issue</em> aparece como <code>cartao</code>, e o que ele chama de <em>milestone</em> aparece como <code>sprint</code>.</p>
+        <table>
+          <thead><tr><th>Tabela</th><th>Grão &mdash; uma linha é</th><th>Linhas</th></tr></thead>
+          <tbody>
+            <tr><td><code>pbl.projeto</code></td><td>um repositório de grupo, com turma e grupo já derivados do caminho</td><td>75</td></tr>
+            <tr><td><code>pbl.membro</code></td><td>uma pessoa vinculada a um repositório, com nível de acesso</td><td>1.859</td></tr>
+            <tr><td><code>pbl.commit</code></td><td>um commit, com autor, datas e linhas adicionadas e removidas</td><td>53.230</td></tr>
+            <tr><td><code>pbl.merge_request</code></td><td>uma solicitação de integração, com autor, revisores e desfecho</td><td>9.208</td></tr>
+            <tr><td><code>pbl.cartao</code></td><td>um cartão do quadro, com autor, responsáveis, rótulos e sprint</td><td>17.027</td></tr>
+            <tr><td><code>pbl.cartao_movimento</code></td><td>a entrada ou a saída de um cartão em uma coluna, com quem moveu e quando</td><td>183.422</td></tr>
+            <tr><td><code>pbl.branch</code></td><td>uma ramificação, com indicação de padrão, proteção e integração</td><td>2.679</td></tr>
+            <tr><td><code>pbl.sprint</code></td><td>uma sprint do grupo</td><td>376</td></tr>
+            <tr><td><code>pbl.quadro</code> e <code>pbl.quadro_coluna</code></td><td>o quadro e cada uma de suas colunas</td><td>110 e 429</td></tr>
+            <tr><td><code>pbl.extracao</code></td><td>a proveniência: quando, por quem, com que escopo e quantas chamadas</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <p>A tabela <code>pbl.cartao_movimento</code> é a que permite reconstruir o fluxo do quadro. Ela não registra colunas diretamente: registra a aplicação e a remoção de um rótulo. Como cada coluna do quadro corresponde a um rótulo, a passagem de um cartão por <em>Backlog</em>, <em>Doing</em>, <em>Waiting Review</em> e <em>Review</em> é reconstruída pareando cada <code>add</code> com o <code>remove</code> seguinte do mesmo rótulo. Essa reconstrução é sua &mdash; e é um exercício de grão, não de estética.</p>
+        <p>Duas advertências que pertencem ao dossiê de qualquer grupo. A extração é uma fotografia com data: <code>pbl.extracao</code> registra o instante, e nada posterior a ele existe na base. E o recorte não inclui o conteúdo dos diffs nem os comentários de revisão: há o número de linhas alteradas em cada commit, mas não quais arquivos mudaram, e há a contagem de comentários de cada merge request, mas não o texto. Afirmações sobre a qualidade do que foi escrito não se sustentam nesta base.</p>
 
         <h2>Perguntas de decisão que o dashboard precisa sustentar</h2>
         <p>O dashboard existe para um leitor específico — o docente que orienta o grupo — e para uma decisão específica: intervir ou não intervir, e em quê. Toda visualização precisa se ligar a pelo menos uma destas perguntas.</p>
@@ -75,8 +109,8 @@
           <tbody>
             <tr><td>O trabalho foi distribuído ou concentrado em poucos integrantes?</td><td>Autoria por sprint, concentração da contribuição, participação em revisão</td></tr>
             <tr><td>O grupo trabalhou ao longo do módulo ou apenas na véspera?</td><td>Distribuição temporal de commits e merges contra o calendário de sprints</td></tr>
-            <tr><td>O que foi entregue é código, documentação ou ruído?</td><td>Composição do diff por classe de arquivo, incluindo arquivos gerados automaticamente</td></tr>
-            <tr><td>A revisão de código foi genuína?</td><td>Tempo entre abertura e aprovação, tamanho do diff, presença de comentário substantivo</td></tr>
+            <tr><td>As entregas são incrementais ou concentradas em poucos commits enormes?</td><td>Distribuição do tamanho dos commits em linhas, por autor e por sprint</td></tr>
+            <tr><td>A revisão de código foi genuína?</td><td>Tempo entre abertura e aprovação, tamanho da mudança, número de comentários, quem aprovou</td></tr>
             <tr><td>O quadro reflete o repositório?</td><td>Cartões concluídos contra entregas versionadas no mesmo período</td></tr>
             <tr><td>Há sinal que justifique intervenção pedagógica agora?</td><td>Desvio contra o esperado, com evidência rastreável até o registro de origem</td></tr>
           </tbody>
