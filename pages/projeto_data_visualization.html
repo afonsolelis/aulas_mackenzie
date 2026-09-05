@@ -22,10 +22,32 @@
         <p>
           O projeto da disciplina não usa um conjunto de dados de vitrine. Cada grupo constrói um dashboard sobre dados educacionais reais: o rastro de trabalho deixado por alunos de graduação no GitLab ao longo de um módulo de Aprendizagem Baseada em Projetos — commits, merge requests, branches e movimentação de cartões no quadro kanban.
         </p>
-        <p class="meta">Entrega final &middot; 03/10/2026 &middot; Dashboard, dossiê e defesa</p>
+        <p>
+          O cliente do trabalho é uma pessoa concreta: o <strong>professor orientador</strong> de três grupos do <strong>Instituto Ápice</strong>, uma instituição de ensino por projetos. Ele acompanha equipes que trabalham em paralelo, não assiste a todas as reuniões e precisa decidir, a cada sprint, <em>onde intervir primeiro</em>. O trabalho começa por descobrir do que ele precisa — e só depois por representá-lo.
+        </p>
+        <p class="meta">Entrega final &middot; 03/10/2026 &middot; Elicitação, dashboard, dossiê e defesa</p>
       </section>
 
       <section class="content-block">
+        <h2>Elicitação: descobrir o que o orientador precisa</h2>
+        <p>Nenhum grupo começa desenhando gráfico. O trabalho abre por <strong>elicitação de requisitos</strong>: a atividade de descobrir, com o cliente, qual decisão ele precisa tomar, com que frequência, com que margem de erro e com que consequência caso erre. Requisito não é coletado como quem recolhe um pedido pronto — é <em>construído</em> na conversa, porque o cliente conhece o problema, não a solução.</p>
+        <p>O papel do cliente é interpretado em sala. O professor da disciplina responde como orientador dos três grupos, e cada equipe do MBA conduz sua própria entrevista. Duas equipes que perguntam coisas diferentes sairão com requisitos diferentes — e isso é o ponto.</p>
+        <table>
+          <thead><tr><th>Técnica</th><th>Como se aplica aqui</th><th>Registro que produz</th></tr></thead>
+          <tbody>
+            <tr><td>Entrevista estruturada</td><td>Roteiro de perguntas abertas sobre a rotina de orientação, os sinais de alerta e as decisões já tomadas no passado</td><td>Transcrição e lista de necessidades declaradas</td></tr>
+            <tr><td>Análise de tarefa</td><td>Reconstituir o que o orientador faz hoje para avaliar um grupo, passo a passo, sem o dashboard</td><td>Fluxo da tarefa atual e seus pontos de atrito</td></tr>
+            <tr><td>Cinco porquês</td><td>Descer de um pedido de superfície ("quero ver commits por aluno") até a decisão que ele serve</td><td>Necessidade real por trás do pedido literal</td></tr>
+            <tr><td>Protótipo descartável</td><td>Esboço em papel ou rascunho de tela, levado de volta ao cliente para provocar correção</td><td>Requisitos que só aparecem quando há algo concreto para criticar</td></tr>
+            <tr><td>Critério de aceite</td><td>Para cada requisito, a frase que diz quando ele está satisfeito</td><td>Teste verificável, não opinião</td></tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>A armadilha do pedido literal</strong>
+          <p>"Quero ver quantos commits cada aluno fez" é um pedido de <em>solução</em>, não um requisito. Atendido ao pé da letra, produz um ranking de pessoas — o que esta disciplina considera resposta errada. Elicitar é descobrir a necessidade por trás: <em>"preciso saber se o trabalho está concentrado em poucos integrantes, para conversar com o grupo antes da próxima sprint."</em> A mesma consulta, outra pergunta, outro gráfico, outra decisão.</p>
+        </div>
+        <p>A elicitação produz o primeiro artefato do projeto: uma <strong>lista de requisitos priorizada</strong>, cada um com público, decisão associada, frequência de uso, critério de aceite e a evidência que o sustentaria nos dados. Requisito que os dados disponíveis não conseguem sustentar não é descartado — é registrado como <em>lacuna</em>, com a razão. Esse documento é a entrada do Gate 1 do método da disciplina e o contrato contra o qual o dashboard final será avaliado.</p>
+
         <h2>O referente: o processo, não a ferramenta</h2>
         <p>A primeira decisão do projeto é conceitual e antecede qualquer gráfico. O objeto observado é o <strong>processo de aprendizagem de um grupo</strong>, situado em um módulo e em uma turma. O GitLab não é esse objeto — é uma <em>superfície de observação</em> por onde o processo deixa rastro. Confundir os dois é o erro mais comum e o mais caro: produz um painel que descreve o funcionamento de uma ferramenta e não responde a nenhuma pergunta pedagógica.</p>
         <p>A consequência prática aparece no título de cada gráfico. "Commits por semana" descreve a ferramenta. "Distribuição do esforço do grupo ao longo do módulo" descreve o processo — e é a mesma consulta.</p>
@@ -68,8 +90,31 @@
         </table>
         <p>O que o recorte <strong>não</strong> observa também precisa constar do dossiê: conversas fora da plataforma, trabalho em pares no mesmo teclado, código escrito e descartado antes do commit, e qualquer esforço que não tenha deixado rastro versionado. Um integrante pouco visível nos dados não é, por isso, um integrante ausente — é um integrante sobre o qual esta fonte não tem evidência.</p>
 
-        <h2>Acesso aos dados</h2>
-        <p>O recorte do ciclo <strong>2026-1B</strong> está carregado no mesmo Postgres que o Metabase da disciplina já consulta, no schema <code>pbl</code>. Não é preciso configurar conexão nem abrir túnel: entre no Metabase, escolha a fonte <em>Olist</em> e o schema <code>pbl</code> estará ao lado dos schemas usados nas aulas.</p>
+        <h2>Baixar os dados &mdash; turma T28, grupos G01, G02 e G03</h2>
+        <p>O recorte de trabalho do projeto está publicado aqui em CSV, pronto para abrir em qualquer ferramenta: planilha, Metabase, DuckDB, SQLite ou a cadeia construída na Aula 04. São três grupos do <strong>Instituto Ápice</strong> ao longo de um módulo completo de cinco sprints.</p>
+        <table>
+          <thead><tr><th>Arquivo</th><th>Uma linha é</th><th>Linhas</th></tr></thead>
+          <tbody>
+            <tr><td><a href="../dados/projeto_pbl/grupos.csv" download>grupos.csv</a></td><td>um grupo, com branch padrão e janela de atividade</td><td>3</td></tr>
+            <tr><td><a href="../dados/projeto_pbl/pessoas.csv" download>pessoas.csv</a></td><td>uma pessoa vinculada a um grupo, com papel</td><td>83</td></tr>
+            <tr><td><a href="../dados/projeto_pbl/sprints.csv" download>sprints.csv</a></td><td>uma sprint de um grupo, com início e prazo</td><td>15</td></tr>
+            <tr><td><a href="../dados/projeto_pbl/quadro_colunas.csv" download>quadro_colunas.csv</a></td><td>uma coluna do quadro Kanban de um grupo</td><td>12</td></tr>
+            <tr><td><a href="../dados/projeto_pbl/commits.csv" download>commits.csv</a></td><td>um commit, com autor, datas e linhas alteradas</td><td>2.688</td></tr>
+            <tr><td><a href="../dados/projeto_pbl/merge_requests.csv" download>merge_requests.csv</a></td><td>uma solicitação de integração, com revisores e desfecho</td><td>540</td></tr>
+            <tr><td><a href="../dados/projeto_pbl/cartoes.csv" download>cartoes.csv</a></td><td>um cartão do quadro, com responsáveis, rótulos e sprint</td><td>1.238</td></tr>
+            <tr><td><a href="../dados/projeto_pbl/kanban_eventos.csv" download>kanban_eventos.csv</a></td><td>a entrada ou a saída de um cartão em uma coluna</td><td>13.194</td></tr>
+            <tr><td><a href="../dados/projeto_pbl/manifesto.json" download>manifesto.json</a></td><td>proveniência do recorte e contagem de cada arquivo</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+        <p>Todos em UTF-8, separados por vírgula, com cabeçalho e datas em ISO 8601. Campos multivalorados (<code>responsaveis_ids</code>, <code>revisores_ids</code>, <code>rotulos</code>) usam <code>;</code> como separador interno. O <a href="../dados/projeto_pbl/README.md">dicionário de dados completo</a> descreve cada arquivo, a reconstrução do fluxo do quadro e as limitações que pertencem ao dossiê.</p>
+        <div class="note">
+          <strong>Pessoas pseudonimizadas, dados reais</strong>
+          <p>Nome, e-mail e username de cada aluno foram substituídos por um código estável por grupo &mdash; <code>G01-A01</code>, <code>G01-A02</code> &mdash; e a instituição de origem por um nome fictício. O texto livre dos cartões e commits foi preservado, com remoção de e-mails, URLs, menções e nomes próprios. Quem está fora do recorte aparece como <code>[externo]</code>; automações, como <code>[bot]</code>.</p>
+          <p>A autoria resolve para um código em 2.136 dos 2.688 commits &mdash; <strong>79%</strong> &mdash; porque o e-mail configurado no cliente git nem sempre corresponde à conta institucional. Essa lacuna é dado, não defeito, e pertence ao Gate 2 do seu dossiê.</p>
+        </div>
+
+        <h2>Acesso pelo Metabase</h2>
+        <p>O mesmo recorte, mais o conjunto completo das 15 turmas, está carregado no Postgres que o Metabase da disciplina já consulta, no schema <code>pbl</code>. Não é preciso configurar conexão nem abrir túnel: entre no Metabase, escolha a fonte <em>Olist</em> e o schema <code>pbl</code> estará ao lado dos schemas usados nas aulas.</p>
         <div class="note">
           <strong>Metabase da disciplina</strong>
           <p>Endereço: <a href="https://metabase-production-76b0.up.railway.app/">metabase-production-76b0.up.railway.app</a></p>
@@ -103,7 +148,8 @@
         <p>Duas advertências que pertencem ao dossiê de qualquer grupo. A extração é uma fotografia com data: <code>pbl.extracao</code> registra o instante, e nada posterior a ele existe na base. E o recorte não inclui o conteúdo dos diffs nem os comentários de revisão: há o número de linhas alteradas em cada commit, mas não quais arquivos mudaram, e há a contagem de comentários de cada merge request, mas não o texto. Afirmações sobre a qualidade do que foi escrito não se sustentam nesta base.</p>
 
         <h2>Perguntas de decisão que o dashboard precisa sustentar</h2>
-        <p>O dashboard existe para um leitor específico — o docente que orienta o grupo — e para uma decisão específica: intervir ou não intervir, e em quê. Toda visualização precisa se ligar a pelo menos uma destas perguntas.</p>
+        <p>O dashboard existe para um leitor específico — o professor orientador — e para uma decisão específica: intervir ou não intervir, e em quê. Toda visualização precisa se ligar a pelo menos uma pergunta de decisão.</p>
+        <p>A tabela abaixo é um <strong>ponto de partida, não o enunciado</strong>. As perguntas que o seu dashboard responderá saem da entrevista de elicitação com o orientador, e podem divergir desta lista — inclusive contradizê-la. Use-a como referência do <em>formato</em> esperado: uma pergunta de decisão à esquerda, a evidência que a sustenta à direita.</p>
         <table>
           <thead><tr><th>Pergunta</th><th>Evidência que a sustenta</th></tr></thead>
           <tbody>
@@ -120,7 +166,8 @@
         <h2>Restrições inegociáveis</h2>
         <div class="note">
           <strong>Confidencialidade</strong>
-          <p>Os dados são reais e identificados. O acesso é restrito à turma fechada do MBA e ao ambiente Metabase da disciplina. É vedada qualquer reprodução fora desse ambiente: sem exportação para repositório pessoal, sem captura de tela em redes sociais ou portfólio, sem compartilhamento com terceiros. A entrega final é apresentada dentro do ambiente da disciplina.</p>
+          <p>Os CSVs desta página estão pseudonimizados: nenhum nome, e-mail ou username de aluno aparece neles. Ainda assim, descrevem o trabalho real de pessoas reais e circulam como material didático da turma — não como dado público. Sem publicação em repositório aberto, portfólio ou rede social, e sem tentativa de reidentificar quem quer que seja.</p>
+          <p>O schema <code>pbl</code> no Metabase é diferente: ali os dados continuam <strong>identificados</strong>, porque a extração preserva a origem. O acesso é restrito ao ambiente da disciplina, e nada dali sai em captura de tela ou exportação. A entrega final é apresentada dentro do ambiente da disciplina.</p>
         </div>
         <div class="note">
           <strong>Autoridade humana</strong>
@@ -135,7 +182,7 @@
         <table>
           <thead><tr><th>Entregável</th><th>Descrição</th><th>Peso</th></tr></thead>
           <tbody>
-            <tr><td>Artefatos semanais</td><td>Perguntas salvas no Metabase e registros escritos, produzidos nas aulas 01 a 07</td><td>40%</td></tr>
+            <tr><td>Requisitos e artefatos semanais</td><td>Lista de requisitos elicitados — público, decisão, frequência, critério de aceite, evidência e lacunas — seguida das perguntas salvas no Metabase e dos registros escritos das aulas 01 a 07</td><td>40%</td></tr>
             <tr><td>Dashboard narrativo</td><td>Organizado em abas, respondendo às perguntas de decisão com filtros e detalhamento por clique</td><td>30%</td></tr>
             <tr><td>Defesa</td><td>Apresentação de 12 minutos, da pergunta de negócio à recomendação sustentada por evidência</td><td>20%</td></tr>
             <tr><td>Revisão por pares</td><td>Participação nas auditorias heurísticas das entregas dos outros grupos</td><td>10%</td></tr>
@@ -145,6 +192,7 @@
 
         <div class="actions">
           <a class="button" href="home_data_visualization.html">&larr; Voltar para a disciplina</a>
+          <a class="button" href="../dados/projeto_pbl/README.md">Dicionário de dados &rarr;</a>
           <a class="button" href="https://metabase-production-76b0.up.railway.app/" target="_blank" rel="noopener noreferrer">Acessar Metabase &rarr;</a>
         </div>
       </section>

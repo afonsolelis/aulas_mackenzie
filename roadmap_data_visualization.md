@@ -163,6 +163,28 @@ Fio condutor único das 8 aulas. Escolhido por cobrir, num só conjunto, todos o
 
 Tabelas principais: `olist_orders`, `olist_order_items`, `olist_products`, `olist_customers`, `olist_sellers`, `olist_order_payments`, `olist_order_reviews`, `olist_geolocation`, `product_category_name_translation`.
 
+### Segundo conjunto — rastro de trabalho PBL (projeto do módulo)
+
+O Olist é o fio condutor das aulas. O **projeto do módulo** usa um conjunto próprio: o
+rastro real de três grupos de graduação (turma T28, grupos G01–G03) num módulo de cinco
+sprints — commits, merge requests, cartões e movimentação de quadro Kanban.
+
+O cliente do projeto é o **professor orientador** desses grupos, e o trabalho abre por
+**elicitação de requisitos**: o professor da disciplina interpreta o papel do orientador
+e cada equipe conduz sua entrevista. A lista de requisitos priorizada é o primeiro
+artefato e o contrato contra o qual o dashboard final é avaliado.
+
+Duas vias de acesso, com regimes de privacidade distintos:
+
+| Via | Conteúdo | Regime |
+|---|---|---|
+| CSVs em `dados/projeto_pbl/` | T28, grupos G01–G03 — 2.688 commits, 540 MRs, 1.238 cartões, 13.194 eventos de quadro | **Pseudonimizado**: pessoas viram `G01-A01`, instituição vira *Instituto Ápice*. Versionado e baixável na página do projeto |
+| Schema `pbl` no Metabase | 75 grupos de 15 turmas do ciclo 2026-1b | **Identificado**. Restrito ao ambiente da disciplina |
+
+O SQLite intermediário (`data/pbl_modulo2.sqlite`) contém os dados identificados e nunca
+é versionado. `tools/export_projeto_csv.py` é a fronteira entre ele e o material
+publicável — ver `tools/README.md` para as armadilhas da pseudonimização.
+
 ### Repositório do aluno
 
 O trabalho escrito acompanha o trabalho visual. Estrutura-alvo ao final da Aula 08:
@@ -210,7 +232,7 @@ As aulas combinam fundamentação, demonstração e prática. A Aula 04 é a exc
 
 ### Aula 04 — 05/09/2026 — Do Excel ao OLAP com SQLite, DuckDB e IA
 **Conceitos em execução:** diferença entre planilha, banco e relatório; SQLite como banco embutido orientado a linhas; DuckDB como mecanismo colunar vetorizado para OLAP; grão, fanout, reconciliação e limites de comparação de desempenho.
-**Prática integral:** configuração do OpenCode Zen no terminal do Codespaces; download e perfil de nove Excels Olist; carga em SQLite; geração de HTML operacional; materialização em DuckDB; construção de fato e mart; geração de HTML analítico.
+**Prática integral:** configuração do OpenCode Zen no terminal do Codespaces; download e perfil de quatro arquivos Excel com as nove tabelas Olist; carga em SQLite; geração de HTML operacional; materialização em DuckDB; construção de fato e mart; geração de HTML analítico.
 **Artefato:** seis scripts, `olist.sqlite`, `olist.duckdb`, dois relatórios HTML, registros de reconciliação e `docs/04_pipeline_excel_olap.md`.
 **Saída verificável:** o grupo reconstrói os dois HTMLs a partir dos Excels, demonstra a fonte de cada número e compara a mesma consulta nos dois mecanismos sem exceder a evidência medida.
 
@@ -303,9 +325,9 @@ Semanalmente:
 
 ## 8. Status de implementação do material
 
-- [ ] Aula 01 — 15/08/2026 — Data Discovery com Metabase
+- [x] Aula 01 — 15/08/2026 — Data Discovery com Metabase
 - [x] Aula 02 — 22/08/2026 — Arquitetura de BI e Modelagem Dimensional com Olist
-- [ ] Aula 03 — 29/08/2026 — Visualização de Dados Numéricos
+- [x] Aula 03 — 29/08/2026 — Visualização de Dados Numéricos
 - [x] Aula 04 — 05/09/2026 — Do Excel ao OLAP com SQLite, DuckDB e IA
 - [x] Aula 05 — 12/09/2026 — Visualização de Dados Não Numéricos
 - [ ] Aula 06 — 19/09/2026 — Mapas e Visualização Geoespacial
