@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 06 — Heurísticas e Vieses</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="06" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Heurísticas e Vieses</h1>
+          <p class="deck-meta">Aula 06 &nbsp;&bull;&nbsp; 19/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">O painel não apenas mostra o erro de julgamento. Ele fabrica o erro de julgamento.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">O que vai acontecer hoje</h2>
+          <p class="deck-summary">Na Aula 05 você mapeou <em>onde</em> o orientador entende diferente. Hoje o assunto é <em>por que</em> ele entende diferente — e qual parte desse erro o seu próprio painel produz. A tarde de trabalho é uma auditoria cruzada: ninguém audita o próprio painel.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <ul>
+              <li>Duas famílias com o mesmo nome</li>
+              <li>As dez heurísticas e a severidade 0&ndash;4</li>
+              <li>Atalhos cognitivos de quem lê</li>
+              <li>Sete vieses que o artefato fabrica</li>
+              <li>Mapa, cauda longa e ordinal</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>10h00 &ndash; 12h10 &middot; Prática</h3>
+            <ul>
+              <li>Bateria caça-viés em quatro artefatos</li>
+              <li>Auditoria cruzada entre grupos</li>
+              <li>Devolutiva com severidade</li>
+              <li>Correção e reteste no Metabase</li>
+              <li>Redação das contramedidas</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - PLACEHOLDER / RECAP -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Construção do conteúdo &middot; Recap</span>
+          <h2 class="deck-title">O que ficou pronto na semana passada</h2>
+          <p class="deck-summary">Cada grupo saiu da Aula 05 com um fluxo de interação anotado em três raias, um registro de divergências <code>D1..Dn</code> com decisão de projeto e suporte exigido, e pelo menos dois suportes já implementados no Metabase. Esse material é a matéria-prima de hoje: ele será entregue a outro grupo.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>A pergunta que a Aula 05 deixou em aberto</strong>
+          <p style="margin:8px 0 0;">Você registrou que o orientador lê "12 commits" como "trabalhou pouco". Anotar a divergência não explica por que a leitura errada é tão natural, tão rápida e tão confiante. Ela não é descuido: é um atalho de julgamento operando exatamente como foi feito para operar — e o seu painel pode estar servindo o atalho em vez de interrompê-lo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - METODO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Método C-D-P-V-D &middot; Aula 06</span>
+          <h2 class="deck-title">Hoje o peso está no Gate 5</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step"><strong>Contexto</strong><span>Quem lê e sob qual pressa.</span></div>
+          <div class="method-step"><strong>Dados</strong><span>O que a fonte não vê.</span></div>
+          <div class="method-step"><strong>Pergunta</strong><span>Denominador e base de comparação.</span></div>
+          <div class="method-step is-current"><strong>Visual</strong><span>A codificação que induz o erro.</span></div>
+          <div class="method-step is-current"><strong>Decisão</strong><span>Auditoria, severidade e reteste.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - TESE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">Nenhum gráfico é neutro</h2>
+          <p class="deck-summary">Todo artefato visual decide, em nome do leitor, o que é grande, o que é próximo, o que é comparável e o que merece atenção. Essas decisões encontram atalhos de julgamento que já estavam lá antes do painel existir. Quando as duas coisas se alinham, o leitor conclui rápido, conclui com convicção e conclui errado — e não tem como perceber.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - DUAS FAMILIAS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Homonímia</span>
+          <h2 class="deck-title">Duas famílias dividem o nome "heurística"</h2>
+          <p class="deck-summary">Elas não são a mesma coisa e a aula precisa das duas. Confundi-las produz auditoria de opinião.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Heurística de avaliação</strong>
+            <ul>
+              <li>Instrumento deliberado de inspeção</li>
+              <li>Aplicada por um avaliador, sobre um artefato</li>
+              <li>Produz achado, severidade e correção</li>
+              <li>É a régua: as dez heurísticas da disciplina</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Heurística cognitiva</strong>
+            <ul>
+              <li>Atalho automático de julgamento</li>
+              <li>Opera em quem lê, sem escolha e sem aviso</li>
+              <li>Produz conclusão rápida e confiante</li>
+              <li>É o alvo: o que a inspeção procura provocar</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - DEZ HEURISTICAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Instrumento &middot; As dez da disciplina</span>
+          <h2 class="deck-title">A régua da auditoria</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>#</th><th>Heurística</th><th>Pergunta de inspeção</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Adequação à tarefa</td><td>Serve à decisão que o leitor precisa tomar?</td></tr>
+            <tr><td>2</td><td>Clareza da mensagem</td><td>O que a tela afirma está explícito?</td></tr>
+            <tr><td>3</td><td>Integridade e rastreabilidade</td><td>Dá para chegar da tela até a linha de origem?</td></tr>
+            <tr><td>4</td><td>Adequação da codificação</td><td>O canal visual corresponde ao tipo de dado?</td></tr>
+            <tr><td>5</td><td>Hierarquia e carga cognitiva</td><td>O que importa aparece primeiro?</td></tr>
+            <tr><td>6</td><td>Consistência e expectativas</td><td>O mesmo elemento significa a mesma coisa em toda parte?</td></tr>
+            <tr><td>7</td><td>Contexto, unidades e incerteza</td><td>Há denominador, unidade e limite declarados?</td></tr>
+            <tr><td>8</td><td>Prevenção de interpretação errada</td><td>Que leitura falsa a tela torna fácil?</td></tr>
+            <tr><td>9</td><td>Acessibilidade e equivalência</td><td>A informação existe sem depender de cor?</td></tr>
+            <tr><td>10</td><td>Acionabilidade</td><td>O leitor sabe o que fazer em seguida?</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - SEVERIDADE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Escala &middot; Severidade</span>
+          <h2 class="deck-title">Cinco graus, e só dois obrigam a parar</h2>
+          <p class="deck-summary">A severidade não mede o quanto o achado incomoda o avaliador. Mede o quanto ele compromete a decisão do leitor.</p>
+        </div>
+        <div class="severity-scale">
+          <div><strong>0</strong><span>Não é problema</span></div>
+          <div><strong>1</strong><span>Cosmético</span></div>
+          <div><strong>2</strong><span>Menor</span></div>
+          <div><strong>3</strong><span>Grave</span></div>
+          <div><strong>4</strong><span>Impede a decisão</span></div>
+        </div>
+        <div class="deck-callout">
+          <strong>O corte prático</strong>
+          <p style="margin:8px 0 0;">Severidade <code>3</code> significa que o leitor decide com base numa leitura que o dado não sustenta. Severidade <code>4</code> significa que ele não consegue decidir — ou decidiria o oposto. Achados <code>3</code> e <code>4</code> precisam de correção nesta aula; <code>1</code> e <code>2</code> entram no backlog com prazo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - ANATOMIA DA CRITICA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Protocolo</span>
+          <h2 class="deck-title">O que faz uma crítica valer</h2>
+          <p class="deck-summary">Opinião estética sem evidência não encerra gate. A cadeia abaixo é obrigatória e tem ordem.</p>
+        </div>
+        <div class="deck-schema">EVIDÊNCIA    o que se vê na tela, descrito sem interpretação
+    │
+HEURÍSTICA   qual das dez foi violada, pelo número
+    │
+SEVERIDADE   0 · 1 · 2 · 3 · 4, justificada pela decisão afetada
+    │
+CONSEQUÊNCIA a decisão que o orientador tomaria errado
+    │
+CORREÇÃO     a mudança concreta, no elemento concreto
+    │
+RETESTE      como verificar que a leitura errada não é mais fácil</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - QUATRO ATALHOS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Heurística cognitiva &middot; Os quatro atalhos-mãe</span>
+          <h2 class="deck-title">Como o leitor decide antes de pensar</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Atalho</th><th>Substitui a pergunta difícil por</th><th>No painel do projeto</th></tr></thead>
+          <tbody>
+            <tr><td>Disponibilidade</td><td>"O que me vem à cabeça?"</td><td>O grupo que deu problema na sprint passada vira o padrão de todos os grupos</td></tr>
+            <tr><td>Representatividade</td><td>"Com o que isto se parece?"</td><td>Curva serrilhada de commits parece "trabalho na véspera", mesmo com o mesmo total</td></tr>
+            <tr><td>Ancoragem</td><td>"Qual foi o primeiro número?"</td><td>O primeiro cartão do painel fixa a régua com que todos os outros são lidos</td></tr>
+            <tr><td>Afeto</td><td>"Que sensação isto me dá?"</td><td>Vermelho no cartão do grupo antecipa o veredito antes da leitura do valor</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - TAXA-BASE E DENOMINADOR -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Viés &middot; Taxa-base e denominador</span>
+          <h2 class="deck-title">Um número sozinho não é um fato</h2>
+          <p class="deck-summary">A negligência da taxa-base é ignorar a frequência de fundo diante de um caso vívido. O denominador ausente é a forma que ela assume na tela.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>"G02 fechou a sprint com merge requests rejeitados"</strong>
+          <p style="margin:8px 0 0;">A frase parece grave e não afirma nada. Rejeitados sobre quantos abertos? Qual a proporção nos outros dois grupos? Qual a proporção do próprio G02 nas sprints anteriores? Sem base de comparação, o leitor preenche o vazio com a lembrança mais recente que tiver — e é isso que ele leva para a reunião de orientação.</p>
+          <p style="margin:10px 0 0;">Correção de custo baixo: valor absoluto e proporção no mesmo gráfico, com a base explícita no eixo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - REGRESSAO E RUIDO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Viés &middot; Regressão à média e padrão em ruído</span>
+          <h2 class="deck-title">Dois erros que se disfarçam de análise</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Regressão à média</strong>
+            <ul>
+              <li>Valor extremo tende a valor comum na medição seguinte</li>
+              <li>O grupo que despencou numa sprint sobe na próxima sem intervenção alguma</li>
+              <li>A intervenção que aconteceu no meio leva o crédito</li>
+              <li>Sintoma: "conversei com eles e melhorou"</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Padrão em ruído</strong>
+            <ul>
+              <li>Série curta produz forma reconhecível por acaso</li>
+              <li>Cinco sprints são cinco pontos, não uma tendência</li>
+              <li>Zoom no eixo transforma oscilação em queda</li>
+              <li>Sintoma: linha de tendência sobre poucos pontos</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - SOBREVIVENCIA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Viés &middot; Sobrevivência</span>
+          <h2 class="deck-title">Você só audita o que a fonte deixou chegar</h2>
+          <p class="deck-summary">O rastro do projeto registra o que virou objeto na plataforma. Trabalho descartado antes do commit, revisão feita por chamada de vídeo e programação em par no mesmo teclado não existem nesta base.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>A lacuna que já está no dado</strong>
+          <p style="margin:8px 0 0;">A autoria resolve para um código em 2.136 dos 2.688 commits. O restante tem e-mail de cliente git fora da conta institucional e aparece como <code>[externo]</code> ou <code>[bot]</code>. Um gráfico de contribuição por pessoa que descarte esse resíduo mostra uma distribuição que soma menos do que o total — e transforma um integrante mal configurado em integrante ausente.</p>
+          <p style="margin:10px 0 0;">Ausência de evidência não é evidência de ausência. A faixa "não atribuído" com percentual é dado, não rodapé.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - ENQUADRAMENTO E RECENCIA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Viés &middot; Enquadramento e recência</span>
+          <h2 class="deck-title">A mesma verdade, duas reações</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Enquadramento</strong>
+            <ul>
+              <li>"Cartões concluídos" e "cartões não concluídos" são o mesmo fato</li>
+              <li>O título escolhe qual metade o leitor vê primeiro</li>
+              <li>Ganho e perda não pesam igual em quem decide</li>
+              <li>Regra: declarar o enquadramento escolhido e por quê</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Recência</strong>
+            <ul>
+              <li>A última sprint pesa mais do que as quatro anteriores</li>
+              <li>Filtro padrão em "últimos 7 dias" institucionaliza o viés</li>
+              <li>O painel decide o que é "agora" pelo leitor</li>
+              <li>Regra: janela padrão declarada, com o período completo a um clique</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - ATRIBUICAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Viés &middot; Erro fundamental de atribuição</span>
+          <h2 class="deck-title">Explicar por caráter em vez de por situação</h2>
+          <p class="deck-summary">Diante de um número baixo, o leitor atribui a causa à pessoa — desleixo, desinteresse, falta de esforço — e não à situação: papel no grupo, disponibilidade de tarefa, configuração da ferramenta, decisão do próprio time sobre quem integra.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Por que o ranking de pessoas está fora de escopo</strong>
+          <p style="margin:8px 0 0;">Uma tabela ordenada por volume de contribuição entrega ao leitor exatamente o formato que o atalho pede: uma lista de pessoas, do melhor ao pior, sem situação nenhuma à vista. O painel não produz veredito — produz evidência, análise e pergunta. A unidade de saída é o grupo; o indivíduo aparece só como distribuição interna, para responder sobre equilíbrio de participação.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - VIESES QUE O ARTEFATO FABRICA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Vieses do artefato</span>
+          <h2 class="deck-title">Sete erros que o painel produz sozinho</h2>
+          <p class="deck-summary">Não vêm do leitor. Vêm de decisões de codificação que alguém tomou — quase sempre por conveniência.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Decisão de codificação</th><th>Leitura falsa que ela torna fácil</th><th>Heurística</th></tr></thead>
+          <tbody>
+            <tr><td>Eixo truncado em gráfico de barras</td><td>Diferença pequena parece diferença enorme</td><td>4, 8</td></tr>
+            <tr><td>Coroplético de volume sem normalização</td><td>O mapa do volume vira o mapa da base</td><td>7, 8</td></tr>
+            <tr><td>"Top 10 + outros" sem prestar contas</td><td>A cauda descartada some da conversa</td><td>3, 7</td></tr>
+            <tr><td>Ordinal tratado como número contínuo</td><td>Média de nota de 1 a 5 sugere precisão inexistente</td><td>4, 7</td></tr>
+            <tr><td>Ranking de pessoas</td><td>Volume vira medida de empenho</td><td>1, 10</td></tr>
+            <tr><td>Cor semântica (verde/vermelho)</td><td>O veredito chega antes do valor</td><td>6, 9</td></tr>
+            <tr><td>Precisão espúria: cinco casas decimais</td><td>Dígito extra vira autoridade</td><td>7, 2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - MAPA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Caso canônico &middot; Mapas</span>
+          <h2 class="deck-title">O coroplético de volume é um mapa da base</h2>
+          <p class="deck-summary">Pinte qualquer contagem bruta por região e você obtém, com pequenas variações, o mesmo desenho: onde há mais gente, mais atividade, mais registro. O mapa parece uma descoberta e é uma tautologia.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que o mapa ingênuo mostra</strong>
+            <ul>
+              <li>Pedidos por UF no Olist reproduzem a distribuição populacional</li>
+              <li>Área grande grita mais alto que área pequena com o mesmo valor</li>
+              <li>A escala contínua sugere gradiente onde há degraus</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>O que o corrige</strong>
+            <ul>
+              <li>Denominador explícito: por habitante, por cliente, por pedido</li>
+              <li>Declarar qual pergunta o denominador escolhido responde</li>
+              <li>Tabela equivalente ao lado, para leitura sem depender de cor</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - CAUDA LONGA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Dados não numéricos &middot; Cardinalidade</span>
+          <h2 class="deck-title">O corte da cauda longa precisa prestar contas</h2>
+          <p class="deck-summary">Categoria com alta cardinalidade não cabe em um gráfico. Cortar é legítimo; cortar em silêncio, não. O leitor precisa saber quanto do total ele está vendo.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Quatro perguntas que todo "top N" tem de responder na tela</strong>
+          <ol style="margin:10px 0 0; padding-left:22px;">
+            <li>Quantas categorias existem no total?</li>
+            <li>Qual percentual do total os N exibidos cobrem?</li>
+            <li>O que foi para "outros" — resíduo homogêneo ou casos relevantes?</li>
+            <li>O corte muda se o período ou o filtro mudar?</li>
+          </ol>
+          <p style="margin:10px 0 0;">Um "top 10 + outros" mudo é achado de severidade <code>3</code> quando "outros" carrega parcela comparável à dos exibidos.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - ORDINAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Dados não numéricos &middot; Ordinal</span>
+          <h2 class="deck-title">Ordem não é distância</h2>
+          <p class="deck-summary">Uma escala ordinal garante que 4 vem depois de 3. Não garante que a distância entre 4 e 3 seja igual à distância entre 2 e 1. Média sobre ordinal calcula uma quantidade que não existe.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O que a média esconde</strong>
+            <ul>
+              <li>Média 3,0 pode ser todo mundo em 3</li>
+              <li>Ou metade em 1 e metade em 5</li>
+              <li>As duas situações pedem intervenções opostas</li>
+              <li>Rótulos de tamanho do quadro chegam em grafias divergentes: <code>size_M</code> e <code>SIZE_M</code></li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>O que mostrar no lugar</strong>
+            <ul>
+              <li>Distribuição completa das categorias</li>
+              <li>Mediana, quando um resumo é necessário</li>
+              <li>Proporção acima de um limite declarado</li>
+              <li>A regra de normalização registrada no dossiê</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - VIES DO AUTOR -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Viés &middot; Curadoria</span>
+          <h2 class="deck-title">O último viés é o seu</h2>
+          <p class="deck-summary">Quem constrói o painel escolhe o recorte, a métrica, a ordem e o que fica de fora. Cada uma dessas escolhas é uma aposta sobre o que importa — feita por alguém que já sabe o que quer encontrar.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Três sintomas de curadoria enviesada</strong>
+          <ol style="margin:10px 0 0; padding-left:22px;">
+            <li><strong>Confirmação</strong> — o gráfico que contrariava a hipótese foi removido "porque estava confuso".</li>
+            <li><strong>Custo afundado</strong> — a consulta trabalhosa continua no painel porque deu trabalho, não porque sustenta decisão.</li>
+            <li><strong>Maldição do conhecimento</strong> — o título faz sentido para quem construiu, e só para quem construiu.</li>
+          </ol>
+          <p style="margin:10px 0 0;">É por isso que ninguém audita o próprio painel hoje.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - PRATICA VISAO GERAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 10h00 &ndash; 12h10</span>
+          <h2 class="deck-title">Cinco etapas, um artefato</h2>
+          <p class="deck-summary">Ao final da manhã cada grupo sai com achados recebidos de fora, pelo menos uma correção implementada e um reteste registrado.</p>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>1 &middot; Caça-viés</strong><span>Quatro artefatos preparados, viés nomeado em cada um.</span></div>
+          <div class="quality-gate"><strong>2 &middot; Auditoria</strong><span>Cada grupo inspeciona o painel de outro com as dez heurísticas.</span></div>
+          <div class="quality-gate"><strong>3 &middot; Devolutiva</strong><span>Achados com severidade e consequência, entregues por escrito.</span></div>
+          <div class="quality-gate"><strong>4 &middot; Correção</strong><span>O dono do painel corrige e retesta o achado mais grave.</span></div>
+          <div class="quality-gate"><strong>5 &middot; Contramedidas</strong><span>Regras permanentes que impedem a recaída.</span></div>
+          <div class="quality-gate"><strong>6 &middot; Registro</strong><span><code>docs/06_auditoria_heuristica_e_vieses.md</code> fechado.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 22 - ETAPA 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 1</span>
+          <h2 class="deck-title">Bateria caça-viés</h2>
+          <p class="deck-summary">Trinta minutos, quatro artefatos preparados pelo professor. Cinco minutos por artefato, sem discussão prévia; a discussão vem depois de todos terem escrito.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Mapa de volume por região sem normalização — nomeie a leitura falsa que ele torna fácil.</li>
+          <li>"Top 10 + outros" mudo — estime quanto do total ficou invisível e diga como você verificaria.</li>
+          <li>Ranking de commits por pessoa — aponte os dois vieses que se somam nele.</li>
+          <li>Série com eixo truncado — descreva a diferença real e a diferença aparente.</li>
+          <li>Para cada um, registre heurística violada, severidade e a correção de menor custo.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 23 - ETAPA 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 2</span>
+          <h2 class="deck-title">Auditoria cruzada</h2>
+          <p class="deck-summary">Quarenta minutos. Cada grupo recebe o painel de outro no Metabase, junto com o fluxo anotado da Aula 05. Regra única: quem construiu não fica na sala explicando.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Leia a tarefa de decisão escrita pelo grupo dono e trabalhe dentro dela.</li>
+          <li>Percorra as dez heurísticas em ordem, uma passagem por heurística.</li>
+          <li>Registre só o que você consegue apontar na tela — descrição antes de interpretação.</li>
+          <li>Atribua severidade pela decisão afetada, não pelo incômodo.</li>
+          <li>Marque pelo menos um achado que você acredita ser <code>3</code> ou <code>4</code>.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 24 - ETAPA 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 3</span>
+          <h2 class="deck-title">Devolutiva com severidade</h2>
+          <p class="deck-summary">Vinte minutos, dez para cada lado da dupla de grupos. A devolutiva é entregue por escrito e depois lida em voz alta.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Comece pelo achado de maior severidade, não pelo mais fácil de explicar.</li>
+          <li>Descreva a evidência sem adjetivo: o que está na tela.</li>
+          <li>Nomeie o viés que a codificação atual induz em quem lê.</li>
+          <li>Declare a decisão do orientador que mudaria por causa dele.</li>
+          <li>O grupo dono só faz perguntas de esclarecimento — não defende o painel nesta etapa.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 25 - FICHA DO ACHADO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Registro</span>
+          <h2 class="deck-title">Anatomia de um achado</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Campo</th><th>O que preencher</th></tr></thead>
+          <tbody>
+            <tr><td>Identificador</td><td><code>A1..An</code>, e o grupo auditor</td></tr>
+            <tr><td>Elemento</td><td>Qual pergunta ou cartão do painel, nomeado</td></tr>
+            <tr><td>Evidência</td><td>O que se vê, descrito sem interpretação</td></tr>
+            <tr><td>Heurística</td><td>Uma das dez, pelo número</td></tr>
+            <tr><td>Viés induzido</td><td>Cognitivo, do artefato, ou ambos</td></tr>
+            <tr><td>Severidade</td><td><code>0</code> a <code>4</code>, com a decisão que a justifica</td></tr>
+            <tr><td>Correção aplicada</td><td>A mudança concreta e onde ela ficou na tela</td></tr>
+            <tr><td>Reteste</td><td>Quem leu depois e o que disse</td></tr>
+            <tr><td>Contramedida</td><td>A regra permanente que impede a recaída</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 26 - ETAPA 4 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 4</span>
+          <h2 class="deck-title">Correção e reteste</h2>
+          <p class="deck-summary">Quarenta minutos, com o painel de volta às mãos de quem o construiu. Correção sem reteste não fecha achado.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Ordene os achados recebidos por severidade e comece pelo topo.</li>
+          <li>Corrija no Metabase pelo menos um achado de severidade <code>3</code> ou <code>4</code>.</li>
+          <li>Guarde o estado anterior: captura, descrição ou pergunta duplicada com sufixo.</li>
+          <li>Chame um leitor que não participou da correção e peça a leitura em voz alta.</li>
+          <li>Registre a frase literal do reteste. Se a leitura errada persistir, o achado continua aberto.</li>
+          <li>Registre também o achado que você decidiu <em>não</em> corrigir, com a razão declarada.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 27 - ETAPA 5 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 5</span>
+          <h2 class="deck-title">Contramedidas permanentes</h2>
+          <p class="deck-summary">Vinte minutos. Correção resolve um cartão; contramedida impede que o mesmo erro volte no próximo cartão que você criar.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>É contramedida</strong>
+            <ul>
+              <li>"Todo gráfico de proporção declara a base no eixo"</li>
+              <li>"Nenhum eixo de barras começa fora do zero"</li>
+              <li>"Cor nunca é o único portador da informação"</li>
+              <li>"Todo top N mostra a cobertura do total"</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Não é</strong>
+            <ul>
+              <li>"Vamos tomar mais cuidado"</li>
+              <li>"Explicamos isso na apresentação"</li>
+              <li>"Quem usa o painel já sabe disso"</li>
+              <li>"Depois a gente ajusta"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 28 - ENTREGA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega</span>
+          <h2 class="deck-title">O que sai daqui hoje</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>No Metabase</h3>
+            <p>Pelo menos um achado de severidade <code>3</code> ou <code>4</code> corrigido, com o estado anterior preservado para comparação.</p>
+          </article>
+          <article class="deck-card">
+            <h3>No repositório</h3>
+            <p><code>docs/06_auditoria_heuristica_e_vieses.md</code> com os achados recebidos, o viés nomeado em cada um, severidade, correção, reteste e a lista de contramedidas.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 29 - AVALIACAO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Avaliação</span>
+          <h2 class="deck-title">Como este trabalho é avaliado</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Critério</th><th>O que se espera</th></tr></thead>
+          <tbody>
+            <tr><td>Evidência</td><td>Cada achado aponta o elemento na tela, descrito antes de interpretado</td></tr>
+            <tr><td>Nomeação</td><td>O viés induzido tem nome, e a heurística violada tem número</td></tr>
+            <tr><td>Severidade justificada</td><td>O grau vem da decisão afetada, não do incômodo do avaliador</td></tr>
+            <tr><td>Correção verificável</td><td>Antes e depois existem no painel, não na intenção</td></tr>
+            <tr><td>Reteste independente</td><td>Há a frase literal de quem leu depois da correção</td></tr>
+            <tr><td>Contramedida</td><td>Regra permanente escrita, aplicável a cartões futuros</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 30 - PROXIMA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Próxima aula &middot; 26/09</span>
+          <h2 class="deck-title">Storytelling com Dados</h2>
+          <p class="deck-summary">Hoje você tirou do painel o que induzia leitura errada. Na próxima, o painel deixa de ser um conjunto de respostas corretas e passa a ser uma história: uma ideia central em uma frase, um storyboard, e doze minutos para levar o orientador da pergunta à recomendação.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Traga pronto</strong>
+          <p style="margin:8px 0 0;">O painel auditado e corrigido, a lista de contramedidas e os achados que você decidiu não corrigir — eles reaparecem na Aula 07 como a limitação que a história precisa declarar.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
+      <a href="../material/material_aula_06_heuristicas_e_vieses.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

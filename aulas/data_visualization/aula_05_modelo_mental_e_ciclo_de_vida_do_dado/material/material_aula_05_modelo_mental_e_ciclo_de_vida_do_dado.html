@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 05 — Modelo Mental do Usuário e Ciclo de Vida do Dado</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_05_modelo_mental_e_ciclo_de_vida_do_dado.html">Ver Slide &rarr;</a>
+      <a href="../../../../pages/projeto_data_visualization.html">Projeto do módulo &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 05 — Modelo Mental do Usuário e Ciclo de Vida do Dado</h1>
+      <p class="meta">Aula 05 &middot; 12/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p>A partir desta aula o objeto de trabalho deixa de ser o Olist e passa a ser o projeto do módulo: o painel que um orientador real usará para decidir onde intervir. O problema muda junto. Não se trata mais de escolher a codificação visual correta, e sim de medir a distância entre o que a pessoa que lê acredita que o número significa e o que o dado de fato registra.</p>
+    </header>
+
+    <article class="material">
+      <section class="content-block">
+        <h2>1. O problema concreto</h2>
+        <p>Na Aula 04 cada grupo reconstruiu um número desde a planilha de origem e provou de onde ele veio. Provar a origem responde a uma pergunta técnica legítima e necessária: o valor exibido corresponde ao valor calculado a partir da fonte declarada. Essa prova, porém, não responde à pergunta que passa a governar as próximas quatro aulas — a pessoa que lê o número entende a mesma coisa que o grupo entendeu ao produzi-lo?</p>
+        <p>O cliente do projeto do módulo é um orientador do Instituto Ápice que acompanha três grupos de graduação ao longo de cinco sprints e precisa decidir onde intervir antes da próxima. Ele não vai auditar consulta SQL, não vai ler o dicionário de dados e não vai perguntar qual é o grão do fato. Ele vai olhar uma tela por alguns minutos e formar uma teoria sobre o que está acontecendo com os grupos. Se ele lê <em>&ldquo;12 commits&rdquo;</em> como <em>&ldquo;esse aluno trabalhou pouco&rdquo;</em> enquanto o dado registra <em>&ldquo;12 escritas persistidas por um endereço de e-mail que resolve para essa pessoa, dentro da janela extraída&rdquo;</em>, a decisão recai sobre um estudante real com base numa leitura que a fonte não sustenta.</p>
+        <p>Esse desencontro tem nome, tem tipologia e tem tratamento. Ele não se corrige com um gráfico mais bonito nem com uma paleta melhor. Corrige-se com uma decisão de projeto explícita e com o suporte que essa decisão exige na tela — um título que afirma, um denominador no eixo, uma faixa de não atribuído, uma ficha técnica de indicador ou, no limite, a remoção do gráfico que induz o erro.</p>
+
+        <div class="note">
+          <strong>Resultado esperado</strong>
+          <p>Ao final da manhã cada grupo terá um fluxo de interação anotado sobre uma tarefa real de decisão, um registro de divergências <code>D1..Dn</code> com evidência, consequência, decisão e suporte, pelo menos dois suportes já implementados no Metabase e <code>docs/05_fluxo_de_interacao_anotado.md</code> escrito no repositório do grupo.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>2. Três modelos, e o grupo controla apenas um</h2>
+        <p>A distinção clássica entre modelo do projetista, imagem do sistema e modelo do usuário, formulada por Donald Norman, é a base conceitual da aula. Ela vale para uma maçaneta de porta e vale, sem alteração, para um painel analítico.</p>
+        <p>O <strong>modelo do projetista</strong> é o que o grupo entende sobre o dado: qual é o grão do fato, qual regra define cada métrica, o que o número inclui, o que ele exclui, que limitações a extração impõe. Esse modelo é rico, foi construído ao longo de quatro aulas e existe inteiramente dentro da cabeça de quem construiu o painel e nos documentos que quase ninguém lê.</p>
+        <p>A <strong>imagem do sistema</strong> é tudo que efetivamente aparece na tela: título, eixo, rótulo, unidade, filtro visível, cor, legenda, nota de rodapé, ordem de leitura. É o único canal de comunicação entre o grupo e o orientador. Nada que esteja apenas no repositório, apenas na apresentação oral ou apenas na intenção pertence à imagem do sistema.</p>
+        <p>O <strong>modelo do usuário</strong> é a teoria que o orientador monta olhando a tela. Ele não tem acesso ao raciocínio de quem construiu; tem acesso à imagem do sistema e à própria experiência prévia. Quando a imagem é pobre, ele não deixa o espaço vazio: preenche a lacuna com a hipótese mais disponível na memória dele. É por isso que uma tela ambígua não produz dúvida, produz confiança equivocada.</p>
+        <table>
+          <thead><tr><th>Modelo</th><th>Onde vive</th><th>Quem controla</th></tr></thead>
+          <tbody>
+            <tr><td>Do projetista</td><td>Cabeça do grupo, consultas salvas, dossiê</td><td>O grupo, integralmente</td></tr>
+            <tr><td>Imagem do sistema</td><td>A tela: título, eixo, rótulo, filtro, nota</td><td>O grupo, e é o único canal</td></tr>
+            <tr><td>Do usuário</td><td>Cabeça do orientador</td><td>Ninguém &mdash; só se influencia pela imagem</td></tr>
+          </tbody>
+        </table>
+        <p>A consequência prática é direta: toda vez que o grupo souber alguma coisa importante sobre o dado que não esteja visível na tela, existe risco aberto. A pergunta de projeto não é &ldquo;está documentado?&rdquo;, e sim &ldquo;está na imagem do sistema, no lugar onde a leitura acontece?&rdquo;.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>3. Os dois golfos: execução e avaliação</h2>
+        <p>A distância entre os modelos se manifesta em dois pontos distintos do uso, e confundi-los leva a corrigir a coisa errada.</p>
+        <p>O <strong>golfo de execução</strong> é a distância entre a intenção do usuário e a ação que o sistema oferece. A pergunta interna dele é: <em>como faço este painel me mostrar o que eu quero?</em> O filtro existe mas está fora do campo de visão; a comparação entre dois grupos exige três cliques que ninguém descobre sozinho; o parâmetro de sprint tem um rótulo que só faz sentido para quem modelou. O sintoma clássico é o usuário pedir por e-mail um relatório que o painel já responde.</p>
+        <p>O <strong>golfo de avaliação</strong> é a distância entre o que o sistema exibe e o que o usuário conclui daquilo. A pergunta interna é: <em>o que isto que estou vendo quer dizer?</em> O número aparece sem denominador nem base de comparação; o título rotula (&ldquo;Commits por grupo&rdquo;) em vez de afirmar (&ldquo;G02 concentra 61% dos commits da sprint 3 em dois integrantes&rdquo;); a escala de cor sugere bom e ruim onde só há mais e menos. O sintoma clássico é dois leitores tirarem conclusões opostas da mesma tela.</p>
+        <p>Nesta disciplina o golfo de avaliação é o mais caro, porque ele produz decisões erradas sem produzir sensação de erro. O usuário que não consegue executar percebe o problema e pede ajuda. O usuário que avalia mal segue adiante convicto.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. O ciclo de vida do dado em oito estações</h2>
+        <p>O usuário raciocina sobre o evento no mundo. O painel entrega o resultado de uma cadeia de transformações. Entre um e outro há oito estações, e cada passagem é uma oportunidade de perda. Reconstituir essa cadeia para uma métrica específica é o primeiro exercício da aula.</p>
+        <pre><code>1 · EVENTO       aluno escreve código, revisa, conversa, desiste
+2 · CAPTURA      git commit, merge request, movimento de cartão no quadro
+3 · EXTRAÇÃO     API do GitLab, no recorte e na janela do módulo
+4 · STAGING      SQLite imutável, cópia auditável da extração
+5 · CARGA        Postgres, schema pbl, chaves e índices
+6 · MODELAGEM    fato e dimensão, grão declarado
+7 · CODIFICAÇÃO  pergunta salva, gráfico, filtro, título
+8 · LEITURA      o orientador olha, conclui e decide intervir</code></pre>
+        <p>As quatro primeiras estações estão fora do controle do grupo e já aconteceram: os dados publicados em <code>dados/projeto_pbl/</code> são uma fotografia com data de extração declarada em <code>manifesto.json</code>. As estações 5 a 7 são trabalho do grupo. A estação 8 é onde o resultado é julgado e é a única que interessa ao cliente.</p>
+        <p>O erro recorrente de quem constrói painéis é tratar as estações 1 a 4 como se fossem transparentes — como se o commit <em>fosse</em> o trabalho, e não um registro parcial dele. Todo o valor desta aula está em recusar essa transparência e escrever, estação por estação, o que ficou pelo caminho.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>5. O que cada estação descarta</h2>
+        <p>A tabela abaixo usa o conjunto do projeto — turma T28, grupos G01 a G03, 2.688 commits, 540 merge requests, 1.238 cartões e 13.194 eventos de quadro — para tornar concreta a perda de cada passagem.</p>
+        <table>
+          <thead><tr><th>Passagem</th><th>O que se perde</th><th>Consequência sobre a leitura</th></tr></thead>
+          <tbody>
+            <tr><td>Evento &rarr; Captura</td><td>Todo trabalho sem rastro versionado: leitura de código, programação em par no mesmo teclado, conversa fora da plataforma, código descartado antes do commit</td><td>Um integrante pouco visível vira, na tela, um integrante ausente</td></tr>
+            <tr><td>Captura &rarr; Extração</td><td>O que ficou fora da janela e do recorte de projetos; não há diff por commit nem texto de revisão</td><td>Afirmações sobre qualidade do código não se sustentam nesta base</td></tr>
+            <tr><td>Extração &rarr; Staging</td><td>Nada, por construção &mdash; é o ponto de auditoria</td><td>É a referência contra a qual toda reconciliação é feita</td></tr>
+            <tr><td>Staging &rarr; Carga</td><td>Tipagem frouxa e grafias divergentes que precisam de decisão (<code>size_M</code> e <code>SIZE_M</code>)</td><td>Normalizar ou não muda a contagem por tamanho de cartão</td></tr>
+            <tr><td>Carga &rarr; Modelagem</td><td>Identidade que não resolve: a autoria liga a uma pessoa do recorte em 2.136 dos 2.688 commits</td><td>Distribuição por pessoa soma menos que o total</td></tr>
+            <tr><td>Modelagem &rarr; Codificação</td><td>Variação interna: a agregação por sprint apaga o dia; o total apaga a concentração</td><td>Uma sprint irregular e uma sprint constante ficam idênticas</td></tr>
+            <tr><td>Codificação &rarr; Leitura</td><td>Tudo que não coube em título, eixo, rótulo e nota</td><td>O usuário completa a lacuna com a hipótese mais disponível</td></tr>
+          </tbody>
+        </table>
+        <p>Ao fim da reconstituição, cada grupo deve conseguir escrever uma frase única: a <strong>afirmação máxima</strong> que aquela métrica ainda sustenta depois de todos os descartes. Essa frase é o instrumento de medida do resto da aula — qualquer leitura que a ultrapasse é divergência.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. O que conta como divergência</h2>
+        <p>Divergência é um ponto do fluxo em que a leitura que o usuário faz e o que o dado autoriza afirmar não coincidem, <em>e a diferença tem consequência sobre a decisão dele</em>. As três condições são cumulativas.</p>
+        <ol class="steps">
+          <li><strong>Evidência.</strong> É possível mostrar, no dado, onde a discordância nasce — a coluna, a regra de junção, a contagem que não fecha, a data que foi reescrita.</li>
+          <li><strong>Assimetria.</strong> Usuário e dado dizem coisas diferentes, e não a mesma coisa com palavras diferentes. Sinônimo não é divergência.</li>
+          <li><strong>Consequência.</strong> Existe uma decisão concreta do orientador que muda conforme a leitura adotada.</li>
+        </ol>
+        <p>Sem consequência, o achado é curiosidade metodológica e não entra no registro. Esse filtro existe para impedir que o documento vire uma lista de ressalvas genéricas — o tipo de texto que ninguém lê e que não muda nada na tela.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>7. As seis famílias de divergência</h2>
+        <p>Nomear o tipo importa porque cada família exige um suporte diferente. Corrigir uma divergência de grão com uma nota de rodapé, ou uma de completude com um título melhor, é aplicar o remédio errado.</p>
+        <table>
+          <thead><tr><th>Família</th><th>A discordância é sobre</th><th>Exemplo no projeto</th></tr></thead>
+          <tbody>
+            <tr><td>Vocabulário</td><td>O que a palavra nomeia</td><td>&ldquo;Entrega&rdquo; como cartão em <em>Concluído</em> ou como merge na branch padrão</td></tr>
+            <tr><td>Grão</td><td>A unidade contada</td><td>Commit, merge request, cartão ou sprint como unidade de trabalho</td></tr>
+            <tr><td>Temporalidade</td><td>Quando aconteceu</td><td>Data do autor, reescrita por <code>rebase</code>, contra hora do servidor</td></tr>
+            <tr><td>Completude</td><td>O que a fonte não vê</td><td>Revisão feita por chamada de vídeo não deixa rastro</td></tr>
+            <tr><td>Causalidade</td><td>O que explica o quê</td><td>Poucos commits lidos como pouco esforço</td></tr>
+            <tr><td>Agência</td><td>Sobre o que dá para agir</td><td>O painel aponta uma pessoa; a alavanca do orientador é o grupo</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Vocabulário: a mesma palavra, dois referentes</h2>
+        <p>É a divergência mais comum e a mais barata de corrigir — desde que alguém pergunte antes de construir. Tome a palavra <em>atrasado</em>. Para o orientador, ela é um julgamento sobre o futuro: o grupo não vai conseguir apresentar no prazo, conclusão formada por conversa, reunião e histórico. Para o dado, ela é um fato sobre o passado do quadro: um cartão cuja data de conclusão ultrapassou o prazo da sprint — e que depende de alguém ter movido o cartão.</p>
+        <p>As duas definições são legítimas e não são a mesma. Um painel que rotula &ldquo;grupos atrasados&rdquo; sem declarar qual das duas usa entrega ao orientador uma medida do passado com aparência de previsão.</p>
+        <p>O teste de vocabulário da prática cobre seis termos: <strong>entrega</strong>, <strong>atraso</strong>, <strong>participação</strong>, <strong>revisão</strong>, <strong>concluído</strong> e <strong>ativo</strong>. A regra do exercício é escrever a própria definição operacional antes de ouvir a do cliente. Quem pergunta primeiro e escreve depois tende a ajustar inconscientemente a própria definição e perde a divergência.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>9. Grão: a unidade contada</h2>
+        <p>Grão é a pergunta &ldquo;o que é uma linha?&rdquo;, e a resposta muda tudo o que se segue. No conjunto do projeto há pelo menos quatro candidatos a unidade de trabalho, e nenhum deles é neutro.</p>
+        <table>
+          <thead><tr><th>Unidade</th><th>Linhas</th><th>O que ela favorece</th><th>O que ela apaga</th></tr></thead>
+          <tbody>
+            <tr><td>Commit</td><td>2.688</td><td>Quem escreve código com frequência</td><td>Revisão, discussão, desenho, documentação</td></tr>
+            <tr><td>Merge request</td><td>540</td><td>Trabalho integrado e revisado</td><td>Esforço que não chegou à integração</td></tr>
+            <tr><td>Cartão</td><td>1.238</td><td>Planejamento e escopo declarado</td><td>Trabalho executado sem cartão correspondente</td></tr>
+            <tr><td>Evento de quadro</td><td>13.194</td><td>Movimento e fluxo ao longo do tempo</td><td>Peso e dificuldade de cada item</td></tr>
+          </tbody>
+        </table>
+        <p>Um detalhe do conjunto merece atenção específica: <code>kanban_eventos.csv</code> não registra colunas, registra a aplicação (<code>add</code>) e a remoção (<code>remove</code>) de um rótulo. A passagem de um cartão por <em>Backlog</em> &rarr; <em>Doing</em> &rarr; <em>Waiting Review</em> &rarr; <em>Review</em> é reconstruída pareando cada <code>add</code> com o <code>remove</code> seguinte do mesmo rótulo, no mesmo cartão, ordenado por <code>ocorrido_em</code>. E nem todo rótulo é coluna: há rótulos de classificação (<code>DOCUMENTATION</code>, <code>CODE</code>, <code>DESIGN</code>, <code>size_P</code>, <code>SIZE_M</code>) que precisam ser separados do movimento de fluxo por cruzamento com <code>quadro_colunas.csv</code>. Essa reconstrução é uma decisão de grão, e pertence ao registro escrito.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>10. Temporalidade: duas datas para o mesmo commit</h2>
+        <p>A data do autor é gravada pela máquina de quem escreveu e pode ser reescrita por <code>rebase</code>. A hora do servidor registra quando o objeto chegou ao repositório. Não são a mesma coisa e produzem gráficos de cadência diferentes a partir dos mesmos commits.</p>
+        <p>Um grupo que trabalha ao longo da semana e integra tudo na sexta aparece, pela hora do servidor, como um grupo que só trabalha na sexta. Pela data do autor, aparece distribuído. As duas versões existem no mesmo conjunto e sustentam recomendações opostas sobre ritmo de trabalho.</p>
+        <p>Há ainda um efeito colateral documentado no conjunto: existem commits datados de 2022 a 2025, herança do repositório-template e não trabalho do módulo. Filtrar pela janela das sprints é uma decisão legítima — e é uma decisão a declarar na tela, não a esconder na consulta.</p>
+        <div class="note">
+          <strong>Regra operacional</strong>
+          <p>Toda afirmação de cadência precisa declarar qual das duas datas usa, e a declaração precisa estar onde o gráfico é lido — no subtítulo ou na nota do cartão, não num anexo do dossiê.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>11. Completude: os commits que não resolvem para uma pessoa</h2>
+        <p>No recorte publicado, a autoria de commit resolve para um código de pessoa em 2.136 dos 2.688 commits, ou 79%. O restante aparece como <code>[externo]</code> ou <code>[bot]</code>, porque o e-mail configurado no cliente git nem sempre corresponde à conta institucional.</p>
+        <p>Um painel que divide commits por pessoa e ignora esse resíduo produz uma distribuição que soma menos que o total exibido em outro cartão da mesma tela. Pior: o integrante que configurou mal o git aparece como integrante que não trabalhou. A decisão sobre um estudante real passaria a depender de um detalhe de configuração de ferramenta.</p>
+        <p>Essa lacuna é dado, não defeito. O princípio geral vale para todo o conjunto: <strong>ausência de evidência não é evidência de ausência</strong>. Conversa fora da plataforma, programação em par e código descartado antes do commit não deixam rastro. Um integrante pouco visível nos dados é um integrante sobre o qual esta fonte não tem evidência — e é exatamente isso que a tela precisa dizer.</p>
+        <p>O suporte que a divergência exige é concreto: uma faixa &ldquo;não atribuído&rdquo; visível no próprio gráfico, com o percentual, e não uma observação no rodapé do documento.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>12. Causalidade e agência: a armadilha do ranking de pessoas</h2>
+        <p>Ordenar integrantes por volume de contribuição é a saída mais fácil e a resposta errada desta disciplina. Ela junta as duas divergências mais caras de uma vez.</p>
+        <p>Do lado da <strong>causalidade</strong>, o volume vira medida de empenho. O papel desaparece: quem revisa muito e escreve pouco fica em último lugar; quem faz muitos commits pequenos sobe. O gráfico afirma uma relação causal entre contagem e dedicação que o dado não sustenta, porque a fonte não observa esforço, observa registro.</p>
+        <p>Do lado da <strong>agência</strong>, a alavanca do orientador é o grupo, não a linha da tabela. Ele conduz reunião de acompanhamento, redistribui escopo, ajusta o plano da sprint. Um ranking individual entrega uma resposta sobre a qual ele não tem ação legítima proporcional, e produz um efeito colateral previsível: o painel vira instrumento de constrangimento.</p>
+        <p>A pergunta útil sobrevive à crítica: <em>o trabalho está concentrado?</em> Concentração se mede sem nomear ninguém — proporção do total nos dois maiores contribuintes, dispersão entre integrantes, comparação entre grupos. A informação que interessa ao orientador permanece; a atribuição individual, que o dado não sustenta, sai da tela.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>13. A notação do fluxo de interação anotado</h2>
+        <p>O artefato central da aula é um fluxo em três raias — usuário, interface e dado — sobre uma tarefa real de decisão, com passos numerados e âncoras de divergência marcadas nos pontos em que as raias discordam. A forma pode ser papel, quadro branco ou texto simples no repositório. A numeração é obrigatória, porque é ela que permite referenciar cada divergência sem ambiguidade.</p>
+        <pre><code>TAREFA: decidir em qual grupo intervir antes da sprint 4
+
+USUÁRIO    ①abre o painel ──▶ ③procura o grupo ────▶ ⑤conclui "G02 parou" ──▶ ⑦decide
+              │                   │                       │                      │
+INTERFACE  ②filtro de sprint ─▶ ④barras por grupo ──▶ ⑥sem base de comparação ▶ ⑧sem ação sugerida
+              │                   │                       │                      │
+DADO       eventos de quadro   commits do período     grão = commit          nenhum registro
+                                    ▲                      ▲                      ▲
+                                   D1                     D2                     D3</code></pre>
+        <p>A raia do usuário descreve o que ele faz, do primeiro clique à decisão. A raia da interface descreve o que a tela oferece em cada passo. A raia do dado declara qual fonte, qual grão e qual limitação sustenta aquele passo. Onde a terceira raia não sustenta o que a primeira conclui, existe uma âncora.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>14. Anatomia de uma âncora de divergência</h2>
+        <p>Cada âncora <code>D1..Dn</code> é registrada com oito campos. Um registro incompleto não conta como divergência tratada.</p>
+        <table>
+          <thead><tr><th>Campo</th><th>O que preencher</th></tr></thead>
+          <tbody>
+            <tr><td>Passo</td><td>Onde no fluxo, pelo número</td></tr>
+            <tr><td>Leitura do usuário</td><td>A frase que ele diz em voz alta olhando a tela, literal</td></tr>
+            <tr><td>O que o dado autoriza</td><td>A afirmação máxima que a fonte sustenta</td></tr>
+            <tr><td>Família</td><td>Vocabulário, grão, temporalidade, completude, causalidade ou agência</td></tr>
+            <tr><td>Consequência</td><td>A decisão que muda se a leitura errada prevalecer</td></tr>
+            <tr><td>Decisão de projeto</td><td>O que o grupo resolveu fazer, e a alternativa descartada</td></tr>
+            <tr><td>Suporte exigido</td><td>O elemento concreto na tela e o lugar onde ele fica</td></tr>
+            <tr><td>Reteste</td><td>Como verificar que a divergência foi fechada</td></tr>
+          </tbody>
+        </table>
+
+        <div class="audit-template">
+          <strong>Modelo de registro</strong>
+          <p><code>D2 · passo 5 · família: grão</code></p>
+          <p><code>Leitura do usuário:</code> &ldquo;G02 parou de trabalhar na sprint 3.&rdquo;</p>
+          <p><code>O que o dado autoriza:</code> o número de commits com data de autor dentro da sprint 3 e autoria resolvida caiu 40% em relação à sprint 2, sobre uma base em que 21% dos commits do conjunto não resolvem para pessoa.</p>
+          <p><code>Consequência:</code> o orientador convoca reunião de recuperação com um grupo que pode ter migrado o trabalho para revisão e documentação, não interrompido.</p>
+          <p><code>Decisão de projeto:</code> exibir cartões e merge requests ao lado de commits, no mesmo eixo temporal. Alternativa descartada: manter só commits com nota explicativa &mdash; a nota não impede a leitura, apenas a desculpa.</p>
+          <p><code>Suporte exigido:</code> subtítulo do cartão declarando unidade e janela; segunda série no mesmo gráfico.</p>
+          <p><code>Reteste:</code> outro grupo lê a tela e não usa o verbo &ldquo;parou&rdquo;.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>15. Suporte exigido: sete formas, do mais barato ao mais caro</h2>
+        <p>Suporte é entregável, verificável na tela. &ldquo;Vamos explicar na apresentação&rdquo; não é suporte — é uma promessa que só funciona enquanto o grupo estiver na sala, e o painel será usado depois que a disciplina acabar.</p>
+        <table>
+          <thead><tr><th>Suporte</th><th>Fecha divergência de</th><th>Custo</th></tr></thead>
+          <tbody>
+            <tr><td>Título que afirma em vez de rotular</td><td>Causalidade, vocabulário</td><td>Baixo</td></tr>
+            <tr><td>Unidade e denominador no eixo</td><td>Grão</td><td>Baixo</td></tr>
+            <tr><td>Nota de origem visível no cartão</td><td>Temporalidade, completude</td><td>Baixo</td></tr>
+            <tr><td>Faixa explícita de não atribuído</td><td>Completude</td><td>Médio</td></tr>
+            <tr><td>Ficha técnica do KPI</td><td>Vocabulário, grão</td><td>Médio</td></tr>
+            <tr><td>Base de comparação no mesmo gráfico</td><td>Causalidade</td><td>Médio</td></tr>
+            <tr><td>Remoção do gráfico</td><td>Agência</td><td>Alto para o ego, baixo para o painel</td></tr>
+          </tbody>
+        </table>
+        <p>Quando a divergência é de definição — o orientador chama de uma coisa o que o dado chama de outra —, o suporte adequado é a <strong>ficha técnica do indicador</strong>, com definição em uma frase, fórmula, grão, fonte, janela, meta quando houver, responsável e frequência de atualização. A ficha nasce aqui, como resposta a uma divergência concreta, e será reaproveitada na Aula 07 na composição do painel narrativo.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>16. Decisão de projeto não é preferência</h2>
+        <p>A diferença entre as duas colunas abaixo é o que separa um dossiê defensável de uma coleção de escolhas estéticas justificadas depois do fato.</p>
+        <table>
+          <thead><tr><th>É decisão de projeto</th><th>Não é</th></tr></thead>
+          <tbody>
+            <tr><td>Tem uma divergência nomeada como origem</td><td>&ldquo;Ficou melhor assim&rdquo;</td></tr>
+            <tr><td>Declara a alternativa descartada</td><td>Primeira ideia mantida por inércia</td></tr>
+            <tr><td>Aponta o suporte que exige</td><td>Intenção de explicar depois</td></tr>
+            <tr><td>Tem custo estimado</td><td>Promessa sem prazo</td></tr>
+            <tr><td>Tem forma de reteste</td><td>Confiança de quem construiu</td></tr>
+          </tbody>
+        </table>
+        <p>Vale também o inverso: registrar a divergência que o grupo decidiu <em>não</em> fechar, com a razão. Uma limitação declarada é informação; uma limitação omitida é risco transferido para quem lê.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>17. Roteiro da prática — cinco etapas</h2>
+
+        <h3>17.1 Etapa 1 — reconstituir o ciclo do seu grupo (30 min, sem abrir o Metabase)</h3>
+        <ol class="steps">
+          <li>Escolha uma métrica que já esteja no painel do grupo.</li>
+          <li>Percorra as oito estações e escreva o que acontece com ela em cada uma.</li>
+          <li>Em cada passagem, registre uma linha com o que foi descartado ali.</li>
+          <li>Marque a estação em que o descarte é maior.</li>
+          <li>Escreva a afirmação máxima que a métrica ainda sustenta depois de todos os descartes.</li>
+        </ol>
+
+        <h3>17.2 Etapa 2 — teste de vocabulário com o cliente (30 min)</h3>
+        <p>O professor responde no papel do orientador; cada grupo tem a sua rodada.</p>
+        <ol class="steps">
+          <li>Antes de perguntar, escreva a definição operacional que <em>o grupo</em> usa para os seis termos: entrega, atraso, participação, revisão, concluído e ativo.</li>
+          <li>Peça ao cliente que defina os mesmos seis, sem mostrar a sua lista.</li>
+          <li>Coloque as duas colunas lado a lado e marque onde discordam.</li>
+          <li>Para cada discordância, pergunte que decisão ele tomaria com base naquele termo.</li>
+          <li>Classifique cada uma nas seis famílias.</li>
+        </ol>
+
+        <h3>17.3 Etapa 3 — desenhar o fluxo em três raias (40 min)</h3>
+        <ol class="steps">
+          <li>Fixe uma tarefa real de decisão do orientador, com prazo e consequência.</li>
+          <li>Escreva a raia do usuário: o que ele faz, passo a passo, do primeiro clique à decisão.</li>
+          <li>Escreva a raia da interface: o que a tela oferece em cada passo.</li>
+          <li>Escreva a raia do dado: qual fonte, qual grão e qual limitação sustenta aquele passo.</li>
+          <li>Marque uma âncora onde as raias discordam e numere <code>D1</code>, <code>D2</code>, <code>D3</code>.</li>
+        </ol>
+
+        <h3>17.4 Etapa 4 — registrar decisão e suporte (30 min)</h3>
+        <p>Mínimo de quatro divergências, cobrindo pelo menos três famílias diferentes.</p>
+        <ol class="steps">
+          <li>Preencha os oito campos da âncora para cada divergência marcada.</li>
+          <li>Na decisão de projeto, escreva também a alternativa descartada.</li>
+          <li>No suporte exigido, nomeie o elemento concreto e o lugar dele na tela.</li>
+          <li>Implemente no Metabase pelo menos dois dos suportes de custo baixo.</li>
+          <li>Registre a divergência que o grupo decidiu não fechar, com a razão.</li>
+        </ol>
+
+        <h3>17.5 Etapa 5 — teste de interpretação em voz alta (30 min, em duplas de grupos)</h3>
+        <p>Regra única: quem construiu não explica nada.</p>
+        <ol class="steps">
+          <li>Entregue a tela ao outro grupo com a tarefa escrita num papel.</li>
+          <li>Peça que digam em voz alta o que estão vendo e o que concluem.</li>
+          <li>Anote as frases literais, sem corrigir e sem interromper.</li>
+          <li>Compare cada frase com a afirmação máxima da Etapa 1.</li>
+          <li>Toda frase que ultrapassa a afirmação máxima vira uma divergência nova.</li>
+        </ol>
+      </section>
+
+      <section class="content-block">
+        <h2>18. Implementar os suportes no Metabase</h2>
+        <p>Os suportes de custo baixo são implementáveis dentro da manhã, na instância hospedada da disciplina. O caminho abaixo vale para qualquer pergunta salva da coleção do grupo.</p>
+        <ol class="steps">
+          <li><strong>Título que afirma.</strong> Abra a pergunta, use <em>Visualização &rarr; Configurações</em> e substitua o rótulo pelo achado: em vez de &ldquo;Commits por grupo&rdquo;, escreva a afirmação que o gráfico sustenta, com a unidade e a janela.</li>
+          <li><strong>Unidade e denominador no eixo.</strong> Ainda em Configurações, nomeie o eixo com a unidade exata (&ldquo;commits com autoria resolvida&rdquo;, não &ldquo;quantidade&rdquo;) e, quando a comparação exigir, troque o valor absoluto por proporção do total do grupo.</li>
+          <li><strong>Nota de origem no cartão.</strong> No painel, use o cartão de texto imediatamente abaixo do gráfico para declarar fonte, data de extração do <code>manifesto.json</code>, janela aplicada e qual data de commit foi usada.</li>
+          <li><strong>Faixa de não atribuído.</strong> Ao agrupar por pessoa, não filtre <code>[externo]</code> e <code>[bot]</code> fora do gráfico: mantenha a categoria visível e com o percentual, para que a soma feche com o total exibido nos demais cartões.</li>
+          <li><strong>Ficha técnica do KPI.</strong> Para cada indicador com divergência de definição, crie um cartão de texto com definição, fórmula, grão, fonte, janela, responsável e frequência.</li>
+          <li>Versione as consultas relevantes em <code>sql/</code> e exporte as perguntas para <code>export/perguntas.json</code>, conforme a estrutura do repositório do grupo.</li>
+        </ol>
+      </section>
+
+      <section class="content-block">
+        <h2>19. O documento da aula</h2>
+        <p>O registro escrito vai para <code>docs/05_fluxo_de_interacao_anotado.md</code>, no repositório do grupo, e segue esta ordem.</p>
+        <table>
+          <thead><tr><th>Seção</th><th>Conteúdo</th></tr></thead>
+          <tbody>
+            <tr><td>1. Tarefa de decisão</td><td>A tarefa real do orientador, com prazo e consequência</td></tr>
+            <tr><td>2. Ciclo de vida da métrica</td><td>As oito estações, o descarte de cada passagem e a estação de maior perda</td></tr>
+            <tr><td>3. Afirmação máxima</td><td>Uma frase: o que a métrica ainda sustenta</td></tr>
+            <tr><td>4. Teste de vocabulário</td><td>Os seis termos em duas colunas, com as discordâncias classificadas</td></tr>
+            <tr><td>5. Fluxo anotado</td><td>As três raias, os passos numerados e as âncoras</td></tr>
+            <tr><td>6. Registro D1..Dn</td><td>Os oito campos por divergência, incluindo custo e reteste</td></tr>
+            <tr><td>7. Suportes implementados</td><td>O que entrou na tela hoje, com o caminho até o cartão</td></tr>
+            <tr><td>8. Não fechado</td><td>A divergência mantida em aberto e a razão declarada</td></tr>
+            <tr><td>9. Frases do teste independente</td><td>As falas literais do grupo que leu a tela sem explicação</td></tr>
+          </tbody>
+        </table>
+        <p>A avaliação deste documento olha cinco critérios: evidência apontada no dado, consequência declarada, alternativa descartada explícita, suporte concreto existente na tela e presença de frases literais de quem não construiu o painel.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>20. Roteiro de execução prática em sala</h2>
+        <table>
+          <thead><tr><th>Horário</th><th>Ação</th><th>Gate</th></tr></thead>
+          <tbody>
+            <tr><td>8h30–9h00</td><td>Recap da Aula 04, tese da aula e os três modelos</td><td>grupo enuncia a diferença entre modelo do projetista e imagem do sistema</td></tr>
+            <tr><td>9h00–9h20</td><td>Os dois golfos e o ciclo de vida em oito estações</td><td>cada grupo nomeia a estação de maior perda da sua métrica</td></tr>
+            <tr><td>9h20–9h45</td><td>As seis famílias de divergência, com exemplos do conjunto PBL</td><td>três exemplos classificados corretamente em plenária</td></tr>
+            <tr><td>9h45–10h00</td><td>Notação do fluxo anotado, âncora e suporte exigido</td><td>modelo de registro compreendido</td></tr>
+            <tr><td>10h00–10h30</td><td>Etapa 1 — reconstituição do ciclo</td><td>afirmação máxima escrita</td></tr>
+            <tr><td>10h30–11h00</td><td>Etapa 2 — teste de vocabulário com o cliente</td><td>seis termos em duas colunas, discordâncias marcadas</td></tr>
+            <tr><td>11h00–11h40</td><td>Etapa 3 — fluxo em três raias</td><td>âncoras numeradas D1..Dn</td></tr>
+            <tr><td>11h40–12h00</td><td>Etapa 4 — registro e implementação dos suportes</td><td>dois suportes visíveis no Metabase</td></tr>
+            <tr><td>12h00–12h10</td><td>Etapa 5 — teste de interpretação em voz alta</td><td>frases literais anotadas</td></tr>
+          </tbody>
+        </table>
+
+        <div class="note">
+          <strong>Orientação final para a atividade prática</strong>
+          <p>Feche a manhã com o painel aberto ao lado do documento. Percorra as âncoras uma a uma e, para cada uma, mostre na tela o suporte que a sustenta. Se o suporte não estiver visível sem que alguém do grupo fale, ele ainda não existe — anote como pendência com custo e prazo.</p>
+          <p>Antes de sair, deixe o painel em estado apresentável e as consultas salvas na coleção do grupo. Na Aula 06 ele será auditado por outro grupo, com severidade e devolutiva escrita, e a auditoria começa exatamente pelos pontos que ficaram sem suporte hoje.</p>
+          <p>O trabalho termina quando outra pessoa consegue ler a tela e chegar a uma conclusão que o dado sustenta — não quando o grupo consegue explicar por que a tela está certa.</p>
+        </div>
+      </section>
+    </article>
+  </main>
+</body>
+</html>

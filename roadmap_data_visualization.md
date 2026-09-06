@@ -9,7 +9,9 @@ Documento vivo de planejamento das 8 aulas da disciplina. Sábados, 8h30 – 12h
 
 A ementa institucional contempla percepção humana, representações para dados numéricos e não numéricos, tabelas, gráficos, mapas, indicadores de performance, dashboards e storytelling. A disciplina organiza esses conteúdos como um processo analítico completo, no qual a representação visual depende de dados compreendidos, arquitetura identificável e semântica consistente.
 
-A Aula 01 estabelece o perfil do conjunto Olist e formula perguntas de negócio. A Aula 02 localiza aquisição, persistência, camada semântica e consumo nas principais arquiteturas de BI e converte o esquema operacional em fatos e dimensões. As aulas seguintes utilizam esse modelo para estudar percepção, comparação, construção de uma cadeia analítica local, categorias, espaço, indicadores e narrativa.
+A disciplina tem dois tempos. Nas Aulas 01 a 04 o conjunto Olist funciona como bancada: a Aula 01 estabelece o perfil dos dados e formula perguntas de negócio; a Aula 02 localiza aquisição, persistência, camada semântica e consumo nas principais arquiteturas de BI e converte o esquema operacional em fatos e dimensões; a Aula 03 trata a codificação de quantidades; a Aula 04 constrói uma cadeia analítica local completa, do Excel ao OLAP.
+
+A partir da Aula 05 o objeto muda. O trabalho passa a incidir sobre o projeto do módulo — o dashboard do processo PBL, com um cliente concreto — e o eixo deixa de ser a construção do gráfico para ser a distância entre o que o usuário acredita que o número significa e o que o dado de fato registra. As Aulas 05, 06 e 07 tratam, nessa ordem, da divergência entre modelo mental e ciclo de vida do dado, das heurísticas de avaliação e dos vieses de julgamento, e da narrativa que leva a audiência da pergunta à recomendação. A Aula 08 é ateliê de finalização e entrega.
 
 ---
 
@@ -22,13 +24,13 @@ Oito aulas, uma progressão única:
 02  Arquitetar e modelar          plataformas de BI, fatos, dimensões, SCD, barramento
 03  Comparar números              percepção, distribuições, séries temporais, magnitude
 04  Construir a cadeia local      Excel, SQLite, HTML, DuckDB, OLAP e IA
-05  Representar categorias        categóricos, texto, tabela vs. gráfico
-06  Situar no espaço              mapas, geoespacial, escolha de projeção
-07  Medir desempenho              KPI, SLA, dashboards, filtros e alertas
-08  Contar a história             storytelling, narrativa, defesa do projeto
+05  Confrontar modelos mentais    fluxo de interação anotado, divergência, decisão e suporte
+06  Auditar o julgamento          heurísticas de avaliação, vieses cognitivos, severidade
+07  Contar a história             exploração vs. explicação, dashboard narrativo, defesa
+08  Fechar e entregar             ateliê, rastreabilidade contra requisitos, entrega
 ```
 
-Cada aula produz artefatos verificáveis e um registro escrito no repositório do aluno. Nas aulas regulares, o artefato principal fica no **Metabase**; a Aula 03 produz uma visualização D3 e a Aula 04 produz scripts, dois bancos, dois HTMLs e reconciliações no Codespaces.
+Cada aula produz artefatos verificáveis e um registro escrito no repositório do aluno. Nas aulas regulares, o artefato principal fica no **Metabase**; a Aula 03 produz uma visualização D3 e a Aula 04 produz scripts, dois bancos, dois HTMLs e reconciliações no Codespaces. Das Aulas 05 a 08 o artefato deixa de ser um exercício sobre o Olist e passa a ser uma peça do projeto do módulo: o fluxo anotado, a auditoria cruzada, a narrativa e a entrega final incidem sobre o mesmo painel, que cresce de aula em aula.
 
 ### Método transversal C-D-P-V-D
 
@@ -70,10 +72,10 @@ O produto da disciplina é um dossiê auditável que registra como cada decisão
 | 02 | `02_arquitetura_e_modelo.md` | fluxos de consumo, grãos, matriz de barramento e testes SQL |
 | 03 | `03_registro_numerico.md` | escala, agregação, incerteza e alternativas |
 | 04 | `04_pipeline_excel_olap.md` | proveniência, reconciliação, tempos e limitações dos dois bancos |
-| 05 | `05_protocolo_categorias.md` | taxonomia, corte, perda, viés e alternativa de representação |
-| 06 | `06_revisao_geoespacial.md` | normalização, unidade espacial, privacidade e risco |
-| 07 | `07_kpis_e_teste.md` | dicionário de KPI e teste de tarefas do dashboard |
-| 08 | `08_estudo_de_caso.md` | narrativa, evidências, limitações e recomendação |
+| 05 | `05_fluxo_de_interacao_anotado.md` | fluxo por raias, divergências, decisão de projeto e suporte exigido |
+| 06 | `06_auditoria_heuristica_e_vieses.md` | achados com severidade, viés nomeado, correção e reteste |
+| 07 | `07_narrativa_e_defesa.md` | ideia central, storyboard, fichas de KPI e roteiro da defesa |
+| 08 | `08_dossie_final.md` | consolidação, rastreabilidade contra os requisitos e limitações |
 
 ### Auditoria heurística transversal
 
@@ -96,17 +98,19 @@ Uma crítica válida registra `evidência → heurística → severidade → con
 
 | Tópico da ementa | Onde é coberto |
 |---|---|
-| Percepção humana | Aulas 03 e 05, aplicada aos diferentes trabalhos visuais |
+| Percepção humana | Aula 03, na codificação de quantidade; Aula 06, nos limites do julgamento de quem lê |
 | Dados numéricos | Aula 03 |
-| Dados não numéricos | Aula 05 |
-| Tabelas e gráficos | Aulas 03 e 05 |
+| Dados não numéricos | Aula 06, como objeto de auditoria: cardinalidade, corte da cauda longa sem prestação de contas e ordinal tratado como número contínuo |
+| Tabelas e gráficos | Aulas 03 e 06 |
 | Integração de fontes e publicação | Aula 04, do Excel aos HTMLs via SQLite e DuckDB |
-| Mapas | Aula 06 |
-| Indicadores de performance | Aula 07 |
-| Dashboards | Aula 07 (construção), Aula 08 (narrativa) |
-| Storytelling com dados | Aula 08 |
+| Mapas | Aula 06, como caso canônico de viés: o coroplético de volume sem normalização |
+| Indicadores de performance | Aula 05, quando a ficha técnica do KPI é o suporte exigido por uma divergência de definição; Aula 07, na composição do painel |
+| Dashboards | Aula 07, na construção do painel narrativo; Aula 08, na entrega |
+| Storytelling com dados | Aula 07 |
 
 Data Discovery (Aula 01) e arquitetura/modelagem de BI (Aula 02) funcionam como pré-requisitos práticos para os tópicos de representação e asseguram que os gráficos posteriores utilizem métricas rastreáveis.
+
+**Revisão de 05/09/2026.** Dados não numéricos, mapas e indicadores de performance deixaram de ter aula dedicada e passaram a ser tratados dentro das Aulas 05, 06 e 07, sempre aplicados ao projeto do módulo. A troca é deliberada e tem uma razão: com quatro aulas restantes e um cliente real esperando um painel, uma aula gasta em escolher entre treemap e barras aninhadas rende menos que uma aula gasta em descobrir que o orientador e o grupo chamam de "entrega" duas coisas diferentes. Os três tópicos continuam sendo praticados — como material de auditoria e como exigência de suporte —, mas dentro de um trabalho que precisa ser defendido diante de quem vai usá-lo.
 
 ---
 
@@ -181,6 +185,9 @@ Duas vias de acesso, com regimes de privacidade distintos:
 | CSVs em `dados/projeto_pbl/` | T28, grupos G01–G03 — 2.688 commits, 540 MRs, 1.238 cartões, 13.194 eventos de quadro | **Pseudonimizado**: pessoas viram `G01-A01`, instituição vira *Instituto Ápice*. Versionado e baixável na página do projeto |
 | Schema `pbl` no Metabase | 75 grupos de 15 turmas do ciclo 2026-1b | **Identificado**. Restrito ao ambiente da disciplina |
 
+A partir da Aula 05 esse conjunto deixa de ser apenas o material do projeto e passa a ser o
+objeto das aulas: o fluxo anotado, a auditoria cruzada e a narrativa incidem sobre ele.
+
 O SQLite intermediário (`data/pbl_modulo2.sqlite`) contém os dados identificados e nunca
 é versionado. `tools/export_projeto_csv.py` é a fronteira entre ele e o material
 publicável — ver `tools/README.md` para as armadilhas da pseudonimização.
@@ -196,10 +203,10 @@ olist-dataviz/
 │   ├── 02_arquitetura_e_modelo.md    # Aula 02 — arquitetura, grãos, barramento e testes
 │   ├── 03_registro_numerico.md       # Aula 03 — decisões numéricas e alternativas
 │   ├── 04_pipeline_excel_olap.md      # Aula 04 — reconciliação, tempos e limitações
-│   ├── 05_protocolo_categorias.md    # Aula 05 — taxonomia, corte, perda e viés
-│   ├── 06_revisao_geoespacial.md     # Aula 06 — normalização, risco e privacidade
-│   ├── 07_kpis_e_teste.md            # Aula 07 — fichas de KPI e teste de tarefas
-│   └── 08_estudo_de_caso.md          # Aula 08 — narrativa, evidências e limitações
+│   ├── 05_fluxo_de_interacao_anotado.md   # Aula 05 — divergências, decisão e suporte
+│   ├── 06_auditoria_heuristica_e_vieses.md # Aula 06 — achados, severidade e reteste
+│   ├── 07_narrativa_e_defesa.md           # Aula 07 — ideia central, storyboard e KPI
+│   └── 08_dossie_final.md                 # Aula 08 — consolidação e rastreabilidade
 ├── sql/                       # consultas nativas relevantes, versionadas
 └── export/
     ├── perguntas.json         # serialização das perguntas do Metabase
@@ -210,7 +217,7 @@ olist-dataviz/
 
 ## 4. Mapa detalhado das aulas
 
-As aulas combinam fundamentação, demonstração e prática. A Aula 04 é a exceção deliberada: 100% prática, com os conceitos introduzidos durante a execução guiada. O Metabase sustenta as aulas regulares; as Aulas 03 e 04 usam GitHub Codespaces e assistência de IA para produzir artefatos versionáveis.
+As aulas combinam fundamentação, demonstração e prática. Duas são exceções deliberadas: a Aula 04, 100% prática, com os conceitos introduzidos durante a execução guiada; e a Aula 08, ateliê de finalização e entrega, sem bloco teórico. O Metabase sustenta as aulas regulares; as Aulas 03 e 04 usam GitHub Codespaces e assistência de IA para produzir artefatos versionáveis. A partir da Aula 05 o conjunto de trabalho é o rastro PBL do projeto do módulo, e o Olist permanece disponível como fonte de contraexemplos na auditoria.
 
 ### Aula 01 — 15/08/2026 — Data Discovery com Metabase
 **Conceitual:** o que é data discovery e por que antecede a visualização; perfilamento de dados (completude, cardinalidade, distribuição, outliers); tipos semânticos vs. tipos físicos; da pergunta vaga à pergunta respondível; grão da análise.
@@ -236,29 +243,29 @@ As aulas combinam fundamentação, demonstração e prática. A Aula 04 é a exc
 **Artefato:** seis scripts, `olist.sqlite`, `olist.duckdb`, dois relatórios HTML, registros de reconciliação e `docs/04_pipeline_excel_olap.md`.
 **Saída verificável:** o grupo reconstrói os dois HTMLs a partir dos Excels, demonstra a fonte de cada número e compara a mesma consulta nos dois mecanismos sem exceder a evidência medida.
 
-### Aula 05 — 12/09/2026 — Visualização de Dados Não Numéricos
-**Conceitual:** dado categórico, hierárquico, textual ou relacional; cardinalidade alta e a armadilha do "top N + outros"; ordenação nominal e ordinal; tabela simples, tabela dinâmica, formatação condicional e gráfico conforme a tarefa.
-**Prática:** ranking de 71 categorias em tabela, forma híbrida e barras; corte da cauda longa; comentários por score; hierarquia categoria → produto; construção e teste de uma matriz coletiva de representação.
-**Artefato:** tabela completa, versão híbrida, perguntas categóricas, análise textual e `docs/05_protocolo_categorias.md` com a matriz.
-**Saída verificável:** o aluno defende corte, ordem e representação com critério explícito, mostra o que se perde em cada decisão e testa a matriz contra uma pergunta nova.
+### Aula 05 — 12/09/2026 — Modelo Mental do Usuário e Ciclo de Vida do Dado
+**Conceitual:** modelo do usuário, modelo do projetista e imagem do sistema; golfo de execução e golfo de avaliação; o ciclo de vida do dado em oito estações, do evento no mundo até a decisão tomada; seis famílias de divergência — vocabulário, grão, temporalidade, completude, causalidade e agência; notação do fluxo de interação anotado por raias; a diferença entre decisão de projeto e preferência estética; suporte exigido como entregável verificável, incluindo a ficha técnica do KPI quando a divergência é de definição.
+**Prática:** reconstituição do ciclo de vida do dado do próprio grupo, estação por estação, com a perda declarada em cada uma; teste de vocabulário com o cliente — o professor interpreta o orientador e define seis termos que o grupo compara com a definição operacional do dado; desenho do fluxo de interação anotado sobre uma tarefa real de decisão; registro das divergências `D1..Dn` com decisão e suporte; teste de interpretação em voz alta com um grupo que não construiu o fluxo.
+**Artefato:** fluxo de interação anotado com as raias usuário, interface e dado + `docs/05_fluxo_de_interacao_anotado.md` com o registro de divergências, decisão fundamentada, suporte exigido, custo e forma de reteste + os suportes já implementados nas perguntas do Metabase.
+**Saída verificável:** para cada divergência registrada, o grupo mostra a evidência no dado, nomeia o tipo, declara a consequência de decidir errado, aponta a decisão de projeto tomada e demonstra na tela o suporte que a sustenta.
 
-### Aula 06 — 19/09/2026 — Mapas e Visualização Geoespacial
-**Conceitual:** quando o espaço é a variável relevante e quando é distração; mapa de pontos vs. mapa de regiões; o problema do mapa que só mostra densidade populacional; normalização por população ou por base de clientes; projeções e distorção de área.
-**Prática:** mapa de regiões por estado com GeoJSON do Brasil; mapa de pontos com a base de geolocalização; normalização de métrica; análise de frete e prazo por distância.
-**Artefato:** 2 mapas com justificativa de normalização + `docs/06_revisao_geoespacial.md`.
-**Saída verificável:** o aluno demonstra, com o mesmo dado, como a falta de normalização produz uma conclusão errada.
+### Aula 06 — 19/09/2026 — Heurísticas e Vieses
+**Conceitual:** as duas famílias que dividem o nome "heurística" — a heurística de avaliação como instrumento deliberado de inspeção e a heurística cognitiva como atalho automático de julgamento; disponibilidade, representatividade, ancoragem e afeto; negligência da taxa-base, denominador ausente, regressão à média, viés de sobrevivência, padrão em ruído, enquadramento, recência e erro fundamental de atribuição; os vieses que o artefato produz — eixo truncado, coroplético sem normalização, corte de cauda longa sem prestação de contas, ordinal tratado como número contínuo, ranking de pessoas, cor semântica e precisão espúria; o viés do próprio autor na curadoria; as dez heurísticas da disciplina e a escala de severidade de `0` a `4`.
+**Prática:** bateria caça-viés sobre quatro artefatos preparados — um mapa de volume sem normalização, um "top 10 + outros" mudo, um ranking de commits por pessoa e uma série com eixo truncado; auditoria cruzada entre grupos, cada um inspecionando o painel de outro com as dez heurísticas; devolutiva com severidade e consequência; correção e reteste pelo grupo dono do painel; redação das contramedidas permanentes.
+**Artefato:** `docs/06_auditoria_heuristica_e_vieses.md` com os achados recebidos, o viés nomeado em cada um, a severidade, a correção aplicada e o resultado do reteste + a lista de contramedidas incorporadas ao painel.
+**Saída verificável:** o grupo apresenta pelo menos um achado de severidade `3` ou `4` que recebeu, mostra o painel antes e depois da correção e explica qual viés a versão anterior induzia em quem lia.
 
-### Aula 07 — 26/09/2026 — Indicadores de Performance e Dashboards
-**Conceitual:** o que separa métrica de indicador; ficha técnica do KPI (definição, fórmula, grão, meta, dono, frequência); indicadores de resultado vs. de tendência; o dashboard como instrumento de decisão e não de exibição; layout, ordem de leitura e densidade; alertas.
-**Prática:** definição de 4 KPIs do Olist; construção do dashboard com filtros e parâmetros; comportamento de clique para drill-down; configuração de alerta.
-**Artefato:** dashboard funcional com 4 KPIs e filtros + `docs/07_kpis_e_teste.md` com fichas técnicas e teste de tarefas.
-**Saída verificável:** cada KPI tem fórmula explícita e meta declarada; o dashboard responde a uma pergunta de decisão, não apenas exibe números.
+### Aula 07 — 26/09/2026 — Storytelling com Dados
+**Conceitual:** exploração e explicação como atividades distintas; a ideia central em uma frase e o que a torna falsificável; contexto, conflito e resolução aplicados a evidência; sequenciamento e a ordem que a audiência consegue seguir; anotação como camada de significado e o título que afirma em vez de rotular; atenção pré-atentiva e a economia da remoção; adequação ao público — o orientador, a coordenação e o próprio grupo observado; narrativa honesta e o lugar da limitação dentro da história; ética de narrar sobre pessoas que aprendem; ficha técnica do KPI e o painel narrativo em abas como suporte da história; recomendação, próximo passo e a defesa oral sob pergunta hostil.
+**Prática:** redação da ideia central em uma frase e crítica cruzada dessa frase; storyboard de sete quadros com a mensagem de cada um escrita antes do gráfico; montagem do dashboard narrativo em três abas — situação, evidência e decisão — com filtros e a aba explícita do que o painel não pode afirmar; ensaio cronometrado de doze minutos diante de outro grupo; rodada de perguntas hostis e ajuste do roteiro.
+**Artefato:** dashboard narrativo em abas + `docs/07_narrativa_e_defesa.md` com ideia central, storyboard, fichas de KPI, roteiro da defesa e as perguntas difíceis previstas com suas respostas.
+**Saída verificável:** o grupo conduz a audiência da pergunta do cliente à recomendação em doze minutos, sem apresentar um único gráfico que não sustente a ideia central e sem omitir a limitação que a evidência impõe.
 
-### Aula 08 — 03/10/2026 — Storytelling com Dados e Projeto Final
-**Conceitual:** narrativa aplicada a dados — contexto, conflito, resolução; a diferença entre exploração e explicação; sequenciamento; anotação como camada de significado; adequação ao público; apresentação e defesa.
-**Prática:** curadoria do trabalho das 7 aulas anteriores; montagem do dashboard narrativo em abas; ensaio; apresentação final de 12 minutos.
-**Artefato:** dashboard narrativo + `docs/08_estudo_de_caso.md` + exportação completa da coleção.
-**Saída verificável:** apresentação de 12 minutos que leva a audiência de uma pergunta de negócio a uma recomendação sustentada por evidência visual.
+### Aula 08 — 03/10/2026 — Entrega do Projeto Final
+**Sem bloco teórico.** Ateliê de finalização e entrega. O professor circula em dois papéis: cliente, para a validação final contra a lista de requisitos elicitada, e banca, na rodada de entregas.
+**Prática:** abertura com os critérios de aceite e o checklist de entrega; ateliê com atendimento por grupo; verificação de rastreabilidade requisito a requisito, incluindo o registro das lacunas que os dados não sustentam; fechamento do dossiê das oito aulas; congelamento do painel e exportação da coleção em `.json`; entrega e defesa.
+**Artefato:** dashboard narrativo publicado, coleção exportada, `docs/08_dossie_final.md` consolidando as sete aulas anteriores e a defesa apresentada.
+**Saída verificável:** cada requisito da lista elicitada tem, no painel ou no dossiê, o item que o atende ou a razão declarada de não ser atendido; nada fica sem resposta.
 
 ---
 
@@ -329,10 +336,10 @@ Semanalmente:
 - [x] Aula 02 — 22/08/2026 — Arquitetura de BI e Modelagem Dimensional com Olist
 - [x] Aula 03 — 29/08/2026 — Visualização de Dados Numéricos
 - [x] Aula 04 — 05/09/2026 — Do Excel ao OLAP com SQLite, DuckDB e IA
-- [x] Aula 05 — 12/09/2026 — Visualização de Dados Não Numéricos
-- [ ] Aula 06 — 19/09/2026 — Mapas e Visualização Geoespacial
-- [ ] Aula 07 — 26/09/2026 — Indicadores de Performance e Dashboards
-- [ ] Aula 08 — 03/10/2026 — Storytelling com Dados e Projeto Final
+- [x] Aula 05 — 12/09/2026 — Modelo Mental do Usuário e Ciclo de Vida do Dado
+- [x] Aula 06 — 19/09/2026 — Heurísticas e Vieses
+- [x] Aula 07 — 26/09/2026 — Storytelling com Dados
+- [x] Aula 08 — 03/10/2026 — Entrega do Projeto Final
 
 ---
 
@@ -345,4 +352,4 @@ Semanalmente:
 - Todo material encerra com orientação para a atividade prática em sala — a disciplina é 100% prática, sem seção de exercícios escritos.
 - Design system conforme `specs/design_system.md`: off-white, texto preto, cantos de 4px, alta densidade, responsivo.
 
-**Desvio consciente da spec:** `specs/repositorio_de_aulas.md` determina que a parte prática use o ambiente AWS Student Lab. Data Visualization usa a instância Metabase hospedada pelo professor — a disciplina não tem componente de infraestrutura em nuvem, e o AWS Student Lab expira em 4 horas, o que inviabilizaria a persistência do trabalho ao longo das 8 semanas.
+**Desvios conscientes da spec:** a Aula 08 não tem bloco teórico — é ateliê de finalização e entrega, e `specs/repositorio_de_aulas.md` foi atualizada para registrar essa segunda exceção ao lado da Aula 04. Além disso, `specs/repositorio_de_aulas.md` determina que a parte prática use o ambiente AWS Student Lab. Data Visualization usa a instância Metabase hospedada pelo professor — a disciplina não tem componente de infraestrutura em nuvem, e o AWS Student Lab expira em 4 horas, o que inviabilizaria a persistência do trabalho ao longo das 8 semanas.

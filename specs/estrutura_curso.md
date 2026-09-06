@@ -117,7 +117,7 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 | 02 | 22/08/2026 | Arquitetura de BI e Modelagem Dimensional com Olist |
 | 03 | 29/08/2026 | Visualização de Dados Numéricos |
 | 04 | 05/09/2026 | Do Excel ao OLAP com SQLite, DuckDB e IA |
-| 05 | 12/09/2026 | Visualização de Dados Não Numéricos |
-| 06 | 19/09/2026 | Mapas e Visualização Geoespacial |
-| 07 | 26/09/2026 | Indicadores de Performance e Dashboards |
-| 08 | 03/10/2026 | Storytelling com Dados e Projeto Final |
+| 05 | 12/09/2026 | Modelo Mental do Usuário e Ciclo de Vida do Dado |
+| 06 | 19/09/2026 | Heurísticas e Vieses |
+| 07 | 26/09/2026 | Storytelling com Dados |
+| 08 | 03/10/2026 | Entrega do Projeto Final |

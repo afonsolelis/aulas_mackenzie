@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 05 — Modelo Mental do Usuário e Ciclo de Vida do Dado</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="05" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Modelo Mental do Usuário e Ciclo de Vida do Dado</h1>
+          <p class="deck-meta">Aula 05 &nbsp;&bull;&nbsp; 12/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">O gráfico pode estar certo e a decisão continuar errada.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">O que vai acontecer hoje</h2>
+          <p class="deck-summary">Quatro aulas de bancada acabaram. A partir de hoje o objeto é o projeto do módulo, e o problema deixa de ser a escolha do gráfico para ser a distância entre o que o cliente acha que o número significa e o que o dado registra.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <ul>
+              <li>Três modelos e dois golfos</li>
+              <li>O ciclo de vida do dado em oito estações</li>
+              <li>Seis famílias de divergência</li>
+              <li>A notação do fluxo anotado</li>
+              <li>Decisão de projeto e suporte exigido</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>10h00 &ndash; 12h10 &middot; Prática</h3>
+            <ul>
+              <li>Reconstituir o ciclo do seu grupo</li>
+              <li>Teste de vocabulário com o cliente</li>
+              <li>Desenhar o fluxo de interação anotado</li>
+              <li>Registrar as divergências D1..Dn</li>
+              <li>Teste de interpretação em voz alta</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - PLACEHOLDER / RECAP -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Construção do conteúdo &middot; Recap</span>
+          <h2 class="deck-title">O problema que ficou em aberto</h2>
+          <p class="deck-summary">Na Aula 04 você reconstruiu um número desde a planilha de origem e provou de onde ele veio. Provar a origem responde a uma pergunta técnica. Não responde à pergunta que interessa agora: a pessoa que vai ler esse número entende a mesma coisa que você quando o produziu?</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Por que isso não é filosofia</strong>
+          <p style="margin:8px 0 0;">O cliente do projeto do módulo é um orientador que decide onde intervir antes da próxima sprint. Se ele lê "12 commits" como "trabalhou pouco" e o dado registra "12 escritas persistidas por um e-mail que resolve para essa pessoa", a decisão dele recai sobre um aluno real, com base numa leitura que o dado não sustenta.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - METODO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Método C-D-P-V-D &middot; Aula 05</span>
+          <h2 class="deck-title">Hoje o método fecha o circuito</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step is-current"><strong>Contexto</strong><span>Que modelo mental o usuário traz?</span></div>
+          <div class="method-step"><strong>Dados</strong><span>O que a fonte registra de fato.</span></div>
+          <div class="method-step"><strong>Pergunta</strong><span>A tarefa real de decisão.</span></div>
+          <div class="method-step"><strong>Visual</strong><span>O suporte que a divergência exige.</span></div>
+          <div class="method-step is-current"><strong>Decisão</strong><span>Ela sobrevive à interpretação errada?</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - TESE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Tese da aula</span>
+          <h2 class="deck-title">O erro não está no gráfico, está na tradução</h2>
+          <p class="deck-summary">Um painel é uma tradução entre dois sistemas: o mundo como o usuário o entende e o dado como o sistema o registrou. Onde as duas versões discordam existe uma divergência. Divergência não se resolve com um gráfico mais bonito — resolve-se com uma decisão de projeto e com o suporte que essa decisão exige na tela.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - TRES MODELOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fundamento &middot; Norman</span>
+          <h2 class="deck-title">Três modelos, e você só controla um</h2>
+          <p class="deck-summary">O usuário nunca acessa o seu raciocínio. Ele constrói uma teoria própria a partir do que vê na tela.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Modelo do projetista</h3>
+            <p>O que o grupo entende do dado: grão, regra, limitação, o que o número inclui e exclui.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Imagem do sistema</h3>
+            <p>O que aparece: título, eixo, rótulo, filtro, cor, nota. É o único canal entre os dois modelos.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Modelo do usuário</h3>
+            <p>A teoria que o orientador monta olhando a tela. Se a imagem do sistema for pobre, ele inventa a parte que falta.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - DOIS GOLFOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fundamento &middot; Os dois golfos</span>
+          <h2 class="deck-title">Onde a distância aparece</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Golfo de execução</strong>
+            <ul>
+              <li>"Como faço o painel me mostrar o que eu quero?"</li>
+              <li>O filtro existe mas não é encontrado</li>
+              <li>A comparação exige três cliques que ninguém descobre</li>
+              <li>Sintoma: o usuário pede um relatório que o painel já responde</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Golfo de avaliação</strong>
+            <ul>
+              <li>"O que isto que estou vendo quer dizer?"</li>
+              <li>O número aparece sem denominador nem base de comparação</li>
+              <li>O título rotula em vez de afirmar</li>
+              <li>Sintoma: dois leitores tiram conclusões opostas da mesma tela</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - CICLO DE VIDA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Ciclo de vida do dado</span>
+          <h2 class="deck-title">Oito estações entre o mundo e a decisão</h2>
+        </div>
+        <div class="deck-schema">1 · EVENTO      aluno escreve código, revisa, conversa, desiste
+2 · CAPTURA     git commit, merge request, movimento de cartão
+3 · EXTRAÇÃO    API do GitLab, no recorte e na janela do módulo
+4 · STAGING     SQLite imutável, cópia auditável da extração
+5 · CARGA       Postgres, schema pbl, chaves e índices
+6 · MODELAGEM   fato e dimensão, grão declarado
+7 · CODIFICAÇÃO pergunta salva, gráfico, filtro, título
+8 · LEITURA     o orientador olha, conclui e decide intervir</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - PERDA POR ESTACAO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Ciclo de vida &middot; Perda</span>
+          <h2 class="deck-title">Cada estação descarta alguma coisa</h2>
+          <p class="deck-summary">O usuário raciocina sobre a estação 1. Você entrega a estação 8. Entre elas há sete descartes.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Estação</th><th>O que se perde ali</th></tr></thead>
+          <tbody>
+            <tr><td>Evento &rarr; Captura</td><td>Todo trabalho sem rastro versionado: leitura de código, par no mesmo teclado, conversa fora da plataforma</td></tr>
+            <tr><td>Captura &rarr; Extração</td><td>O que ficou fora da janela e do recorte de projetos</td></tr>
+            <tr><td>Extração &rarr; Staging</td><td>Nada, por construção — é o ponto de auditoria</td></tr>
+            <tr><td>Carga &rarr; Modelagem</td><td>Identidade que não resolve: 21% dos commits não ligam a uma pessoa do recorte</td></tr>
+            <tr><td>Modelagem &rarr; Codificação</td><td>Variação interna: a agregação por sprint apaga o dia</td></tr>
+            <tr><td>Codificação &rarr; Leitura</td><td>Tudo que não coube em título, eixo e rótulo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - DEFINICAO DE DIVERGENCIA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Definição</span>
+          <h2 class="deck-title">O que conta como divergência</h2>
+          <p class="deck-summary">Um ponto do fluxo em que a leitura que o usuário faz e o que o dado autoriza afirmar não coincidem — e a diferença tem consequência sobre a decisão dele.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Três condições, todas obrigatórias</strong>
+          <ol style="margin:10px 0 0; padding-left:22px;">
+            <li><strong>Evidência</strong> — dá para mostrar no dado onde a discordância nasce.</li>
+            <li><strong>Assimetria</strong> — usuário e dado dizem coisas diferentes, não apenas com palavras diferentes.</li>
+            <li><strong>Consequência</strong> — existe uma decisão que muda conforme a leitura adotada.</li>
+          </ol>
+          <p style="margin:8px 0 0;">Sem consequência é curiosidade, não divergência. Não entra no registro.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - SEIS FAMILIAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Framework</span>
+          <h2 class="deck-title">Seis famílias de divergência</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Família</th><th>A discordância é sobre</th><th>Exemplo no projeto</th></tr></thead>
+          <tbody>
+            <tr><td>Vocabulário</td><td>O que a palavra nomeia</td><td>"Entrega" = cartão em Concluído ou merge na branch padrão</td></tr>
+            <tr><td>Grão</td><td>A unidade contada</td><td>Commit, merge request, cartão ou sprint como unidade de trabalho</td></tr>
+            <tr><td>Temporalidade</td><td>Quando aconteceu</td><td>Data do autor, reescrita por rebase, contra hora do servidor</td></tr>
+            <tr><td>Completude</td><td>O que a fonte não vê</td><td>Revisão feita por chamada de vídeo não deixa rastro</td></tr>
+            <tr><td>Causalidade</td><td>O que explica o quê</td><td>Poucos commits lidos como pouco esforço</td></tr>
+            <tr><td>Agência</td><td>Sobre o que dá para agir</td><td>Painel aponta pessoa; a alavanca do orientador é o grupo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - VOCABULARIO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Divergência &middot; Vocabulário</span>
+          <h2 class="deck-title">A mesma palavra, dois referentes</h2>
+          <p class="deck-summary">A divergência mais comum e a mais barata de corrigir — desde que alguém pergunte.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>O orientador diz "atrasado"</strong>
+            <ul>
+              <li>O grupo não vai conseguir apresentar</li>
+              <li>Julgamento sobre o futuro da sprint</li>
+              <li>Formado por conversa, reunião e histórico</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>O dado registra "atrasado"</strong>
+            <ul>
+              <li>Cartão cuja data de conclusão passou do prazo da sprint</li>
+              <li>Fato sobre o passado do quadro</li>
+              <li>Depende de o cartão ter sido movido</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - TEMPORALIDADE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Divergência &middot; Temporalidade</span>
+          <h2 class="deck-title">Duas datas para o mesmo commit</h2>
+          <p class="deck-summary">A data do autor é gravada pela máquina de quem escreveu e pode ser reescrita por rebase. A hora do servidor registra quando o objeto chegou ao repositório. Não são a mesma coisa e produzem gráficos de cadência diferentes.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>A leitura que a escolha errada induz</strong>
+          <p style="margin:8px 0 0;">Um grupo que trabalha ao longo da semana e integra tudo na sexta aparece, pela hora do servidor, como um grupo que só trabalha na sexta. Pela data do autor, aparece distribuído. Toda afirmação de cadência precisa declarar qual das duas usa — e o painel precisa dizer isso onde o gráfico é lido, não num anexo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - COMPLETUDE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Divergência &middot; Completude</span>
+          <h2 class="deck-title">Ausência de evidência não é evidência de ausência</h2>
+        </div>
+        <div class="deck-callout">
+          <strong>Os 21% que não resolvem</strong>
+          <p style="margin:8px 0 0;">No recorte publicado, a autoria resolve para um código em 2.136 dos 2.688 commits. O restante tem e-mail de cliente git que não corresponde à conta institucional. Um painel que divide commits por pessoa e ignora esse resíduo produz uma distribuição que soma menos que o total — e o integrante mal configurado aparece como integrante ausente.</p>
+          <p style="margin:10px 0 0;">Essa lacuna é dado, não defeito. O suporte que ela exige é uma faixa "não atribuído" visível no próprio gráfico, com o percentual.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - CAUSALIDADE E AGENCIA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Divergência &middot; Causalidade e agência</span>
+          <h2 class="deck-title">A armadilha do ranking de pessoas</h2>
+          <p class="deck-summary">Ordenar integrantes por volume de contribuição é a saída mais fácil e a resposta errada desta disciplina. Ela junta as duas divergências mais caras de uma vez.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Causalidade</strong>
+            <ul>
+              <li>Volume vira medida de empenho</li>
+              <li>Contexto do papel desaparece</li>
+              <li>Quem revisa muito e escreve pouco fica em último</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Agência</strong>
+            <ul>
+              <li>O orientador intervém no grupo, não na linha da tabela</li>
+              <li>A pergunta útil é sobre concentração de trabalho</li>
+              <li>Concentração se mede sem nomear ninguém</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - NOTACAO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Notação</span>
+          <h2 class="deck-title">O fluxo de interação anotado</h2>
+          <p class="deck-summary">Três raias, uma tarefa real, passos numerados e âncoras de divergência onde as raias discordam.</p>
+        </div>
+        <div class="deck-schema">TAREFA: decidir em qual grupo intervir antes da sprint 4
+
+USUÁRIO    ①abre o painel ──▶ ③procura o grupo ────▶ ⑤conclui "G02 parou" ──▶ ⑦decide
+              │                   │                       │                      │
+INTERFACE  ②filtro de sprint ─▶ ④barras por grupo ──▶ ⑥sem base de comparação ▶ ⑧sem ação sugerida
+              │                   │                       │                      │
+DADO       eventos de quadro   commits do período     grão = commit          nenhum registro
+                                    ▲                      ▲                      ▲
+                                   D1                     D2                     D3</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - ANATOMIA DO REGISTRO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Registro</span>
+          <h2 class="deck-title">Anatomia de uma âncora de divergência</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Campo</th><th>O que preencher</th></tr></thead>
+          <tbody>
+            <tr><td>Passo</td><td>Onde no fluxo, pelo número</td></tr>
+            <tr><td>Leitura do usuário</td><td>A frase que ele diz em voz alta olhando a tela</td></tr>
+            <tr><td>O que o dado autoriza</td><td>A afirmação máxima que a fonte sustenta</td></tr>
+            <tr><td>Família</td><td>Vocabulário, grão, temporalidade, completude, causalidade ou agência</td></tr>
+            <tr><td>Consequência</td><td>A decisão que muda se ele seguir a leitura errada</td></tr>
+            <tr><td>Decisão de projeto</td><td>O que o grupo resolveu fazer, e por quê</td></tr>
+            <tr><td>Suporte exigido</td><td>O elemento concreto que sustenta a decisão na tela</td></tr>
+            <tr><td>Reteste</td><td>Como verificar que a divergência foi fechada</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - SUPORTE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Suporte exigido</span>
+          <h2 class="deck-title">Sete formas de suporte, do mais barato ao mais caro</h2>
+          <p class="deck-summary">Suporte é entregável. "Vamos explicar na apresentação" não é suporte.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Suporte</th><th>Fecha divergência de</th><th>Custo</th></tr></thead>
+          <tbody>
+            <tr><td>Título que afirma em vez de rotular</td><td>Causalidade, vocabulário</td><td>Baixo</td></tr>
+            <tr><td>Unidade e denominador no eixo</td><td>Grão</td><td>Baixo</td></tr>
+            <tr><td>Nota de origem visível no cartão</td><td>Temporalidade, completude</td><td>Baixo</td></tr>
+            <tr><td>Faixa explícita de não atribuído</td><td>Completude</td><td>Médio</td></tr>
+            <tr><td>Ficha técnica do KPI</td><td>Vocabulário, grão</td><td>Médio</td></tr>
+            <tr><td>Base de comparação no mesmo gráfico</td><td>Causalidade</td><td>Médio</td></tr>
+            <tr><td>Remoção do gráfico</td><td>Agência</td><td>Alto para o ego, baixo para o painel</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - DECISAO DE PROJETO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Critério</span>
+          <h2 class="deck-title">Decisão de projeto não é preferência</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>É decisão de projeto</th><th>Não é</th></tr></thead>
+          <tbody>
+            <tr><td>Tem uma divergência nomeada como origem</td><td>"Ficou melhor assim"</td></tr>
+            <tr><td>Declara a alternativa descartada</td><td>Primeira ideia mantida por inércia</td></tr>
+            <tr><td>Aponta o suporte que exige</td><td>Intenção de explicar depois</td></tr>
+            <tr><td>Tem custo estimado</td><td>Promessa sem prazo</td></tr>
+            <tr><td>Tem forma de reteste</td><td>Confiança de quem construiu</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - PRATICA VISAO GERAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; 10h00 &ndash; 12h10</span>
+          <h2 class="deck-title">Cinco etapas, um artefato</h2>
+          <p class="deck-summary">Ao final da manhã cada grupo sai com um fluxo anotado testado por gente que não o construiu.</p>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>1 &middot; Ciclo</strong><span>Reconstituir as oito estações e a perda de cada uma.</span></div>
+          <div class="quality-gate"><strong>2 &middot; Vocabulário</strong><span>Seis termos definidos pelo cliente, comparados com o dado.</span></div>
+          <div class="quality-gate"><strong>3 &middot; Fluxo</strong><span>Desenhar a tarefa em três raias.</span></div>
+          <div class="quality-gate"><strong>4 &middot; Registro</strong><span>D1..Dn com decisão e suporte.</span></div>
+          <div class="quality-gate"><strong>5 &middot; Teste</strong><span>Interpretação em voz alta por outro grupo.</span></div>
+          <div class="quality-gate"><strong>6 &middot; Correção</strong><span>Implementar ao menos dois suportes no Metabase.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - ETAPA 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 1</span>
+          <h2 class="deck-title">Reconstituir o ciclo do seu grupo</h2>
+          <p class="deck-summary">Trinta minutos. Sem abrir o Metabase.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Escolha uma métrica que já esteja no seu painel.</li>
+          <li>Percorra as oito estações e escreva o que acontece com ela em cada uma.</li>
+          <li>Em cada passagem, registre uma linha: o que foi descartado ali.</li>
+          <li>Marque a estação em que o descarte é maior.</li>
+          <li>Escreva a afirmação máxima que essa métrica ainda sustenta depois de todos os descartes.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 22 - ETAPA 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 2</span>
+          <h2 class="deck-title">Teste de vocabulário com o cliente</h2>
+          <p class="deck-summary">Trinta minutos. O professor responde no papel do orientador; cada grupo tem sua rodada.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Antes de perguntar, escreva a definição operacional que <em>você</em> usa para seis termos: entrega, atraso, participação, revisão, concluído e ativo.</li>
+          <li>Peça ao cliente que defina os mesmos seis, sem mostrar a sua lista.</li>
+          <li>Coloque as duas colunas lado a lado e marque onde discordam.</li>
+          <li>Para cada discordância, pergunte que decisão ele tomaria com base naquele termo.</li>
+          <li>Classifique cada uma nas seis famílias.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 23 - ETAPA 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 3</span>
+          <h2 class="deck-title">Desenhar o fluxo em três raias</h2>
+          <p class="deck-summary">Quarenta minutos. Papel, quadro ou editor de texto — a forma não importa, a numeração sim.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Fixe uma tarefa real de decisão do orientador, com prazo e consequência.</li>
+          <li>Escreva a raia do usuário: o que ele faz, passo a passo, do primeiro clique à decisão.</li>
+          <li>Escreva a raia da interface: o que a tela oferece em cada passo.</li>
+          <li>Escreva a raia do dado: qual fonte, qual grão e qual limitação sustenta aquele passo.</li>
+          <li>Marque uma âncora onde as raias discordam e numere D1, D2, D3.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 24 - ETAPA 4 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 4</span>
+          <h2 class="deck-title">Registrar decisão e suporte</h2>
+          <p class="deck-summary">Trinta minutos. Mínimo de quatro divergências, com pelo menos três famílias diferentes.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Preencha os oito campos da âncora para cada divergência marcada.</li>
+          <li>Na decisão de projeto, escreva também a alternativa que você descartou.</li>
+          <li>No suporte exigido, nomeie o elemento concreto e onde ele fica na tela.</li>
+          <li>Implemente no Metabase pelo menos dois dos suportes de custo baixo.</li>
+          <li>Registre a divergência que você decidiu <em>não</em> fechar, com a razão.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 25 - ETAPA 5 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 5</span>
+          <h2 class="deck-title">Teste de interpretação em voz alta</h2>
+          <p class="deck-summary">Trinta minutos, em duplas de grupos. Regra única: quem construiu não explica nada.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Entregue a tela ao outro grupo com a tarefa escrita num papel.</li>
+          <li>Peça que digam em voz alta o que estão vendo e o que concluem.</li>
+          <li>Anote as frases literais, sem corrigir e sem interromper.</li>
+          <li>Compare cada frase com a afirmação máxima da Etapa 1.</li>
+          <li>Toda frase que ultrapassa a afirmação máxima vira uma divergência nova.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 26 - ENTREGA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega</span>
+          <h2 class="deck-title">O que sai daqui hoje</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>No Metabase</h3>
+            <p>Pelo menos dois suportes implementados: título que afirma, denominador no eixo, nota de origem ou faixa de não atribuído.</p>
+          </article>
+          <article class="deck-card">
+            <h3>No repositório</h3>
+            <p><code>docs/05_fluxo_de_interacao_anotado.md</code> com o ciclo em oito estações, o fluxo em três raias e o registro D1..Dn completo.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 27 - AVALIACAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Avaliação</span>
+          <h2 class="deck-title">Como este trabalho é avaliado</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Critério</th><th>O que se espera</th></tr></thead>
+          <tbody>
+            <tr><td>Evidência</td><td>Cada divergência aponta o lugar no dado onde ela nasce</td></tr>
+            <tr><td>Consequência</td><td>Está escrito qual decisão muda se a leitura errada prevalecer</td></tr>
+            <tr><td>Fundamentação</td><td>A decisão declara a alternativa descartada</td></tr>
+            <tr><td>Suporte concreto</td><td>O elemento existe na tela, não na intenção</td></tr>
+            <tr><td>Teste independente</td><td>Há frases literais de quem não construiu o painel</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 28 - PROXIMA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Próxima aula &middot; 19/09</span>
+          <h2 class="deck-title">Heurísticas e Vieses</h2>
+          <p class="deck-summary">Hoje você mapeou onde o usuário entende diferente. Na próxima, por que ele entende diferente — e como o próprio painel fabrica o erro. Auditoria cruzada: cada grupo inspeciona o trabalho de outro.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Traga pronto</strong>
+          <p style="margin:8px 0 0;">O fluxo anotado, os suportes já implementados e o painel em estado apresentável — ele será auditado por outro grupo, com severidade e devolutiva escrita.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
+      <a href="../material/material_aula_05_modelo_mental_e_ciclo_de_vida_do_dado.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

@@ -77,8 +77,8 @@ Organizar o conteúdo do curso em um repositório estático Hub com a página in
 
 - O horário de cada disciplina deve seguir seu cronograma em `specs/estrutura_curso.md`.
 - Aulas noturnas ocorrem das `19h00` às `22h00`; aulas de sábado de Data Collection and Storage e Data Visualization ocorrem das `8h30` às `12h10`.
-- A primeira parte da aula deve ser sempre teórica, exceto na Aula 04 de Data Visualization. Essa aula é 100% prática: os conceitos são introduzidos durante a execução guiada no terminal, sem bloco teórico separado.
-- O restante da aula deve ser prático, no ambiente definido para a disciplina: `AWS Student Lab` em Cloud Computing e SRE e em Data Collection and Storage; instância `Metabase` hospedada em Data Visualization, exceto nas Aulas 03 e 04. A Aula 03 usa `GitHub Codespaces`, `D3` e assistência de IA sobre uma API segura; a Aula 04 usa Codespaces e OpenCode Zen para construir o fluxo Excel → SQLite → HTML → DuckDB → HTML.
+- A primeira parte da aula deve ser sempre teórica, exceto nas Aulas 04 e 08 de Data Visualization. A Aula 04 é 100% prática: os conceitos são introduzidos durante a execução guiada no terminal, sem bloco teórico separado. A Aula 08 é ateliê de finalização e entrega do projeto do módulo, também sem bloco teórico separado.
+- O restante da aula deve ser prático, no ambiente definido para a disciplina: `AWS Student Lab` em Cloud Computing e SRE e em Data Collection and Storage; instância `Metabase` hospedada em Data Visualization, exceto nas Aulas 03 e 04. A Aula 03 usa `GitHub Codespaces`, `D3` e assistência de IA sobre uma API segura; a Aula 04 usa Codespaces e OpenCode Zen para construir o fluxo Excel → SQLite → HTML → DuckDB → HTML. Das Aulas 05 a 08 a prática ocorre no Metabase sobre o conjunto do projeto do módulo — o rastro de trabalho PBL —, e não mais sobre o Olist.
 - Slides, materiais e cronograma devem refletir os intervalos da respectiva disciplina de forma consistente.
 
 ## Regra obrigatória para slides

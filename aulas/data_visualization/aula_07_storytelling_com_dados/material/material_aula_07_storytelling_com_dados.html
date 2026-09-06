@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 07 — Storytelling com Dados</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+      <a href="../slides/slide_aula_07_storytelling_com_dados.html">Ver Slide &rarr;</a>
+      <a href="../../../../pages/projeto_data_visualization.html">Projeto do módulo &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 07 — Storytelling com Dados</h1>
+      <p class="meta">Aula 07 &middot; 26/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p>Terceira aula da sequência que incide sobre o projeto do módulo. O painel do rastro de trabalho PBL — turma T28, grupos G01 a G03 do Instituto Ápice — já foi confrontado com o modelo mental do cliente na Aula 05 e auditado por outro grupo na Aula 06. Hoje ele vira narrativa: uma ideia central falsificável, um storyboard de sete quadros, um dashboard narrativo em abas com ficha técnica de KPI, e doze minutos de defesa que precisam sobreviver a perguntas hostis.</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block">
+        <h2>1. Onde a sequência parou e o que ainda falta</h2>
+        <p>Nas quatro primeiras aulas da disciplina o conjunto Olist funcionou como bancada: perfilar dados, localizar arquitetura, codificar quantidade e construir uma cadeia analítica local completa. A partir da Aula 05 o objeto mudou. O trabalho passou a incidir sobre o projeto do módulo — o dashboard do processo de aprendizagem baseada em projetos, com um cliente concreto: o professor orientador de três grupos de graduação que trabalham em paralelo, não assiste a todas as reuniões e precisa decidir, a cada sprint, onde intervir primeiro.</p>
+        <p>A Aula 05 produziu o fluxo de interação anotado e o registro das divergências entre o modelo mental do usuário e o ciclo de vida do dado. Foi ali que apareceu, com evidência na tela, que "entrega" pode significar um cartão movido para a coluna final ou um merge na branch padrão, e que a diferença entre as duas leituras muda a decisão de um orientador sobre um aluno real. Cada divergência recebeu uma decisão de projeto e um suporte exigido — título que afirma, denominador no eixo, nota de origem, faixa de não atribuído, ficha técnica do KPI.</p>
+        <p>A Aula 06 produziu a auditoria heurística cruzada. Cada grupo inspecionou o painel de outro com as dez heurísticas da disciplina e a escala de severidade de <code>0</code> a <code>4</code>, devolveu achados no formato <em>evidência → heurística → severidade → consequência → correção → reteste</em>, e o grupo dono do painel corrigiu e retestou. O que sai da Aula 06 é um painel defensável no detalhe: cada gráfico sobrevive à inspeção de quem não o construiu.</p>
+        <p>Falta uma coisa, e ela não é técnica. Um painel correto, auditado e retestado ainda é um conjunto de respostas soltas. O cliente não pediu respostas soltas: ele pediu ajuda para decidir. Um instrumento que devolve a decisão para quem pediu ajuda não resolveu o problema original — apenas o transferiu de volta, agora com gráficos. A Aula 07 fecha essa distância. Ela transforma o painel auditado em uma peça de argumentação capaz de conduzir uma audiência da pergunta do cliente até uma recomendação executável, em doze minutos, sem apresentar um único gráfico que não sustente a ideia central e sem omitir a limitação que a evidência impõe.</p>
+
+        <div class="note">
+          <strong>Resultado esperado</strong>
+          <p>Ao final da manhã cada grupo terá um dashboard narrativo em abas publicado no Metabase e o documento <code>docs/07_narrativa_e_defesa.md</code> no repositório, contendo a ideia central, o storyboard de sete quadros, as fichas técnicas dos KPIs, o roteiro cronometrado da defesa e as perguntas difíceis previstas com suas respostas escritas.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>2. Exploração e explicação são atividades distintas</h2>
+        <p>As duas atividades usam a mesma ferramenta, o mesmo dado e frequentemente as mesmas consultas salvas — e obedecem a regras opostas. Confundi-las é a causa mais comum de apresentação que não convence, e a explicação para o fenômeno que todo professor de banca reconhece: um grupo que domina o assunto, mostra vinte gráficos corretos e termina sem que ninguém saiba o que fazer na segunda-feira.</p>
+        <p>Na <strong>exploração</strong> você está procurando. Todo gráfico é candidato, a ordem é livre, o critério é a curiosidade e o erro típico é parar cedo demais — aceitar a primeira leitura plausível sem testar as alternativas. Nessa fase, um painel largo, com muitos recortes e filtros generosos, é exatamente a ferramenta certa. É o que você construiu ao longo das Aulas 01 a 06.</p>
+        <p>Na <strong>explicação</strong> você está defendendo. O número de gráficos cai, cada um passa a ter uma função declarada dentro de um argumento, a ordem se torna fixa e o erro típico é o oposto: mostrar à audiência todo o caminho da busca, incluindo as vinte tentativas que não deram em nada. A audiência não precisa acompanhar a sua investigação; ela precisa chegar à sua conclusão com material suficiente para discordar, se quiser.</p>
+        <table>
+          <thead><tr><th>Dimensão</th><th>Exploração</th><th>Explicação</th></tr></thead>
+          <tbody>
+            <tr><td>Quem executa a atividade</td><td>Você, procurando</td><td>Você, defendendo</td></tr>
+            <tr><td>Pergunta que organiza</td><td>O que há aqui?</td><td>O que isto exige que se faça?</td></tr>
+            <tr><td>Volume de artefatos</td><td>Muitos, tudo é candidato</td><td>Poucos, cada um com função</td></tr>
+            <tr><td>Ordem de leitura</td><td>Livre, guiada pela curiosidade</td><td>Fixa, guiada pelo argumento</td></tr>
+            <tr><td>Papel do filtro</td><td>Instrumento de busca</td><td>Recorte declarado, com efeito no denominador dito</td></tr>
+            <tr><td>Erro típico</td><td>Parar cedo demais</td><td>Mostrar o caminho inteiro da busca</td></tr>
+            <tr><td>Critério de sucesso</td><td>Encontrou algo que não sabia</td><td>Alguém decidiu diferente por causa disso</td></tr>
+          </tbody>
+        </table>
+        <p>A consequência prática é organizacional e vale registrar no documento: a coleção de exploração <strong>não se apaga</strong>. Ela permanece como acervo, e é dela que saem as respostas às perguntas hostis. O que muda é que o painel narrativo é um recorte curado dela — uma seleção pequena, ordenada e anotada — e não a coleção inteira arrastada para dentro de um dashboard com abas.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>3. A ideia central em uma frase</h2>
+        <p>A ideia central é a única frase que a audiência deve conseguir repetir uma semana depois da apresentação, sem consultar o painel. Ela não é o título do trabalho, não é a descrição do método e não é a lista dos assuntos cobertos. É a afirmação que a evidência sustenta e que exige de alguém uma ação diferente da que essa pessoa tomaria sem ela.</p>
+        <p>Exigir que caiba em uma frase não é estilística. É um teste de decisão. Um grupo que não consegue escrever a frase geralmente não decidiu ainda o que está afirmando: tem quatro achados interessantes, todos verdadeiros, nenhum deles subordinado aos demais. Escrever a frase obriga a hierarquizar — e a hierarquia é justamente o que a audiência não consegue construir sozinha em doze minutos.</p>
+
+        <h3>3.1 Quatro propriedades de uma ideia central utilizável</h3>
+        <ol class="steps">
+          <li><strong>Sujeito nomeado.</strong> Quem ou o quê é o objeto da afirmação: um grupo, uma sprint, uma etapa do fluxo do quadro. "O processo" não é sujeito.</li>
+          <li><strong>Tensão explícita.</strong> Algo se comporta de modo diferente do esperado, do restante, ou de si mesmo em outro momento. Sem tensão não há motivo para agir.</li>
+          <li><strong>Janela declarada.</strong> Quando isso vale. O recorte publicado cobre um módulo de cinco sprints; a afirmação precisa dizer se vale para todo ele ou para parte.</li>
+          <li><strong>Ação implicada.</strong> Se a frase for verdadeira, alguém faz algo diferente. Se ninguém faz nada diferente, ela pode ser verdadeira e irrelevante.</li>
+        </ol>
+
+        <h3>3.2 O que reprova no teste</h3>
+        <p>"Analisamos o rastro de trabalho dos três grupos ao longo do módulo" descreve a atividade, não o achado. "O painel mostra commits, cartões e merge requests" descreve o instrumento. "Há oportunidades de melhoria no processo dos grupos" é verdadeiro para qualquer grupo de qualquer curso em qualquer semestre — e por isso não informa nada. O sintoma comum às três é o mesmo: ninguém razoável discordaria delas. Uma frase com a qual é impossível discordar é uma frase com a qual é impossível decidir.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>4. O que torna a ideia central falsificável</h2>
+        <p>Falsificabilidade, aqui, tem um sentido operacional e verificável: você consegue descrever, <em>antes</em> de olhar o resultado, qual observação no dado o obrigaria a abandonar a frase. Essa descrição vira uma linha no documento, logo abaixo da ideia central, e é o item que mais rapidamente separa um trabalho analítico de uma peça de convencimento.</p>
+        <p>A exigência tem uma razão prática ligada à Aula 06. O viés de confirmação e a curadoria enviesada do próprio autor não se corrigem com boa intenção; corrigem-se com um compromisso escrito antes da busca. Se o grupo declara "esta frase cai se a concentração de trabalho no fim da sprint aparecer igualmente nos três grupos", ele precisa ir olhar os três grupos — e, se o resultado aparecer, precisa mudar a frase.</p>
+        <h3>4.1 As quatro perguntas de controle</h3>
+        <ol class="steps">
+          <li>Que resultado, se aparecesse no dado, me obrigaria a abandonar esta frase?</li>
+          <li>Esse resultado é observável nesta base, ou está fora do que a fonte enxerga? Se estiver fora, a frase não é falsificável <em>aqui</em>, e isso precisa ser dito.</li>
+          <li>Eu procurei por ele de verdade, ou só procurei pelo que confirma a frase?</li>
+          <li>Se ele apareceu parcialmente, esse achado parcial está dentro da história ou ficou de fora da apresentação?</li>
+        </ol>
+        <p>A segunda pergunta é a mais frequentemente mal respondida no projeto do módulo, porque este conjunto tem cegueiras conhecidas. Afirmações sobre a qualidade do código escrito, por exemplo, não são falsificáveis nesta base: não há diff nem texto de revisão, apenas o total de linhas de cada commit e a contagem de comentários de cada merge request. Uma ideia central que dependa de qualidade de código não pode ser testada com este material, e isso precisa ser reconhecido na fase de redação da frase, não na rodada de perguntas.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>5. Contexto, conflito e resolução aplicados a evidência</h2>
+        <p>A estrutura narrativa de três tempos é útil aqui por uma razão cognitiva, não literária: ela administra a carga de atenção de quem escuta. O contexto estabelece um mundo comum e barato de entender, para que a tensão seguinte tenha contra o que se destacar; o conflito concentra atenção num ponto; a resolução converte atenção em ação. Uma apresentação sem essa estrutura obriga a audiência a construir sozinha a hierarquia entre vinte fatos igualmente apresentados — trabalho que ela não vai fazer.</p>
+        <table>
+          <thead><tr><th>Momento</th><th>Função na atenção</th><th>Como se realiza no projeto do módulo</th></tr></thead>
+          <tbody>
+            <tr><td>Contexto</td><td>Criar o terreno comum e estabilizar o vocabulário</td><td>Três grupos da turma T28, cinco sprints, um orientador que decide onde intervir sem assistir a todas as reuniões; os termos definidos na Aula 05</td></tr>
+            <tr><td>Conflito</td><td>Concentrar atenção num ponto único</td><td>O sinal que contraria o que o cliente supunha sobre um dos grupos, ou sobre uma etapa do fluxo do quadro</td></tr>
+            <tr><td>Resolução</td><td>Converter atenção em ação com custo declarado</td><td>Onde intervir primeiro, com que conversa, antes de qual prazo, e como verificar depois no próprio painel</td></tr>
+          </tbody>
+        </table>
+        <p>Uma advertência importante: o conflito <strong>não é inventado</strong>. Ele é a diferença entre o que o cliente esperava e o que a evidência mostra — e é por isso que a elicitação da Aula 05, na qual o professor interpretou o orientador e definiu seus termos, é a matéria-prima desta aula. Se essa diferença não existir, a história honesta é: "o que você supunha se confirma, e aqui está a margem dentro da qual isso vale". Confirmação com margem também é desfecho, e é infinitamente melhor do que fabricar uma tensão que o dado não sustenta.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>6. Sequenciamento: a ordem que a audiência consegue seguir</h2>
+        <p>A ordem em que você descobriu não é a ordem em que ele entende. A descoberta é iterativa, cheia de retornos e de caminhos abandonados; a explicação precisa ser linear, com cada passo apoiado apenas no anterior. Reordenar é trabalho de projeto — e é o trabalho que mais frequentemente se deixa de fazer, porque a ordem cronológica da investigação parece natural para quem a viveu.</p>
+        <p>A regra operacional que funciona no formato de doze minutos é <strong>uma coisa nova por quadro</strong>. Cada quadro introduz exatamente um elemento novo: uma métrica, um recorte, uma comparação ou uma limitação — nunca dois ao mesmo tempo. Quando um quadro introduz simultaneamente uma métrica desconhecida e um recorte desconhecido, a audiência gasta a atenção decifrando o eixo e perde a afirmação.</p>
+        <table>
+          <thead><tr><th>Ordem da descoberta</th><th>Ordem da explicação</th></tr></thead>
+          <tbody>
+            <tr><td>Perfil dos dados primeiro, hipótese depois</td><td>A pergunta do cliente primeiro, evidência depois</td></tr>
+            <tr><td>Tentativas descartadas aparecem no meio</td><td>Tentativas descartadas só aparecem se alguém perguntar</td></tr>
+            <tr><td>A conclusão aparece no fim, se aparecer</td><td>A conclusão está anunciada desde o segundo minuto</td></tr>
+            <tr><td>Faz sentido para quem viveu o processo</td><td>Faz sentido para quem chega no meio da apresentação</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Anotação como camada de significado e o título que afirma</h2>
+        <p>Anotação é a camada que transporta para dentro do gráfico aquilo que, sem ela, só existe na cabeça de quem o construiu. Isso inclui o título, o rótulo direto sobre a série que importa, a marca do evento que explica a inflexão, a nota de origem do dado, a unidade e o denominador. Nenhum desses elementos é decoração: cada um fecha um golfo de avaliação identificado na Aula 05.</p>
+        <p>O item de maior retorno é o título. Um título que <strong>rotula</strong> diz o que o gráfico contém — "Commits por sprint". Um título que <strong>afirma</strong> diz o que o gráfico demonstra. A troca é barata, cabe numa linha, e muda o comportamento do leitor: com o título que rotula, ele precisa descobrir sozinho o que olhar; com o título que afirma, ele verifica uma afirmação. Verificar é uma tarefa muito mais fácil do que descobrir, e é a tarefa que a audiência de uma defesa consegue executar em quarenta segundos.</p>
+        <table>
+          <thead><tr><th>Título que rotula</th><th>Forma do título que afirma</th></tr></thead>
+          <tbody>
+            <tr><td>Commits por sprint</td><td>O [grupo] concentra [X]% do que escreve nos [N] dias finais de cada sprint</td></tr>
+            <tr><td>Cartões por coluna</td><td>[N] cartões permanecem em revisão por mais tempo do que a sprint inteira dura</td></tr>
+            <tr><td>Merge requests por revisor</td><td>[X]% das integrações do [grupo] são aprovadas por uma única pessoa</td></tr>
+            <tr><td>Eventos de quadro por semana</td><td>O quadro do [grupo] só registra movimento em [N] dos [M] dias da sprint</td></tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>Os colchetes são de propósito</strong>
+          <p>A <em>forma</em> do título é ensinável; o <em>resultado</em> não. Não copie os exemplos: preencha os colchetes com o que o seu recorte sustenta. E vale a regra que fecha o ciclo: se o título afirma um número, esse número precisa estar visível no gráfico logo abaixo, sem exigir que o leitor faça a conta de cabeça.</p>
+        </div>
+        <p>Duas anotações adicionais são obrigatórias em qualquer quadro do painel narrativo deste projeto, porque endereçam divergências registradas na Aula 05. A primeira é a <strong>nota de temporalidade</strong>: toda afirmação de cadência precisa dizer se usa a data gravada pelo cliente git — reescrita por <em>rebase</em> — ou a hora registrada pelo servidor, porque as duas produzem gráficos de cadência diferentes para o mesmo grupo. A segunda é a <strong>faixa de não atribuído</strong>: qualquer distribuição por pessoa precisa exibir o resíduo que não resolve para um código, sob pena de a distribuição somar menos que o total e o integrante mal configurado aparecer como integrante ausente.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Atenção pré-atentiva e a economia da remoção</h2>
+        <p>Cor, peso, tamanho, orientação e posição são processados antes da leitura consciente, em uma fração de segundo, e determinam o que a audiência olha primeiro. Isso significa que a hierarquia visual do quadro é decidida por você quer você queira ou não: se tudo tem o mesmo peso, o olho escolhe sozinho, e normalmente escolhe errado.</p>
+        <p>A técnica é direta e tem um limite rígido: <strong>um único elemento em destaque por quadro</strong>. A série que sustenta a afirmação recebe a cor de destaque; todas as demais ficam em cinza, ainda legíveis, servindo de contexto. O rótulo vai direto sobre a série destacada, o que geralmente torna a legenda desnecessária — e legenda desnecessária é ruído, não cortesia. Um cuidado de acessibilidade que a rubrica da disciplina cobra: o destaque nunca é feito só por cor; ele é redundante com texto, posição ou rótulo, para que a informação sobreviva a impressão em preto e branco e a leitores com baixa discriminação cromática.</p>
+        <p>A economia da remoção é o outro lado da mesma operação. Cada elemento que não contribui para a afirmação compete com ela. A lista do que sai é previsível: grade pesada, borda dupla, sombra, efeito tridimensional, legenda tornada inútil pelo rótulo direto, casa decimal que não muda decisão alguma, e — o mais difícil — o gráfico que deu trabalho para construir e não sustenta nem testa a ideia central.</p>
+        <div class="note">
+          <strong>O critério de permanência</strong>
+          <p>Um quadro permanece no painel narrativo se, e somente se, ele <em>sustenta</em> a ideia central ou <em>testa</em> a ideia central sem conseguir derrubá-la. Todo o resto continua vivo na coleção de exploração, disponível para responder a perguntas — mas fora da história. Custo alto para o ego de quem construiu; custo baixo para o painel.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>9. Adequação ao público</h2>
+        <p>A mesma evidência produz três histórias diferentes conforme a decisão de quem escuta. O projeto do módulo tem três audiências plausíveis, e o grupo precisa escolher uma como principal e declarar a escolha no documento — não porque as outras deixem de importar, mas porque uma peça que tenta servir às três ao mesmo tempo não serve bem a nenhuma.</p>
+        <table>
+          <thead><tr><th>Audiência</th><th>Decisão que ela toma</th><th>O que a história precisa entregar</th><th>O que a irrita</th></tr></thead>
+          <tbody>
+            <tr><td>Orientador (o cliente)</td><td>Onde intervir antes da próxima sprint</td><td>Sinal cedo, grupo nomeado, conversa sugerida, custo baixo de ação</td><td>Diagnóstico que chega tarde demais para mudar algo</td></tr>
+            <tr><td>Coordenação do curso</td><td>Onde ajustar o desenho do módulo</td><td>Padrão que atravessa grupos, comparabilidade declarada, limitação explícita</td><td>Conclusão sobre o curso tirada de um único grupo</td></tr>
+            <tr><td>O próprio grupo observado</td><td>Como mudar o próprio processo de trabalho</td><td>Linguagem não punitiva, foco no fluxo e não na pessoa, direito de resposta</td><td>Sentir-se vigiado e julgado por um número que não escolheu</td></tr>
+          </tbody>
+        </table>
+        <p>A escolha muda coisas concretas. Para o orientador, o eixo do tempo precisa mostrar o presente com destaque e o quadro de recomendação precisa caber numa conversa de vinte minutos com o grupo. Para a coordenação, a mesma evidência precisa ser normalizada por tamanho de grupo e acompanhada da declaração de que o recorte publicado cobre três grupos de uma turma, o que não autoriza generalização para o curso. Para o grupo observado, o vocabulário muda: "concentração de trabalho" em lugar de "desempenho individual", e a recomendação começa por uma conversa, não por uma medida.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>10. Narrativa honesta e o lugar da limitação</h2>
+        <p>Existe uma crença difundida de que declarar limitações enfraquece o argumento. O oposto é o que acontece numa defesa: a limitação que você declara é uma limitação que o interlocutor não pode usar contra você, e a sua declaração demonstra que você conhece o terreno. A limitação escondida, quando descoberta por quem pergunta, contamina retroativamente tudo o que foi dito antes dela.</p>
+        <p>O que importa é o <strong>lugar</strong> dentro da história. A limitação entra no quadro imediatamente anterior à recomendação — depois de a evidência já ter feito o trabalho de convencer, antes de a ação ser pedida. Colocada cedo demais, ela dá à audiência uma razão para descartar a história inteira antes de ouvi-la. Colocada tarde demais, ou omitida, ela transforma a apresentação em algo que a audiência, ao descobrir depois, vai classificar como engano.</p>
+        <h3>10.1 As três limitações que este recorte impõe a todos os grupos</h3>
+        <ol class="steps">
+          <li><strong>Cobertura de autoria.</strong> A autoria de commit resolve para um código de pessoa em 2.136 dos 2.688 commits do recorte publicado. O restante aparece como externo ou automação, porque o e-mail configurado no cliente git nem sempre corresponde à conta institucional. Qualquer distribuição por pessoa precisa exibir esse resíduo.</li>
+          <li><strong>Ausência de conteúdo.</strong> Não há diff nem texto de revisão no conjunto. Existe o total de linhas alteradas de cada commit e a contagem de comentários de cada merge request, mas não quais arquivos mudaram nem o que foi dito na revisão. Afirmações sobre qualidade de código não se sustentam nesta base.</li>
+          <li><strong>Fotografia com data.</strong> A extração tem um momento registrado no <code>manifesto.json</code> e nada posterior a ele existe no conjunto. Além disso, há commits datados de anos anteriores, herança do repositório-template; filtrar pela janela das sprints é uma decisão legítima, desde que declarada.</li>
+        </ol>
+        <p>A essas três soma-se a limitação conceitual que atravessa o projeto inteiro: <strong>ausência de rastro não é ausência de trabalho</strong>. Conversa fora da plataforma, programação em par no mesmo teclado, leitura de código e trabalho descartado antes do commit não aparecem em lugar nenhum. Um integrante pouco visível nos dados é um integrante sobre o qual esta fonte não tem evidência — frase que precisa estar escrita no painel, não apenas dita na apresentação.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>11. Ética de narrar sobre pessoas que aprendem</h2>
+        <p>Este é o ponto em que o projeto do módulo se distingue de qualquer exercício com dados de vitrine. Os dados são reais e pertencem a pessoas reais que estavam aprendendo quando os produziram. A pseudonimização substituiu nome, e-mail e username por um código estável por grupo — <code>G01-A01</code>, <code>G01-A02</code> — e trocou a instituição por um nome fictício. Isso protege o conjunto publicado; não protege o aluno na sala de aula do orientador, que sabe exatamente quem é cada código do seu próprio grupo.</p>
+        <p>A consequência é que a narrativa carrega responsabilidade sobre uma pessoa identificável para quem vai ouvi-la. Três compromissos decorrem disso, e todos os três aparecem na rubrica.</p>
+        <table>
+          <thead><tr><th>Não faça</th><th>Faça</th><th>Por quê</th></tr></thead>
+          <tbody>
+            <tr><td>Ranking de pessoas por volume de contribuição</td><td>Medida de concentração do trabalho no grupo</td><td>A alavanca do orientador é o grupo; o ranking junta erro de causalidade e erro de agência</td></tr>
+            <tr><td>Narrativa que atribui intenção ou caráter ao aluno</td><td>Descrição do que o rastro registra, no verbo do dado</td><td>"Escreveu 12 commits" é observação; "se dedicou pouco" é julgamento sem base</td></tr>
+            <tr><td>Silêncio na fonte lido como omissão da pessoa</td><td>Silêncio declarado como ausência de evidência</td><td>A fonte não vê revisão por chamada de vídeo nem par no mesmo teclado</td></tr>
+            <tr><td>Conclusão apresentada sem direito de resposta</td><td>Recomendação que começa por uma conversa com o grupo</td><td>O objeto observado é um processo de aprendizagem, e ele é corrigível</td></tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>O teste da sala</strong>
+          <p>Antes de aprovar um quadro, pergunte: eu apresentaria este gráfico com o aluno descrito nele sentado na primeira fileira? Se a resposta é não, o problema não é a plateia — é o quadro. Reescreva a pergunta até que ele possa estar presente sem ser exposto.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>12. Indicadores de performance: métrica, indicador e a ficha técnica do KPI</h2>
+        <p>A ementa institucional lista indicadores de performance e dashboards como tópicos próprios. Nesta disciplina eles não têm aula dedicada: são absorvidos aqui, na composição do painel narrativo, porque um indicador só ganha sentido dentro de uma decisão — e a decisão é o assunto de hoje.</p>
+        <p>A distinção operacional é simples e severa. <strong>Métrica</strong> é qualquer número calculável a partir do dado: contagem de commits, mediana de tempo em revisão, número de cartões concluídos por sprint. Métrica existe porque é calculável. <strong>Indicador</strong> é uma métrica que alguém aceitou acompanhar porque uma decisão depende dela: tem faixa de referência, tem dono, tem frequência de leitura e tem uma ação associada ao movimento. Indicador existe porque alguém age quando ele se move.</p>
+        <p>A maioria dos dashboards que não mudam decisão nenhuma é feita de métricas apresentadas com a aparência de indicadores. O sintoma é reconhecível: um número grande no topo da tela, sem faixa de referência, sem dono e sem nada que aconteça quando ele sobe. Se ninguém sabe dizer o que fazer quando o número muda, ele é ornamento.</p>
+
+        <h3>12.1 O modelo da ficha técnica do KPI</h3>
+        <p>A ficha técnica é o suporte que fecha divergências de vocabulário e de grão — as duas famílias mais frequentes registradas na Aula 05. Ela mora ao lado do número, acessível no próprio painel, e não num anexo que ninguém abre. Cada KPI que sobreviveu à curadoria precisa de uma ficha completa; um KPI sem ficha sai do painel narrativo.</p>
+        <table>
+          <thead><tr><th>Campo</th><th>O que preencher</th><th>Exemplo de forma</th></tr></thead>
+          <tbody>
+            <tr><td>Nome</td><td>Como o KPI é chamado na tela, no vocabulário do cliente</td><td>Concentração de escrita no fim da sprint</td></tr>
+            <tr><td>Definição</td><td>Uma frase que qualquer leitor entende sem ver a consulta</td><td>Parcela do que o grupo escreve na sprint que ocorre nos [N] dias finais dela</td></tr>
+            <tr><td>Fórmula</td><td>Numerador, denominador, filtro e janela</td><td>commits nos [N] dias finais ÷ commits da sprint, na janela das cinco sprints</td></tr>
+            <tr><td>Grão</td><td>O que é uma linha da fonte que alimenta o número</td><td>Um commit; agregado por grupo e sprint</td></tr>
+            <tr><td>Fonte e recorte</td><td>Tabela de origem e o filtro que define o conjunto</td><td><code>commits.csv</code>, turma T28, grupos G01 a G03</td></tr>
+            <tr><td>Meta ou faixa</td><td>Referência declarada e de onde ela veio</td><td>Faixa acordada com o orientador na elicitação, ou linha de base do próprio grupo</td></tr>
+            <tr><td>Dono</td><td>Quem responde quando o número se move</td><td>O orientador, para a decisão; o grupo, para a ação</td></tr>
+            <tr><td>Frequência</td><td>De quanto em quanto tempo é lido, e por quem</td><td>Uma vez por sprint, na reunião de acompanhamento</td></tr>
+            <tr><td>Limitação</td><td>O que este número não autoriza afirmar</td><td>Não mede esforço; não vê trabalho sem rastro versionado</td></tr>
+            <tr><td>Decisão associada</td><td>A ação que muda conforme o valor</td><td>Antecipar a conversa de acompanhamento do grupo</td></tr>
+          </tbody>
+        </table>
+        <p>Os seis primeiros campos — definição, fórmula, grão, meta, dono e frequência — são o núcleo mínimo. Os quatro restantes são exigidos pela rubrica da disciplina, que cobra fonte, limitação e ação explícitas em todo artefato. Preencher a ficha costuma revelar, sozinho, que dois integrantes do grupo entendiam o KPI de formas diferentes; esse é um efeito colateral desejável e vale registrar no documento quando acontecer.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>13. O painel narrativo em abas</h2>
+        <p>O dashboard narrativo não é a coleção de exploração reorganizada em gavetas. As abas são os momentos da história, na ordem em que ela se defende, e cada uma tem um trabalho declarado. A montagem parte de uma <strong>cópia</strong> do painel auditado na Aula 06 — o painel de exploração permanece intacto, porque ele é o acervo do qual saem as respostas às perguntas hostis.</p>
+        <table>
+          <thead><tr><th>Aba</th><th>Trabalho da aba</th><th>Conteúdo</th></tr></thead>
+          <tbody>
+            <tr><td>1 &middot; Situação</td><td>Estabelecer o mundo comum e o vocabulário</td><td>Quem, quando e quanto: três grupos, cinco sprints, o KPI principal com a ficha técnica ao lado</td></tr>
+            <tr><td>2 &middot; Evidência</td><td>Apresentar o conflito e o que o testa</td><td>De dois a quatro quadros, cada um com título que afirma e o número afirmado visível</td></tr>
+            <tr><td>3 &middot; Decisão</td><td>Converter evidência em ação</td><td>Um quadro de apoio mais o texto da recomendação, com dono, prazo, custo e sinal de verificação</td></tr>
+            <tr><td>4 &middot; Limites</td><td>Declarar o que o painel não pode afirmar</td><td>Cobertura de autoria, ausência de diff, janela da extração, efeito dos filtros no denominador</td></tr>
+          </tbody>
+        </table>
+
+        <h3>13.1 A quarta aba, escrita em frases inteiras</h3>
+        <p>A aba de limites existe porque o painel vai circular sem você. Um dashboard publicado é aberto meses depois, por pessoas que não assistiram à defesa, e nesse momento a única coisa que impede uma leitura errada é o que está escrito na tela. Três frases precisam estar lá, redigidas em português corrente e não em jargão:</p>
+        <ol class="steps">
+          <li><strong>O que a fonte não observa</strong> — e que, por isso, não aparece em gráfico nenhum deste painel.</li>
+          <li><strong>O recorte e a janela</strong> — quais grupos, qual turma, qual período, e o que ficou de fora da extração.</li>
+          <li><strong>A leitura errada mais provável</strong> — nomeada explicitamente, com a razão pela qual ela não se sustenta. Essa frase costuma sair direto do registro de divergências da Aula 05.</li>
+        </ol>
+        <p>Os filtros do painel pertencem a esta aba também. Um filtro que muda o denominador — restringir a um grupo, a uma sprint, a um rótulo de cartão — muda o significado de qualquer percentual exibido, e o leitor que aplicou o filtro sem perceber isso vai concluir algo que o dado não autoriza. Declarar esse efeito na aba de limites é barato e fecha uma divergência de grão.</p>
+
+        <h3>13.2 Passo a passo da montagem no Metabase</h3>
+        <ol class="steps">
+          <li>Abra a sua coleção na instância do Metabase da disciplina e localize o painel auditado da Aula 06.</li>
+          <li>Duplique-o com um nome novo, explícito: <code>Painel narrativo — [grupo] — defesa</code>. Trabalhe sempre sobre a cópia.</li>
+          <li>Crie as quatro abas na ordem: <strong>Situação</strong>, <strong>Evidência</strong>, <strong>Decisão</strong>, <strong>Limites</strong>.</li>
+          <li>Distribua os quadros do storyboard nas abas correspondentes e remova do painel narrativo tudo o que não sustenta nem testa a ideia central.</li>
+          <li>Reescreva o título de cada quadro remanescente para que ele afirme, e verifique que o número afirmado está visível no próprio quadro.</li>
+          <li>Adicione, ao lado de cada KPI, o cartão de texto com a ficha técnica preenchida.</li>
+          <li>Configure os filtros do painel e escreva, na aba <strong>Limites</strong>, qual deles altera o denominador e o que isso implica.</li>
+          <li>Confira as anotações obrigatórias: nota de temporalidade em toda afirmação de cadência e faixa de não atribuído em toda distribuição por pessoa.</li>
+          <li>Peça a alguém de outro grupo que abra o painel sem explicação e diga em voz alta o que entendeu da aba 1. Se ele não souber dizer do que se trata, a aba 1 não fez o trabalho dela.</li>
+        </ol>
+        <div class="note">
+          <strong>Regra de convivência na instância compartilhada</strong>
+          <p>A turma acessa o Metabase com uma conta compartilhada e as coleções são visíveis a todos. Duplique sempre; nunca edite o painel de outro grupo, mesmo para "ajudar". A auditoria da Aula 06 se faz com devolutiva escrita, não com edição direta.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>14. Recomendação, próximo passo e custo</h2>
+        <p>Conclusão e recomendação não são a mesma coisa, e a confusão entre as duas é o modo mais comum de terminar uma apresentação sem efeito. Conclusão descreve o que se descobriu: "o trabalho do grupo se concentra no fim da sprint". Recomendação descreve o que alguém faz na segunda-feira: "antecipar a conversa de acompanhamento do G02 para o terceiro dia da sprint 5, para verificar se o planejamento inicial está sendo feito".</p>
+        <table>
+          <thead><tr><th>Elemento</th><th>Pergunta que responde</th><th>Por que sem ele a recomendação falha</th></tr></thead>
+          <tbody>
+            <tr><td>Ação</td><td>O que exatamente será feito?</td><td>Verbo vago produz concordância sem execução</td></tr>
+            <tr><td>Dono</td><td>Quem faz?</td><td>Ação sem dono não entra na agenda de ninguém</td></tr>
+            <tr><td>Prazo</td><td>Antes de quê?</td><td>Sem marco, a ação compete com tudo o que já é urgente</td></tr>
+            <tr><td>Custo</td><td>Quanto tempo e quanto atrito isso exige?</td><td>Custo omitido é descoberto na hora errada e a ação é abandonada</td></tr>
+            <tr><td>Sinal de verificação</td><td>Como saberemos, no próprio painel, se funcionou?</td><td>Sem sinal, a recomendação nunca é avaliada</td></tr>
+            <tr><td>Alternativa descartada</td><td>O que também era possível, e por que não?</td><td>Sem alternativa declarada, a recomendação parece a única saída — e a banca vai perguntar</td></tr>
+          </tbody>
+        </table>
+        <p>O sinal de verificação é o elemento que fecha o ciclo da disciplina. Ele obriga o grupo a apontar, dentro do painel que acabou de construir, o quadro em que o efeito da ação apareceria se a recomendação funcionasse. Um painel que não consegue verificar a própria recomendação está incompleto, e essa incompletude é detectável em trinta segundos por quem pergunta.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>15. A defesa oral sob pergunta hostil</h2>
+        <p>"Hostil" aqui não descreve a intenção de quem pergunta, e sim a dureza do teste. A pergunta hostil é o melhor presente que um grupo pode receber antes da Aula 08, porque ela revela de graça o buraco que a banca encontraria na entrega final. Quatro famílias cobrem quase todo o repertório previsível, e ter uma resposta escrita para cada uma delas é entregável, não preparação opcional.</p>
+        <table>
+          <thead><tr><th>Família</th><th>Forma típica</th><th>Resposta que funciona</th><th>Resposta que afunda</th></tr></thead>
+          <tbody>
+            <tr><td>Procedência</td><td>"De onde saiu esse número?"</td><td>Fonte, grão, filtro e janela em uma frase, com a ficha técnica à mão</td><td>"Foi o que o Metabase trouxe"</td></tr>
+            <tr><td>Contra-hipótese</td><td>"E se for só porque esse grupo é maior?"</td><td>O quadro que já normaliza, ou a admissão explícita do limite</td><td>Improvisar uma explicação plausível na hora</td></tr>
+            <tr><td>Escopo</td><td>"Isso vale para as outras turmas?"</td><td>O recorte declarado e a fronteira do que ele cobre</td><td>Generalizar de três grupos para o curso</td></tr>
+            <tr><td>Consequência</td><td>"E se eu agir com base nisso e estiver errado?"</td><td>O custo do erro nos dois sentidos, dito em voz alta</td><td>Garantir que o dado não erra</td></tr>
+          </tbody>
+        </table>
+        <div class="note">
+          <strong>A resposta proibida</strong>
+          <p>"Boa pergunta, a gente pode olhar isso depois." Se a pergunta é previsível — e as quatro famílias acima são —, a resposta é preparável. Toda pergunta prevista precisa estar no documento antes do ensaio, com a resposta escrita e o quadro do painel que a sustenta. Perguntas realmente novas aparecem, e para essas a resposta honesta é dizer o que a base permitiria verificar e o que não permitiria.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>16. A prática, etapa por etapa</h2>
+        <p>A prática ocupa das 10h00 às 12h10 e produz dois artefatos: o painel narrativo publicado no Metabase e o documento <code>docs/07_narrativa_e_defesa.md</code> no repositório do grupo. As cinco etapas são sequenciais e cada uma tem um gate: não se avança sem a saída da anterior.</p>
+
+        <h3>16.1 Etapa 1 — Ideia central e crítica cruzada (10h00 &ndash; 10h20)</h3>
+        <p>Os primeiros dez minutos acontecem com o Metabase fechado. A frase é decidida por discussão entre pessoas que já conhecem os dados, não por mais uma consulta.</p>
+        <ol class="steps">
+          <li>Escreva a ideia central em uma frase, sem conjunção aditiva — "e também" denuncia que há duas ideias — e sem número aproximado.</li>
+          <li>Escreva abaixo, em uma linha, qual evidência a derrubaria, e diga se essa evidência é observável nesta base.</li>
+          <li>Troque a folha com outro grupo, sem nenhuma explicação verbal. A frase precisa funcionar sozinha.</li>
+          <li>O outro grupo devolve por escrito três coisas: o que entendeu da frase, o ponto do qual não conseguiu discordar e o que faltou para poder discordar.</li>
+          <li>Reescreva a frase uma única vez. A versão final entra no documento, junto com a versão original e a crítica recebida.</li>
+        </ol>
+        <p><strong>Gate 1:</strong> existe uma frase única, falsificável, com a evidência que a derrubaria declarada e a crítica de outro grupo registrada.</p>
+
+        <h3>16.2 Etapa 2 — Storyboard de sete quadros (10h20 &ndash; 10h50)</h3>
+        <p>O storyboard é feito em papel ou em texto, nunca na ferramenta. A regra que sustenta a etapa é a mais importante da manhã: <strong>a mensagem de cada quadro é escrita antes de o gráfico ser escolhido</strong>. Quem escolhe o gráfico primeiro acaba escrevendo a mensagem que o gráfico permite, e não a que o argumento exige.</p>
+        <table>
+          <thead><tr><th>#</th><th>Quadro</th><th>A mensagem responde</th><th>Só depois: qual gráfico</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Contexto</td><td>Quem decide, sobre o quê e com que prazo</td><td>Normalmente texto e um número de escala</td></tr>
+            <tr><td>2</td><td>Situação</td><td>Como o processo se comporta quando nada chama atenção</td><td>Série temporal ou distribuição de referência</td></tr>
+            <tr><td>3</td><td>Conflito</td><td>O que contraria a expectativa declarada do cliente</td><td>Comparação com destaque em um único elemento</td></tr>
+            <tr><td>4</td><td>Evidência principal</td><td>O que sustenta diretamente a ideia central</td><td>O quadro mais forte do painel, com título que afirma</td></tr>
+            <tr><td>5</td><td>Contraprova</td><td>O que testaria a ideia e não conseguiu derrubá-la</td><td>Recorte alternativo, normalização ou outro grupo</td></tr>
+            <tr><td>6</td><td>Limite</td><td>O que a evidência não autoriza afirmar</td><td>Texto, ou gráfico com a faixa de não atribuído visível</td></tr>
+            <tr><td>7</td><td>Recomendação</td><td>Ação, dono, prazo, custo e sinal de verificação</td><td>Texto mais o quadro onde o efeito apareceria</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Gate 2:</strong> sete mensagens escritas em frases completas, cada uma com o tipo de gráfico decidido depois da mensagem, e a ordem verificada contra a regra de uma coisa nova por quadro.</p>
+
+        <h3>16.3 Etapa 3 — Montagem do painel narrativo (10h50 &ndash; 11h30)</h3>
+        <p>Quarenta minutos no Metabase, seguindo o passo a passo da seção 13.2. Divida o trabalho: uma pessoa monta as abas e distribui os quadros, outra reescreve títulos, outra preenche as fichas técnicas, outra redige a aba de limites. A montagem termina com o teste de leitura por alguém de fora do grupo.</p>
+        <p><strong>Gate 3:</strong> quatro abas criadas, no máximo sete quadros no total, todo título afirmando, ficha técnica ao lado de cada KPI e a aba de limites escrita em frases inteiras.</p>
+
+        <h3>16.4 Etapa 4 — Ensaio cronometrado de doze minutos (11h30 &ndash; 11h55)</h3>
+        <p>Em duplas de grupos, com cronômetro visível para todos. Doze minutos é o tempo da defesa na Aula 08; estourá-lo é falha de roteiro, não detalhe de execução. Uma distribuição que funciona: dois minutos para contexto e situação, seis para evidência e contraprova, um para o limite, três para recomendação e fechamento.</p>
+        <ol class="steps">
+          <li>Um grupo apresenta; o outro assiste no papel do orientador, com a decisão dele em mente.</li>
+          <li>Quem apresenta não explica o processo de construção do painel — apenas conduz a história.</li>
+          <li>Quem assiste anota dois dados objetivos: o minuto em que perdeu o fio e o quadro que não entendeu sozinho.</li>
+          <li>Ao final, quem assistiu repete a ideia central com as próprias palavras, sem consultar nada.</li>
+          <li>Se a repetição não bate com a frase escrita na Etapa 1, o problema é o roteiro, não o ouvinte. Registre a diferença e inverta os papéis.</li>
+        </ol>
+        <p><strong>Gate 4:</strong> a apresentação coube em doze minutos e a audiência conseguiu repetir a ideia central corretamente.</p>
+
+        <h3>16.5 Etapa 5 — Perguntas hostis e ajuste do roteiro (11h55 &ndash; 12h10)</h3>
+        <p>O professor entra no papel do orientador e o grupo que assistiu completa a bateria. O ritmo é rápido e a limitação de tempo é parte do teste: numa defesa real ninguém espera dois minutos por uma resposta.</p>
+        <ol class="steps">
+          <li>Cada grupo recebe pelo menos uma pergunta de cada uma das quatro famílias: procedência, contra-hipótese, escopo e consequência.</li>
+          <li>A resposta sai em até trinta segundos. Se não sair, ela vira uma lacuna registrada — o que é um resultado útil, não uma derrota.</li>
+          <li>Anote a pergunta literal, com as palavras de quem perguntou, e não a versão suavizada que você preferiria ter ouvido.</li>
+          <li>Escreva a resposta preparada no documento e indique o quadro do painel — ou da coleção de exploração — que a sustenta.</li>
+          <li>Ajuste o roteiro dos doze minutos: o que muda de lugar, o que sai e o que ganha uma frase de antecipação.</li>
+        </ol>
+        <p><strong>Gate 5:</strong> pelo menos quatro perguntas registradas com resposta escrita e quadro de apoio indicado, e o roteiro ajustado em função delas.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>17. O documento <code>07_narrativa_e_defesa.md</code></h2>
+        <p>O documento é a peça escrita do dossiê progressivo e a entrada direta do <code>08_dossie_final.md</code> na próxima aula. Ele registra decisões, não impressões, e por isso cada seção tem uma saída verificável.</p>
+        <table>
+          <thead><tr><th>Seção</th><th>O que precisa conter</th></tr></thead>
+          <tbody>
+            <tr><td>Ideia central</td><td>A frase final, a versão original, a evidência que a derrubaria e a crítica recebida de outro grupo</td></tr>
+            <tr><td>Público escolhido</td><td>Qual das três audiências é a principal, e o que muda por causa dessa escolha</td></tr>
+            <tr><td>Storyboard</td><td>Os sete quadros com mensagem, tipo de gráfico e a aba em que ficaram</td></tr>
+            <tr><td>Fichas de KPI</td><td>Uma ficha completa por indicador que permaneceu no painel narrativo</td></tr>
+            <tr><td>Curadoria</td><td>O que foi removido do painel e a razão de cada remoção</td></tr>
+            <tr><td>Limites</td><td>O texto da aba 4, tal como publicado, com o efeito dos filtros no denominador</td></tr>
+            <tr><td>Recomendação</td><td>Ação, dono, prazo, custo, sinal de verificação e alternativa descartada</td></tr>
+            <tr><td>Roteiro da defesa</td><td>A distribuição dos doze minutos e o resultado do ensaio cronometrado</td></tr>
+            <tr><td>Perguntas difíceis</td><td>Pergunta literal, resposta preparada e quadro que a sustenta; lacunas incluídas</td></tr>
+            <tr><td>Rastro das aulas anteriores</td><td>Quais divergências da Aula 05 e quais achados da Aula 06 aparecem na narrativa</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>18. Roteiro de execução em sala</h2>
+        <table>
+          <thead><tr><th>Horário</th><th>Ação</th><th>Gate</th></tr></thead>
+          <tbody>
+            <tr><td>8h30–8h45</td><td>Recap da sequência: divergências da Aula 05 e achados da Aula 06 que ainda estão abertos</td><td>cada grupo nomeia um achado que virou mudança no painel</td></tr>
+            <tr><td>8h45–9h05</td><td>Exploração e explicação; a ideia central e o teste de falsificabilidade</td><td>rascunho da frase escrito no papel</td></tr>
+            <tr><td>9h05–9h25</td><td>Contexto, conflito e resolução; sequenciamento</td><td>o conflito do grupo nomeado em voz alta</td></tr>
+            <tr><td>9h25–9h40</td><td>Anotação, título que afirma, atenção pré-atentiva e economia da remoção</td><td>um título do painel reescrito ali mesmo</td></tr>
+            <tr><td>9h40–9h50</td><td>Público, narrativa honesta e ética de narrar sobre quem aprende</td><td>audiência principal escolhida e declarada</td></tr>
+            <tr><td>9h50–10h00</td><td>Indicadores, ficha técnica do KPI e o painel narrativo em abas</td><td>KPI principal identificado por cada grupo</td></tr>
+            <tr><td>10h00–10h20</td><td>Etapa 1 · ideia central e crítica cruzada</td><td>frase falsificável com crítica registrada</td></tr>
+            <tr><td>10h20–10h50</td><td>Etapa 2 · storyboard de sete quadros</td><td>sete mensagens escritas antes dos gráficos</td></tr>
+            <tr><td>10h50–11h30</td><td>Etapa 3 · montagem do painel narrativo no Metabase</td><td>quatro abas, títulos que afirmam, fichas ao lado dos KPIs</td></tr>
+            <tr><td>11h30–11h55</td><td>Etapa 4 · ensaio cronometrado de doze minutos</td><td>tempo cumprido e ideia central repetida pela audiência</td></tr>
+            <tr><td>11h55–12h10</td><td>Etapa 5 · perguntas hostis e ajuste do roteiro</td><td>quatro perguntas com resposta escrita e quadro de apoio</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>19. Orientação para a atividade prática em sala</h2>
+        <p>A prática de hoje acontece inteiramente na instância do Metabase hospedada pelo professor, sobre o rastro de trabalho PBL do projeto do módulo — turma T28, grupos G01 a G03 do Instituto Ápice, pseudonimizado. O Olist permanece disponível apenas como fonte de contraexemplos. Entre com a conta compartilhada da turma, trabalhe na sua coleção e duplique sempre antes de editar.</p>
+        <p>Comece pelo painel auditado da Aula 06 e duplique-o. A partir da cópia, execute as cinco etapas na ordem, respeitando os gates: uma frase falsificável antes do storyboard, sete mensagens escritas antes de qualquer gráfico ser escolhido, o painel montado antes do ensaio, e o ensaio antes das perguntas hostis. Quem inverte a ordem — monta primeiro, escreve a mensagem depois — acaba defendendo o painel que tem, e não a conclusão que a evidência sustenta.</p>
+        <p>Se usar assistência de IA para redigir trechos do documento, mantenha a regra que vale desde a Aula 04: a ferramenta escreve e revisa texto, o grupo responde pela origem de cada número, pelos testes e pelas conclusões. Peça revisão de clareza da ideia central e da aba de limites; não peça que ela invente um achado, e não aceite número que você não consiga reconstruir na tela.</p>
+        <div class="note">
+          <strong>Como saber que a manhã terminou</strong>
+          <p>O trabalho está pronto quando o grupo conduz a audiência da pergunta do cliente até a recomendação em doze minutos, sem apresentar um único gráfico que não sustente a ideia central e sem omitir a limitação que a evidência impõe — e quando cada pergunta hostil recebida tem, no documento, uma resposta escrita com o quadro que a sustenta. Não é quando o painel fica bonito.</p>
+          <p>Traga para a Aula 08, em 03/10, o painel narrativo publicado, os doze minutos ensaiados e o dossiê das sete aulas com a rastreabilidade requisito a requisito, incluindo as lacunas que os dados não sustentam, com a razão declarada.</p>
+        </div>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>
