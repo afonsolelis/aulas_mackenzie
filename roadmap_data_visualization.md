@@ -217,6 +217,8 @@ olist-dataviz/
 
 ## 4. Mapa detalhado das aulas
 
+**Formato da manhã.** Bloco de fundamentação das 8h30 às 10h00, intervalo das 10h00 às 10h20 e prática das 10h20 às 12h10, sempre aberta por dez minutos de direcionamento — entregáveis, ordem das etapas e gate de saída de cada uma — antes de os grupos começarem a trabalhar. A Aula 04 (100% prática) e a Aula 08 (ateliê) organizam a manhã em blocos próprios.
+
 As aulas combinam fundamentação, demonstração e prática. Duas são exceções deliberadas: a Aula 04, 100% prática, com os conceitos introduzidos durante a execução guiada; e a Aula 08, ateliê de finalização e entrega, sem bloco teórico. O Metabase sustenta as aulas regulares; as Aulas 03 e 04 usam GitHub Codespaces e assistência de IA para produzir artefatos versionáveis. A partir da Aula 05 o conjunto de trabalho é o rastro PBL do projeto do módulo, e o Olist permanece disponível como fonte de contraexemplos na auditoria.
 
 ### Aula 01 — 15/08/2026 — Data Discovery com Metabase
