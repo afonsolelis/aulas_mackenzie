@@ -380,7 +380,8 @@ test.describe('Repositório de Aulas Spec', () => {
       for (const slideFile of slideFiles) {
         const content = fsHelpers.readFileSync(slideFile);
         
-        const paragraphs = content.match(/<p[^>]*>([\s\S]*?)<\/p>/gi) || [];
+        // Só <p> de verdade: sem o (?:\s...) a regex também casava <path> de SVG e <pre>.
+        const paragraphs = content.match(/<p(?:\s[^>]*)?>([\s\S]*?)<\/p>/gi) || [];
         
         for (const p of paragraphs) {
           const textLength = p.replace(/<[^>]*>/g, '').trim().length;

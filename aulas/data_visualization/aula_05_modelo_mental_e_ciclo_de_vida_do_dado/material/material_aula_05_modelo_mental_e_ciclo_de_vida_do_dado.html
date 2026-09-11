@@ -33,7 +33,7 @@
 
         <div class="note">
           <strong>Resultado esperado</strong>
-          <p>Ao final da manhã cada grupo terá um fluxo de interação anotado sobre uma tarefa real de decisão, um registro de divergências <code>D1..Dn</code> com evidência, consequência, decisão e suporte, pelo menos dois suportes já implementados no Metabase e <code>docs/05_fluxo_de_interacao_anotado.md</code> escrito no repositório do grupo.</p>
+          <p>Ao final da manhã cada grupo terá, no <a href="https://miro.com/app/board/uXjVHoef9f4=/" target="_blank" rel="noopener">board da turma no Miro</a>, um frame com o ciclo da métrica, o teste de vocabulário, um fluxo de interação anotado sobre uma tarefa real de decisão, um registro de divergências <code>D1..Dn</code> com evidência, consequência, decisão e suporte, e as frases literais de um teste independente. Além disso, terá pelo menos dois suportes já implementados no Metabase e <code>docs/05_fluxo_de_interacao_anotado.md</code> escrito no repositório do grupo.</p>
         </div>
       </section>
 
@@ -173,7 +173,7 @@
 
       <section class="content-block">
         <h2>13. A notação do fluxo de interação anotado</h2>
-        <p>O artefato central da aula é um fluxo em três raias — usuário, interface e dado — sobre uma tarefa real de decisão, com passos numerados e âncoras de divergência marcadas nos pontos em que as raias discordam. A forma pode ser papel, quadro branco ou texto simples no repositório. A numeração é obrigatória, porque é ela que permite referenciar cada divergência sem ambiguidade.</p>
+        <p>O artefato central da aula é um fluxo em três raias — usuário, interface e dado — sobre uma tarefa real de decisão, com passos numerados e âncoras de divergência marcadas nos pontos em que as raias discordam. Nesta aula ele é construído no board da turma no Miro, na zona C do frame do grupo (seção 17), com uma cor fixa por raia, e depois transcrito para o repositório. A numeração é obrigatória, porque é ela que permite referenciar cada divergência sem ambiguidade.</p>
         <pre><code>TAREFA: decidir em qual grupo intervir antes da sprint 4
 
 USUÁRIO    ①abre o painel ──▶ ③procura o grupo ────▶ ⑤conclui "G02 parou" ──▶ ⑦decide
@@ -250,60 +250,112 @@ DADO       eventos de quadro   commits do período     grão = commit          n
       </section>
 
       <section class="content-block">
-        <h2>17. Roteiro da prática — cinco etapas</h2>
-        <p>A prática recomeça às 10h20, depois do intervalo, e abre com dez minutos de direcionamento: o professor percorre os entregáveis da manhã, a ordem das etapas e o gate de saída de cada uma, para que nenhum grupo comece a trabalhar sem saber o que precisa estar pronto às 12h10.</p>
+        <h2>17. O board da turma no Miro</h2>
+        <p>A prática desta aula acontece em dois lugares. O <strong>Metabase</strong> continua sendo onde o painel vive e onde os suportes são implementados. O <strong>Miro</strong> passa a ser onde o raciocínio do grupo fica visível: o ciclo da métrica, o teste de vocabulário, o fluxo em três raias, o registro das divergências e as frases do teste independente. A escolha tem motivo. O fluxo anotado é um artefato espacial — raias, passos, conectores, âncoras — e escrever isso em texto corrido esconde justamente as discordâncias entre as raias. Além disso, o frame precisa ser lido por outro grupo na Etapa 5 e de novo na auditoria da Aula 06, e um board compartilhado permite essa leitura sem que ninguém do grupo dono esteja do lado explicando.</p>
+        <p>O board da aula é <a href="https://miro.com/app/board/uXjVHoef9f4=/" target="_blank" rel="noopener">miro.com/app/board/uXjVHoef9f4=</a>. Cada grupo trabalha em um único frame, organizado sempre da mesma forma, para que qualquer pessoa da turma encontre a mesma informação no mesmo lugar em qualquer frame.</p>
 
-        <h3>17.1 Etapa 1 — reconstituir o ciclo do seu grupo (20 min, sem abrir o Metabase)</h3>
+        <h3>17.1 Montar o frame do grupo (10h20–10h30)</h3>
         <ol class="steps">
-          <li>Escolha uma métrica que já esteja no painel do grupo.</li>
-          <li>Percorra as oito estações e escreva o que acontece com ela em cada uma.</li>
-          <li>Em cada passagem, registre uma linha com o que foi descartado ali.</li>
-          <li>Marque a estação em que o descarte é maior.</li>
-          <li>Escreva a afirmação máxima que a métrica ainda sustenta depois de todos os descartes.</li>
+          <li>Abra o link do board e entre com a sua conta do Miro. A conta gratuita é suficiente para editar.</li>
+          <li>Um único integrante cria o frame do grupo pela ferramenta <em>Frame</em> da barra lateral, na área livre à direita dos frames já existentes, sem sobrepor o trabalho de outro grupo. O título do frame é <code>Nome do grupo · Aula 05</code>.</li>
+          <li>Dentro do frame, desenhe a faixa da <strong>afirmação máxima</strong> no topo e as cinco zonas com os títulos abaixo. Retângulos simples com texto bastam.</li>
+          <li>Clique com o botão direito sobre o frame, copie o link e cole na primeira linha de <code>docs/05_fluxo_de_interacao_anotado.md</code>.</li>
+          <li>Confirme que todos os integrantes conseguem editar o frame antes de começar a Etapa 1.</li>
+        </ol>
+        <table>
+          <thead><tr><th>Zona</th><th>Conteúdo</th><th>Etapa</th></tr></thead>
+          <tbody>
+            <tr><td>Faixa do topo</td><td>Afirmação máxima da métrica, em uma frase</td><td>1, e usada na 5</td></tr>
+            <tr><td>A · Ciclo em oito estações</td><td>Oito post-its, um por estação, e o descarte de cada passagem</td><td>1</td></tr>
+            <tr><td>B · Vocabulário</td><td>Seis termos em duas linhas: definição do dado e definição do cliente</td><td>2</td></tr>
+            <tr><td>C · Fluxo em três raias</td><td>Tarefa de decisão no cabeçalho, raias do usuário, da interface e do dado, âncoras D1..Dn</td><td>3</td></tr>
+            <tr><td>D · Registro D1..Dn</td><td>Um cartão por âncora, com os oito campos</td><td>4</td></tr>
+            <tr><td>E · Teste em voz alta</td><td>As frases literais de quem leu a tela sem explicação</td><td>5</td></tr>
+          </tbody>
+        </table>
+
+        <h3>17.2 Convenção de cores</h3>
+        <p>A cor do post-it diz de quem é a afirmação. Verde é sempre o dado; amarelo é sempre o usuário. Com essa convenção, uma divergência aparece no board como um par verde e amarelo que não dizem a mesma coisa — e quem abre o frame de outro grupo enxerga isso antes de ler qualquer texto.</p>
+        <table>
+          <thead><tr><th>Cor</th><th>Zona</th><th>O que vai no post-it</th></tr></thead>
+          <tbody>
+            <tr><td>Cinza</td><td>A</td><td>Uma estação do ciclo e o que se perde na passagem</td></tr>
+            <tr><td>Verde</td><td>B e C</td><td>O que o dado registra: definição operacional, fonte, grão, limitação</td></tr>
+            <tr><td>Amarelo</td><td>B e C</td><td>O que o usuário diz e faz: definição do cliente, passo do orientador</td></tr>
+            <tr><td>Azul</td><td>C</td><td>O que a tela oferece naquele passo</td></tr>
+            <tr><td>Rosa</td><td>C e D</td><td>Âncora de divergência <code>D1..Dn</code> e o registro dela</td></tr>
+            <tr><td>Laranja</td><td>E</td><td>Frase literal de quem leu a tela, entre aspas</td></tr>
+          </tbody>
+        </table>
+
+        <h3>17.3 Regras do board</h3>
+        <ol class="steps">
+          <li>Um frame por grupo. Ninguém edita, move ou apaga o frame de outro grupo; para perguntar ou sugerir, use um comentário do Miro.</li>
+          <li>Todo passo do fluxo é numerado. O registro, o documento e a auditoria da Aula 06 referenciam os passos pelo número.</li>
+          <li>A raia da interface descreve a tela em palavras ou num rascunho com formas e texto. Isso obriga o grupo a nomear o que a tela mostra, em vez de apontar para ela.</li>
+          <li>Toda explicação que o grupo daria em voz alta precisa virar post-it. O que ficou só no chat ou só na conversa não existe para quem lê o frame.</li>
+        </ol>
+        <div class="note">
+          <strong>Confidencialidade: o board é da turma, o dado não</strong>
+          <p>O schema <code>pbl</code> do Metabase contém dados identificados, e nada dali sai em captura de tela ou exportação — regra do projeto do módulo. Por isso o board não recebe <strong>nenhuma</strong> captura de tela do Metabase, nenhum nome, e-mail ou usuário de aluno. Quando for inevitável falar de uma pessoa, use apenas o código pseudonimizado dos CSVs (<code>G01-A01</code>); na maior parte dos casos a unidade certa é o grupo (<code>G02</code>), que é também a unidade de análise do projeto. Números agregados por grupo e por sprint podem aparecer no board.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>18. Roteiro da prática — cinco etapas</h2>
+        <p>A prática recomeça às 10h20, depois do intervalo, e abre com dez minutos de direcionamento: o professor percorre os entregáveis da manhã, a ordem das etapas e o gate de saída de cada uma, e cada grupo monta o seu frame no Miro (seção 17.1), para que nenhum grupo comece a trabalhar sem saber o que precisa estar pronto às 12h10.</p>
+
+        <h3>18.1 Etapa 1 — reconstituir o ciclo do seu grupo (20 min, zona A, sem abrir o Metabase)</h3>
+        <ol class="steps">
+          <li>Escolha uma métrica que já esteja no painel do grupo e escreva o nome dela no topo da zona A.</li>
+          <li>Cole oito post-its cinza em linha, um por estação, e escreva em cada um o que acontece com a métrica ali.</li>
+          <li>Abaixo de cada passagem entre duas estações, escreva uma frase com o que foi descartado nela.</li>
+          <li>Destaque com borda grossa a passagem em que o descarte é maior.</li>
+          <li>Escreva, na faixa do topo do frame, a afirmação máxima que a métrica ainda sustenta depois de todos os descartes.</li>
         </ol>
 
-        <h3>17.2 Etapa 2 — teste de vocabulário com o cliente (25 min)</h3>
-        <p>O professor responde no papel do orientador; cada grupo tem a sua rodada.</p>
+        <h3>18.2 Etapa 2 — teste de vocabulário com o cliente (25 min, zona B)</h3>
+        <p>O professor responde no papel do orientador; cada grupo tem a sua rodada. Os grupos que aguardam a rodada adiantam a Etapa 3.</p>
         <ol class="steps">
-          <li>Antes de perguntar, escreva a definição operacional que <em>o grupo</em> usa para os seis termos: entrega, atraso, participação, revisão, concluído e ativo.</li>
-          <li>Peça ao cliente que defina os mesmos seis, sem mostrar a sua lista.</li>
-          <li>Coloque as duas colunas lado a lado e marque onde discordam.</li>
-          <li>Para cada discordância, pergunte que decisão ele tomaria com base naquele termo.</li>
-          <li>Classifique cada uma nas seis famílias.</li>
+          <li>Antes da rodada, escreva em seis post-its verdes a definição operacional que o dado do projeto sustenta para: entrega, atraso, participação, revisão, concluído e ativo.</li>
+          <li>Na rodada, peça ao cliente que defina os mesmos seis termos, sem mostrar a sua lista. Transcreva cada resposta num post-it amarelo, abaixo do verde correspondente, com as palavras dele.</li>
+          <li>Ligue com um conector cada par verde e amarelo que discorda.</li>
+          <li>Para cada discordância, pergunte que decisão ele tomaria com base naquele termo e escreva a resposta no rótulo do conector.</li>
+          <li>Marque cada par discordante com uma tag do Miro com a família da divergência.</li>
         </ol>
 
-        <h3>17.3 Etapa 3 — desenhar o fluxo em três raias (30 min)</h3>
+        <h3>18.3 Etapa 3 — desenhar o fluxo em três raias (30 min, zona C)</h3>
         <ol class="steps">
-          <li>Fixe uma tarefa real de decisão do orientador, com prazo e consequência.</li>
-          <li>Escreva a raia do usuário: o que ele faz, passo a passo, do primeiro clique à decisão.</li>
-          <li>Escreva a raia da interface: o que a tela oferece em cada passo.</li>
-          <li>Escreva a raia do dado: qual fonte, qual grão e qual limitação sustenta aquele passo.</li>
-          <li>Marque uma âncora onde as raias discordam e numere <code>D1</code>, <code>D2</code>, <code>D3</code>.</li>
+          <li>No cabeçalho da zona C, escreva uma tarefa real de decisão do orientador, com prazo e consequência.</li>
+          <li>Na raia amarela, escreva o que ele faz, do primeiro clique à decisão. Numere os passos na ordem em que acontecem, qualquer que seja a raia.</li>
+          <li>Na raia azul, escreva o que a tela oferece em cada passo — em palavras ou num rascunho com formas, nunca em captura de tela.</li>
+          <li>Na raia verde, escreva qual fonte, qual grão e qual limitação sustenta aquele passo.</li>
+          <li>Onde as raias discordam, cole um post-it rosa sobre o passo e numere <code>D1</code>, <code>D2</code>, <code>D3</code>.</li>
         </ol>
 
-        <h3>17.4 Etapa 4 — registrar decisão e suporte (15 min)</h3>
+        <h3>18.4 Etapa 4 — registrar decisão e suporte (15 min, zona D)</h3>
         <p>Mínimo de quatro divergências, cobrindo pelo menos três famílias diferentes.</p>
         <ol class="steps">
-          <li>Preencha os oito campos da âncora para cada divergência marcada.</li>
+          <li>Para cada âncora rosa, crie um cartão rosa na zona D com os oito campos, na ordem da anatomia da seção 14.</li>
           <li>Na decisão de projeto, escreva também a alternativa descartada.</li>
           <li>No suporte exigido, nomeie o elemento concreto e o lugar dele na tela.</li>
-          <li>Implemente no Metabase pelo menos dois dos suportes de custo baixo.</li>
-          <li>Registre a divergência que o grupo decidiu não fechar, com a razão.</li>
+          <li>Implemente no Metabase pelo menos dois dos suportes de custo baixo (seção 19) e marque o cartão correspondente com a tag <em>implementado</em>.</li>
+          <li>Marque com a tag <em>não fechado</em> a divergência que o grupo decidiu manter em aberto, com a razão escrita no cartão.</li>
         </ol>
 
-        <h3>17.5 Etapa 5 — teste de interpretação em voz alta (10 min, em duplas de grupos)</h3>
+        <h3>18.5 Etapa 5 — teste de interpretação em voz alta (10 min, zona E, em duplas de grupos)</h3>
         <p>Regra única: quem construiu não explica nada.</p>
         <ol class="steps">
-          <li>Entregue a tela ao outro grupo com a tarefa escrita num papel.</li>
+          <li>O outro grupo lê a tarefa no cabeçalho da zona C e recebe a tela do painel no Metabase.</li>
           <li>Peça que digam em voz alta o que estão vendo e o que concluem.</li>
-          <li>Anote as frases literais, sem corrigir e sem interromper.</li>
-          <li>Compare cada frase com a afirmação máxima da Etapa 1.</li>
-          <li>Toda frase que ultrapassa a afirmação máxima vira uma divergência nova.</li>
+          <li>Um integrante do grupo dono transcreve cada frase literal num post-it laranja da zona E, entre aspas, sem corrigir e sem interromper.</li>
+          <li>Compare cada frase com a afirmação máxima do topo do frame.</li>
+          <li>Toda frase que ultrapassa a afirmação máxima vira um post-it rosa novo na zona C — uma divergência que o grupo não tinha visto.</li>
         </ol>
       </section>
 
       <section class="content-block">
-        <h2>18. Implementar os suportes no Metabase</h2>
+        <h2>19. Implementar os suportes no Metabase</h2>
         <p>Os suportes de custo baixo são implementáveis dentro da manhã, na instância hospedada da disciplina. O caminho abaixo vale para qualquer pergunta salva da coleção do grupo.</p>
         <ol class="steps">
           <li><strong>Título que afirma.</strong> Abra a pergunta, use <em>Visualização &rarr; Configurações</em> e substitua o rótulo pelo achado: em vez de &ldquo;Commits por grupo&rdquo;, escreva a afirmação que o gráfico sustenta, com a unidade e a janela.</li>
@@ -316,11 +368,12 @@ DADO       eventos de quadro   commits do período     grão = commit          n
       </section>
 
       <section class="content-block">
-        <h2>19. O documento da aula</h2>
-        <p>O registro escrito vai para <code>docs/05_fluxo_de_interacao_anotado.md</code>, no repositório do grupo, e segue esta ordem.</p>
+        <h2>20. O documento da aula</h2>
+        <p>O frame do Miro é o lugar de trabalho; o documento é o registro. O board pode ser editado a qualquer momento e fica fora do repositório, então tudo o que sustenta a avaliação é transcrito, em texto, para <code>docs/05_fluxo_de_interacao_anotado.md</code>, no repositório do grupo, nesta ordem.</p>
         <table>
           <thead><tr><th>Seção</th><th>Conteúdo</th></tr></thead>
           <tbody>
+            <tr><td>0. Frame</td><td>O link do frame do grupo no board da turma</td></tr>
             <tr><td>1. Tarefa de decisão</td><td>A tarefa real do orientador, com prazo e consequência</td></tr>
             <tr><td>2. Ciclo de vida da métrica</td><td>As oito estações, o descarte de cada passagem e a estação de maior perda</td></tr>
             <tr><td>3. Afirmação máxima</td><td>Uma frase: o que a métrica ainda sustenta</td></tr>
@@ -336,7 +389,7 @@ DADO       eventos de quadro   commits do período     grão = commit          n
       </section>
 
       <section class="content-block">
-        <h2>20. Roteiro de execução prática em sala</h2>
+        <h2>21. Roteiro de execução prática em sala</h2>
         <table>
           <thead><tr><th>Horário</th><th>Ação</th><th>Gate</th></tr></thead>
           <tbody>
@@ -345,19 +398,19 @@ DADO       eventos de quadro   commits do período     grão = commit          n
             <tr><td>9h20–9h45</td><td>As seis famílias de divergência, com exemplos do conjunto PBL</td><td>três exemplos classificados corretamente em plenária</td></tr>
             <tr><td>9h45–10h00</td><td>Notação do fluxo anotado, âncora e suporte exigido</td><td>modelo de registro compreendido</td></tr>
             <tr><td>10h00–10h20</td><td><strong>Intervalo</strong></td><td>—</td></tr>
-            <tr><td>10h20–10h30</td><td>Direcionamento da atividade: entregáveis, ordem das etapas e gates</td><td>cada grupo sabe o que precisa sair pronto às 12h10</td></tr>
-            <tr><td>10h30–10h50</td><td>Etapa 1 — reconstituição do ciclo</td><td>afirmação máxima escrita</td></tr>
-            <tr><td>10h50–11h15</td><td>Etapa 2 — teste de vocabulário com o cliente</td><td>seis termos em duas colunas, discordâncias marcadas</td></tr>
-            <tr><td>11h15–11h45</td><td>Etapa 3 — fluxo em três raias</td><td>âncoras numeradas D1..Dn</td></tr>
-            <tr><td>11h45–12h00</td><td>Etapa 4 — registro e implementação dos suportes</td><td>dois suportes visíveis no Metabase</td></tr>
-            <tr><td>12h00–12h10</td><td>Etapa 5 — teste de interpretação em voz alta</td><td>frases literais anotadas</td></tr>
+            <tr><td>10h20–10h30</td><td>Direcionamento da atividade e montagem do frame no Miro</td><td>frame criado com o nome do grupo, faixa do topo e zonas A a E</td></tr>
+            <tr><td>10h30–10h50</td><td>Etapa 1 — reconstituição do ciclo (zona A)</td><td>afirmação máxima escrita no topo do frame</td></tr>
+            <tr><td>10h50–11h15</td><td>Etapa 2 — teste de vocabulário com o cliente (zona B)</td><td>seis pares verde e amarelo, discordâncias ligadas e classificadas</td></tr>
+            <tr><td>11h15–11h45</td><td>Etapa 3 — fluxo em três raias (zona C)</td><td>passos numerados e âncoras rosa D1..Dn</td></tr>
+            <tr><td>11h45–12h00</td><td>Etapa 4 — registro e implementação dos suportes (zona D e Metabase)</td><td>quatro cartões completos, dois suportes visíveis no Metabase</td></tr>
+            <tr><td>12h00–12h10</td><td>Etapa 5 — teste de interpretação em voz alta (zona E)</td><td>frases literais em post-its laranja</td></tr>
           </tbody>
         </table>
 
         <div class="note">
           <strong>Orientação final para a atividade prática</strong>
-          <p>Feche a manhã com o painel aberto ao lado do documento. Percorra as âncoras uma a uma e, para cada uma, mostre na tela o suporte que a sustenta. Se o suporte não estiver visível sem que alguém do grupo fale, ele ainda não existe — anote como pendência com custo e prazo.</p>
-          <p>Antes de sair, deixe o painel em estado apresentável e as consultas salvas na coleção do grupo. Na Aula 06 ele será auditado por outro grupo, com severidade e devolutiva escrita, e a auditoria começa exatamente pelos pontos que ficaram sem suporte hoje.</p>
+          <p>Feche a manhã com três janelas abertas lado a lado: o frame do grupo no Miro, o painel no Metabase e o documento no repositório. Percorra os cartões rosa da zona D um a um e, para cada um, mostre no Metabase o suporte que o sustenta. Se o suporte não estiver visível sem que alguém do grupo fale, ele ainda não existe — anote no cartão como pendência, com custo e prazo.</p>
+          <p>Antes de sair, deixe o painel em estado apresentável, as consultas salvas na coleção do grupo e o link do frame na primeira linha do documento. Na Aula 06 o painel será auditado por outro grupo, com severidade e devolutiva escrita. O grupo auditor lê a tarefa de decisão na zona C do seu frame, e a auditoria começa exatamente pelos pontos que ficaram sem suporte hoje.</p>
           <p>O trabalho termina quando outra pessoa consegue ler a tela e chegar a uma conclusão que o dado sustenta — não quando o grupo consegue explicar por que a tela está certa.</p>
         </div>
       </section>

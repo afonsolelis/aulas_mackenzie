@@ -6,6 +6,54 @@
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <title>Aula 05 — Modelo Mental do Usuário e Ciclo de Vida do Dado</title>
   <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style>
+    :root {
+      --st-cinza: #e2e2dc;
+      --st-verde: #cdeeb0;
+      --st-amarelo: #fff3a3;
+      --st-azul: #bcd9f7;
+      --st-rosa: #ffc4d8;
+      --st-laranja: #ffcf9e;
+    }
+    .deck-schema { white-space: pre; }
+    .deck-svg { display: block; width: 100%; max-height: 440px; margin-top: 8px; }
+    .deck-svg .box { fill: #ffffff; stroke: #111111; stroke-width: 1.5; }
+    .deck-svg .frame { fill: #fafaf7; stroke: #111111; stroke-width: 2; }
+    .deck-svg .zone { fill: #ffffff; stroke: #111111; stroke-width: 1.25; }
+    .deck-svg .lane { fill: none; stroke: #d6d6d1; stroke-width: 1; }
+    .deck-svg .connector { fill: none; stroke: #8a8a85; stroke-width: 1.25; stroke-dasharray: 3 4; }
+    .deck-svg [class^="st-"] { stroke: #111111; stroke-width: 1; }
+    .deck-svg .st-cinza { fill: var(--st-cinza); }
+    .deck-svg .st-verde { fill: var(--st-verde); }
+    .deck-svg .st-amarelo { fill: var(--st-amarelo); }
+    .deck-svg .st-azul { fill: var(--st-azul); }
+    .deck-svg .st-rosa { fill: var(--st-rosa); }
+    .deck-svg .st-laranja { fill: var(--st-laranja); }
+    .deck-svg .badge { fill: #111111; }
+    .deck-svg .badge-text { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; fill: #ffffff; }
+    .deck-svg .svg-step { font-size: 14px; font-weight: 500; fill: #111111; }
+    .deck-svg .svg-task { font-family: "JetBrains Mono", monospace; font-size: 13px; font-weight: 700; fill: #111111; letter-spacing: 0.06em; }
+    .deck-svg .svg-tag { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 700; fill: #111111; }
+    .swatch { display: inline-block; width: 16px; height: 16px; border: 1px solid #111111; vertical-align: -3px; margin-right: 8px; }
+    .swatch.cinza { background: var(--st-cinza); }
+    .swatch.verde { background: var(--st-verde); }
+    .swatch.amarelo { background: var(--st-amarelo); }
+    .swatch.azul { background: var(--st-azul); }
+    .swatch.rosa { background: var(--st-rosa); }
+    .swatch.laranja { background: var(--st-laranja); }
+    .deck-svg .dark-box { fill: #111111; stroke: #111111; stroke-width: 1.5; }
+    .deck-svg .flow { fill: none; stroke: #111111; stroke-width: 1.75; }
+    .deck-svg .flow-dashed { fill: none; stroke: #111111; stroke-dasharray: 7 5; stroke-width: 1.5; }
+    .deck-svg .bracket { fill: none; stroke: #8a8a85; stroke-width: 1.25; }
+    .deck-svg text { fill: #111111; font-family: Inter, Arial, sans-serif; }
+    .deck-svg .light-text { fill: #ffffff; }
+    .deck-svg .svg-title { font-size: 19px; font-weight: 700; }
+    .deck-svg .svg-body { font-size: 13.5px; fill: #3a3a3a; }
+    .deck-svg .svg-body.light-text { fill: #d9d9d4; }
+    .deck-svg .svg-num { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 600; fill: #8a8a85; letter-spacing: 0.08em; }
+    .deck-svg .svg-zone { font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 600; fill: #5c5c5c; letter-spacing: 0.14em; }
+    .deck-svg .svg-edge { font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 600; letter-spacing: 0.12em; paint-order: stroke; stroke: #ffffff; stroke-width: 7px; }
+  </style>
 </head>
 <body>
   <div class="slide-container">
@@ -46,11 +94,11 @@
           <article class="deck-card">
             <h3>10h20 &ndash; 12h10 &middot; Prática</h3>
             <ul>
-              <li>Direcionamento da atividade</li>
+              <li>Direcionamento e frame do grupo no Miro</li>
               <li>Reconstituir o ciclo do seu grupo</li>
               <li>Teste de vocabulário com o cliente</li>
-              <li>Desenhar o fluxo de interação anotado</li>
-              <li>Registrar as divergências D1..Dn</li>
+              <li>Desenhar o fluxo anotado no Miro</li>
+              <li>Registrar D1..Dn e implementar suportes no Metabase</li>
               <li>Teste de interpretação em voz alta</li>
             </ul>
           </article>
@@ -163,14 +211,90 @@
           <span class="deck-kicker">Ciclo de vida do dado</span>
           <h2 class="deck-title">Oito estações entre o mundo e a decisão</h2>
         </div>
-        <div class="deck-schema">1 · EVENTO      aluno escreve código, revisa, conversa, desiste
-2 · CAPTURA     git commit, merge request, movimento de cartão
-3 · EXTRAÇÃO    API do GitLab, no recorte e na janela do módulo
-4 · STAGING     SQLite imutável, cópia auditável da extração
-5 · CARGA       Postgres, schema pbl, chaves e índices
-6 · MODELAGEM   fato e dimensão, grão declarado
-7 · CODIFICAÇÃO pergunta salva, gráfico, filtro, título
-8 · LEITURA     o orientador olha, conclui e decide intervir</div>
+        <svg class="deck-svg" viewBox="0 0 1080 400" role="img" aria-labelledby="ciclo-title ciclo-desc">
+          <title id="ciclo-title">Ciclo de vida do dado em oito estações</title>
+          <desc id="ciclo-desc">Evento, captura, extração e staging na primeira linha; carga, modelagem, codificação e leitura na segunda, em sentido inverso. A leitura leva à intervenção, que gera novos eventos e fecha o ciclo.</desc>
+          <defs><marker id="ciclo-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
+
+          <!-- Zonas: linha de cima -->
+          <path class="bracket" d="M40 36 V28 H246 V36"></path>
+          <text class="svg-zone" x="143" y="18" text-anchor="middle">MUNDO</text>
+          <path class="bracket" d="M298 36 V28 H1020 V36"></path>
+          <text class="svg-zone" x="659" y="18" text-anchor="middle">REGISTRO E EXTRAÇÃO</text>
+
+          <!-- Linha 1: 01 → 04 -->
+          <rect class="dark-box" x="40" y="48" width="206" height="112" rx="4"></rect>
+          <text class="svg-num" x="58" y="76">01</text>
+          <text class="svg-title light-text" x="58" y="102">Evento</text>
+          <text class="svg-body light-text" x="58" y="126">aluno escreve código,</text>
+          <text class="svg-body light-text" x="58" y="144">revisa, conversa, desiste</text>
+
+          <rect class="box" x="298" y="48" width="206" height="112" rx="4"></rect>
+          <text class="svg-num" x="316" y="76">02</text>
+          <text class="svg-title" x="316" y="102">Captura</text>
+          <text class="svg-body" x="316" y="126">git commit, merge request,</text>
+          <text class="svg-body" x="316" y="144">movimento de cartão</text>
+
+          <rect class="box" x="556" y="48" width="206" height="112" rx="4"></rect>
+          <text class="svg-num" x="574" y="76">03</text>
+          <text class="svg-title" x="574" y="102">Extração</text>
+          <text class="svg-body" x="574" y="126">API do GitLab, no recorte</text>
+          <text class="svg-body" x="574" y="144">e na janela do módulo</text>
+
+          <rect class="box" x="814" y="48" width="206" height="112" rx="4"></rect>
+          <text class="svg-num" x="832" y="76">04</text>
+          <text class="svg-title" x="832" y="102">Staging</text>
+          <text class="svg-body" x="832" y="126">SQLite imutável, cópia</text>
+          <text class="svg-body" x="832" y="144">auditável da extração</text>
+
+          <line class="flow" x1="246" y1="104" x2="296" y2="104" marker-end="url(#ciclo-arrow)"></line>
+          <line class="flow" x1="504" y1="104" x2="554" y2="104" marker-end="url(#ciclo-arrow)"></line>
+          <line class="flow" x1="762" y1="104" x2="812" y2="104" marker-end="url(#ciclo-arrow)"></line>
+
+          <!-- Virada 04 → 05 -->
+          <path class="flow" d="M1020 104 C1066 104 1066 292 1022 292" marker-end="url(#ciclo-arrow)"></path>
+
+          <!-- Linha 2: 05 → 08 (direita para esquerda) -->
+          <rect class="box" x="814" y="236" width="206" height="112" rx="4"></rect>
+          <text class="svg-num" x="832" y="264">05</text>
+          <text class="svg-title" x="832" y="290">Carga</text>
+          <text class="svg-body" x="832" y="314">Postgres, schema pbl,</text>
+          <text class="svg-body" x="832" y="332">chaves e índices</text>
+
+          <rect class="box" x="556" y="236" width="206" height="112" rx="4"></rect>
+          <text class="svg-num" x="574" y="264">06</text>
+          <text class="svg-title" x="574" y="290">Modelagem</text>
+          <text class="svg-body" x="574" y="314">fato e dimensão,</text>
+          <text class="svg-body" x="574" y="332">grão declarado</text>
+
+          <rect class="box" x="298" y="236" width="206" height="112" rx="4"></rect>
+          <text class="svg-num" x="316" y="264">07</text>
+          <text class="svg-title" x="316" y="290">Codificação</text>
+          <text class="svg-body" x="316" y="314">pergunta salva, gráfico,</text>
+          <text class="svg-body" x="316" y="332">filtro, título</text>
+
+          <rect class="dark-box" x="40" y="236" width="206" height="112" rx="4"></rect>
+          <text class="svg-num" x="58" y="264">08</text>
+          <text class="svg-title light-text" x="58" y="290">Leitura</text>
+          <text class="svg-body light-text" x="58" y="314">o orientador olha, conclui</text>
+          <text class="svg-body light-text" x="58" y="332">e decide intervir</text>
+
+          <line class="flow" x1="814" y1="292" x2="764" y2="292" marker-end="url(#ciclo-arrow)"></line>
+          <line class="flow" x1="556" y1="292" x2="506" y2="292" marker-end="url(#ciclo-arrow)"></line>
+          <line class="flow" x1="298" y1="292" x2="248" y2="292" marker-end="url(#ciclo-arrow)"></line>
+
+          <!-- Retorno 08 → 01: a decisão volta ao mundo -->
+          <path class="flow-dashed" d="M40 292 C-4 292 -4 104 38 104" marker-end="url(#ciclo-arrow)"></path>
+          <text class="svg-edge" x="12" y="198" text-anchor="middle" transform="rotate(-90 12 198)">INTERVENÇÃO</text>
+
+          <!-- Zonas: linha de baixo -->
+          <path class="bracket" d="M40 360 V368 H246 V360"></path>
+          <text class="svg-zone" x="143" y="388" text-anchor="middle">MUNDO</text>
+          <path class="bracket" d="M298 360 V368 H504 V360"></path>
+          <text class="svg-zone" x="401" y="388" text-anchor="middle">TELA</text>
+          <path class="bracket" d="M556 360 V368 H1020 V360"></path>
+          <text class="svg-zone" x="788" y="388" text-anchor="middle">PLATAFORMA DE DADOS</text>
+        </svg>
       </div>
     </div>
 
@@ -180,14 +304,15 @@
         <div>
           <span class="deck-kicker">Ciclo de vida &middot; Perda</span>
           <h2 class="deck-title">Cada estação descarta alguma coisa</h2>
-          <p class="deck-summary">O usuário raciocina sobre a estação 1. Você entrega a estação 8. Entre elas há sete descartes.</p>
+          <p class="deck-summary">O usuário raciocina sobre a estação 1. Você entrega a estação 8. Entre elas há sete passagens, e só uma não descarta nada.</p>
         </div>
         <table class="deck-table">
-          <thead><tr><th>Estação</th><th>O que se perde ali</th></tr></thead>
+          <thead><tr><th>Passagem</th><th>O que se perde ali</th></tr></thead>
           <tbody>
             <tr><td>Evento &rarr; Captura</td><td>Todo trabalho sem rastro versionado: leitura de código, par no mesmo teclado, conversa fora da plataforma</td></tr>
-            <tr><td>Captura &rarr; Extração</td><td>O que ficou fora da janela e do recorte de projetos</td></tr>
+            <tr><td>Captura &rarr; Extração</td><td>O que ficou fora da janela e do recorte; não há diff por commit nem texto de revisão</td></tr>
             <tr><td>Extração &rarr; Staging</td><td>Nada, por construção — é o ponto de auditoria</td></tr>
+            <tr><td>Staging &rarr; Carga</td><td>Grafias divergentes que exigem decisão: <code>size_M</code> e <code>SIZE_M</code></td></tr>
             <tr><td>Carga &rarr; Modelagem</td><td>Identidade que não resolve: 21% dos commits não ligam a uma pessoa do recorte</td></tr>
             <tr><td>Modelagem &rarr; Codificação</td><td>Variação interna: a agregação por sprint apaga o dia</td></tr>
             <tr><td>Codificação &rarr; Leitura</td><td>Tudo que não coube em título, eixo e rótulo</td></tr>
@@ -333,15 +458,78 @@
           <h2 class="deck-title">O fluxo de interação anotado</h2>
           <p class="deck-summary">Três raias, uma tarefa real, passos numerados e âncoras de divergência onde as raias discordam.</p>
         </div>
-        <div class="deck-schema">TAREFA: decidir em qual grupo intervir antes da sprint 4
+        <svg class="deck-svg" viewBox="0 0 1080 365" role="img" aria-labelledby="raias-title raias-desc">
+          <title id="raias-title">Fluxo de interação anotado em três raias</title>
+          <desc id="raias-desc">Tarefa: decidir em qual grupo intervir antes da sprint 4. Raia do usuário: abre o painel, procura o grupo, conclui que G02 parou, decide. Raia da interface: filtro de sprint, barras por grupo, sem base de comparação, sem ação sugerida. Raia do dado: eventos de quadro, commits do período, grão igual a commit, nenhum registro. Âncoras D1, D2 e D3 nas três últimas colunas da raia do dado.</desc>
+          <defs><marker id="raias-arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><line x1="0" y1="0" x2="8" y2="4.5" stroke="#111111" stroke-width="1.5"></line><line x1="8" y1="4.5" x2="0" y2="9" stroke="#111111" stroke-width="1.5"></line></marker></defs>
 
-USUÁRIO    ①abre o painel ──▶ ③procura o grupo ────▶ ⑤conclui "G02 parou" ──▶ ⑦decide
-              │                   │                       │                      │
-INTERFACE  ②filtro de sprint ─▶ ④barras por grupo ──▶ ⑥sem base de comparação ▶ ⑧sem ação sugerida
-              │                   │                       │                      │
-DADO       eventos de quadro   commits do período     grão = commit          nenhum registro
-                                    ▲                      ▲                      ▲
-                                   D1                     D2                     D3</div>
+          <text class="svg-task" x="20" y="20">TAREFA · decidir em qual grupo intervir antes da sprint 4</text>
+
+          <!-- Raias -->
+          <line class="lane" x1="20" y1="40" x2="1060" y2="40"></line>
+          <line class="lane" x1="20" y1="145" x2="1060" y2="145"></line>
+          <line class="lane" x1="20" y1="250" x2="1060" y2="250"></line>
+          <line class="lane" x1="20" y1="355" x2="1060" y2="355"></line>
+          <rect class="st-amarelo" x="20" y="86" width="14" height="14"></rect>
+          <text class="svg-zone" x="42" y="98">USUÁRIO</text>
+          <rect class="st-azul" x="20" y="191" width="14" height="14"></rect>
+          <text class="svg-zone" x="42" y="203">INTERFACE</text>
+          <rect class="st-verde" x="20" y="296" width="14" height="14"></rect>
+          <text class="svg-zone" x="42" y="308">DADO</text>
+
+          <!-- Conectores verticais por coluna -->
+          <path class="connector" d="M250 124 V167 M250 229 V272 M482 124 V167 M482 229 V272 M714 124 V167 M714 229 V272 M946 124 V167 M946 229 V272"></path>
+
+          <!-- Usuário -->
+          <rect class="st-amarelo" x="150" y="62" width="200" height="62" rx="2"></rect>
+          <circle class="badge" cx="171" cy="93" r="11"></circle><text class="badge-text" x="171" y="97" text-anchor="middle">1</text>
+          <text class="svg-step" x="190" y="98">abre o painel</text>
+          <rect class="st-amarelo" x="382" y="62" width="200" height="62" rx="2"></rect>
+          <circle class="badge" cx="403" cy="93" r="11"></circle><text class="badge-text" x="403" y="97" text-anchor="middle">3</text>
+          <text class="svg-step" x="422" y="98">procura o grupo</text>
+          <rect class="st-amarelo" x="614" y="62" width="200" height="62" rx="2"></rect>
+          <circle class="badge" cx="635" cy="93" r="11"></circle><text class="badge-text" x="635" y="97" text-anchor="middle">5</text>
+          <text class="svg-step" x="654" y="98">conclui “G02 parou”</text>
+          <rect class="st-amarelo" x="846" y="62" width="200" height="62" rx="2"></rect>
+          <circle class="badge" cx="867" cy="93" r="11"></circle><text class="badge-text" x="867" y="97" text-anchor="middle">7</text>
+          <text class="svg-step" x="886" y="98">decide</text>
+          <line class="flow" x1="350" y1="93" x2="380" y2="93" marker-end="url(#raias-arrow)"></line>
+          <line class="flow" x1="582" y1="93" x2="612" y2="93" marker-end="url(#raias-arrow)"></line>
+          <line class="flow" x1="814" y1="93" x2="844" y2="93" marker-end="url(#raias-arrow)"></line>
+
+          <!-- Interface -->
+          <rect class="st-azul" x="150" y="167" width="200" height="62" rx="2"></rect>
+          <circle class="badge" cx="171" cy="198" r="11"></circle><text class="badge-text" x="171" y="202" text-anchor="middle">2</text>
+          <text class="svg-step" x="190" y="203">filtro de sprint</text>
+          <rect class="st-azul" x="382" y="167" width="200" height="62" rx="2"></rect>
+          <circle class="badge" cx="403" cy="198" r="11"></circle><text class="badge-text" x="403" y="202" text-anchor="middle">4</text>
+          <text class="svg-step" x="422" y="203">barras por grupo</text>
+          <rect class="st-azul" x="614" y="167" width="200" height="62" rx="2"></rect>
+          <circle class="badge" cx="635" cy="198" r="11"></circle><text class="badge-text" x="635" y="202" text-anchor="middle">6</text>
+          <text class="svg-step" x="654" y="194">sem base de</text>
+          <text class="svg-step" x="654" y="212">comparação</text>
+          <rect class="st-azul" x="846" y="167" width="200" height="62" rx="2"></rect>
+          <circle class="badge" cx="867" cy="198" r="11"></circle><text class="badge-text" x="867" y="202" text-anchor="middle">8</text>
+          <text class="svg-step" x="886" y="203">sem ação sugerida</text>
+          <line class="flow" x1="350" y1="198" x2="380" y2="198" marker-end="url(#raias-arrow)"></line>
+          <line class="flow" x1="582" y1="198" x2="612" y2="198" marker-end="url(#raias-arrow)"></line>
+          <line class="flow" x1="814" y1="198" x2="844" y2="198" marker-end="url(#raias-arrow)"></line>
+
+          <!-- Dado -->
+          <rect class="st-verde" x="150" y="272" width="200" height="62" rx="2"></rect>
+          <text class="svg-step" x="168" y="308">eventos de quadro</text>
+          <rect class="st-verde" x="382" y="272" width="200" height="62" rx="2"></rect>
+          <text class="svg-step" x="400" y="308">commits do período</text>
+          <rect class="st-verde" x="614" y="272" width="200" height="62" rx="2"></rect>
+          <text class="svg-step" x="632" y="308">grão = commit</text>
+          <rect class="st-verde" x="846" y="272" width="200" height="62" rx="2"></rect>
+          <text class="svg-step" x="864" y="308">nenhum registro</text>
+
+          <!-- Âncoras de divergência -->
+          <rect class="st-rosa" x="538" y="260" width="40" height="24" rx="2"></rect><text class="svg-tag" x="558" y="276" text-anchor="middle">D1</text>
+          <rect class="st-rosa" x="770" y="260" width="40" height="24" rx="2"></rect><text class="svg-tag" x="790" y="276" text-anchor="middle">D2</text>
+          <rect class="st-rosa" x="1002" y="260" width="40" height="24" rx="2"></rect><text class="svg-tag" x="1022" y="276" text-anchor="middle">D3</text>
+        </svg>
       </div>
     </div>
 
@@ -416,111 +604,260 @@ DADO       eventos de quadro   commits do período     grão = commit          n
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Direcionamento da atividade &middot; 10h20</span>
-          <h2 class="deck-title">Cinco etapas, um artefato</h2>
-          <p class="deck-summary">Ao final da manhã cada grupo sai com um fluxo anotado testado por gente que não o construiu.</p>
+          <h2 class="deck-title">Cinco etapas, um frame no Miro</h2>
+          <p class="deck-summary">Às 10h30 cada grupo já está dentro do seu frame. Às 12h10 sai com o frame testado por quem não o construiu, dois suportes no Metabase e o registro no repositório.</p>
         </div>
         <div class="quality-gates">
-          <div class="quality-gate"><strong>1 &middot; Ciclo</strong><span>Reconstituir as oito estações e a perda de cada uma.</span></div>
-          <div class="quality-gate"><strong>2 &middot; Vocabulário</strong><span>Seis termos definidos pelo cliente, comparados com o dado.</span></div>
-          <div class="quality-gate"><strong>3 &middot; Fluxo</strong><span>Desenhar a tarefa em três raias.</span></div>
-          <div class="quality-gate"><strong>4 &middot; Registro</strong><span>D1..Dn com decisão e suporte.</span></div>
-          <div class="quality-gate"><strong>5 &middot; Teste</strong><span>Interpretação em voz alta por outro grupo.</span></div>
-          <div class="quality-gate"><strong>6 &middot; Correção</strong><span>Implementar ao menos dois suportes no Metabase.</span></div>
+          <div class="quality-gate"><strong>1 &middot; Ciclo &middot; zona A</strong><span>Oito estações, a perda de cada passagem e a afirmação máxima.</span></div>
+          <div class="quality-gate"><strong>2 &middot; Vocabulário &middot; zona B</strong><span>Seis termos: a definição do dado contra a do cliente.</span></div>
+          <div class="quality-gate"><strong>3 &middot; Fluxo &middot; zona C</strong><span>A tarefa de decisão em três raias, com âncoras D1..Dn.</span></div>
+          <div class="quality-gate"><strong>4 &middot; Registro &middot; zona D</strong><span>Decisão e suporte por âncora; dois suportes no Metabase.</span></div>
+          <div class="quality-gate"><strong>5 &middot; Teste &middot; zona E</strong><span>Frases literais de outro grupo lendo a tela sem ajuda.</span></div>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 21 - ETAPA 1 -->
+    <!-- SLIDE 21 - BOARD MIRO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Miro &middot; Board da turma</span>
+          <h2 class="deck-title">Um frame por grupo, cinco zonas</h2>
+          <p class="deck-summary">Nos dez minutos de direcionamento: entre no board, crie o frame com o nome do grupo e desenhe as zonas antes de escrever o primeiro post-it.</p>
+        </div>
+        <svg class="deck-svg" viewBox="0 0 1080 400" role="img" aria-labelledby="board-title board-desc">
+          <title id="board-title">Estrutura do frame de cada grupo no Miro</title>
+          <desc id="board-desc">Um frame com a faixa da afirmação máxima no topo e cinco zonas: A, ciclo em oito estações com post-its cinza; B, vocabulário com post-its verdes do dado e amarelos do cliente; C, fluxo em três raias amarela, azul e verde com âncoras rosa; D, registro D1 a Dn em cartões rosa; E, teste em voz alta com post-its laranja.</desc>
+
+          <text class="svg-task" x="22" y="18">FRAME · NOME DO GRUPO · AULA 05</text>
+          <rect class="frame" x="20" y="28" width="1040" height="360" rx="2"></rect>
+
+          <!-- Afirmação máxima -->
+          <rect class="zone" x="36" y="44" width="1008" height="40" rx="2"></rect>
+          <text class="svg-zone" x="52" y="69">AFIRMAÇÃO MÁXIMA</text>
+          <text class="svg-body" x="220" y="69">uma frase, escrita na Etapa 1 — a régua da manhã inteira</text>
+
+          <!-- Zona A -->
+          <rect class="zone" x="36" y="96" width="600" height="100" rx="2"></rect>
+          <text class="svg-zone" x="52" y="118">A · CICLO EM OITO ESTAÇÕES</text>
+          <rect class="st-cinza" x="52" y="134" width="56" height="46"></rect><text class="svg-num" x="80" y="161" text-anchor="middle" style="fill:#111111">01</text>
+          <rect class="st-cinza" x="124" y="134" width="56" height="46"></rect><text class="svg-num" x="152" y="161" text-anchor="middle" style="fill:#111111">02</text>
+          <rect class="st-cinza" x="196" y="134" width="56" height="46"></rect><text class="svg-num" x="224" y="161" text-anchor="middle" style="fill:#111111">03</text>
+          <rect class="st-cinza" x="268" y="134" width="56" height="46"></rect><text class="svg-num" x="296" y="161" text-anchor="middle" style="fill:#111111">04</text>
+          <rect class="st-cinza" x="340" y="134" width="56" height="46"></rect><text class="svg-num" x="368" y="161" text-anchor="middle" style="fill:#111111">05</text>
+          <rect class="st-cinza" x="412" y="134" width="56" height="46" style="stroke-width:3"></rect><text class="svg-num" x="440" y="161" text-anchor="middle" style="fill:#111111">06</text>
+          <rect class="st-cinza" x="484" y="134" width="56" height="46"></rect><text class="svg-num" x="512" y="161" text-anchor="middle" style="fill:#111111">07</text>
+          <rect class="st-cinza" x="556" y="134" width="56" height="46"></rect><text class="svg-num" x="584" y="161" text-anchor="middle" style="fill:#111111">08</text>
+
+          <!-- Zona B -->
+          <rect class="zone" x="652" y="96" width="392" height="100" rx="2"></rect>
+          <text class="svg-zone" x="668" y="118">B · VOCABULÁRIO</text>
+          <rect class="st-verde" x="668" y="132" width="44" height="24"></rect>
+          <rect class="st-verde" x="720" y="132" width="44" height="24"></rect>
+          <rect class="st-verde" x="772" y="132" width="44" height="24"></rect>
+          <rect class="st-verde" x="824" y="132" width="44" height="24"></rect>
+          <rect class="st-verde" x="876" y="132" width="44" height="24"></rect>
+          <rect class="st-verde" x="928" y="132" width="44" height="24"></rect>
+          <rect class="st-amarelo" x="668" y="164" width="44" height="24"></rect>
+          <rect class="st-amarelo" x="720" y="164" width="44" height="24"></rect>
+          <rect class="st-amarelo" x="772" y="164" width="44" height="24"></rect>
+          <rect class="st-amarelo" x="824" y="164" width="44" height="24"></rect>
+          <rect class="st-amarelo" x="876" y="164" width="44" height="24"></rect>
+          <rect class="st-amarelo" x="928" y="164" width="44" height="24"></rect>
+          <text class="svg-num" x="982" y="149">dado</text>
+          <text class="svg-num" x="982" y="181">cliente</text>
+
+          <!-- Zona C -->
+          <rect class="zone" x="36" y="208" width="1008" height="100" rx="2"></rect>
+          <text class="svg-zone" x="52" y="230">C · FLUXO EM TRÊS RAIAS</text>
+          <text class="svg-body" x="300" y="230">tarefa de decisão no cabeçalho, com prazo e consequência</text>
+          <text class="svg-num" x="52" y="254">usuário</text>
+          <text class="svg-num" x="52" y="277">interface</text>
+          <text class="svg-num" x="52" y="300">dado</text>
+          <rect class="st-amarelo" x="160" y="241" width="90" height="18"></rect>
+          <rect class="st-amarelo" x="280" y="241" width="90" height="18"></rect>
+          <rect class="st-amarelo" x="400" y="241" width="90" height="18"></rect>
+          <rect class="st-amarelo" x="520" y="241" width="90" height="18"></rect>
+          <rect class="st-amarelo" x="640" y="241" width="90" height="18"></rect>
+          <rect class="st-azul" x="160" y="264" width="90" height="18"></rect>
+          <rect class="st-azul" x="280" y="264" width="90" height="18"></rect>
+          <rect class="st-azul" x="400" y="264" width="90" height="18"></rect>
+          <rect class="st-azul" x="520" y="264" width="90" height="18"></rect>
+          <rect class="st-azul" x="640" y="264" width="90" height="18"></rect>
+          <rect class="st-verde" x="160" y="287" width="90" height="18"></rect>
+          <rect class="st-verde" x="280" y="287" width="90" height="18"></rect>
+          <rect class="st-verde" x="400" y="287" width="90" height="18"></rect>
+          <rect class="st-verde" x="520" y="287" width="90" height="18"></rect>
+          <rect class="st-verde" x="640" y="287" width="90" height="18"></rect>
+          <rect class="st-rosa" x="352" y="282" width="30" height="16"></rect><text class="svg-tag" x="367" y="294" text-anchor="middle" style="font-size:10px">D1</text>
+          <rect class="st-rosa" x="592" y="282" width="30" height="16"></rect><text class="svg-tag" x="607" y="294" text-anchor="middle" style="font-size:10px">D2</text>
+          <rect class="st-rosa" x="712" y="282" width="30" height="16"></rect><text class="svg-tag" x="727" y="294" text-anchor="middle" style="font-size:10px">D3</text>
+          <line class="flow" x1="750" y1="273" x2="800" y2="273" marker-end="url(#ciclo-arrow)"></line>
+          <text class="svg-step" x="812" y="278">decisão do orientador</text>
+
+          <!-- Zona D -->
+          <rect class="zone" x="36" y="320" width="640" height="56" rx="2"></rect>
+          <text class="svg-zone" x="52" y="352">D · REGISTRO D1..Dn</text>
+          <rect class="st-rosa" x="250" y="330" width="120" height="36"></rect><text class="svg-tag" x="310" y="353" text-anchor="middle">D1 · 8 campos</text>
+          <rect class="st-rosa" x="382" y="330" width="120" height="36"></rect><text class="svg-tag" x="442" y="353" text-anchor="middle">D2 · 8 campos</text>
+          <rect class="st-rosa" x="514" y="330" width="120" height="36"></rect><text class="svg-tag" x="574" y="353" text-anchor="middle">D3 · 8 campos</text>
+
+          <!-- Zona E -->
+          <rect class="zone" x="692" y="320" width="352" height="56" rx="2"></rect>
+          <text class="svg-zone" x="708" y="352">E · TESTE EM VOZ ALTA</text>
+          <rect class="st-laranja" x="900" y="330" width="40" height="36"></rect>
+          <rect class="st-laranja" x="948" y="330" width="40" height="36"></rect>
+          <rect class="st-laranja" x="996" y="330" width="40" height="36"></rect>
+        </svg>
+        <div class="deck-links">
+          <a class="deck-link" href="https://miro.com/app/board/uXjVHoef9f4=/" target="_blank" rel="noopener">Abrir o board da aula no Miro &rarr;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 22 - LEGENDA DE CORES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Miro &middot; Convenção de cores</span>
+          <h2 class="deck-title">A cor diz de quem é a frase</h2>
+          <p class="deck-summary">Verde é sempre o dado. Amarelo é sempre o usuário. Quem abre o frame de outro grupo enxerga a divergência pela cor antes de ler o texto.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Cor</th><th>Zona</th><th>O que vai no post-it</th></tr></thead>
+          <tbody>
+            <tr><td><span class="swatch cinza"></span>Cinza</td><td>A</td><td>Uma estação do ciclo e o que se perde na passagem</td></tr>
+            <tr><td><span class="swatch verde"></span>Verde</td><td>B e C</td><td>O que o dado registra: definição operacional, fonte, grão, limitação</td></tr>
+            <tr><td><span class="swatch amarelo"></span>Amarelo</td><td>B e C</td><td>O que o usuário diz e faz: definição do cliente, passo do orientador</td></tr>
+            <tr><td><span class="swatch azul"></span>Azul</td><td>C</td><td>O que a tela oferece naquele passo</td></tr>
+            <tr><td><span class="swatch rosa"></span>Rosa</td><td>C e D</td><td>Âncora de divergência D1..Dn e o registro dela</td></tr>
+            <tr><td><span class="swatch laranja"></span>Laranja</td><td>E</td><td>Frase literal de quem leu a tela, entre aspas</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 23 - REGRAS DO BOARD -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 1</span>
+          <span class="deck-kicker">Miro &middot; Regras do board</span>
+          <h2 class="deck-title">O board é da turma, o dado não</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Vale</strong>
+            <ul>
+              <li>Frame com o nome do grupo e "Aula 05" no título</li>
+              <li>Passos numerados: é pelo número que o registro referencia</li>
+              <li>Rascunho da tela feito com formas e texto</li>
+              <li>Comentário do Miro para perguntar a outro grupo</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Não vale</strong>
+            <ul>
+              <li>Captura de tela do Metabase: o schema <code>pbl</code> é identificado e não sai do ambiente</li>
+              <li>Nome, e-mail ou usuário de aluno; se inevitável, só o código <code>G01-A01</code></li>
+              <li>Editar ou mover o frame de outro grupo</li>
+              <li>Explicação que ficou no chat e não virou post-it</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 24 - ETAPA 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 1 &middot; Zona A</span>
           <h2 class="deck-title">Reconstituir o ciclo do seu grupo</h2>
-          <p class="deck-summary">Vinte minutos. Sem abrir o Metabase.</p>
+          <p class="deck-summary">Vinte minutos. Sem abrir o Metabase — só o board.</p>
         </div>
         <ol class="deck-steps">
-          <li>Escolha uma métrica que já esteja no seu painel.</li>
-          <li>Percorra as oito estações e escreva o que acontece com ela em cada uma.</li>
-          <li>Em cada passagem, registre uma linha: o que foi descartado ali.</li>
-          <li>Marque a estação em que o descarte é maior.</li>
-          <li>Escreva a afirmação máxima que essa métrica ainda sustenta depois de todos os descartes.</li>
+          <li>Escolha uma métrica que já esteja no painel do grupo e escreva o nome dela no topo da zona A.</li>
+          <li>Cole oito post-its cinza em linha, um por estação: o que acontece com a métrica ali.</li>
+          <li>Abaixo de cada passagem, uma frase: o que foi descartado nela.</li>
+          <li>Destaque com borda grossa a passagem de maior descarte.</li>
+          <li>Escreva a afirmação máxima que a métrica ainda sustenta na faixa do topo do frame.</li>
         </ol>
       </div>
     </div>
 
-    <!-- SLIDE 22 - ETAPA 2 -->
+    <!-- SLIDE 25 - ETAPA 2 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 2</span>
+          <span class="deck-kicker">Prática &middot; Etapa 2 &middot; Zona B</span>
           <h2 class="deck-title">Teste de vocabulário com o cliente</h2>
           <p class="deck-summary">Vinte e cinco minutos. O professor responde no papel do orientador; cada grupo tem sua rodada.</p>
         </div>
         <ol class="deck-steps">
-          <li>Antes de perguntar, escreva a definição operacional que <em>você</em> usa para seis termos: entrega, atraso, participação, revisão, concluído e ativo.</li>
-          <li>Peça ao cliente que defina os mesmos seis, sem mostrar a sua lista.</li>
-          <li>Coloque as duas colunas lado a lado e marque onde discordam.</li>
-          <li>Para cada discordância, pergunte que decisão ele tomaria com base naquele termo.</li>
-          <li>Classifique cada uma nas seis famílias.</li>
+          <li>Antes da rodada, escreva em seis post-its verdes a definição operacional que <em>o dado</em> sustenta para: entrega, atraso, participação, revisão, concluído e ativo.</li>
+          <li>Na rodada, peça ao cliente que defina os mesmos seis, sem mostrar a sua lista. Transcreva em amarelo, com as palavras dele.</li>
+          <li>Ligue com um conector cada par que discorda.</li>
+          <li>Para cada discordância, pergunte que decisão ele tomaria com base naquele termo e escreva no conector.</li>
+          <li>Marque cada par com uma tag do Miro com a família da divergência.</li>
         </ol>
       </div>
     </div>
 
-    <!-- SLIDE 23 - ETAPA 3 -->
+    <!-- SLIDE 26 - ETAPA 3 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 3</span>
+          <span class="deck-kicker">Prática &middot; Etapa 3 &middot; Zona C</span>
           <h2 class="deck-title">Desenhar o fluxo em três raias</h2>
-          <p class="deck-summary">Trinta minutos. Papel, quadro ou editor de texto — a forma não importa, a numeração sim.</p>
+          <p class="deck-summary">Trinta minutos. A forma do desenho importa pouco; a numeração e a cor de cada raia importam.</p>
         </div>
         <ol class="deck-steps">
-          <li>Fixe uma tarefa real de decisão do orientador, com prazo e consequência.</li>
-          <li>Escreva a raia do usuário: o que ele faz, passo a passo, do primeiro clique à decisão.</li>
-          <li>Escreva a raia da interface: o que a tela oferece em cada passo.</li>
-          <li>Escreva a raia do dado: qual fonte, qual grão e qual limitação sustenta aquele passo.</li>
-          <li>Marque uma âncora onde as raias discordam e numere D1, D2, D3.</li>
+          <li>No cabeçalho da zona C, escreva uma tarefa real de decisão do orientador, com prazo e consequência.</li>
+          <li>Raia amarela: o que ele faz, do primeiro clique à decisão. Numere os passos na ordem em que acontecem.</li>
+          <li>Raia azul: o que a tela oferece em cada passo — em palavras ou num rascunho com formas, nunca em captura.</li>
+          <li>Raia verde: qual fonte, qual grão e qual limitação sustenta aquele passo.</li>
+          <li>Onde as raias discordam, cole um post-it rosa sobre o passo e numere D1, D2, D3.</li>
         </ol>
       </div>
     </div>
 
-    <!-- SLIDE 24 - ETAPA 4 -->
+    <!-- SLIDE 27 - ETAPA 4 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 4</span>
+          <span class="deck-kicker">Prática &middot; Etapa 4 &middot; Zona D</span>
           <h2 class="deck-title">Registrar decisão e suporte</h2>
           <p class="deck-summary">Quinze minutos. Mínimo de quatro divergências, com pelo menos três famílias diferentes.</p>
         </div>
         <ol class="deck-steps">
-          <li>Preencha os oito campos da âncora para cada divergência marcada.</li>
+          <li>Para cada âncora rosa, um cartão rosa na zona D com os oito campos, na ordem da anatomia.</li>
           <li>Na decisão de projeto, escreva também a alternativa que você descartou.</li>
           <li>No suporte exigido, nomeie o elemento concreto e onde ele fica na tela.</li>
-          <li>Implemente no Metabase pelo menos dois dos suportes de custo baixo.</li>
-          <li>Registre a divergência que você decidiu <em>não</em> fechar, com a razão.</li>
+          <li>Implemente no Metabase pelo menos dois suportes de custo baixo e marque o cartão com a tag <em>implementado</em>.</li>
+          <li>Marque com a tag <em>não fechado</em> a divergência que o grupo decidiu manter, com a razão escrita.</li>
         </ol>
       </div>
     </div>
 
-    <!-- SLIDE 25 - ETAPA 5 -->
+    <!-- SLIDE 28 - ETAPA 5 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 5</span>
+          <span class="deck-kicker">Prática &middot; Etapa 5 &middot; Zona E</span>
           <h2 class="deck-title">Teste de interpretação em voz alta</h2>
           <p class="deck-summary">Dez minutos, em duplas de grupos. Regra única: quem construiu não explica nada.</p>
         </div>
         <ol class="deck-steps">
-          <li>Entregue a tela ao outro grupo com a tarefa escrita num papel.</li>
+          <li>O outro grupo lê a tarefa no cabeçalho da zona C e recebe a tela do Metabase.</li>
           <li>Peça que digam em voz alta o que estão vendo e o que concluem.</li>
-          <li>Anote as frases literais, sem corrigir e sem interromper.</li>
-          <li>Compare cada frase com a afirmação máxima da Etapa 1.</li>
-          <li>Toda frase que ultrapassa a afirmação máxima vira uma divergência nova.</li>
+          <li>Um integrante do grupo dono transcreve cada frase literal num post-it laranja da zona E, sem corrigir e sem interromper.</li>
+          <li>Compare cada frase com a afirmação máxima do topo do frame.</li>
+          <li>Toda frase que ultrapassa a afirmação máxima vira um post-it rosa novo na zona C.</li>
         </ol>
       </div>
     </div>
 
-    <!-- SLIDE 26 - ENTREGA -->
+    <!-- SLIDE 29 - ENTREGA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -529,18 +866,22 @@ DADO       eventos de quadro   commits do período     grão = commit          n
         </div>
         <div class="deck-grid">
           <article class="deck-card">
+            <h3>No Miro</h3>
+            <p>O frame do grupo com a afirmação máxima e as zonas A a E preenchidas, incluindo as frases do teste.</p>
+          </article>
+          <article class="deck-card">
             <h3>No Metabase</h3>
             <p>Pelo menos dois suportes implementados: título que afirma, denominador no eixo, nota de origem ou faixa de não atribuído.</p>
           </article>
           <article class="deck-card">
             <h3>No repositório</h3>
-            <p><code>docs/05_fluxo_de_interacao_anotado.md</code> com o ciclo em oito estações, o fluxo em três raias e o registro D1..Dn completo.</p>
+            <p><code>docs/05_fluxo_de_interacao_anotado.md</code> com o link do frame no topo e o registro D1..Dn transcrito em texto.</p>
           </article>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 27 - AVALIACAO -->
+    <!-- SLIDE 30 - AVALIACAO -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -560,7 +901,7 @@ DADO       eventos de quadro   commits do período     grão = commit          n
       </div>
     </div>
 
-    <!-- SLIDE 28 - PROXIMA -->
+    <!-- SLIDE 31 - PROXIMA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -570,7 +911,7 @@ DADO       eventos de quadro   commits do período     grão = commit          n
         </div>
         <div class="deck-callout">
           <strong>Traga pronto</strong>
-          <p style="margin:8px 0 0;">O fluxo anotado, os suportes já implementados e o painel em estado apresentável — ele será auditado por outro grupo, com severidade e devolutiva escrita.</p>
+          <p style="margin:8px 0 0;">O frame do Miro completo, o fluxo anotado transcrito no repositório, os suportes já implementados e o painel em estado apresentável — ele será auditado por outro grupo, com severidade e devolutiva escrita.</p>
         </div>
       </div>
     </div>
