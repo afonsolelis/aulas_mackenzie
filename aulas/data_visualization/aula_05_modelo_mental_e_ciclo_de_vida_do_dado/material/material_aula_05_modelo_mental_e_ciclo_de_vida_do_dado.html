@@ -35,6 +35,28 @@
           <strong>Resultado esperado</strong>
           <p>Ao final da manhã cada grupo terá, no <a href="https://miro.com/app/board/uXjVHoef9f4=/" target="_blank" rel="noopener">board da turma no Miro</a>, um frame com o ciclo da métrica, o teste de vocabulário, um fluxo de interação anotado sobre uma tarefa real de decisão, um registro de divergências <code>D1..Dn</code> com evidência, consequência, decisão e suporte, e as frases literais de um teste independente. Além disso, terá pelo menos dois suportes já implementados no Metabase e <code>docs/05_fluxo_de_interacao_anotado.md</code> escrito no repositório do grupo.</p>
         </div>
+
+        <h3>Os dados do projeto, para baixar e estudar</h3>
+        <p>Toda a aula raciocina sobre o mesmo conjunto: o rastro de trabalho da turma T28, grupos G01 a G03 do Instituto Ápice, ao longo de cinco sprints. Antes de reconstituir o ciclo e de escrever a raia do dado, abra os arquivos. A raia verde do fluxo anotado só é honesta se o grupo viu, no próprio arquivo, qual coluna sustenta cada passo, qual é o grão de cada linha e onde estão os vazios. Os CSVs abrem em planilha, DuckDB, SQLite ou na cadeia construída na Aula 04; o mesmo recorte está no schema <code>pbl</code> do Metabase.</p>
+        <table>
+          <thead><tr><th>Arquivo</th><th>Uma linha é</th><th>Linhas</th></tr></thead>
+          <tbody>
+            <tr><td><a href="../../../../dados/projeto_pbl/grupos.csv" download>grupos.csv</a></td><td>um grupo, com branch padrão e janela de atividade</td><td>3</td></tr>
+            <tr><td><a href="../../../../dados/projeto_pbl/pessoas.csv" download>pessoas.csv</a></td><td>uma pessoa vinculada a um grupo, com papel</td><td>83</td></tr>
+            <tr><td><a href="../../../../dados/projeto_pbl/sprints.csv" download>sprints.csv</a></td><td>uma sprint de um grupo, com início e prazo</td><td>15</td></tr>
+            <tr><td><a href="../../../../dados/projeto_pbl/quadro_colunas.csv" download>quadro_colunas.csv</a></td><td>uma coluna do quadro Kanban de um grupo</td><td>12</td></tr>
+            <tr><td><a href="../../../../dados/projeto_pbl/commits.csv" download>commits.csv</a></td><td>um commit, com autor, datas e linhas alteradas</td><td>2.688</td></tr>
+            <tr><td><a href="../../../../dados/projeto_pbl/merge_requests.csv" download>merge_requests.csv</a></td><td>uma solicitação de integração, com revisores e desfecho</td><td>540</td></tr>
+            <tr><td><a href="../../../../dados/projeto_pbl/cartoes.csv" download>cartoes.csv</a></td><td>um cartão do quadro, com responsáveis, rótulos e sprint</td><td>1.238</td></tr>
+            <tr><td><a href="../../../../dados/projeto_pbl/kanban_eventos.csv" download>kanban_eventos.csv</a></td><td>a aplicação ou a remoção de um rótulo de coluna em um cartão</td><td>13.194</td></tr>
+            <tr><td><a href="../../../../dados/projeto_pbl/manifesto.json" download>manifesto.json</a></td><td>proveniência do recorte, data de extração e contagem de cada arquivo</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+        <p>Todos em UTF-8, separados por vírgula, com cabeçalho e datas em ISO 8601. Campos multivalorados (<code>responsaveis_ids</code>, <code>revisores_ids</code>, <code>rotulos</code>) usam <code>;</code> como separador interno. O <a href="../../../../dados/projeto_pbl/README.md">dicionário de dados</a> descreve cada coluna, a reconstrução do fluxo do quadro e as limitações do recorte; a <a href="../../../../pages/projeto_data_visualization.html">página do projeto do módulo</a> traz o contexto completo.</p>
+        <div class="note">
+          <strong>Regra de uso</strong>
+          <p>Os arquivos estão pseudonimizados — pessoas aparecem como <code>G01-A01</code>, quem está fora do recorte como <code>[externo]</code>, automações como <code>[bot]</code> —, mas descrevem o trabalho real de pessoas reais. São material da turma: sem publicação em repositório aberto, portfólio ou rede social, e sem tentativa de reidentificar quem quer que seja.</p>
+        </div>
       </section>
 
       <section class="content-block">
@@ -306,6 +328,7 @@ DADO       eventos de quadro   commits do período     grão = commit          n
         <p>A prática recomeça às 10h20, depois do intervalo, e abre com dez minutos de direcionamento: o professor percorre os entregáveis da manhã, a ordem das etapas e o gate de saída de cada uma, e cada grupo monta o seu frame no Miro (seção 17.1), para que nenhum grupo comece a trabalhar sem saber o que precisa estar pronto às 12h10.</p>
 
         <h3>18.1 Etapa 1 — reconstituir o ciclo do seu grupo (20 min, zona A, sem abrir o Metabase)</h3>
+        <p>Trabalhe com os CSVs e o dicionário de dados da seção 1 abertos: é neles que se vê o que cada estação deixou para trás.</p>
         <ol class="steps">
           <li>Escolha uma métrica que já esteja no painel do grupo e escreva o nome dela no topo da zona A.</li>
           <li>Cole oito post-its cinza em linha, um por estação, e escreva em cada um o que acontece com a métrica ali.</li>
