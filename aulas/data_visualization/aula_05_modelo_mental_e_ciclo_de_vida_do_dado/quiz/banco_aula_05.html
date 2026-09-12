@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="quiz-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 05 — Banco do quiz — Data Visualization</title>
+  <link rel="icon" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <link rel="stylesheet" href="../../../../assets/slides.css">
+  <link rel="stylesheet" href="../../../../assets/quiz_relatorio.css">
+  <link rel="stylesheet" href="../../../../assets/quiz.css">
+</head>
+<body class="quiz-page quiz-banco">
+  <header>
+    <div class="marca">
+      <img src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Mackenzie">
+      <div class="titulo"><small>Data Visualization · 12/09/2026</small>Aula 05 · Banco do quiz</div>
+    </div>
+  </header>
+  <main>
+    <h1>Retomada das Aulas 01 a 04</h1>
+    <p>Dez perguntas com explicações, liberadas pelo professor depois da atividade.</p>
+    <p id="aviso" role="status">Consultando a publicação…</p>
+    <button class="acao" id="atualizar" type="button">Atualizar</button>
+    <section id="conteudo" hidden>
+      <h2>Perguntas e gabarito</h2>
+      <div id="perguntas"></div>
+      <h2>Desempenho por tema</h2>
+      <div id="temas"></div>
+      <h2>Rodadas</h2>
+      <div id="rodadas"></div>
+    </section>
+    <nav class="quiz-nav" aria-label="Navegação do quiz">
+      <a href="quiz_aula_05.html">Quiz</a>
+      <a href="painel_aula_05.html">Painel do professor</a>
+      <a href="../../../../pages/home_data_visualization.html">Materiais das aulas · Disciplina</a>
+      <a href="../../../../index.html">Hub</a>
+    </nav>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script>
+  const db = window.supabase.createClient(
+    'https://lwamaovuxcevsjfvtqhf.supabase.co',
+    'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ',
+    { auth: { persistSession: false } }
+  );
+  const SLUG = 'mack-dv-a05-2026-2';
+  const el = (id) => document.getElementById(id);
+  function texto(tag, value, parent, className = '') {
+    const node = document.createElement(tag);
+    node.className = className;
+    node.textContent = value;
+    parent.appendChild(node);
+    return node;
+  }
+  async function carregar() {
+    el('atualizar').disabled = true;
+    el('conteudo').hidden = true;
+    try {
+      const { data, error } = await db.rpc('quiz_banco', { p_slug: SLUG });
+      if (error) throw error;
+      if (!data?.ok) {
+        el('aviso').textContent = data?.erro || 'O banco ainda não foi publicado.';
+        return;
+      }
+      el('aviso').textContent = `${data.total_questoes} perguntas publicadas. Os resultados são agregados, sem identificação individual.`;
+      for (const id of ['perguntas', 'temas', 'rodadas']) el(id).replaceChildren();
+      for (const q of data.perguntas || []) {
+        const card = texto('article', '', el('perguntas'), 'item');
+        texto('h3', `${q.ordem}. ${q.enunciado}`, card);
+        q.alternativas.forEach((alt, i) => {
+          const row = texto('div', '', card, 'gab-alt' + (i === q.correta ? ' certa' : ''));
+          texto('span', 'ABCD'[i], row, 'l');
+          texto('span', alt + (i === q.correta ? ' — correta' : ''), row);
+        });
+        texto('p', q.explicacao, card, 'gab-explic');
+        texto('p', q.secao, card, 'legenda');
+      }
+      for (const t of data.temas || []) {
+        texto('p', `${t.tema}: ${t.acertos}/${t.respostas} acertos (${t.taxa ?? 0}%).`, el('temas'));
+      }
+      if (!(data.rodadas || []).length) {
+        texto('p', 'Ainda não há rodadas com resultados agregados disponíveis para publicação.', el('rodadas'));
+      }
+      for (const [i, r] of (data.rodadas || []).entries()) {
+        texto('p', `Rodada ${i + 1}: ${r.acertos}/${r.respostas} acertos.`, el('rodadas'));
+      }
+      el('conteudo').hidden = false;
+    } catch {
+      el('aviso').textContent = 'Não foi possível consultar o banco. Tente atualizar.';
+    } finally {
+      el('atualizar').disabled = false;
+    }
+  }
+  el('atualizar').addEventListener('click', carregar);
+  carregar();
+  </script>
+</body>
+</html>

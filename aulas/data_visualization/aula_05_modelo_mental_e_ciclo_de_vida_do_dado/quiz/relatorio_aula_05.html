@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="quiz-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula 05 - Relatório do quiz - Data Visualization 2026</title>
+  <meta name="description" content="Relatório do quiz da Aula 05 por tema, questão e estudante, para orientar a retomada das Aulas 01 a 04.">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../../../../assets/slides.css">
+  <link rel="stylesheet" href="../../../../assets/quiz_relatorio.css">
+  <link rel="stylesheet" href="../../../../assets/quiz.css">
+</head>
+<body class="quiz-page quiz-relatorio">
+  <header>
+    <div class="marca">
+      <img src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Mackenzie">
+      <div class="titulo">
+        <small>Data Visualization &middot; Aula 05 &middot; Relatório do quiz</small>
+        <span id="cab">Aula 05 — Retomada: Data Visualization</span>
+      </div>
+    </div>
+    <div class="medidores">
+      <div class="medidor"><div class="n" id="m-alunos">&mdash;</div><div class="r">estudantes</div></div>
+      <div class="medidor"><div class="n" id="m-media">&mdash;</div><div class="r">acerto médio</div></div>
+      <div class="medidor"><div class="n" id="m-questoes">&mdash;</div><div class="r">questões</div></div>
+    </div>
+  </header>
+
+  <main>
+    <section data-painel="auth" class="ativo">
+      <div class="auth">
+        <h1 style="font-size:1.35rem;margin:0">Relatório do quiz</h1>
+        <p>Informe o token da sessão. O relatório reflete as respostas registradas até agora e deixa de existir quando a sala é reiniciada.</p>
+        <input id="token" type="password" placeholder="token da sessão" autocomplete="off">
+        <p class="aviso" id="aviso" role="alert"></p>
+        <button class="acao" id="btn-auth" type="button">Abrir relatório</button>
+      </div>
+    </section>
+
+    <section data-painel="dados">
+      <div class="abas" role="tablist">
+        <button class="aba" role="tab" aria-selected="true"  data-aba="temas">Temas a reforçar</button>
+        <button class="aba" role="tab" aria-selected="false" data-aba="questoes">Questão a questão</button>
+        <button class="aba" role="tab" aria-selected="false" data-aba="alunos">Por estudante</button>
+        <button class="aba" role="tab" aria-selected="false" data-aba="perguntas">Perguntas e gabarito</button>
+      </div>
+
+      <div data-conteudo="temas" class="ativo">
+        <h2>Temas por dificuldade</h2>
+        <p class="legenda">Percentual de acerto por assunto, do mais difícil ao mais dominado. Os primeiros da lista são os que merecem retomada antes da atividade seguinte.</p>
+        <div id="lista-temas"></div>
+      </div>
+
+      <div data-conteudo="questoes">
+        <h2>Questão a questão</h2>
+        <p class="legenda">Ordenadas da menos acertada à mais acertada. A alternativa em verde é a correta; a destacada em vermelho é o distrator que mais atraiu a turma — é ele que revela a concepção a corrigir.</p>
+        <div id="lista-questoes"></div>
+      </div>
+
+      <div data-conteudo="alunos">
+        <h2>Desempenho individual</h2>
+        <p class="legenda">Cada linha traz as questões erradas e os temas correspondentes, para orientar o estudo de quem ficou abaixo da turma.</p>
+        <div id="tabela-alunos"></div>
+      </div>
+
+      <div data-conteudo="perguntas">
+        <h2>Banco de perguntas</h2>
+        <p class="legenda">As dez perguntas na ordem em que serão abertas, com a alternativa correta marcada e a explicação que aparece projetada na revelação. Use para conferir antes da aula — esta aba exige o token e nunca é vista pelo aluno.</p>
+        <div id="lista-perguntas"></div>
+      </div>
+    </section>
+    <nav class="quiz-nav" aria-label="Navegação do quiz"><a href="../../../../pages/home_data_visualization.html">Disciplina</a><a href="../../../../index.html">Hub</a></nav>
+  </main>
+
+  <footer>
+    <button class="acao" id="btn-atualizar" type="button">Atualizar</button>
+    <button class="acao secundario" id="btn-csv" type="button">Baixar CSV</button>
+    <div class="direita">
+      <a class="link" href="painel_aula_05.html">Painel</a>
+      <a class="link" href="../material/material_aula_05_modelo_mental_e_ciclo_de_vida_do_dado.html">Material da Aula 05</a>
+      <a class="link" href="../slides/slide_aula_05_modelo_mental_e_ciclo_de_vida_do_dado.html">Slides da Aula 05</a>
+      <a class="link" href="../../../../pages/home_data_visualization.html">Voltar ao cronograma</a>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script src="../../../../assets/quiz_csv.js"></script>
+  <script>
+  const SUPABASE_URL = 'https://lwamaovuxcevsjfvtqhf.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ';
+  const SLUG = 'mack-dv-a05-2026-2';
+  const CHAVE_TOKEN = 'quiz-host:' + SLUG;   // o mesmo token do painel
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+  const el = (id) => document.getElementById(id);
+  const LETRAS = ['A', 'B', 'C', 'D', 'E'];
+  let token = localStorage.getItem(CHAVE_TOKEN) || '';
+  let dados = null;
+
+  const faixa = (t) => t === null ? 'medio' : t < 50 ? 'ruim' : t < 75 ? 'medio' : 'bom';
+
+  async function carregar() {
+    el('aviso').textContent = '';
+    try {
+      const { data, error } = await db.rpc('quiz_relatorio', { p_slug: SLUG, p_token: token });
+      if (error) throw error;
+      if (!data.ok) { el('aviso').textContent = data.erro; return; }
+      localStorage.setItem(CHAVE_TOKEN, token);
+      dados = data;
+      desenhar(data);
+      document.querySelectorAll('[data-painel]').forEach((s) =>
+        s.classList.toggle('ativo', s.dataset.painel === 'dados'));
+    } catch (e) {
+      el('aviso').textContent = 'Falha de rede ao buscar o relatório.';
+      console.error(e);
+    }
+  }
+
+  function desenhar(d) {
+    el('cab').textContent = d.titulo;
+    el('m-alunos').textContent = d.jogadores;
+    el('m-questoes').textContent = d.total;
+
+    const respondidas = d.questoes.reduce((s, q) => s + q.respostas, 0);
+    const acertadas   = d.questoes.reduce((s, q) => s + q.acertos, 0);
+    el('m-media').textContent = respondidas ? Math.round(100 * acertadas / respondidas) + '%' : '—';
+
+    desenharTemas(d.temas);
+    desenharQuestoes(d.questoes);
+    desenharAlunos(d.alunos, d.total);
+    carregarPerguntas();
+  }
+
+// Banco de perguntas: só o professor vê, e só com token.
+  async function carregarPerguntas() {
+    const { data, error } = await db.rpc('quiz_gabarito', { p_slug: SLUG, p_token: token });
+    const alvo = el('lista-perguntas');
+    alvo.innerHTML = '';
+    if (error || !data || !data.ok) {
+      alvo.innerHTML = '<p class="vazio">Não foi possível carregar o banco de perguntas.</p>';
+      return;
+    }
+    data.perguntas.forEach((q) => {
+      const d = document.createElement('div');
+      d.className = 'item';
+      d.innerHTML = `<div class="item-cab">
+          <span class="nome"></span><span class="meta"></span>
+        </div>
+        <p class="q-enunciado"></p>
+        <div class="alts-gab"></div>
+        <div class="gab-explic"></div>`;
+      d.querySelector('.nome').textContent = `Questão ${q.ordem} — ${q.tema || ''}`;
+      d.querySelector('.meta').textContent = `${q.secao || ''} · ${q.segundos}s`;
+      d.querySelector('.q-enunciado').textContent = q.enunciado;
+      const alvoAlts = d.querySelector('.alts-gab');
+      q.alternativas.forEach((texto, i) => {
+        const linha = document.createElement('div');
+        linha.className = 'gab-alt' + (i === q.correta ? ' certa' : '');
+        linha.innerHTML = '<span class="l"></span><span class="t"></span>';
+        linha.children[0].textContent = LETRAS[i];
+        linha.children[1].textContent = texto;
+        alvoAlts.appendChild(linha);
+      });
+      d.querySelector('.gab-explic').textContent = q.explicacao || '';
+      alvo.appendChild(d);
+    });
+  }
+
+  function desenharTemas(temas) {
+    const alvo = el('lista-temas');
+    alvo.innerHTML = '';
+    if (!temas.length) { alvo.innerHTML = '<p class="vazio">Nenhuma resposta registrada ainda.</p>'; return; }
+    temas.forEach((t) => {
+      const pct = t.taxa === null ? 0 : t.taxa;
+      const d = document.createElement('div');
+      d.className = 'item ' + faixa(t.taxa);
+      d.innerHTML = `<div class="item-cab">
+          <span class="nome"></span>
+          <span class="meta"></span>
+          <span class="pct"></span>
+        </div><div class="barra"><i style="width:${pct}%"></i></div>`;
+      d.querySelector('.nome').textContent = t.tema || '(sem tema)';
+      d.querySelector('.meta').textContent =
+        `${t.secao || ''} · questão ${t.questoes.join(', ')} · ${t.acertos} de ${t.respostas}`;
+      d.querySelector('.pct').textContent = t.taxa === null ? '—' : t.taxa + '%';
+      alvo.appendChild(d);
+    });
+  }
+
+  function desenharQuestoes(questoes) {
+    const alvo = el('lista-questoes');
+    alvo.innerHTML = '';
+    if (!questoes.length) { alvo.innerHTML = '<p class="vazio">Nenhuma resposta registrada ainda.</p>'; return; }
+    questoes.forEach((q) => {
+      const total = Object.values(q.distribuicao).reduce((a, b) => a + b, 0);
+      // O distrator que mais atraiu: a alternativa errada mais escolhida.
+      let lider = null, maior = 0;
+      Object.entries(q.distribuicao).forEach(([i, n]) => {
+        if (Number(i) !== q.correta && n > maior) { maior = n; lider = Number(i); }
+      });
+
+      const d = document.createElement('div');
+      d.className = 'item ' + faixa(q.taxa);
+      d.innerHTML = `<div class="item-cab">
+          <span class="nome"></span><span class="meta"></span><span class="pct"></span>
+        </div>
+        <p class="q-enunciado"></p>
+        <div class="alts"></div>
+        <div class="tempos"></div>`;
+      d.querySelector('.nome').textContent = `Questão ${q.ordem} — ${q.tema || ''}`;
+      d.querySelector('.meta').textContent =
+        `${q.secao || ''} · ${q.acertos} de ${q.respostas}` +
+        (q.sem_resposta > 0 ? ` · ${q.sem_resposta} sem resposta` : '');
+      d.querySelector('.pct').textContent = q.taxa === null ? '—' : q.taxa + '%';
+      d.querySelector('.q-enunciado').textContent = q.enunciado;
+
+      const alts = d.querySelector('.alts');
+      q.alternativas.forEach((texto, i) => {
+        const n = q.distribuicao[String(i)] || 0;
+        const pct = total ? (100 * n / total) : 0;
+        const linha = document.createElement('div');
+        linha.className = 'alt-linha' + (i === q.correta ? ' certa' : (i === lider && maior > 0 ? ' lider' : ''));
+        linha.innerHTML = `<span class="l"></span>
+          <span class="alt-barra"><i style="width:${pct}%"></i><span></span></span>
+          <span class="n"></span>`;
+        linha.querySelector('.l').textContent = LETRAS[i];
+        linha.querySelector('.alt-barra span').textContent = texto;
+        linha.querySelector('.n').textContent = `${n} · ${Math.round(pct)}%`;
+        alts.appendChild(linha);
+      });
+
+      if (lider !== null && maior > 0 && q.taxa !== null && q.taxa < 75) {
+        const dg = document.createElement('div');
+        dg.className = 'diagnostico';
+        dg.textContent = `${maior} de ${total} escolheram a alternativa ${LETRAS[lider]}. `
+          + `Retomar ${q.tema || 'o tema'} pela ${q.secao || 'seção correspondente'} dos materiais das Aulas 01 a 04, `
+          + `contrastando essa leitura com a correta (${LETRAS[q.correta]}).`;
+        d.appendChild(dg);
+      }
+      const t = d.querySelector('.tempos');
+      const fmt = (v) => v === null ? '—' : v + 's';
+      t.textContent = `Tempo médio: ${fmt(q.segundos_acerto)} entre quem acertou, ${fmt(q.segundos_erro)} entre quem errou.`;
+      alvo.appendChild(d);
+    });
+  }
+
+  function desenharAlunos(alunos, total) {
+    const alvo = el('tabela-alunos');
+    alvo.innerHTML = '';
+    if (!alunos.length) { alvo.innerHTML = '<p class="vazio">Nenhum estudante registrado.</p>'; return; }
+    const t = document.createElement('table');
+    t.innerHTML = `<thead><tr>
+      <th>Estudante</th><th>Acertos</th><th>Pontos</th><th>Strikes</th><th>Errou as questões</th><th>Temas a reforçar</th>
+    </tr></thead><tbody></tbody>`;
+    const tb = t.querySelector('tbody');
+    alunos.forEach((a) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="nome"></td><td class="num"></td><td class="num"></td>
+                      <td class="num"></td><td class="num"></td><td><div class="tags"></div></td>`;
+      tr.children[0].textContent = a.nome;
+      tr.children[1].textContent = `${a.acertos}/${total}`;
+      tr.children[2].textContent = a.pontos;
+      // Saídas da aba com a pergunta aberta; cada uma zerou o ponto daquela questão.
+      tr.children[3].textContent = a.strikes
+        ? `${a.strikes} (Q${(a.questoes_strike || []).join(', Q')})` : '—';
+      tr.children[4].textContent = a.erros.length ? a.erros.join(', ') : '—';
+      const tags = tr.children[5].firstElementChild;
+      if (!a.temas_a_reforcar.length) {
+        const s = document.createElement('span');
+        s.className = 'tag ok'; s.textContent = 'nenhum';
+        tags.appendChild(s);
+      } else a.temas_a_reforcar.forEach((tm) => {
+        const s = document.createElement('span');
+        s.className = 'tag'; s.textContent = tm;
+        tags.appendChild(s);
+      });
+      tb.appendChild(tr);
+    });
+    alvo.appendChild(t);
+  }
+
+  /* Exportação, para guardar o resultado antes de reiniciar a sala. */
+  const baixarCsv = () => window.quizCsv.baixar(dados, SLUG);
+
+  document.querySelectorAll('.aba').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.aba').forEach((o) => o.setAttribute('aria-selected', String(o === b)));
+    document.querySelectorAll('[data-conteudo]').forEach((c) =>
+      c.classList.toggle('ativo', c.dataset.conteudo === b.dataset.aba));
+  }));
+  el('btn-auth').addEventListener('click', () => { token = el('token').value.trim(); carregar(); });
+  el('token').addEventListener('keydown', (e) => { if (e.key === 'Enter') el('btn-auth').click(); });
+  el('btn-atualizar').addEventListener('click', carregar);
+  el('btn-csv').addEventListener('click', baixarCsv);
+
+  if (token) carregar();
+  </script>
+
+</body>
+</html>

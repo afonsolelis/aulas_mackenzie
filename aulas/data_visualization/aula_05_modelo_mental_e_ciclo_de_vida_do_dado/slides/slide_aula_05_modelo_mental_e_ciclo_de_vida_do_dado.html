@@ -16,6 +16,7 @@
       --st-laranja: #ffcf9e;
     }
     .deck-schema { white-space: pre; }
+    .deck-shell.is-dense .deck-svg { flex: 0 0 auto; }
     .deck-svg { display: block; width: 100%; max-height: 440px; margin-top: 8px; }
     .deck-svg .box { fill: #ffffff; stroke: #111111; stroke-width: 1.5; }
     .deck-svg .frame { fill: #fafaf7; stroke: #111111; stroke-width: 2; }
@@ -623,9 +624,9 @@
         <div>
           <span class="deck-kicker">Miro &middot; Board da turma</span>
           <h2 class="deck-title">Um frame por grupo, cinco zonas</h2>
-          <p class="deck-summary">Nos dez minutos de direcionamento: entre no board, crie o frame com o nome do grupo e desenhe as zonas antes de escrever o primeiro post-it.</p>
+          <p class="deck-summary">O painel de vocês é este frame: um único quadro onde o raciocínio do grupo fica inteiro à vista &mdash; o que o dado registra, o que o usuário entende e onde os dois divergem. Nos dez minutos de direcionamento: entre no board, crie o frame com o nome do grupo e desenhe as zonas antes de escrever o primeiro post-it.</p>
         </div>
-        <svg class="deck-svg" viewBox="0 0 1080 400" role="img" aria-labelledby="board-title board-desc">
+        <svg class="deck-svg" style="max-height:330px" viewBox="0 0 1080 400" role="img" aria-labelledby="board-title board-desc">
           <title id="board-title">Estrutura do frame de cada grupo no Miro</title>
           <desc id="board-desc">Um frame com a faixa da afirmação máxima no topo e cinco zonas: A, ciclo em oito estações com post-its cinza; B, vocabulário com post-its verdes do dado e amarelos do cliente; C, fluxo em três raias amarela, azul e verde com âncoras rosa; D, registro D1 a Dn em cartões rosa; E, teste em voz alta com post-its laranja.</desc>
 
@@ -715,7 +716,29 @@
       </div>
     </div>
 
-    <!-- SLIDE 22 - LEGENDA DE CORES -->
+    <!-- SLIDE 22 - COMO LER O PAINEL -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Miro &middot; Como ler o painel</span>
+          <h2 class="deck-title">O que cada zona precisa provar</h2>
+          <p class="deck-summary">O frame não é documentação da atividade: é o argumento do grupo exposto de uma vez só. Quem abre o frame de vocês refaz o raciocínio inteiro sem pedir explicação.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Zona</th><th>O que ela mostra</th><th>Está pronta quando</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Topo</strong></td><td>A afirmação máxima: a frase mais forte que o grupo se autoriza a dizer com o dado que tem</td><td>Nenhuma zona abaixo a contradiz &mdash; se contradiz, é a frase que se reescreve</td></tr>
+            <tr><td><strong>A</strong></td><td>O percurso do dado em oito estações e o que se perde em cada passagem</td><td>Cada passagem tem uma perda nomeada, não "nenhuma"</td></tr>
+            <tr><td><strong>B</strong></td><td>Os mesmos seis termos com duas definições: a do dado (verde) e a do cliente (amarelo)</td><td>Dá para apontar, nos seis, onde as duas não coincidem</td></tr>
+            <tr><td><strong>C</strong></td><td>Uma tarefa de decisão real correndo em três raias: usuário, interface e dado</td><td>Todo passo em que as raias discordam virou âncora rosa D1..Dn</td></tr>
+            <tr><td><strong>D</strong></td><td>O registro de cada âncora em oito campos e o suporte que ela exige</td><td>Dois suportes de custo baixo estão implementados no Metabase</td></tr>
+            <tr><td><strong>E</strong></td><td>A frase literal de quem leu a tela sem ajuda de vocês</td><td>A frase está entre aspas, como foi dita &mdash; não como vocês queriam ouvir</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 23 - LEGENDA DE CORES -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -737,7 +760,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 23 - REGRAS DO BOARD -->
+    <!-- SLIDE 24 - REGRAS DO BOARD -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -767,7 +790,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 24 - DADOS DO PROJETO -->
+    <!-- SLIDE 25 - DADOS DO PROJETO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -796,7 +819,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 25 - ETAPA 1 -->
+    <!-- SLIDE 26 - ETAPA 1 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -814,7 +837,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 26 - ETAPA 2 -->
+    <!-- SLIDE 27 - ETAPA 2 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -832,7 +855,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 27 - ETAPA 3 -->
+    <!-- SLIDE 28 - ETAPA 3 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -850,7 +873,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 28 - ETAPA 4 -->
+    <!-- SLIDE 29 - ETAPA 4 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -868,7 +891,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 29 - ETAPA 5 -->
+    <!-- SLIDE 30 - ETAPA 5 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -886,7 +909,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 30 - ENTREGA -->
+    <!-- SLIDE 31 - ENTREGA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -910,7 +933,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 31 - AVALIACAO -->
+    <!-- SLIDE 32 - AVALIACAO -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -930,7 +953,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 32 - PROXIMA -->
+    <!-- SLIDE 33 - PROXIMA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -954,6 +977,8 @@
       <a href="../../../../index.html" class="back-home">Hub</a>
       <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
       <a href="../material/material_aula_05_modelo_mental_e_ciclo_de_vida_do_dado.html" class="material-link">Material</a>
+      <a href="../quiz/quiz_aula_05.html" class="material-link">Quiz</a>
+      <a href="../quiz/painel_aula_05.html" class="material-link">Painel</a>
     </div>
     <div class="nav-wrapper">
       <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>

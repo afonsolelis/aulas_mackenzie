@@ -1,0 +1,100 @@
+/* Estrutura do quiz adaptada do aulas_senac. Tokens em slides.css. */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font-sans);
+       background: radial-gradient(1200px 700px at 15% -10%, var(--deck-text) 0%, var(--deck-text) 60%, var(--deck-text) 100%);
+       color: var(--deck-text); min-height: 100vh; display: flex; flex-direction: column; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 18px;
+         padding: 12px 26px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.marca { display: flex; align-items: center; gap: 12px; }
+.marca img { height: 30px; }
+.titulo { font-size: .95rem; font-weight: 700; }
+.titulo small { display: block; font-size: .64rem; font-weight: 600; letter-spacing: .1em;
+                text-transform: uppercase; color: var(--accent); }
+.medidores { display: flex; gap: 24px; }
+.medidor { text-align: right; }
+.medidor .n { font-size: 1.45rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
+.medidor .r { font-size: .62rem; font-weight: 600; letter-spacing: .09em;
+              text-transform: uppercase; color: var(--muted); }
+main { flex: 1 1 auto; padding: 22px 26px 40px; }
+h2 { font-size: .92rem; margin: 0 0 4px; font-weight: 700; letter-spacing: .05em;
+     text-transform: uppercase; color: var(--accent); }
+.legenda { font-size: .8rem; color: var(--muted); margin: 0 0 16px; line-height: 1.5; }
+
+.abas { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.aba { font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; border: none;
+       padding: 10px 18px; border-radius: 4px; color: var(--deck-text); background: var(--deck-surface); }
+.aba[aria-selected="true"] { background: linear-gradient(45deg, var(--secondary), var(--primary)); }
+[data-painel] { display: none; }
+[data-painel].ativo { display: block; }
+[data-conteudo] { display: none; }
+[data-conteudo].ativo { display: block; }
+
+/* Barras de desempenho */
+.item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.item-cab { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.item-cab .nome { font-weight: 700; font-size: 1rem; }
+.item-cab .meta { font-size: .74rem; color: var(--muted); font-weight: 600; }
+.item-cab .pct { margin-left: auto; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 1.15rem; }
+.barra { height: 10px; border-radius: 4px; background: var(--deck-surface); overflow: hidden; }
+.barra > i { display: block; height: 100%; border-radius: 4px; }
+.bom   { color: var(--bom); }      .bom   .barra > i { background: var(--bom); }
+.medio { color: var(--atencao); }  .medio .barra > i { background: var(--atencao); }
+.ruim  { color: var(--ruim); }     .ruim  .barra > i { background: var(--ruim); }
+
+/* Questões */
+.q-enunciado { font-size: .92rem; line-height: 1.5; color: var(--deck-text); margin: 8px 0 12px; }
+.alts { display: flex; flex-direction: column; gap: 5px; }
+.alt-linha { display: grid; grid-template-columns: 26px 1fr 74px; gap: 10px; align-items: center; font-size: .84rem; }
+.alt-linha .l { width: 26px; height: 26px; border-radius: 4px; display: grid; place-items: center;
+                font-weight: 700; font-size: .76rem; background: var(--deck-surface); }
+.alt-linha.certa .l { background: var(--bom); color: var(--ink); }
+.alt-linha.lider .l { background: var(--ruim); color: var(--ink); }
+.alt-barra { height: 22px; border-radius: 4px; background: var(--deck-surface);
+             position: relative; overflow: hidden; }
+.alt-barra > i { display: block; height: 100%; background: var(--deck-surface); }
+.alt-linha.certa .alt-barra > i { background: var(--deck-surface); }
+.alt-linha.lider .alt-barra > i { background: var(--deck-surface); }
+.alt-barra span { position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+                  font-size: .8rem; font-weight: 400; white-space: nowrap; overflow: hidden;
+                  text-overflow: ellipsis; max-width: calc(100% - 18px); }
+.alt-linha .n { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: .84rem; }
+.diagnostico { margin-top: 10px; font-size: .82rem; line-height: 1.5; padding: 10px 13px;
+               border-radius: 4px; border-left: 3px solid var(--ruim); background: var(--deck-surface); }
+.tempos { font-size: .74rem; color: var(--muted); font-weight: 600; margin-top: 8px; }
+
+/* Tabela de estudantes */
+table { width: 100%; border-collapse: collapse; font-size: .87rem; }
+th { text-align: left; font-size: .64rem; letter-spacing: .08em; text-transform: uppercase;
+     color: var(--muted); padding: 9px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 11px 10px; border-bottom: 1px solid var(--deck-surface); }
+td.num { font-variant-numeric: tabular-nums; font-weight: 700; }
+.tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.tag { font-size: .7rem; font-weight: 600; padding: 4px 9px; border-radius: 4px; background: var(--deck-surface); }
+.tag.ok { background: var(--deck-surface); }
+
+footer { padding: 14px 26px; border-top: 1px solid var(--line); display: flex; gap: 10px;
+         align-items: center; flex-wrap: wrap; background: var(--deck-surface); }
+button.acao { font: inherit; font-weight: 700; cursor: pointer; border: none; border-radius: 4px;
+              padding: 11px 18px; font-size: .85rem; color: var(--deck-panel);
+              background: linear-gradient(45deg, var(--secondary), var(--primary)); }
+a.link { color: var(--accent); font-size: .76rem; font-weight: 700; text-decoration: none;
+         padding: 8px 10px; border-radius: 4px; background: var(--deck-surface); white-space: nowrap; }
+footer .direita { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.auth { max-width: 440px; margin: 8vh auto; display: flex; flex-direction: column; gap: 14px; }
+.auth p { color: var(--muted); line-height: 1.55; margin: 0; font-size: .9rem; }
+input { width: 100%; padding: 14px 16px; font: inherit; font-size: 1rem; font-weight: 600;
+        border: 2px solid var(--line); border-radius: 4px;
+        background: var(--deck-surface); color: var(--deck-text); }
+input:focus { outline: none; border-color: var(--primary); }
+.aviso { color: var(--accent); font-size: .85rem; font-weight: 600; min-height: 1.1em; }
+/* Banco de perguntas (leitura do professor) */
+.gab-alt { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: start;
+           font-size: .86rem; margin-bottom: 6px; line-height: 1.45; }
+.gab-alt .l { width: 26px; height: 26px; border-radius: 4px; display: grid; place-items: center;
+              font-weight: 700; font-size: .76rem; background: var(--deck-surface); }
+.gab-alt.certa .l { background: var(--bom); color: var(--ink); }
+.gab-alt.certa { color: var(--bom); font-weight: 600; }
+.gab-explic { margin-top: 8px; font-size: .82rem; line-height: 1.5; padding: 10px 13px;
+              border-radius: 4px; border-left: 3px solid var(--bom); background: var(--deck-surface); }
+.vazio { color: var(--muted); font-size: .9rem; line-height: 1.6; }

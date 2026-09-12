@@ -1,0 +1,105 @@
+/* Identidade compartilhada: tokens canônicos de assets/slides.css. */
+.quiz-page {
+  --primary: var(--deck-text);
+  --secondary: var(--deck-text);
+  --deep: var(--deck-bg);
+  --ink: var(--deck-text);
+  --paper: var(--deck-panel);
+  --line: var(--deck-line);
+  --muted: var(--deck-muted);
+  --ok: var(--deck-text);
+  --erro: var(--deck-text);
+  --soft: var(--deck-surface);
+  --gradiente: var(--deck-text);
+  margin: 0;
+  background: var(--deck-bg);
+  color: var(--deck-text);
+  font-family: var(--font-sans);
+  font-size: 17px;
+}
+/* slides.css trava html/body em `height:100%; overflow:hidden` para o deck
+   ocupar a tela inteira. As páginas do quiz são documentos que rolam: no
+   celular a tela de entrada e a de pergunta passam da altura do aparelho, e
+   sem esta regra o fim do conteúdo fica inalcançável. */
+html.quiz-root, html.quiz-root > body.quiz-page {
+  height: auto;
+  overflow: visible;
+}
+/* Abaixo de 16px o Safari do iPhone dá zoom ao focar o campo e desalinha a
+   página inteira. O `max` preserva a escala tipográfica no desktop. */
+.quiz-page input, .quiz-page textarea, .quiz-page select {
+  font-size: max(1.05rem, 16px);
+}
+
+.quiz-page header.barra {
+  background: var(--deck-panel);
+  color: var(--deck-text);
+  border-bottom: 1px solid var(--deck-line);
+  flex-wrap: wrap;
+}
+.quiz-page header.barra img { height: 32px; width: auto; }
+.quiz-page main {
+  border: 1px solid var(--deck-line);
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(15,15,15,.04), 0 10px 28px rgba(15,15,15,.06);
+}
+.quiz-page .selo, .quiz-page .curso, .quiz-page label, .quiz-page button,
+.quiz-page .link, .quiz-page .quiz-nav { font-family: var(--font-mono); }
+.quiz-page .quiz-nav { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px; font-size: .75rem; }
+.quiz-page a { color: var(--deck-text); }
+.quiz-page .rodape a { color: var(--deck-panel); }
+.quiz-page button { border-radius: 4px; }
+.quiz-page button:focus-visible, .quiz-page a:focus-visible {
+  outline: 3px solid var(--deck-text);
+  outline-offset: 3px;
+}
+.quiz-page .alt.certa, .quiz-page .gab-alt.certa {
+  background: var(--deck-surface-2);
+  border: 2px solid var(--deck-text);
+}
+.quiz-page .alt.certa::after, .quiz-page .gab-alt.certa::after {
+  content: '✓';
+  margin-left: auto;
+  font-weight: 800;
+}
+.quiz-page .alt.errada { border-style: dashed; background: var(--deck-surface); }
+.quiz-page .alt.errada::after { content: '×'; margin-left: auto; font-weight: 800; }
+.quiz-page footer.controles { background: var(--deck-panel); border-top: 1px solid var(--deck-line); }
+.quiz-page .tabela-wrap { overflow-x: auto; }
+.quiz-page [hidden] { display: none !important; }
+@media (max-width: 600px) {
+  .quiz-page { font-size: 15px; }
+  .quiz-page main { padding: 18px 14px; }
+  .quiz-page header.barra img { height: 25px; }
+  .quiz-page footer { flex-wrap: wrap; }
+}
+.quiz-page {
+  --accent: var(--deck-text);
+  --bom: var(--deck-text);
+  --atencao: var(--deck-muted);
+  --ruim: var(--deck-text);
+}
+.quiz-page .aba { color: var(--deck-text); background: var(--deck-surface); }
+.quiz-page .aba[aria-selected="true"] { color: var(--deck-panel); background: var(--deck-text); }
+.quiz-page .alt-linha.certa .l, .quiz-page .alt-linha.lider .l,
+.quiz-page .gab-alt.certa .l { color: var(--deck-panel); }
+.quiz-page .alt-linha.certa .alt-barra > i,
+.quiz-page .alt-linha.lider .alt-barra > i { background: var(--deck-surface-2); }
+.quiz-page .op.certa { border-width: 3px; background: var(--deck-surface-2); }
+.quiz-page .op.certa::after { content: '✓'; font-weight: 800; }
+.quiz-page .revelado .op:not(.certa) { opacity: .7; }
+.quiz-page input { color: var(--deck-text); }
+.quiz-page .gab-alt { padding: 8px; }
+.quiz-page .gab-alt.certa { grid-template-columns: 26px 1fr auto; }
+@media (max-width: 700px) {
+  .quiz-page header { flex-wrap: wrap; padding: 12px 14px; }
+  .quiz-page .lobby { flex-direction: column; align-items: stretch; }
+  .quiz-page .qr-bloco { align-self: center; }
+  .quiz-page .grade-alt, .quiz-page .duas-colunas { grid-template-columns: 1fr; }
+  .quiz-page .pergunta h1 { font-size: 1.35rem; }
+  .quiz-page #tabela-alunos { overflow-x: auto; }
+}
+.quiz-page button.secundario { color: var(--deck-text); background: var(--deck-surface-2); }
+.quiz-page button:disabled { opacity: .6; }
+.quiz-page dialog.reiniciar { background: var(--deck-panel); color: var(--deck-text); }
+.quiz-page main { background: var(--deck-panel); }

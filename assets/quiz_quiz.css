@@ -1,0 +1,132 @@
+/* Estrutura do quiz adaptada do aulas_senac. Tokens em slides.css. */
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: var(--font-sans);
+  background: var(--deep); color: var(--ink);
+  min-height: 100vh; min-height: 100dvh;
+  display: flex; flex-direction: column;
+  -webkit-text-size-adjust: 100%;
+}
+header.barra {
+  background: var(--gradiente); color: var(--deck-panel); flex: 0 0 auto;
+  padding: 12px 18px calc(12px + env(safe-area-inset-top));
+  display: flex; align-items: center; gap: 12px;
+}
+header.barra img { height: 26px; }
+.barra .curso { font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+                text-transform: uppercase; opacity: .9; line-height: 1.3; }
+.barra .quem { margin-left: auto; font-size: .8rem; font-weight: 700; }
+main {
+  flex: 1 1 auto; background: var(--paper);
+  border-radius: 4px; padding: 22px 18px calc(28px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 16px;
+}
+[data-tela] { display: none; flex-direction: column; gap: 16px; flex: 1 1 auto; }
+[data-tela].ativa { display: flex; }
+
+h1 { font-size: 1.3rem; line-height: 1.25; margin: 0; font-weight: 700; }
+h2 { font-size: 1rem; margin: 0; font-weight: 700; }
+p  { margin: 0; line-height: 1.55; font-size: .93rem; color: var(--muted); }
+.selo {
+  display: inline-block; background: var(--soft); color: var(--primary);
+  border-radius: 4px; padding: 5px 13px; font-size: .72rem; font-weight: 700;
+  letter-spacing: .04em; text-transform: uppercase; align-self: flex-start;
+}
+label { font-size: .82rem; font-weight: 700; }
+input {
+  width: 100%; padding: 15px 16px; font: inherit; font-size: 1.05rem; font-weight: 600;
+  border: 2px solid var(--line); border-radius: 4px; background: var(--paper); color: var(--ink);
+}
+input:focus { outline: none; border-color: var(--primary); }
+button {
+  font: inherit; font-weight: 700; cursor: pointer; border: none; border-radius: 4px;
+  padding: 16px 18px; font-size: 1rem; color: var(--deck-panel);
+  background: linear-gradient(45deg, var(--secondary), var(--primary));
+}
+button:disabled { opacity: .5; cursor: default; }
+.aviso { font-size: .85rem; font-weight: 600; color: var(--erro); min-height: 1.1em; }
+
+/* Alternativas */
+.alternativas { display: flex; flex-direction: column; gap: 10px; }
+.alt {
+  display: flex; align-items: flex-start; gap: 12px; text-align: left;
+  background: var(--paper); color: var(--ink);
+  border: 2px solid var(--line); border-radius: 4px; padding: 14px 15px;
+  font-size: .95rem; font-weight: 500; line-height: 1.4; width: 100%;
+}
+.alt .letra {
+  flex: 0 0 28px; height: 28px; border-radius: 4px; background: var(--soft);
+  color: var(--primary); font-weight: 700; font-size: .85rem;
+  display: grid; place-items: center;
+}
+.alt[aria-pressed="true"] { border-color: var(--primary); background: var(--soft); }
+.alt.certa  { border-color: var(--ok);   background: var(--deck-surface-2); }
+.alt.errada { border-color: var(--erro); background: var(--deck-surface-2); }
+.alt.certa .letra  { background: var(--ok);   color: var(--deck-panel); }
+.alt.errada .letra { background: var(--erro); color: var(--deck-panel); }
+
+/* Cronômetro */
+.cronometro { display: flex; align-items: center; gap: 12px; }
+.trilha { flex: 1 1 auto; height: 9px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.barra-tempo { height: 100%; width: 100%; border-radius: 4px;
+               background: linear-gradient(45deg, var(--secondary), var(--primary));
+               transition: width .25s linear; }
+.segundos { font-variant-numeric: tabular-nums; font-weight: 700; font-size: 1rem;
+            min-width: 2.4ch; text-align: right; }
+
+/* Resultado */
+.veredito { border-radius: 4px; padding: 18px; text-align: center; }
+.veredito.acerto { background: var(--deck-surface-2); color: var(--deck-text); }
+.veredito.erro   { background: var(--deck-surface-2); color: var(--deck-text); }
+.veredito .titulo { font-size: 1.15rem; font-weight: 700; }
+.veredito .pontos { font-size: 2.1rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.explicacao { background: var(--soft); border-radius: 4px; padding: 14px; font-size: .88rem;
+              line-height: 1.55; color: var(--deep); font-weight: 500; }
+
+/* Ranking */
+.ranking { display: flex; flex-direction: column; gap: 6px; }
+.linha {
+  display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: center;
+  padding: 11px 13px; border-radius: 4px; background: var(--deck-text);
+  font-size: .92rem; font-weight: 600;
+}
+.linha.eu { background: var(--soft); border: 2px solid var(--primary); }
+.linha .pos { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+.linha .pts { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--primary); }
+
+.reforcar { background: var(--soft); border-radius: 4px; padding: 15px; }
+.reforcar h3 { margin: 0 0 4px; font-size: .9rem; font-weight: 700; color: var(--primary); }
+.reforcar p { font-size: .82rem; margin: 0 0 10px; }
+.reforcar ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.reforcar li { font-size: .86rem; font-weight: 600; color: var(--deep); line-height: 1.4; }
+.reforcar li span { font-weight: 400; color: var(--muted); }
+
+.rodape { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line);
+          display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.rodape a { text-decoration: none; font-size: .72rem; font-weight: 700; padding: 8px 10px;
+            border-radius: 4px; background: var(--deck-text); color: var(--deck-panel); white-space: nowrap; }
+.estado-conexao { font-size: .7rem; font-weight: 600; color: var(--muted); text-align: center; }
+.pulsa { animation: pulsa 1.6s ease-in-out infinite; }
+@keyframes pulsa { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
+[hidden] { display: none !important; }
+
+/* Regras da sala: questão de peso maior e strike por sair da aba */
+.regras { background: var(--deck-surface-2); border: 1px solid var(--deck-text); border-radius: 4px; padding: 13px 15px;
+          font-size: .84rem; line-height: 1.5; color: var(--deck-text); font-weight: 500; }
+.regras strong { color: var(--deck-text); }
+.selo.dobro { background: var(--ink); color: var(--deck-panel); }
+.strike { background: var(--deck-surface-2); color: var(--deck-text); border-radius: 4px; padding: 11px 13px;
+          font-size: .85rem; font-weight: 700; line-height: 1.45; }
+
+/* A pergunta segue à vista depois de responder e na revelação */
+.pergunta-eco { background: var(--deck-text); border-left: 3px solid var(--primary); border-radius: 4px;
+                padding: 12px 14px; font-size: .95rem; font-weight: 600; line-height: 1.4;
+                color: var(--ink); }
+.pergunta-eco .rot { display: block; font-size: .68rem; font-weight: 700; letter-spacing: .06em;
+                     text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+@media (min-width: 620px) {
+  body { align-items: center; }
+  main, header.barra { max-width: 620px; width: 100%; margin: 0 auto; }
+  main { border-radius: 4px; }
+  h1 { font-size: 1.5rem; }
+}
