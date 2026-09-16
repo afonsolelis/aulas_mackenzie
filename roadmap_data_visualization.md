@@ -30,7 +30,7 @@ Oito aulas, uma progressão única:
 08  Fechar e entregar             ateliê, rastreabilidade contra requisitos, entrega
 ```
 
-Cada aula produz artefatos verificáveis e um registro escrito no repositório do aluno. Nas aulas regulares, o artefato principal fica no **Metabase**; a Aula 03 produz uma visualização D3 e a Aula 04 produz scripts, dois bancos, dois HTMLs e reconciliações no Codespaces. Das Aulas 05 a 08 o artefato deixa de ser um exercício sobre o Olist e passa a ser uma peça do projeto do módulo: o fluxo anotado, a auditoria cruzada, a narrativa e a entrega final incidem sobre o mesmo painel, que cresce de aula em aula.
+Cada aula produz artefatos verificáveis e um registro escrito no repositório do aluno. Nas aulas regulares, o artefato principal fica no **Metabase**; a Aula 03 produz uma visualização D3, a Aula 04 produz scripts, dois bancos, dois HTMLs e reconciliações no Codespaces, e a Aula 06 transforma o fluxo anotado em um protótipo HTML de alta fidelidade com IA agêntica. Das Aulas 05 a 08 o artefato deixa de ser um exercício sobre o Olist e passa a ser uma peça do projeto do módulo: fluxo, protótipo, narrativa e entrega final incidem sobre o mesmo problema decisório.
 
 ### Método transversal C-D-P-V-D
 
@@ -186,7 +186,7 @@ Duas vias de acesso, com regimes de privacidade distintos:
 | Schema `pbl` no Metabase | 75 grupos de 15 turmas do ciclo 2026-1b | **Identificado**. Restrito ao ambiente da disciplina |
 
 A partir da Aula 05 esse conjunto deixa de ser apenas o material do projeto e passa a ser o
-objeto das aulas: o fluxo anotado, a auditoria cruzada e a narrativa incidem sobre ele.
+objeto das aulas: o fluxo anotado, o protótipo HTML auditado e a narrativa incidem sobre ele.
 
 O SQLite intermediário (`data/pbl_modulo2.sqlite`) contém os dados identificados e nunca
 é versionado. `tools/export_projeto_csv.py` é a fronteira entre ele e o material
@@ -253,7 +253,7 @@ As aulas combinam fundamentação, demonstração e prática. Duas são exceçõ
 
 ### Aula 06 — 19/09/2026 — Heurísticas e Vieses
 **Conceitual:** as duas famílias que dividem o nome "heurística" — a heurística de avaliação como instrumento deliberado de inspeção e a heurística cognitiva como atalho automático de julgamento; disponibilidade, representatividade, ancoragem e afeto; negligência da taxa-base, denominador ausente, regressão à média, viés de sobrevivência, padrão em ruído, enquadramento, recência e erro fundamental de atribuição; os vieses que o artefato produz — eixo truncado, coroplético sem normalização, corte de cauda longa sem prestação de contas, ordinal tratado como número contínuo, ranking de pessoas, cor semântica e precisão espúria; o viés do próprio autor na curadoria; as dez heurísticas da disciplina e a escala de severidade de `0` a `4`.
-**Prática:** bateria caça-viés sobre quatro artefatos preparados — um mapa de volume sem normalização, um "top 10 + outros" mudo, um ranking de commits por pessoa e uma série com eixo truncado; auditoria cruzada entre grupos, cada um inspecionando o painel de outro com as dez heurísticas; devolutiva com severidade e consequência; correção e reteste pelo grupo dono do painel; redação das contramedidas permanentes.
+**Prática:** conversão do fluxo anotado da Aula 05 em contrato de interface; construção de protótipo HTML de alta fidelidade com agente construtor; criação das skills `fluxo-para-interface`, `auditoria-heuristica` e `analise-antivies`; execução de fluxo agêntico com analista, construtor, auditores e corretor separados; consolidação por severidade, correção dos achados críticos e reteste humano da tarefa sem explicação prévia.
 **Artefato:** `docs/06_auditoria_heuristica_e_vieses.md` com os achados recebidos, o viés nomeado em cada um, a severidade, a correção aplicada e o resultado do reteste + a lista de contramedidas incorporadas ao painel.
 **Saída verificável:** o grupo apresenta pelo menos um achado de severidade `3` ou `4` que recebeu, mostra o painel antes e depois da correção e explica qual viés a versão anterior induzia em quem lia.
 

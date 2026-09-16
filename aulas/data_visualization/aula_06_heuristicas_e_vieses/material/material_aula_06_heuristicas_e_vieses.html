@@ -21,7 +21,7 @@
       <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
       <h1>Aula 06 — Heurísticas e Vieses</h1>
       <p class="meta">Aula 06 &middot; 19/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>A Aula 05 mapeou <em>onde</em> o usuário entende diferente do que o dado registra. Esta aula trata de <em>por que</em> ele entende diferente — os atalhos de julgamento que operam em quem lê — e de qual parte desse erro o próprio painel fabrica. A manhã termina com uma auditoria cruzada: cada grupo inspeciona o painel de outro com as dez heurísticas da disciplina, atribui severidade, e o grupo dono corrige e reteste antes de sair da sala.</p>
+      <p>A Aula 05 mapeou <em>onde</em> o usuário entende diferente do que o dado registra. Esta aula trata de <em>por que</em> ele entende diferente — os atalhos de julgamento que operam em quem lê — e transforma o fluxo anotado em um protótipo HTML de alta fidelidade. Na segunda parte, agentes com papéis separados extraem o contrato, implementam, auditam e corrigem; um leitor humano retesta a decisão antes de o grupo encerrar o achado.</p>
     </header>
 
     <article class="material">
@@ -214,138 +214,204 @@
       </section>
 
       <section class="content-block">
-        <h2>10. Prática — bateria caça-viés e auditoria cruzada</h2>
-        <p>A prática recomeça às 10h20, depois do intervalo, e abre com dez minutos de direcionamento: o professor percorre os entregáveis da manhã, a ordem das cinco etapas e o gate de saída de cada uma, antes que qualquer grupo abra o painel de outro.</p>
-        <p>A prática ocorre no Metabase hospedado pelo professor, sobre o conjunto do projeto do módulo — o rastro de trabalho PBL da turma T28, grupos G01 a G03, pseudonimizado. O Olist permanece disponível apenas como fonte de contraexemplos: o mapa de volume por UF e o corte de categorias são convenientes justamente por serem casos limpos. O painel auditado é o do projeto.</p>
+        <h2>10. Prática — do fluxo anotado ao protótipo HTML</h2>
+        <p>A segunda parte começa às 10h20 e usa como entrada o <code>docs/05_fluxo_de_interacao_anotado.md</code>, o frame do grupo no Miro e o painel do projeto no Metabase. O Metabase continua sendo fonte de evidência e referência do estado atual; o artefato produzido hoje é um protótipo HTML de alta fidelidade, versionado no repositório do grupo.</p>
+        <p>Alta fidelidade não significa acabamento decorativo. Significa proximidade do comportamento final: conteúdo plausível, hierarquia de informação, navegação, filtros, estados alternativos, responsividade, acessibilidade e suporte explícito à decisão. O protótipo precisa permitir que alguém execute a tarefa registrada no fluxo sem receber explicação oral.</p>
 
-        <h3>Etapa 1 — Bateria caça-viés (20 minutos)</h3>
-        <p>Quatro artefatos preparados pelo professor circulam pela sala. Cinco minutos por artefato, escrita individual antes de qualquer discussão: a discussão em grupo antes da escrita produz convergência prematura e apaga os achados de quem viu primeiro.</p>
-        <ol class="steps">
-          <li>Abra o primeiro artefato — <strong>mapa de volume por região sem normalização</strong>. Escreva a leitura falsa que ele torna fácil, em uma frase, na voz do orientador.</li>
-          <li>Passe ao <strong>"top 10 + outros" mudo</strong>. Estime quanto do total ficou invisível e escreva como você verificaria essa estimativa no dado.</li>
-          <li>Passe ao <strong>ranking de commits por pessoa</strong>. Aponte os dois vieses que se somam nele e diga qual restrição do projeto ele viola.</li>
-          <li>Passe à <strong>série com eixo truncado</strong>. Descreva a diferença aparente e a diferença real entre as duas primeiras barras.</li>
-          <li>Para cada artefato, registre heurística violada (pelo número), severidade e a correção de menor custo que fecharia o achado.</li>
-          <li>Só então abra a discussão. Compare as severidades atribuídas e discuta as divergências — elas são mais informativas que os consensos.</li>
-        </ol>
-
-        <h3>Etapa 2 — Auditoria cruzada (35 minutos)</h3>
-        <p>Os grupos são pareados. Cada grupo recebe, do outro, o acesso à coleção no Metabase, o <code>docs/05_fluxo_de_interacao_anotado.md</code> produzido na Aula 05 e o link do frame do grupo no board Miro daquela aula. O grupo dono não permanece ao lado explicando.</p>
-        <ol class="steps">
-          <li>Leia a tarefa de decisão declarada pelo grupo dono no fluxo anotado. Toda a auditoria acontece dentro dessa tarefa; achados fora dela vão para uma seção separada.</li>
-          <li>Percorra as dez heurísticas em ordem, uma passagem por heurística. Não pule para a próxima com a anterior em aberto.</li>
-          <li>Registre apenas o que você consegue apontar na tela. Descreva antes de interpretar: primeiro o que se vê, depois o que isso induz.</li>
-          <li>Atribua severidade pela decisão afetada. Escreva a decisão junto com o grau — sem ela, o grau não é defensável.</li>
-          <li>Verifique explicitamente os sete vieses de artefato da seção 8; eles são os mais frequentes e os mais fáceis de deixar passar por familiaridade.</li>
-          <li>Confira as restrições do projeto: unidade de saída é o grupo, nenhum ranking de pessoas, nenhum veredito, rastreabilidade até a linha de origem.</li>
-          <li>Marque ao menos um achado que você considera <code>3</code> ou <code>4</code>. Se não encontrou nenhum, revise a heurística 1 e a 10 antes de concluir.</li>
-        </ol>
-
-        <h3>Etapa 3 — Devolutiva com severidade (20 minutos)</h3>
-        <p>Dez minutos para cada lado da dupla. A devolutiva é entregue por escrito e depois lida em voz alta, na ordem de severidade decrescente.</p>
-        <ol class="steps">
-          <li>Comece pelo achado de maior severidade, não pelo mais fácil de explicar.</li>
-          <li>Leia a evidência sem adjetivo: o que está na tela, e onde.</li>
-          <li>Nomeie o viés que a codificação atual induz em quem lê — cognitivo, de artefato, ou ambos.</li>
-          <li>Declare a decisão do orientador que mudaria por causa dele.</li>
-          <li>Proponha a correção de menor custo que fecha o achado, e diga como ela seria retestada.</li>
-          <li>O grupo dono só faz perguntas de esclarecimento. Defesa e discordância ficam registradas por escrito e entram no dossiê, mas não interrompem a devolutiva.</li>
-        </ol>
-
-        <h3>Etapa 4 — Correção e reteste (20 minutos)</h3>
-        <p>O painel volta às mãos de quem o construiu. Correção sem reteste não fecha achado — a correção é uma hipótese sobre o efeito, e o reteste é o teste dela.</p>
-        <ol class="steps">
-          <li>Ordene os achados recebidos por severidade e comece pelo topo.</li>
-          <li>Preserve o estado anterior antes de mexer: duplique a pergunta com um sufixo, ou registre uma captura. Sem o "antes" não há demonstração de correção.</li>
-          <li>Corrija no Metabase pelo menos um achado de severidade <code>3</code> ou <code>4</code>.</li>
-          <li>Chame um leitor que não participou da correção — de preferência de um terceiro grupo — e peça a leitura em voz alta, sem explicação prévia.</li>
-          <li>Anote a frase literal do reteste. Se a leitura errada persistir, o achado continua aberto e a correção precisa mudar de natureza, não de intensidade.</li>
-          <li>Registre também os achados que você decidiu <em>não</em> corrigir, com a razão declarada. Um achado recusado com razão escrita é trabalho; um achado ignorado é lacuna.</li>
-        </ol>
-
-        <h3>Etapa 5 — Contramedidas permanentes (5 minutos)</h3>
-        <p>Correção resolve um cartão. Contramedida impede que o mesmo erro reapareça no próximo cartão que o grupo criar — inclusive nas Aulas 07 e 08, quando o painel cresce.</p>
+        <h3>10.1 Etapa 1 — Extrair o contrato de interface</h3>
+        <p>O fluxo anotado descreve ações, estados, evidências e divergências. O contrato converte essas anotações em decisões implementáveis. Crie <code>CONTRATO.md</code> e, para cada passo relevante, preencha:</p>
         <table>
-          <thead><tr><th>É contramedida</th><th>Não é</th></tr></thead>
+          <thead><tr><th>Campo</th><th>Pergunta operacional</th></tr></thead>
           <tbody>
-            <tr><td>"Todo gráfico de proporção declara a base no eixo"</td><td>"Vamos tomar mais cuidado"</td></tr>
-            <tr><td>"Nenhum eixo de barras começa fora do zero"</td><td>"Explicamos isso na apresentação"</td></tr>
-            <tr><td>"Cor nunca é o único portador da informação"</td><td>"Quem usa o painel já sabe disso"</td></tr>
-            <tr><td>"Todo top N mostra a cobertura do total"</td><td>"Depois a gente ajusta"</td></tr>
-            <tr><td>"Nenhuma tela ordena pessoas por volume"</td><td>"Só usamos internamente"</td></tr>
+            <tr><td>Tarefa</td><td>O que o leitor tenta decidir neste ponto?</td></tr>
+            <tr><td>Entrada</td><td>Que ação, filtro ou seleção inicia o passo?</td></tr>
+            <tr><td>Evidência</td><td>Que dado sustenta a decisão, com qual unidade, base e período?</td></tr>
+            <tr><td>Estado</td><td>O que aparece em condição normal, vazia, carregando e com erro?</td></tr>
+            <tr><td>Divergência</td><td>Qual leitura indevida foi observada na Aula 05?</td></tr>
+            <tr><td>Contramedida</td><td>Que elemento interrompe essa leitura antes que ela vire decisão?</td></tr>
+            <tr><td>Aceite</td><td>Que comportamento observável demonstra que o passo funciona?</td></tr>
           </tbody>
         </table>
-        <p>Uma contramedida boa é verificável por um estranho em menos de um minuto e não depende da memória de quem escreveu. Escreva de três a cinco; mais que isso vira documento decorativo.</p>
+        <p>Quando o fluxo não trouxer resposta, não deixe o agente preencher por plausibilidade. Use <code>[DECISÃO PENDENTE]</code>. Uma lacuna visível é mais segura que uma regra inventada com boa aparência.</p>
+
+        <h3>10.2 Prompt para extrair o contrato</h3>
+        <pre><code>Você é o analista de interface desta rodada. Não edite HTML.
+
+Leia docs/05_fluxo_de_interacao_anotado.md e as divergências D1..Dn.
+Converta o fluxo em CONTRATO.md. Para cada passo, registre:
+tarefa de decisão, ação do usuário, estado do sistema, evidência necessária,
+unidade/denominador/período, divergência observada, suporte preventivo e
+critério de aceite verificável.
+
+Regras:
+- não invente métrica, dado, público ou regra de negócio;
+- marque ausências como [DECISÃO PENDENTE] e explique o impacto;
+- ligue cada componente proposto a uma tarefa e a uma evidência;
+- verifique taxa-base, denominador, rastreabilidade e unidade de análise;
+- preserve a unidade de saída no grupo; não crie ranking de pessoas.
+
+Termine com: mapa de telas, estados obrigatórios, decisões pendentes e
+checklist de aceite. Pare antes de implementar.</code></pre>
+
+        <h3>10.3 Etapa 2 — Construir com IA agêntica</h3>
+        <p>O agente construtor recebe o contrato, não apenas o pedido “faça um dashboard”. A diferença é causal: sem contrato, a IA completa lacunas pela aparência mais provável; com contrato, ela precisa justificar cada componente pelo trabalho que realiza.</p>
+        <pre><code>Leia FLUXO.md e CONTRATO.md integralmente antes de editar.
+Construa um protótipo de alta fidelidade em HTML, CSS e JavaScript puros.
+
+Requisitos:
+- uma página principal navegável e responsiva;
+- HTML semântico, foco visível, teclado e contraste adequado;
+- estados normal, vazio, carregando e erro;
+- conteúdo plausível, sempre identificado como demonstração;
+- unidade, denominador, período e fonte próximos de cada métrica;
+- detalhes rastreáveis até a evidência de origem;
+- nenhuma cor como único portador de significado;
+- nenhum ranking de pessoas ou veredito automático;
+- nenhum dado, cálculo ou regra ausente no contrato deve ser inventado.
+
+Antes de editar, devolva entendimento, plano de arquivos e bloqueios.
+Depois de implementar, teste cada critério de aceite e registre em ANALISE.md:
+o que foi atendido, o que não foi verificável e quais decisões seguem abertas.</code></pre>
       </section>
 
       <section class="content-block">
-        <h2>11. O artefato da aula</h2>
-        <p>O registro escrito é <code>docs/06_auditoria_heuristica_e_vieses.md</code>, no repositório do aluno (<code>olist-dataviz/docs/</code>). Ele documenta os achados <em>recebidos</em> — não os que o grupo encontrou em si mesmo — e o que foi feito com cada um.</p>
-        <table>
-          <thead><tr><th>Campo</th><th>O que preencher</th></tr></thead>
-          <tbody>
-            <tr><td>Identificador</td><td><code>A1..An</code>, com o grupo auditor</td></tr>
-            <tr><td>Elemento</td><td>Qual pergunta ou cartão do painel, nomeado como está no Metabase</td></tr>
-            <tr><td>Evidência</td><td>O que se vê, descrito sem interpretação</td></tr>
-            <tr><td>Heurística</td><td>Uma das dez, pelo número</td></tr>
-            <tr><td>Viés induzido</td><td>Cognitivo, de artefato, ou ambos, nomeado</td></tr>
-            <tr><td>Severidade</td><td><code>0</code> a <code>4</code>, com a decisão que a justifica</td></tr>
-            <tr><td>Correção aplicada</td><td>A mudança concreta e onde ela ficou na tela</td></tr>
-            <tr><td>Reteste</td><td>Quem leu depois, e a frase literal do que disse</td></tr>
-            <tr><td>Estado</td><td>Fechado, aberto com prazo, ou recusado com razão</td></tr>
-          </tbody>
-        </table>
-        <p>O documento fecha com a seção de contramedidas: a lista de regras permanentes incorporadas ao painel, cada uma com o achado que a originou.</p>
+        <h2>11. Skills para as análises</h2>
+        <p>Prompt resolve uma execução. Skill estabiliza uma forma de trabalhar que será reutilizada. Uma skill útil não diz apenas “seja um especialista”; ela define quando agir, quais artefatos ler, que critérios aplicar, qual saída produzir e quando parar. Os três modelos abaixo podem ser salvos como <code>SKILL.md</code> em pastas separadas no ambiente agêntico usado pelo grupo.</p>
 
-        <h3>11.1 Saída verificável</h3>
-        <p>O grupo apresenta pelo menos um achado de severidade <code>3</code> ou <code>4</code> que <em>recebeu</em>, mostra o painel antes e depois da correção e explica qual viés a versão anterior induzia em quem lia. Os três elementos são obrigatórios: o achado sem o antes e depois não demonstra correção; o antes e depois sem a nomeação do viés não demonstra entendimento.</p>
+        <h3>11.1 Skill <code>fluxo-para-interface</code></h3>
+        <pre><code>---
+name: fluxo-para-interface
+description: Converte um fluxo de interação anotado em contrato verificável de interface. Use antes de prototipar; não use para decidir estética ou implementar HTML.
+---
 
-        <h3>11.2 Como este trabalho é avaliado</h3>
-        <table>
-          <thead><tr><th>Critério</th><th>O que se espera</th></tr></thead>
-          <tbody>
-            <tr><td>Evidência</td><td>Cada achado aponta o elemento na tela, descrito antes de interpretado</td></tr>
-            <tr><td>Nomeação</td><td>O viés induzido tem nome e a heurística violada tem número</td></tr>
-            <tr><td>Severidade justificada</td><td>O grau vem da decisão afetada, não do incômodo do avaliador</td></tr>
-            <tr><td>Correção verificável</td><td>Antes e depois existem no painel, não na intenção</td></tr>
-            <tr><td>Reteste independente</td><td>Há a frase literal de quem leu depois da correção</td></tr>
-            <tr><td>Contramedida</td><td>Regra permanente escrita, verificável e aplicável a cartões futuros</td></tr>
-            <tr><td>Participação na auditoria</td><td>A devolutiva entregue ao outro grupo é utilizável e está registrada</td></tr>
-          </tbody>
-        </table>
+# Fluxo para interface
+
+Leia o fluxo anotado, as divergências e as restrições do projeto.
+Para cada passo, extraia tarefa, ação, estado, evidência, decisão e aceite.
+Ligue toda sugestão de componente a uma evidência do fluxo.
+
+Não invente requisito. Marque lacunas como `[DECISÃO PENDENTE]`, com impacto.
+Cheque unidade de análise, denominador, período, fonte e rastreabilidade.
+
+Produza `CONTRATO.md` com mapa de telas, matriz passo→componente,
+estados normal/vazio/carregando/erro e checklist de aceite.
+Pare antes de alterar código.</code></pre>
+
+        <h3>11.2 Skill <code>auditoria-heuristica</code></h3>
+        <pre><code>---
+name: auditoria-heuristica
+description: Audita protótipos de dados pelas dez heurísticas da disciplina, com evidência e severidade. Use depois de existir uma versão navegável; não use para revisar gosto visual.
+---
+
+# Auditoria heurística
+
+Leia o contrato e percorra a tarefa principal no protótipo.
+Aplique as dez heurísticas em ordem, uma passagem por heurística.
+Descreva o que está na tela antes de interpretar.
+
+Para cada achado registre: id, elemento, evidência, heurística, decisão
+afetada, severidade 0–4, correção mínima e método de reteste.
+Se não houver evidência suficiente, marque `não verificável`.
+
+Ordene por severidade. Não altere o protótipo durante a auditoria.
+Produza `docs/06_auditoria_heuristica.md` e pare.</code></pre>
+
+        <h3>11.3 Skill <code>analise-antivies</code></h3>
+        <pre><code>---
+name: analise-antivies
+description: Examina interfaces analíticas em busca de vieses cognitivos e vieses fabricados pela visualização. Use para revisar métricas, recortes e codificações; não use para inferir intenção do autor.
+---
+
+# Análise antiviés
+
+Inspecione cada afirmação visual e pergunte:
+1. Qual é a taxa-base e o denominador?
+2. O recorte exclui casos que mudariam a conclusão?
+3. Ordem, escala, cor ou enquadramento ancoram uma leitura?
+4. Há regressão à média, padrão em ruído ou sobrevivência?
+5. Top N, ordinal ou precisão numérica ocultam a distribuição?
+6. A interface transforma descrição em veredito sobre pessoas?
+
+Registre somente achados apontáveis no artefato. Para cada um, forneça
+leitura induzida, evidência, decisão afetada, severidade e contramedida.
+Produza `docs/06_analise_antivies.md`. Não edite o HTML.</code></pre>
       </section>
 
       <section class="content-block">
-        <h2>12. Roteiro de execução em sala</h2>
+        <h2>12. Fluxo agêntico de análise, correção e reteste</h2>
+        <p>O fluxo usa papéis separados porque o construtor tende a explicar a própria intenção, enquanto o leitor só encontra o que ficou na tela. Separação de papéis reduz confirmação; não elimina responsabilidade. O grupo continua decidindo o que entra, o que sai e o que pode ser afirmado.</p>
+        <ol class="steps">
+          <li><strong>Analista</strong> — executa <code>fluxo-para-interface</code>, produz o contrato e não altera código.</li>
+          <li><strong>Construtor</strong> — implementa o HTML a partir do contrato e registra decisões pendentes.</li>
+          <li><strong>Auditor heurístico</strong> — recebe fluxo, contrato e protótipo, mas não a justificativa oral do construtor.</li>
+          <li><strong>Auditor antiviés</strong> — procura mecanismos de julgamento indevido e produz relatório independente.</li>
+          <li><strong>Corretor</strong> — consolida relatórios sem apagar divergências, corrige primeiro severidade <code>4</code> e depois <code>3</code>.</li>
+          <li><strong>Leitor humano</strong> — executa a tarefa do fluxo sem explicação prévia; sua frase literal e seu caminho encerram ou reabrem o achado.</li>
+        </ol>
+
+        <h3>12.1 Prompt do orquestrador</h3>
+        <pre><code>Conduza esta rodada com papéis separados e preserve todas as saídas.
+
+1. Analista: execute fluxo-para-interface e pare em CONTRATO.md.
+2. Construtor: implemente o protótipo conforme o contrato.
+3. Auditor A: execute auditoria-heuristica sem editar arquivos do protótipo.
+4. Auditor B: execute analise-antivies sem ler a defesa do construtor.
+5. Consolidador: una achados equivalentes, preserve discordâncias e ordene
+   por severidade. Não reduza severidade sem indicar evidência nova.
+6. Corretor: preserve a versão anterior e corrija os achados 4 e 3.
+7. Verificador: repita as duas auditorias e compare antes/depois.
+
+Pare antes de declarar sucesso. Entregue ao grupo o roteiro de reteste humano,
+com tarefa, ponto de partida, comportamento observado e critério de fechamento.</code></pre>
+
+        <h3>12.2 Prompt de correção</h3>
+        <pre><code>Leia os dois relatórios de auditoria e o CONTRATO.md.
+Não corrija por volume de comentários; corrija por severidade da decisão.
+Preserve a versão anterior. Para cada achado 4 ou 3:
+- confirme a evidência no HTML;
+- aplique a menor mudança que interrompe a leitura indevida;
+- mantenha rastreabilidade ao passo do fluxo;
+- atualize ANALISE.md com antes, depois e limite da correção;
+- rode novamente os critérios de aceite.
+
+Não feche o achado. Marque-o como `aguardando reteste humano`.</code></pre>
+      </section>
+
+      <section class="content-block">
+        <h2>13. Artefatos, agenda e orientação para a prática</h2>
         <table>
           <thead><tr><th>Horário</th><th>Ação</th><th>Gate</th></tr></thead>
           <tbody>
-            <tr><td>8h30–8h45</td><td>Recap da Aula 05 e abertura: as duas famílias de heurística</td><td>Cada grupo apresenta uma divergência <code>D</code> registrada</td></tr>
-            <tr><td>8h45–9h05</td><td>As dez heurísticas, a escala de severidade e a anatomia da crítica válida</td><td>Cada grupo classifica um achado de exemplo</td></tr>
-            <tr><td>9h05–9h35</td><td>Atalhos cognitivos: disponibilidade, representatividade, ancoragem, afeto</td><td>Um exemplo do próprio painel para cada atalho</td></tr>
-            <tr><td>9h35–10h00</td><td>Vieses de julgamento e os sete vieses que o artefato fabrica</td><td>Mapa, cauda longa e ordinal identificados no painel do grupo</td></tr>
+            <tr><td>8h30–8h45</td><td>Recap da Aula 05 e duas famílias de heurística</td><td>Uma divergência <code>D</code> explicada por grupo</td></tr>
+            <tr><td>8h45–9h10</td><td>Dez heurísticas, severidade e crítica válida</td><td>Um achado classificado com decisão afetada</td></tr>
+            <tr><td>9h10–9h35</td><td>Disponibilidade, representatividade, ancoragem e afeto</td><td>Mecanismo identificado em exemplos</td></tr>
+            <tr><td>9h35–10h00</td><td>Vieses de julgamento e do artefato</td><td>Denominador, enquadramento e curadoria revisados</td></tr>
             <tr><td>10h00–10h20</td><td><strong>Intervalo</strong></td><td>—</td></tr>
-            <tr><td>10h20–10h30</td><td>Direcionamento da atividade: entregáveis, ordem das etapas e gates</td><td>cada grupo sabe o que precisa sair pronto às 12h10</td></tr>
-            <tr><td>10h30–10h50</td><td>Etapa 1 — bateria caça-viés sobre os quatro artefatos</td><td>Quatro achados escritos por pessoa, com severidade</td></tr>
-            <tr><td>10h50–11h25</td><td>Etapa 2 — auditoria cruzada com as dez heurísticas</td><td>Ao menos um achado <code>3</code> ou <code>4</code> registrado</td></tr>
-            <tr><td>11h25–11h45</td><td>Etapa 3 — devolutiva com severidade e consequência</td><td>Devolutiva escrita entregue ao grupo dono</td></tr>
-            <tr><td>11h45–12h05</td><td>Etapa 4 — correção e reteste no Metabase</td><td>Antes e depois preservados; frase literal do reteste anotada</td></tr>
-            <tr><td>12h05–12h10</td><td>Etapa 5 — contramedidas e fechamento do registro</td><td><code>docs/06_auditoria_heuristica_e_vieses.md</code> commitado</td></tr>
+            <tr><td>10h20–10h35</td><td>Fluxo anotado → contrato de interface</td><td><code>CONTRATO.md</code> sem lacunas ocultas</td></tr>
+            <tr><td>10h35–11h10</td><td>Construção do protótipo HTML com agente</td><td>Tarefa principal navegável em desktop e mobile</td></tr>
+            <tr><td>11h10–11h25</td><td>Criação e execução das três skills</td><td>Relatórios independentes produzidos</td></tr>
+            <tr><td>11h25–11h45</td><td>Consolidação e correção dos achados 4 e 3</td><td>Antes e depois preservados</td></tr>
+            <tr><td>11h45–12h05</td><td>Reteste humano do fluxo</td><td>Frase literal, caminho e decisão registrados</td></tr>
+            <tr><td>12h05–12h10</td><td>Fechamento e commit</td><td>Protótipo e rastro de decisão versionados</td></tr>
           </tbody>
         </table>
-        <div class="note">
-          <strong>Preparação para a Aula 07 — Storytelling com Dados</strong>
-          <p>Traga o painel auditado e corrigido, a lista de contramedidas e os achados que você decidiu não corrigir. Estes últimos reaparecem na próxima aula como a limitação que a história precisa declarar: uma narrativa honesta não omite o que a evidência não sustenta.</p>
-        </div>
-      </section>
 
-      <section class="content-block">
-        <h2>13. Orientação para a prática em sala</h2>
-        <p>A disciplina é 100% prática e não há lista de exercícios escritos. O trabalho de hoje acontece no Metabase hospedado pelo professor, sobre o conjunto do projeto do módulo, e produz um registro versionado no repositório do grupo.</p>
-        <p>Antes de começar, confirme três condições. Primeiro, que o painel do grupo esteja acessível na coleção correta e em estado apresentável — um painel incompleto não pode ser auditado com justiça. Segundo, que o <code>docs/05_fluxo_de_interacao_anotado.md</code> esteja disponível junto com ele: sem a tarefa de decisão declarada, o grupo auditor inventa a própria tarefa e a auditoria perde o alvo. Terceiro, que a regra de convivência da instância seja respeitada — auditar significa ler e anotar, nunca editar o trabalho alheio; se precisar experimentar uma correção no painel de outro grupo, duplique a pergunta na sua própria coleção.</p>
-        <p>Durante a auditoria, a disciplina de escrita é o que separa uma devolutiva utilizável de uma conversa. Descreva antes de interpretar. Aponte o elemento pelo nome que ele tem no Metabase. Escreva a decisão afetada junto com a severidade. Nenhum achado entra no registro sem os seis campos da seção 5 preenchidos.</p>
-        <p>Durante a correção, resista a duas tentações. A primeira é corrigir o achado mais fácil primeiro para ter algo pronto: a ordem é por severidade. A segunda é considerar o achado fechado porque a correção foi implementada: o achado fecha quando um leitor independente lê a tela corrigida e não reproduz a leitura errada. Se ele reproduzir, a correção precisa mudar de natureza — não adianta aumentar a fonte da nota de rodapé que ninguém leu.</p>
-        <p>Ao final, faça o commit do registro com os achados recebidos, as correções, os retestes e as contramedidas. O painel corrigido e as contramedidas escritas entram diretamente na Aula 07, quando o conjunto de respostas corretas precisará virar uma história de doze minutos.</p>
+        <h3>13.1 Entrega verificável</h3>
+        <ul>
+          <li><code>CONTRATO.md</code> ligado ao fluxo anotado da Aula 05;</li>
+          <li><code>index.html</code> com CSS e JavaScript necessários ao protótipo;</li>
+          <li>as três skills no ambiente agêntico do grupo;</li>
+          <li><code>docs/06_auditoria_heuristica.md</code> e <code>docs/06_analise_antivies.md</code>;</li>
+          <li><code>ANALISE.md</code> com prompts, decisões pendentes, antes/depois e reteste.</li>
+        </ul>
+
+        <h3>13.2 Critérios de avaliação</h3>
+        <p>O protótipo é avaliado pela cadeia completa, não pela aparência isolada: aderência ao fluxo, qualidade do contrato, comportamento navegável, evidência próxima da decisão, prevenção de vieses, acessibilidade, independência das auditorias e reteste humano. O grupo precisa demonstrar um fluxo completo e ao menos um achado de severidade <code>3</code> ou <code>4</code> corrigido.</p>
+
+        <div class="note">
+          <strong>Orientação final</strong>
+          <p>A atividade é prática e não termina em uma lista de perguntas. Comece pelos arquivos da Aula 05, mantenha o painel do Metabase aberto como fonte de evidência e use dados pseudonimizados no HTML. Não cole credenciais, dados identificados ou segredos em prompts. Ao final, o protótipo auditado entra na Aula 07 como base do storytelling: a narrativa deve nascer de uma interface que já sabe o que pode e o que não pode afirmar.</p>
+        </div>
       </section>
 
     </article>

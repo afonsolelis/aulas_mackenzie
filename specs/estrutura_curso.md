@@ -73,7 +73,7 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 - Aulas noturnas ocorrem das `19h00` às `22h00`; aulas de sábado de Data Collection and Storage e Data Visualization ocorrem das `8h30` às `12h10`.
 - O bloco inicial da aula é sempre teórico, exceto na Aula 04 de Data Visualization. Nela, a aula é 100% prática e os conceitos aparecem durante a execução guiada no terminal.
 - O restante da aula é reservado à prática, conforme os intervalos publicados no cronograma e na agenda.
-- O ambiente prático varia por disciplina: Cloud Computing e SRE e Data Collection and Storage usam o `AWS Student Lab`; Data Visualization usa a instância `Metabase` hospedada nas aulas regulares. A Aula 03 usa `GitHub Codespaces`, `D3` e assistência de IA sobre uma API segura; a Aula 04 usa Codespaces e OpenCode Zen para transformar arquivos Excel em SQLite e DuckDB e gerar relatórios HTML reproduzíveis.
+- O ambiente prático varia por disciplina: Cloud Computing e SRE e Data Collection and Storage usam o `AWS Student Lab`; Data Visualization usa a instância `Metabase` hospedada nas aulas regulares. A Aula 03 usa `GitHub Codespaces`, `D3` e assistência de IA sobre uma API segura; a Aula 04 usa Codespaces e OpenCode Zen para transformar arquivos Excel em SQLite e DuckDB e gerar relatórios HTML reproduzíveis; a Aula 05 registra fluxos e divergências no Miro; e a Aula 06 usa o Metabase como fonte de evidência para construir e auditar um protótipo HTML de alta fidelidade com IA agêntica e skills de análise.
 
 ---
 
