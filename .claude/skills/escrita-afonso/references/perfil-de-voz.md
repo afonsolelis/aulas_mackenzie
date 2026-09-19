@@ -2,7 +2,7 @@
 
 ## Fonte e finalidade
 
-Perfil autoral já presente no projeto, agora vinculado à dissertação local [Afonso Cesar Lelis Brandao.pdf](../../../../escrita/Afonso%20Cesar%20Lelis%20Brandao.pdf), com atenção à introdução, objetivos, justificativa, metodologia, resultados, discussão e conclusão. A fonte revela a identidade argumentativa do autor; não deve ser imitada em seus erros gramaticais ou em convenções editoriais superadas.
+Perfil autoral já presente no projeto, agora vinculado à dissertação local [Afonso Cesar Lelis Brandao.pdf](../../../../../tese/escrita/Afonso%20Cesar%20Lelis%20Brandao.pdf) (projeto irmão `tese`), com atenção à introdução, objetivos, justificativa, metodologia, resultados, discussão e conclusão. A fonte revela a identidade argumentativa do autor; não deve ser imitada em seus erros gramaticais ou em convenções editoriais superadas.
 
 ## Marcas centrais
 

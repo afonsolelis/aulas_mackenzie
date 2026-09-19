@@ -98,3 +98,6 @@ Short imperative commits. Example: `Remove minicurso section from index.html`.
 ## QA Review
 
 Run `*review` via the QA agent before significant changes: `curl -s <deployed-url>` to verify the deployed site matches local changes. Wait ~30s for GitHub Pages rebuild after push.
+## Escrita (obrigatório)
+
+Todo texto destinado ao aluno (slides, materiais, páginas, quizzes, atividades) segue as skills `escrita-afonso` e `humanizacao`, em `.claude/skills/`. Aplique-as já na redação, e não só numa revisão posterior. Evite linguagem de rede social: título em forma de aforismo, travessão como conector, "não é X, é Y", negrito na prosa, setas decorativas e frases de efeito no fechamento. Títulos de slide devem ser descritivos e curtos, cabendo em uma linha na projeção. Preserve números, fatos, código e prompts.

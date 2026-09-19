@@ -78,3 +78,7 @@ Use the appropriate sub-agent when creating or reviewing slides, materials, or v
 - Consistent typography, spacing, and card patterns across all pages
 - Responsive layout (desktop and mobile)
 - Shared styles go in `assets/styles.css` — check existing classes before creating new ones
+
+## Escrita (obrigatório)
+
+Todo texto destinado ao aluno (slides, materiais, páginas, quizzes, atividades) segue as skills `escrita-afonso` e `humanizacao`, em `.claude/skills/`. Aplique-as já na redação, e não só numa revisão posterior. Evite linguagem de rede social: título em forma de aforismo, travessão como conector, "não é X, é Y", negrito na prosa, setas decorativas e frases de efeito no fechamento. Títulos de slide devem ser descritivos e curtos, cabendo em uma linha na projeção. Preserve números, fatos, código e prompts.
