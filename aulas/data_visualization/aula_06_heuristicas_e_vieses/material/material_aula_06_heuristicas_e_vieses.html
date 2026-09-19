@@ -23,402 +23,296 @@
       <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
       <h1>Aula 06 — Heurísticas e Vieses</h1>
       <p class="meta">Aula 06 &middot; 19/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>A Aula 05 mapeou <em>onde</em> o usuário entende diferente do que o dado registra. Esta aula trata de <em>por que</em> ele entende diferente — os atalhos de julgamento que operam em quem lê — e transforma o fluxo anotado em um protótipo HTML de alta fidelidade. Na segunda parte, agentes com papéis separados extraem o contrato, implementam, auditam e corrigem; um leitor humano retesta a decisão antes de o grupo encerrar o achado.</p>
+      <p>A Aula 05 registrou onde o leitor do painel entende algo diferente do que o dado sustenta. Esta aula estuda os mecanismos que produzem essas divergências: os atalhos de julgamento de quem lê e as decisões de codificação que os alimentam. A teoria organiza a auditoria em dez heurísticas e uma escala de severidade, examina sete vieses produzidos pelo próprio artefato com exemplos lado a lado e termina na preparação do protótipo do painel do projeto, que cada grupo apresenta no início da Aula 07.</p>
     </header>
 
     <article class="material">
 
       <section class="content-block">
-        <h2>1. De onde viemos e por que isto vem agora</h2>
-        <p>Ao final da Aula 05 cada grupo tinha três coisas: o ciclo de vida do dado do projeto reconstituído em oito estações, com a perda declarada em cada passagem; um fluxo de interação anotado em três raias — usuário, interface e dado — sobre uma tarefa real de decisão do orientador; e um registro de divergências <code>D1..Dn</code> em que cada entrada nomeava a família da divergência, a consequência sobre a decisão, a decisão de projeto tomada e o suporte exigido na tela. Pelo menos dois desses suportes já haviam sido implementados no Metabase: um título que afirma em vez de rotular, um denominador no eixo, uma nota de origem, uma faixa explícita de não atribuído.</p>
-        <p>Aquele trabalho é descritivo. Ele documenta que o orientador lê "12 commits" como "trabalhou pouco" e que o dado registra apenas "doze escritas persistidas por um e-mail que resolve para essa pessoa". O que ele não explica é por que a leitura errada é tão natural, tão rápida e tão confiante. Não se trata de descuido nem de má-fé de quem lê. Trata-se de um mecanismo de julgamento que funciona exatamente como foi feito para funcionar: substituir uma pergunta difícil — "esse grupo está em dificuldade?" — por uma pergunta fácil que a mente responde num instante — "esse gráfico parece o gráfico de um grupo em dificuldade?".</p>
-        <p>A distância entre a pergunta difícil e a pergunta fácil é onde esta aula trabalha. E a descoberta desconfortável é que o painel raramente é neutro nessa substituição: com frequência ele oferece a pergunta fácil de bandeja. Um eixo truncado entrega "parece muito diferente". Um mapa de volume entrega "parece concentrado aqui". Um ranking de pessoas entrega "parece que esta pessoa fez menos". Em todos os casos o artefato não apenas deixou o erro passar — ele o produziu.</p>
-        <div class="note">
-          <strong>O que muda de método</strong>
-          <p>Até aqui, cada grupo avaliou o próprio trabalho. Hoje isso é proibido. O último viés desta aula é o viés do curador: quem escolheu o recorte, a métrica e a ordem já sabe o que esperava encontrar e não consegue mais ver a tela como um estranho a vê. Por isso a auditoria é cruzada, por escrito, e a devolutiva é entregue antes de qualquer defesa.</p>
-        </div>
+        <h2>1. Ponto de partida: o fluxo anotado da Aula 05</h2>
+        <p>Cada grupo saiu da Aula 05 com um fluxo de interação anotado em três raias (usuário, interface e dado) sobre uma tarefa real de decisão do orientador, acompanhado de um registro de divergências <code>D1..Dn</code>. Cada divergência nomeia a leitura observada, a consequência sobre a decisão, a decisão de projeto tomada e o suporte exigido na tela. Nesta aula, esse registro passa a funcionar como contrato de entrada para a construção da interface.</p>
+        <p>O fluxo é descritivo. Ele documenta, por exemplo, que o orientador lê "12 commits" como "trabalhou pouco", enquanto o dado registra apenas doze escritas persistidas por um e-mail que resolve para aquela pessoa. O fluxo não explica por que essa leitura é rápida, natural e confiante. A explicação está num mecanismo de julgamento que substitui uma pergunta difícil ("este grupo está em dificuldade?") por uma pergunta fácil ("este gráfico se parece com o de um grupo em dificuldade?"). A aula trabalha na distância entre as duas perguntas e mostra que o painel frequentemente oferece a pergunta fácil pronta: o eixo truncado sugere diferença grande, o mapa de volume sugere concentração, o ranking de pessoas sugere que alguém fez menos.</p>
+        <p>A pergunta que a Aula 05 deixou pendente orienta a aula inteira: qual elemento da interface impede a inferência indevida no ponto em que ela surge? O protótipo pedido ao final precisa tornar essa resposta visível, navegável e verificável.</p>
+        <table>
+          <thead><tr><th>Horário</th><th>Bloco</th><th>Conteúdo</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 9h20</td><td>Teoria</td><td>Duas famílias de heurística, as dez heurísticas e a severidade, atalhos cognitivos, sete vieses do artefato, mapa, cauda longa e ordinal</td></tr>
+            <tr><td>9h20 &ndash; 10h00</td><td>TBL</td><td>Duas decisões sobre o painel do orientador, com decisão individual, discussão e nova decisão</td></tr>
+            <tr><td>10h00 &ndash; 10h20</td><td>Intervalo</td><td></td></tr>
+            <tr><td>10h20 &ndash; 12h10</td><td>Protótipo</td><td>Do fluxo anotado ao contrato de interface, o que o protótipo precisa permitir e a orientação da atividade para a Aula 07</td></tr>
+          </tbody>
+        </table>
       </section>
 
       <section class="content-block">
-        <h2>2. A homonímia: duas famílias com o mesmo nome</h2>
-        <p>A palavra "heurística" carrega duas tradições distintas, e a aula precisa das duas. Tratá-las como sinônimos é o erro que transforma auditoria em troca de opiniões estéticas.</p>
+        <h2>2. Premissa da aula: todo gráfico decide pelo leitor</h2>
+        <p>No método C-D-P-V-D usado pela disciplina (Contexto, Dados, Pergunta, Visual e Decisão), esta aula concentra o trabalho nos dois últimos gates. No gate Visual, examina-se a codificação que induz o erro. No gate Decisão, a auditoria, a severidade e o reteste verificam se o artefato sustenta a decisão que promete apoiar.</p>
+        <p>Todo artefato visual define, em nome do leitor, o que é grande, próximo, comparável e digno de atenção. A escala escolhe a proporção entre as barras, a ordem escolhe o primeiro número lido, a cor escolhe o que parece bom ou ruim. Essas escolhas atuam sobre atalhos de julgamento que o leitor já traz antes de abrir o painel. Quando a codificação e o atalho apontam na mesma direção, a conclusão sai rápida, confiante e errada, e o leitor dificilmente percebe o erro, porque nada na tela contradiz a primeira impressão.</p>
+        <p>A consequência prática é que a revisão de um painel não pode se limitar à correção dos números. Um número correto, codificado de forma que torne fácil uma leitura que ele não sustenta, produz a mesma decisão errada que um número incorreto.</p>
+      </section>
 
-        <h3>2.1 Heurística de avaliação</h3>
-        <p>É um instrumento deliberado de inspeção. Um avaliador percorre um artefato com uma lista curta de princípios na mão, procura violações e registra achados. A lista é curta de propósito: seu valor não está em cobrir toda a teoria de design, mas em ser executável por uma pessoa cansada em quarenta minutos. O produto é um conjunto de achados, cada um com evidência, princípio violado, severidade e correção proposta. A heurística de avaliação é a régua: ela pertence a quem inspeciona e é aplicada conscientemente.</p>
-        <p>Na disciplina, essa régua tem dez princípios, listados na seção 3. Eles são transversais: valem para o artefato da Aula 01 e para o dashboard final da Aula 08. Não são invenção desta aula — a Aula 06 é apenas a aula em que a régua deixa de ser critério de autoavaliação e vira instrumento formal de inspeção entre pares.</p>
+      <section class="content-block">
+        <h2>3. Duas famílias dividem o nome "heurística"</h2>
+        <p>A palavra "heurística" designa duas tradições distintas, e a aula usa as duas. Quando elas se confundem, a auditoria passa a registrar opinião em vez de violação verificável.</p>
 
-        <h3>2.2 Heurística cognitiva</h3>
-        <p>É um atalho automático de julgamento. Opera em quem lê, sem ser convocado, sem aviso e sem possibilidade de desligamento voluntário. Não é defeito: é o que torna possível decidir sob tempo escasso e informação incompleta, que é a condição normal de um orientador olhando um painel entre duas aulas. O atalho acerta na maior parte das vezes e erra de maneira previsível — e é a previsibilidade do erro que permite projetar contra ele.</p>
-        <p>A heurística cognitiva é o alvo. A heurística de avaliação é o instrumento que procura por lugares onde o artefato convida o atalho a errar. Uma auditoria bem feita não diz "este gráfico é feio"; diz "este gráfico torna fácil a leitura X, que o dado não sustenta, e a leitura X é fácil porque a codificação alimenta o atalho Y".</p>
+        <h3>3.1 Heurística de avaliação</h3>
+        <p>É um instrumento deliberado de inspeção. Um avaliador percorre o artefato com uma lista curta de princípios, procura violações e registra achados. A lista é curta para ser executável por uma pessoa em tempo limitado; seu valor está na aplicação sistemática, e não na cobertura de toda a teoria de design. O produto é um conjunto de achados, cada um com evidência, princípio violado, severidade e correção proposta. Na disciplina, a lista tem dez princípios (seção 4), válidos do primeiro artefato ao dashboard final.</p>
+
+        <h3>3.2 Heurística cognitiva</h3>
+        <p>É um atalho automático de julgamento. Opera em quem lê, sem ser convocado e sem possibilidade de desligamento voluntário. O atalho torna possível decidir com pouco tempo e informação incompleta, que é a condição normal de um orientador diante de um painel entre duas aulas. Ele acerta na maior parte das vezes e erra de maneira previsível, e é essa previsibilidade que permite projetar a interface contra o erro.</p>
+        <p>A heurística cognitiva é o alvo; a heurística de avaliação é o instrumento que procura os pontos em que o artefato aciona o atalho de forma indevida. Um achado bem escrito não diz que o gráfico é feio. Diz que o gráfico torna fácil a leitura X, que o dado não sustenta, porque a codificação alimenta o atalho Y.</p>
 
         <table>
           <thead><tr><th>Dimensão</th><th>Heurística de avaliação</th><th>Heurística cognitiva</th></tr></thead>
           <tbody>
             <tr><td>Quem opera</td><td>O avaliador, deliberadamente</td><td>O leitor, automaticamente</td></tr>
             <tr><td>Sobre o que incide</td><td>Sobre o artefato</td><td>Sobre o julgamento</td></tr>
-            <tr><td>Pode ser desligada</td><td>Sim — é uma escolha de método</td><td>Não — só pode ser contra-projetada</td></tr>
-            <tr><td>Produz</td><td>Achado, severidade, correção</td><td>Conclusão rápida e confiante</td></tr>
+            <tr><td>Pode ser desligada</td><td>Sim, por escolha de método</td><td>Não; só pode ser contraprojetada</td></tr>
+            <tr><td>Produz</td><td>Achado, severidade e correção</td><td>Conclusão rápida e confiante</td></tr>
             <tr><td>Papel na aula</td><td>Instrumento</td><td>Alvo</td></tr>
           </tbody>
         </table>
       </section>
 
       <section class="content-block">
-        <h2>3. As dez heurísticas da disciplina</h2>
-        <p>A tabela abaixo é a régua completa. Ela deve ser percorrida em ordem, uma passagem por heurística, sem pular para a próxima antes de fechar a anterior. Percorrer fora de ordem produz auditorias que se concentram no que é visualmente saliente — normalmente cor e tipografia — e ignoram adequação à tarefa e acionabilidade, que são justamente onde moram os achados graves.</p>
+        <h2>4. As dez heurísticas usadas na auditoria</h2>
+        <p>A tabela abaixo é o instrumento completo. Recomenda-se percorrê-la em ordem, uma passagem por heurística. Quando a inspeção salta entre heurísticas, ela tende a se concentrar no que é visualmente saliente, em geral cor e tipografia, e deixa de lado a adequação à tarefa e a acionabilidade, onde costumam estar os achados graves.</p>
         <table>
           <thead><tr><th>#</th><th>Heurística</th><th>Pergunta de inspeção</th><th>Falha típica no projeto do módulo</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td>Adequação à tarefa</td><td>O artefato serve à decisão que o leitor precisa tomar?</td><td>Gráfico bonito que responde a uma pergunta que o orientador não faz</td></tr>
+            <tr><td>1</td><td>Adequação à tarefa</td><td>Serve à decisão que o leitor precisa tomar?</td><td>Gráfico que responde a uma pergunta que o orientador não faz</td></tr>
             <tr><td>2</td><td>Clareza da mensagem</td><td>O que a tela afirma está explícito?</td><td>Título que rotula ("Commits por sprint") em vez de afirmar</td></tr>
-            <tr><td>3</td><td>Integridade e rastreabilidade dos dados</td><td>Dá para ir da tela até a linha de origem?</td><td>Indicador que não abre; regra de filtro só na cabeça de quem construiu</td></tr>
-            <tr><td>4</td><td>Adequação da codificação visual</td><td>O canal visual corresponde ao tipo de dado?</td><td>Escala contínua sobre rótulo ordinal; área para comparar magnitude</td></tr>
-            <tr><td>5</td><td>Hierarquia e carga cognitiva</td><td>O que importa aparece primeiro?</td><td>Doze cartões de igual peso, nenhum deles a resposta principal</td></tr>
-            <tr><td>6</td><td>Consistência e expectativas do usuário</td><td>O mesmo elemento significa a mesma coisa em toda parte?</td><td>Cor de grupo que muda entre abas; "entrega" com dois sentidos no mesmo painel</td></tr>
+            <tr><td>3</td><td>Integridade e rastreabilidade</td><td>É possível chegar da tela à linha de origem?</td><td>Indicador que não abre; regra de filtro conhecida só por quem construiu</td></tr>
+            <tr><td>4</td><td>Adequação da codificação</td><td>O canal visual corresponde ao tipo de dado?</td><td>Escala contínua sobre rótulo ordinal; área usada para comparar magnitude</td></tr>
+            <tr><td>5</td><td>Hierarquia e carga cognitiva</td><td>O que importa aparece primeiro?</td><td>Doze cartões de igual peso, sem resposta principal</td></tr>
+            <tr><td>6</td><td>Consistência e expectativas</td><td>O mesmo elemento significa a mesma coisa em toda parte?</td><td>Cor de grupo que muda entre abas; "entrega" com dois sentidos no mesmo painel</td></tr>
             <tr><td>7</td><td>Contexto, unidades e incerteza</td><td>Há denominador, unidade e limite declarados?</td><td>Contagem bruta sem base; janela temporal implícita</td></tr>
-            <tr><td>8</td><td>Prevenção de interpretação errada</td><td>Que leitura falsa a tela torna fácil?</td><td>Eixo truncado; "top 10 + outros" mudo</td></tr>
-            <tr><td>9</td><td>Acessibilidade e equivalência da informação</td><td>A informação existe sem depender de cor?</td><td>Verde e vermelho como único portador do estado</td></tr>
-            <tr><td>10</td><td>Acionabilidade</td><td>O leitor sabe o que fazer em seguida?</td><td>Painel que diagnostica e não sugere nenhum próximo passo</td></tr>
+            <tr><td>8</td><td>Prevenção de interpretação errada</td><td>Que leitura falsa a tela torna fácil?</td><td>Eixo truncado; "top 10 + outros" sem prestação de contas</td></tr>
+            <tr><td>9</td><td>Acessibilidade e equivalência</td><td>A informação existe sem depender de cor?</td><td>Verde e vermelho como único portador do estado</td></tr>
+            <tr><td>10</td><td>Acionabilidade</td><td>O leitor sabe o que fazer em seguida?</td><td>Painel que diagnostica e não indica próximo passo</td></tr>
           </tbody>
         </table>
-        <p>Uma observação sobre a heurística 1. Ela é a única cuja violação invalida todas as outras: um artefato que não serve à tarefa não melhora por ficar mais legível, mais acessível ou mais consistente. Quando a auditoria encontra violação de adequação à tarefa, a correção quase nunca é ajuste — é remoção. Remover um gráfico é uma correção legítima e frequentemente a mais barata do painel inteiro.</p>
+        <p>A heurística 1 tem estatuto particular: sua violação compromete as demais, porque um artefato que não serve à tarefa não melhora ao ficar mais legível, acessível ou consistente. Quando a auditoria encontra violação de adequação à tarefa, a correção costuma ser a remoção do elemento, frequentemente a correção mais barata do painel.</p>
       </section>
 
       <section class="content-block">
-        <h2>4. A escala de severidade</h2>
-        <p>A severidade não mede o quanto o achado incomodou o avaliador. Mede o quanto ele compromete a decisão do leitor. Essa distinção é a diferença entre uma devolutiva utilizável e uma lista de preferências pessoais.</p>
+        <h2>5. Escala de severidade de 0 a 4</h2>
+        <p>A severidade mede quanto o achado compromete a decisão do leitor, independentemente do incômodo que causa ao avaliador. Essa distinção separa uma devolutiva utilizável de uma lista de preferências pessoais.</p>
         <table>
           <thead><tr><th>Grau</th><th>Nome</th><th>Critério de atribuição</th><th>O que exige</th></tr></thead>
           <tbody>
-            <tr><td><code>0</code></td><td>Não é problema</td><td>O avaliador achou estranho, mas a decisão não muda</td><td>Registro, sem ação</td></tr>
-            <tr><td><code>1</code></td><td>Cosmético</td><td>Incomoda a leitura e não altera a conclusão</td><td>Backlog, sem prazo curto</td></tr>
+            <tr><td><code>0</code></td><td>Não é problema</td><td>O avaliador estranhou, mas a decisão não muda</td><td>Registro, sem ação</td></tr>
+            <tr><td><code>1</code></td><td>Cosmético</td><td>Incomoda a leitura e não altera a conclusão</td><td>Backlog</td></tr>
             <tr><td><code>2</code></td><td>Menor</td><td>Custa tempo ou exige um segundo olhar para acertar</td><td>Backlog com prazo declarado</td></tr>
-            <tr><td><code>3</code></td><td>Grave</td><td>O leitor decide com base numa leitura que o dado não sustenta</td><td>Correção nesta aula</td></tr>
-            <tr><td><code>4</code></td><td>Impede a decisão</td><td>O leitor não consegue decidir, ou decidiria o oposto do que a evidência indica</td><td>Correção nesta aula, com prioridade</td></tr>
+            <tr><td><code>3</code></td><td>Grave</td><td>O leitor decide com base em uma leitura que o dado não sustenta</td><td>Correção prioritária</td></tr>
+            <tr><td><code>4</code></td><td>Impede a decisão</td><td>O leitor não consegue decidir ou decidiria o oposto do que a evidência indica</td><td>Correção antes de qualquer outra</td></tr>
           </tbody>
         </table>
-        <p>Dois hábitos precisam ser evitados. O primeiro é a inflação: atribuir <code>4</code> a tudo transforma a escala em ruído e faz o grupo auditado tratar a devolutiva inteira como exagero. O segundo é o oposto — a deflação por cortesia: baixar a severidade porque o outro grupo trabalhou muito. Um achado <code>4</code> registrado como <code>2</code> é um achado que não será corrigido, e a única pessoa prejudicada é o orientador que vai usar o painel.</p>
-        <p>A justificativa da severidade não é uma frase de efeito. Ela deve nomear a decisão específica que muda: "com esta codificação, o orientador conclui que G03 parou de trabalhar na sprint 4 e agenda uma intervenção; a evidência sustenta apenas que o padrão de registro mudou naquele período".</p>
+        <p>Dois hábitos comprometem a escala. A inflação atribui <code>4</code> a quase tudo e faz o grupo auditado tratar a devolutiva inteira como exagero. A deflação por cortesia reduz a severidade porque o outro grupo trabalhou muito; um achado <code>4</code> registrado como <code>2</code> tende a não ser corrigido, e quem arca com a consequência é o orientador que usa o painel.</p>
+        <p>A justificativa da severidade nomeia a decisão que muda. Por exemplo: "com esta codificação, o orientador conclui que G03 parou de trabalhar na sprint 4 e agenda uma intervenção; a evidência sustenta apenas que o padrão de registro mudou naquele período".</p>
       </section>
 
       <section class="content-block">
-        <h2>5. A anatomia de uma crítica válida</h2>
-        <p>Uma crítica só encerra um gate se percorrer, nesta ordem, seis campos. A ordem importa porque cada campo restringe o seguinte: a evidência limita a heurística invocável, a heurística limita a severidade defensável, e a consequência determina o que a correção precisa alcançar.</p>
+        <h2>6. Estrutura de um achado de auditoria</h2>
+        <p>Um achado só encerra gate quando percorre seis etapas, nesta ordem. A ordem importa porque cada etapa restringe a seguinte: a evidência limita a heurística que pode ser invocada, a heurística limita a severidade defensável e a consequência determina o que a correção precisa alcançar. Opinião estética sem evidência não atende ao critério.</p>
         <div class="audit-template">
-          <p><code>EVIDÊNCIA</code> — o que se vê na tela, descrito sem interpretação. "O eixo vertical do gráfico de commits por grupo começa em 40."</p>
-          <p><code>HEURÍSTICA</code> — qual das dez foi violada, pelo número. "Heurística 8, prevenção de interpretação errada; secundariamente 4."</p>
-          <p><code>SEVERIDADE</code> — <code>0</code> a <code>4</code>, com a decisão que a justifica. "<code>3</code>: a diferença aparente entre G01 e G02 é várias vezes maior que a diferença real."</p>
-          <p><code>CONSEQUÊNCIA</code> — a decisão que o orientador tomaria errado. "Ele prioriza intervenção em G02 achando que a distância é grande."</p>
-          <p><code>CORREÇÃO</code> — a mudança concreta, no elemento concreto. "Eixo a partir de zero na pergunta <em>Commits por grupo e sprint</em>."</p>
-          <p><code>RETESTE</code> — como verificar que a leitura errada não é mais fácil. "Um leitor externo descreve a diferença entre os grupos como pequena."</p>
+          <p><code>1 EVIDÊNCIA</code> o que se vê na tela, descrito sem interpretação. "O eixo vertical do gráfico de commits por grupo começa em 40."</p>
+          <p><code>2 HEURÍSTICA</code> qual das dez foi violada, pelo número. "Heurística 8, prevenção de interpretação errada; secundariamente a 4."</p>
+          <p><code>3 SEVERIDADE</code> de 0 a 4, justificada pela decisão afetada. "<code>3</code>: a diferença aparente entre G01 e G02 é várias vezes maior que a real."</p>
+          <p><code>4 CONSEQUÊNCIA</code> a decisão que o orientador tomaria errado. "Ele prioriza intervenção em G02, supondo uma distância grande."</p>
+          <p><code>5 CORREÇÃO</code> a mudança concreta, no elemento concreto. "Eixo a partir de zero no gráfico de commits por grupo e sprint."</p>
+          <p><code>6 RETESTE</code> como verificar que a leitura errada deixou de ser fácil. "Um leitor externo descreve a diferença entre os grupos como pequena."</p>
         </div>
-        <p>A separação entre evidência e interpretação é a parte mais difícil e a mais importante. "O gráfico está enganoso" é interpretação; "o eixo começa em 40" é evidência. Uma devolutiva escrita em interpretação convida à defesa emocional; uma devolutiva escrita em evidência convida à verificação. Como o grupo auditado não pode defender o painel durante a devolutiva, escrever em evidência é também uma cortesia: torna possível concordar sem humilhação.</p>
+        <p>Separar evidência de interpretação é a etapa mais difícil. "O gráfico está enganoso" é interpretação; "o eixo começa em 40" é evidência. Uma devolutiva escrita em interpretação convida à defesa; uma devolutiva escrita em evidência convida à verificação, e permite ao grupo auditado concordar sem precisar defender a própria intenção.</p>
       </section>
 
       <section class="content-block">
-        <h2>6. Os quatro atalhos-mãe</h2>
-        <p>Quatro atalhos aparecem sob quase todos os vieses nomeados adiante. Reconhecê-los ajuda a entender por que a correção funciona — e por que algumas correções não funcionam.</p>
-
-        <h3>6.1 Disponibilidade</h3>
-        <p>A frequência estimada de um evento acompanha a facilidade com que exemplos dele vêm à cabeça. Um orientador que teve um problema sério com um grupo na sprint passada superestima a probabilidade do mesmo problema nos demais. No painel, o efeito aparece na ordem: o primeiro cartão que ele vê passa a ser o exemplo disponível para tudo que ele lê depois. O que a curadoria coloca no topo não é apenas mais visível — é mais representativo do conjunto na cabeça de quem lê.</p>
-
-        <h3>6.2 Representatividade</h3>
-        <p>Julga-se pela semelhança com um protótipo, ignorando frequência de base e tamanho da amostra. Uma curva serrilhada de commits "parece" trabalho de véspera; uma curva suave "parece" trabalho distribuído. Duas séries com o mesmo total e o mesmo número de dias ativos podem produzir impressões opostas apenas pela forma. É o atalho por trás da leitura de padrão em ruído: cinco sprints são cinco pontos, e cinco pontos formam qualquer forma que se queira ver.</p>
-
-        <h3>6.3 Ancoragem</h3>
-        <p>O primeiro valor apresentado fixa a régua com que os seguintes são julgados. Se o painel abre com um cartão grande mostrando o total de commits do módulo, todos os números subsequentes são lidos como frações daquele. Trocar o cartão de abertura muda a interpretação do painel inteiro sem alterar um único dado. É por isso que "qual gráfico vem primeiro" é decisão de projeto e não questão de layout.</p>
-
-        <h3>6.4 Afeto</h3>
-        <p>A reação emocional antecede e conduz o julgamento analítico. Cor semântica é o veículo mais direto: um cartão vermelho comunica veredito antes que o leitor tenha lido o valor, e o valor passa a ser interpretado como confirmação. Vale também para vocabulário — "atrasado", "ocioso", "abandonado" carregam avaliação antes de qualquer evidência. O painel do projeto deve descrever o registro, não julgá-lo.</p>
-
+        <h2>7. Quatro atalhos de julgamento</h2>
+        <p>Quatro atalhos aparecem sob quase todos os vieses tratados adiante. Reconhecê-los ajuda a explicar por que uma correção funciona e por que outras não produzem efeito.</p>
+        <table>
+          <thead><tr><th>Atalho</th><th>Substitui a pergunta difícil por</th><th>No painel do projeto</th></tr></thead>
+          <tbody>
+            <tr><td>Disponibilidade</td><td>"O que me vem à cabeça?"</td><td>O grupo que teve problema na sprint passada passa a servir de referência para todos</td></tr>
+            <tr><td>Representatividade</td><td>"Com o que isto se parece?"</td><td>Curva serrilhada de commits parece "trabalho na véspera", mesmo com o mesmo total</td></tr>
+            <tr><td>Ancoragem</td><td>"Qual foi o primeiro número?"</td><td>O primeiro cartão do painel fixa a régua com que os outros são lidos</td></tr>
+            <tr><td>Afeto</td><td>"Que sensação isto me dá?"</td><td>Vermelho no cartão do grupo antecipa o veredito antes da leitura do valor</td></tr>
+          </tbody>
+        </table>
+        <p>Na disponibilidade, a frequência estimada de um evento acompanha a facilidade com que exemplos dele vêm à memória; no painel, o efeito aparece na ordem, porque o primeiro cartão visto se torna o exemplo disponível para o que vem depois. Na representatividade, julga-se pela semelhança com um protótipo mental, ignorando a frequência de base e o tamanho da amostra; duas séries com o mesmo total podem produzir impressões opostas apenas pela forma. Na ancoragem, o primeiro valor apresentado fixa a régua dos seguintes, e por isso a escolha do cartão de abertura é decisão de projeto, e não de layout. No afeto, a reação emocional antecede e conduz o julgamento analítico; cor semântica e vocabulário avaliativo, como "atrasado" ou "ocioso", entregam avaliação antes de qualquer evidência.</p>
         <div class="note">
-          <strong>Por que isto não é psicologia decorativa</strong>
-          <p>O cliente do projeto é o professor orientador, e a decisão dele — intervir ou não intervir, e em quê — recai sobre alunos reais. Um atalho cognitivo servido por uma codificação descuidada não produz apenas um gráfico ruim: produz uma conversa de orientação baseada em algo que o dado não sustenta.</p>
+          <strong>Por que isso importa no projeto</strong>
+          <p>O cliente do projeto é o professor orientador, e a decisão dele (intervir ou não, e em quê) recai sobre estudantes reais. Um atalho acionado por uma codificação descuidada produz uma conversa de orientação baseada em algo que o dado não sustenta.</p>
         </div>
       </section>
 
       <section class="content-block">
-        <h2>7. Vieses de julgamento aplicados ao painel</h2>
+        <h2>8. Vieses de julgamento aplicados ao painel</h2>
 
-        <h3>7.1 Negligência da taxa-base e denominador ausente</h3>
-        <p>A negligência da taxa-base é ignorar a frequência de fundo diante de um caso concreto e vívido. O denominador ausente é a forma que essa negligência assume na tela: um número absoluto exibido sem a base sobre a qual ele foi contado. "Merge requests rejeitados na sprint 4" parece grave e não afirma nada — rejeitados sobre quantos abertos, comparados com que período, comparados com que grupo?</p>
-        <p>O leitor não deixa o vazio vazio. Ele preenche com a base que tiver à mão, que costuma ser a lembrança mais recente. A correção é barata e quase sempre a mesma: exibir absoluto e proporção no mesmo gráfico, com a base declarada no eixo ou no subtítulo. Quando a proporção é a mensagem, o absoluto ainda precisa aparecer — uma taxa de rejeição alta sobre três MRs abertos não é o mesmo fenômeno que a mesma taxa sobre cem.</p>
+        <h3>8.1 Taxa-base e denominador</h3>
+        <p>A negligência da taxa-base consiste em ignorar a frequência de fundo diante de um caso vívido. Na tela, ela aparece como denominador ausente. A frase "G02 fechou a sprint com merge requests rejeitados" soa grave e não permite comparação: rejeitados sobre quantos abertos, com que proporção nos outros grupos e nas sprints anteriores do próprio G02? Sem base de comparação, o leitor preenche a lacuna com a lembrança mais recente e leva essa impressão para a reunião de orientação. A correção tem custo baixo: valor absoluto e proporção no mesmo gráfico, com a base explícita no eixo ou no subtítulo.</p>
 
-        <h3>7.2 Regressão à média</h3>
-        <p>Medições extremas tendem a ser seguidas por medições mais próximas do valor típico, sem que nada tenha mudado. O grupo que despencou numa sprint tende a subir na seguinte; o que disparou tende a recuar. Se houve intervenção entre as duas medições, ela leva o crédito indevidamente — e a organização aprende uma lição falsa sobre o que funciona.</p>
-        <p>No painel, a contramedida é mostrar a série completa em vez de duas medições, marcar visualmente quando a intervenção ocorreu e evitar títulos que afirmem causalidade a partir de uma variação. "Após a orientação, G02 voltou ao ritmo" é uma afirmação que a base do projeto não sustenta: não há grupo de comparação sem intervenção.</p>
+        <h3>8.2 Regressão à média e padrão em ruído</h3>
+        <p>Medições extremas tendem a ser seguidas por medições mais próximas do valor típico, mesmo sem nenhuma mudança real. Um grupo com queda forte em uma sprint tende a subir na seguinte, e qualquer intervenção feita no intervalo recebe o crédito pela melhora. A frase "conversei com eles e melhorou" é o sintoma típico. No painel, a contramedida é mostrar a série completa, marcar quando a intervenção ocorreu e evitar títulos que afirmem causalidade a partir de uma variação.</p>
+        <p>O padrão em ruído é o erro vizinho: séries curtas produzem formas reconhecíveis por acaso. Cinco sprints fornecem cinco pontos, pouco para afirmar tendência, e um eixo ampliado faz oscilação parecer queda. A contramedida é calibrar a afirmação: mostrar os pontos, a faixa de variação já observada e reservar a palavra "tendência" para quando houver base para ela.</p>
 
-        <h3>7.3 Padrão em ruído</h3>
-        <p>A percepção humana encontra estrutura em sequências aleatórias com facilidade notável. O módulo tem cinco sprints por grupo: são cinco pontos. Uma linha de tendência sobre cinco pontos comunica confiança que os dados não têm. O zoom no eixo agrava: reduzir a faixa transforma oscilação normal em queda dramática.</p>
-        <p>A contramedida não é abandonar séries temporais, é calibrar a afirmação. Mostre os pontos, mostre a faixa de variação já observada, e reserve a palavra "tendência" para quando houver base para ela. Quando o número de observações é pequeno, dizer isso na tela é informação, não desculpa.</p>
+        <h3>8.3 Viés de sobrevivência</h3>
+        <p>A auditoria só alcança o que a fonte registrou. O rastro do projeto contém o que virou objeto na plataforma; trabalho descartado antes do commit, revisão por chamada de vídeo e programação em par no mesmo teclado não aparecem na base. No caso do TBL, a autoria resolve para um integrante em 2.136 dos 2.688 commits. O restante tem e-mail de cliente git fora da conta institucional e aparece como <code>[externo]</code> ou <code>[bot]</code>. Um gráfico de contribuição por pessoa que descarte esse resíduo mostra uma distribuição que soma menos do que o total e faz um integrante com o git mal configurado parecer ausente. Ausência de registro não prova ausência de trabalho; por isso a faixa "não atribuído", com seu percentual, entra no gráfico como dado.</p>
 
-        <h3>7.4 Viés de sobrevivência</h3>
-        <p>Analisa-se o que chegou ao conjunto e conclui-se sobre o que existiu. O rastro do projeto registra o que virou objeto na plataforma: commit, merge request, cartão, movimento de rótulo. Conversa fora da ferramenta, revisão por chamada de vídeo, programação em par no mesmo teclado e código descartado antes do commit não deixam rastro. Um integrante pouco visível nos dados é um integrante sobre o qual esta fonte não tem evidência — o que é diferente de um integrante que não trabalhou.</p>
-        <p>Há uma lacuna já quantificada no próprio conjunto: a autoria de commit resolve para um código em <strong>2.136 dos 2.688 commits</strong>. O restante tem e-mail de cliente git que não corresponde à conta institucional e aparece como <code>[externo]</code> ou <code>[bot]</code>. Um gráfico de contribuição por pessoa que simplesmente descarte esse resíduo produz uma distribuição que soma menos que o total — e converte um integrante com o git mal configurado em integrante ausente. A faixa "não atribuído", com percentual, visível no próprio gráfico, é dado; não é rodapé.</p>
+        <h3>8.4 Enquadramento e recência</h3>
+        <p>"Cartões concluídos" e "cartões não concluídos" descrevem o mesmo fato, e o título escolhe qual metade o leitor vê primeiro. Como quem decide pesa perdas mais do que ganhos equivalentes, a moldura altera a reação. O enquadramento não pode ser eliminado, porque todo título e toda métrica escolhem uma moldura; o que se exige é declará-lo e justificá-lo.</p>
+        <p>Na recência, a última sprint pesa mais do que as quatro anteriores. Um filtro padrão em "últimos 7 dias" institucionaliza o viés, porque o painel define pelo leitor o que conta como "agora". A regra é declarar a janela padrão em texto visível e deixar o período completo a um clique.</p>
 
-        <h3>7.5 Enquadramento</h3>
-        <p>A mesma informação produz reações diferentes conforme a moldura. Concluído e não concluído são o mesmo fato descrito de dois lados; ganho e perda não pesam igual em quem decide. O enquadramento não pode ser eliminado — toda escolha de título e de métrica é uma moldura. O que se exige é que ele seja deliberado e declarado: qual lado o painel escolheu mostrar e por quê. Quando a escolha é discutível, mostrar os dois lados no mesmo cartão elimina a dúvida a custo quase zero.</p>
-
-        <h3>7.6 Recência</h3>
-        <p>O evento mais recente pesa mais do que a soma dos anteriores. É o viés que o filtro padrão institucionaliza: um painel que abre em "últimos 7 dias" decidiu, pelo leitor, o que conta como "agora". Em um módulo de cinco sprints, essa escolha pode esconder quatro delas.</p>
-        <p>Contramedida: janela padrão declarada em texto visível, período completo a um clique, e — quando a comparação temporal é a mensagem — a sprint atual exibida contra as anteriores no mesmo gráfico, não em telas separadas.</p>
-
-        <h3>7.7 Erro fundamental de atribuição</h3>
-        <p>Diante de um resultado, atribui-se a causa a características estáveis da pessoa e subestima-se a situação. Um número baixo de commits vira "desinteresse" em vez de "papel de revisão", "tarefa bloqueada", "git configurado com outro e-mail" ou "o time decidiu que essa pessoa integraria menos".</p>
-        <p>É por isso que o ranking de pessoas está fora do escopo do projeto. Uma tabela ordenada por volume de contribuição entrega ao leitor exatamente o formato que o atalho pede: uma lista de pessoas, do melhor ao pior, sem nenhuma situação à vista. A restrição do projeto é explícita — a unidade de saída é o grupo; o indivíduo aparece apenas como componente da distribuição interna, para responder sobre equilíbrio de participação, nunca como sujeito de comparação. Um painel que ranqueia pessoas é avaliado como incorreto ainda que tecnicamente bem construído.</p>
+        <h3>8.5 Erro fundamental de atribuição</h3>
+        <p>Diante de um número baixo, o leitor tende a atribuir a causa à pessoa (desleixo, desinteresse, falta de esforço) e não à situação: papel no grupo, disponibilidade de tarefa, configuração da ferramenta ou decisão do próprio time sobre quem integra o código. Por isso o ranking de pessoas está fora do escopo do projeto. Uma tabela ordenada por volume de contribuição entrega ao leitor o formato que o atalho pede, uma lista de pessoas da melhor para a pior, sem informação sobre a situação. O painel apresenta evidência, análise e pergunta, sem emitir veredito. A unidade de saída é o grupo; o indivíduo aparece apenas como distribuição interna, para responder sobre equilíbrio de participação.</p>
       </section>
 
       <section class="content-block">
-        <h2>8. Os vieses que o artefato fabrica</h2>
-        <p>Os vieses da seção anterior existiriam sem o painel. Os desta seção são produzidos por ele. São decisões de codificação — quase sempre tomadas por conveniência, raramente por má-fé — que tornam uma leitura falsa mais fácil que a leitura correta.</p>
+        <h2>9. Sete vieses produzidos pela codificação</h2>
+        <p>Os vieses da seção anterior existiriam sem o painel. Os desta seção têm origem em decisões de codificação tomadas por quem constrói o painel, frequentemente por conveniência. Nos slides, cada um aparece com a versão que costuma ser publicada ao lado da versão corrigida. Os exemplos 2 e 3 usam dados reais do Olist, os mesmos da Aula 04; os demais usam dados ilustrativos, construídos para a demonstração.</p>
         <table>
-          <thead><tr><th>Decisão de codificação</th><th>Leitura falsa que ela torna fácil</th><th>Heurísticas</th><th>Correção padrão</th></tr></thead>
+          <thead><tr><th>#</th><th>Decisão de codificação</th><th>Leitura falsa que ela torna fácil</th><th>Heurísticas</th></tr></thead>
           <tbody>
-            <tr><td>Eixo truncado em barras</td><td>Diferença pequena parece diferença enorme</td><td>4, 8</td><td>Barra sempre a partir do zero; se o interesse é a variação, mudar de tipo</td></tr>
-            <tr><td>Coroplético de volume sem normalização</td><td>O mapa do volume vira o mapa da base</td><td>7, 8</td><td>Denominador explícito e declarado</td></tr>
-            <tr><td>"Top N + outros" mudo</td><td>A cauda descartada some da conversa</td><td>3, 7</td><td>Cobertura do total exibida ao lado do corte</td></tr>
-            <tr><td>Ordinal como número contínuo</td><td>Média sugere precisão que a escala não tem</td><td>4, 7</td><td>Distribuição completa; mediana quando houver de resumir</td></tr>
-            <tr><td>Ranking de pessoas</td><td>Volume vira medida de empenho</td><td>1, 10</td><td>Remoção; substituir por medida de concentração no grupo</td></tr>
-            <tr><td>Cor semântica isolada</td><td>Veredito chega antes do valor</td><td>6, 9</td><td>Cor como reforço, nunca como único portador</td></tr>
-            <tr><td>Precisão espúria</td><td>Dígito extra vira autoridade</td><td>2, 7</td><td>Arredondar ao que a medição sustenta</td></tr>
+            <tr><td>1</td><td>Eixo truncado em gráfico de barras</td><td>Diferença pequena parece diferença enorme</td><td>4 e 8</td></tr>
+            <tr><td>2</td><td>Coroplético de volume sem normalização</td><td>O mapa reproduz a distribuição da base</td><td>7 e 8</td></tr>
+            <tr><td>3</td><td>Top 10 sem prestar contas do restante</td><td>A cauda descartada some da conversa</td><td>3 e 7</td></tr>
+            <tr><td>4</td><td>Ordinal tratado como contínuo</td><td>A média sugere uma precisão que a escala não tem</td><td>4 e 7</td></tr>
+            <tr><td>5</td><td>Ranking de pessoas</td><td>Volume passa a ser lido como empenho</td><td>1 e 10</td></tr>
+            <tr><td>6</td><td>Cor semântica aplicada ao valor bruto</td><td>A cor antecipa o julgamento antes da leitura do valor</td><td>6 e 9</td></tr>
+            <tr><td>7</td><td>Precisão espúria</td><td>Dígitos extras sugerem uma exatidão que o dado não tem</td><td>7 e 2</td></tr>
           </tbody>
         </table>
 
-        <h3>8.1 Eixo truncado</h3>
-        <p>Barras codificam quantidade por comprimento, e comprimento só é comparável a partir de uma origem comum. Truncar o eixo quebra essa correspondência: a razão entre os comprimentos deixa de ser a razão entre os valores. O leitor não recalcula — ele lê a razão visual. Em séries de linha, o truncamento é aceitável e às vezes necessário, porque a linha codifica variação e não magnitude; mas então a decisão precisa estar declarada, e a faixa exibida precisa ser legível no eixo.</p>
+        <h3>9.1 Eixo truncado em gráfico de barras</h3>
+        <p>Em barras, o comprimento codifica o valor, e comprimentos só são comparáveis a partir de uma origem comum. Um eixo que começa acima de zero quebra essa correspondência: a razão entre os comprimentos deixa de ser a razão entre os valores, e o leitor lê a razão visual sem recalcular. Em gráfico de linha, que codifica por posição e variação, o corte pode ser legítimo, desde que declarado e legível no eixo.</p>
+        <p>Na versão que costuma aparecer, três grupos têm 82%, 86% e 84% de cartões concluídos na sprint, e o eixo começa em 80%. A barra de G02 fica três vezes mais alta que a de G01 para uma diferença de 4 pontos percentuais. Na versão corrigida, o eixo começa em zero e os valores são rotulados, de modo que a diferença de 4 pontos aparece com o tamanho que tem. Dados ilustrativos.</p>
 
-        <h3>8.2 O mapa como caso canônico</h3>
-        <p>O coroplético de volume é o exemplo mais limpo de viés fabricado, porque o erro é estrutural e não depende de descuido de estilo. Pinte qualquer contagem bruta por região e você obtém, com variações mínimas, o mesmo desenho: onde há mais gente, há mais atividade e mais registro. O mapa parece uma descoberta e é uma tautologia. No Olist — disponível como fonte de contraexemplos — um mapa de pedidos por UF reproduz essencialmente a distribuição populacional do país.</p>
-        <p>Somam-se dois problemas específicos da forma. Primeiro, a distorção de área: unidades geográficas grandes ocupam mais pixels e gritam mais alto que unidades pequenas com o mesmo valor. Segundo, a escala contínua de cor sugere gradiente onde há degraus, e o olho compara mal matizes próximos.</p>
-        <p>A correção começa pelo denominador, e o denominador é uma decisão de pergunta, não de cálculo: por habitante responde a uma pergunta, por cliente a outra, por pedido a uma terceira. Escolher é obrigatório; declarar a escolha também. Uma tabela equivalente ao lado do mapa resolve simultaneamente a comparação de valores próximos e a heurística 9.</p>
+        <h3>9.2 Coroplético de volume sem normalização</h3>
+        <p>Uma contagem bruta pintada por região tende a produzir sempre o mesmo desenho: mais registros onde há mais gente e mais atividade. O mapa aparenta revelar um padrão, mas mostra a distribuição da população. Somam-se dois problemas da forma: unidades geográficas grandes ocupam mais área e chamam mais atenção que unidades pequenas com o mesmo valor, e a escala contínua de cor sugere gradiente onde há degraus.</p>
+        <p>O exemplo usa os 99.441 pedidos do Olist agrupados pela UF do cliente, entre 2016 e 2018, num mapa em grade em que cada quadrado é uma UF. Em valores absolutos, SP concentra 42% dos pedidos e cerca de 22% da população, e o mapa repete a distribuição de habitantes. Com o denominador, pedidos por 100 mil habitantes, o mapa passa a responder outra pergunta, a da penetração do comércio eletrônico: 13 UFs mudam de faixa, o DF sobe duas faixas e chega à mais alta, e BA, PR, PA, MA e PB descem uma. A população vem do Censo 2022 do IBGE e é usada como aproximação, já que os pedidos são anteriores ao censo.</p>
+        <p>A correção começa pelo denominador, e o denominador é uma decisão de pergunta: por habitante, por cliente ou por pedido respondem a perguntas diferentes. Escolher e declarar a escolha são obrigatórios. Uma tabela equivalente ao lado do mapa facilita a comparação de valores próximos e atende à heurística 9.</p>
 
-        <h3>8.3 Cardinalidade alta e o corte da cauda longa</h3>
-        <p>Dados não numéricos com muitas categorias distintas não cabem em um gráfico legível. O Olist tem 71 categorias de produto; o rastro do projeto tem rótulos de quadro e de classificação em número que cresce ao longo do módulo. Cortar é legítimo e inevitável. Cortar em silêncio é o achado.</p>
-        <p>Todo "top N" precisa responder quatro perguntas na própria tela: quantas categorias existem no total; qual percentual do total os N exibidos cobrem; o que foi para "outros" — resíduo homogêneo ou casos relevantes agrupados; e se o corte muda quando o período ou o filtro muda. Um corte que se reorganiza a cada filtro comunica estabilidade que não existe. Quando "outros" carrega parcela comparável à dos itens exibidos, o achado é de severidade <code>3</code>: o leitor conclui sobre o conjunto vendo uma fração dele.</p>
+        <h3>9.3 Top 10 sem prestar contas do restante</h3>
+        <p>Dados não numéricos com muitas categorias não cabem em um único gráfico legível, e o corte é legítimo desde que declarado. Todo "top N" precisa responder, na própria tela, a quatro perguntas: quantas categorias existem no total; qual percentual do total os N exibidos cobrem; o que foi para "outros", se um resíduo homogêneo ou casos relevantes agrupados; e se o corte muda quando o período ou o filtro mudam.</p>
+        <p>O exemplo usa os 112.650 itens de pedido do Olist, distribuídos em 73 categorias, com 1.603 itens sem categoria. O gráfico das dez maiores categorias faz parecer que elas descrevem o catálogo e que cama_mesa_banho, com 11,1 mil itens, domina as vendas. Na versão corrigida, uma barra adicional mostra que as 63 categorias restantes e os itens sem categoria somam 41,0 mil itens, 36% do total, mais do que qualquer categoria exibida. Quando "outros" carrega parcela comparável à dos exibidos, o achado é de severidade <code>3</code>, porque o leitor conclui sobre o conjunto vendo uma fração dele.</p>
 
-        <h3>8.4 Ordinal tratado como contínuo</h3>
-        <p>Uma escala ordinal garante ordem, não distância. Que 4 venha depois de 3 não implica que o intervalo entre 4 e 3 seja igual ao intervalo entre 2 e 1. Calcular média sobre ordinal produz um número cuja unidade não existe — e, pior, um número que esconde a distribuição. Uma média central pode significar concentração no centro ou polarização nos extremos, e as duas situações pedem intervenções opostas.</p>
-        <p>O substituto é a distribuição completa das categorias; quando um resumo único é indispensável, mediana e proporção acima de um limite declarado. No conjunto do projeto há ainda um problema anterior, de normalização: os rótulos de tamanho aparecem em grafias divergentes — <code>size_M</code> e <code>SIZE_M</code>. Normalizar ou não é decisão do grupo; o que não é opcional é registrá-la, porque ela altera contagens e portanto altera o que o painel afirma.</p>
+        <h3>9.4 Ordinal tratado como contínuo</h3>
+        <p>A escala ordinal garante que 4 vem depois de 3, sem garantir que a distância entre 4 e 3 seja igual à distância entre 2 e 1. Por isso a média sobre escala ordinal produz um valor sem interpretação definida e esconde a distribuição. No exemplo, duas turmas avaliam a sprint review numa escala de 1 a 5 e ambas têm média 3,0, exibida como "3,00". Na Turma A, 80% das respostas estão em 3; na Turma B, metade está em 1 e metade em 5. A distribuição mostra consenso numa turma e polarização na outra, situações que pedem intervenções opostas. Dados ilustrativos.</p>
+        <p>O substituto é a distribuição completa; quando um resumo único é indispensável, usam-se a mediana e a proporção acima de um limite declarado. No conjunto do projeto há ainda um problema anterior, de normalização: os rótulos de tamanho do quadro chegam em grafias divergentes, como <code>size_M</code> e <code>SIZE_M</code>. A decisão de normalizar cabe ao grupo, mas precisa ser registrada, porque altera contagens e, portanto, o que o painel afirma.</p>
 
-        <h3>8.5 Cor semântica e precisão espúria</h3>
-        <p>Verde e vermelho comunicam veredito antes do valor e falham para parte considerável dos leitores. A regra da disciplina é que cor nunca seja o único portador de informação: posição, rótulo, ordem ou símbolo precisam carregar o mesmo conteúdo. Precisão espúria é o erro simétrico: exibir mais dígitos do que a medição sustenta empresta ao número uma autoridade que ele não tem. Uma média com cinco casas decimais sobre poucas observações comunica exatidão onde há incerteza.</p>
+        <h3>9.5 Ranking de pessoas</h3>
+        <p>O ranking ilustrativo lista seis pessoas por commits na sprint, de 212 a zero. A leitura induzida é que a pessoa em último lugar, com zero commit, não trabalhou, e que a primeira é a mais empenhada da turma. A versão corrigida muda a unidade de análise para o grupo e mostra a distribuição interna de cada um, com a faixa "não atribuído" hachurada. Em G02, uma pessoa concentra 55% dos commits; em G03, 20% dos commits não têm autoria, o que pode explicar os dois integrantes sem commit atribuído. A pergunta respondida passa a ser a legítima: a participação está equilibrada? Dados ilustrativos.</p>
+
+        <h3>9.6 Cor semântica aplicada ao valor bruto</h3>
+        <p>Verde e vermelho entregam o julgamento antes da leitura do número, e a régua do julgamento fica escondida. Leitores com daltonismo vermelho-verde perdem a distinção. No exemplo, três cartões mostram os commits da sprint 5: G01 com 12 em vermelho, G02 com 31 em âmbar e G03 com 48 em verde. A cor julga pelo volume comparado ao dos outros grupos. A versão corrigida usa barras neutras e marca, para cada grupo, a mediana das sprints 1 a 4 do próprio grupo. G01 fez 12 commits contra uma mediana de 11 e está estável (+9%); G03, apesar do maior volume, fez 48 contra 70 e caiu 31%. A regra da disciplina é que a cor nunca seja o único portador da informação. Dados ilustrativos.</p>
+
+        <h3>9.7 Precisão espúria</h3>
+        <p>Casas decimais além do que a medida sustenta transmitem uma exatidão que o dado não tem e escondem o tamanho da base. No exemplo, três indicadores aparecem como 73,84615% de taxa de conclusão, 4,285714 commits por dia e 3,166667 dias de lead time médio. A versão corrigida arredonda à precisão útil e declara a base: 74% (48 de 65 cartões), 4,3 commits por dia (30 commits em 7 dias) e 3,2 dias (6 cartões, de 1 a 6 dias). Dados ilustrativos.</p>
       </section>
 
       <section class="content-block">
-        <h2>9. O viés do curador</h2>
-        <p>Quem constrói escolhe o recorte, a métrica, a ordem dos cartões e o que fica de fora. Cada uma dessas escolhas é uma aposta sobre o que importa, feita por alguém que já sabe o que espera encontrar. Três sintomas aparecem com regularidade:</p>
+        <h2>10. Leitura complementar: "Gráficos que mentem"</h2>
+        <p>O artigo <a href="https://blog.brasilacademico.com/2014/04/graficos-que-mentem-manipulando.html">"Gráficos que mentem: Manipulando gráficos e dados"</a>, publicado no blog Brasil Acadêmico em 17/04/2014 como adaptação de um texto do Gizmodo Brasil, reúne casos de gráficos publicados na imprensa e em apresentações corporativas. A leitura é recomendada depois desta aula: o artigo mostra os casos, e a aula fornece o instrumento para classificá-los pela heurística violada e pela decisão afetada. O artigo organiza as técnicas em três grupos.</p>
+        <table>
+          <thead><tr><th>Técnica no artigo</th><th>Exemplo citado</th><th>Relação com a aula</th></tr></thead>
+          <tbody>
+            <tr><td>Eixo Y truncado</td><td>Gráficos de taxa de juros com eixo iniciado bem acima de zero; gráfico da Globo News com eixo em 4%</td><td>Viés 1 do artefato; heurísticas 4 e 8</td></tr>
+            <tr><td>Gráfico acumulado</td><td>Vendas de iPhone apresentadas por Tim Cook em 2013 em curva acumulada, reanalisadas pelo site Quartz, que mostrou as quedas trimestrais</td><td>Heurísticas 7 e 8; aproxima-se do padrão em ruído e da recência, porque a curva sempre crescente esconde a variação de cada período</td></tr>
+            <tr><td>Convenções ignoradas</td><td>Pizza que soma mais de 100% (respostas múltiplas); eixo Y invertido no gráfico da Reuters sobre mortes por arma de fogo na Flórida; barras desproporcionais aos valores; pizza 3D com a fatia da Apple voltada ao público</td><td>Heurísticas 4, 6 e 8; a pizza acima de 100% também viola a heurística 7, porque omite o denominador</td></tr>
+          </tbody>
+        </table>
+        <p>O gráfico acumulado e as convenções ignoradas ampliam a lista dos sete vieses do artefato. O acumulado troca a pergunta "quanto neste período?" por "quanto desde o início?", e a segunda resposta cresce mesmo quando o período vai mal. A convenção ignorada explora a expectativa do leitor (eixo que cresce para cima, pizza que soma 100%, barra proporcional ao valor), de modo que a leitura automática produz a conclusão oposta à que o dado sustenta. Ao ler o artigo, vale aplicar a estrutura da seção 6 a cada caso: evidência, heurística, severidade, consequência, correção e reteste.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>11. O viés de quem constrói o painel</h2>
+        <p>Quem constrói o painel escolhe o recorte, a métrica, a ordem e o que fica de fora. Cada escolha expressa uma expectativa sobre o que importa, feita por alguém que já tem uma hipótese sobre o resultado. Três sintomas aparecem com regularidade:</p>
         <ol class="steps">
-          <li><strong>Confirmação</strong> — o gráfico que contrariava a hipótese do grupo foi removido "porque estava confuso". Vale conferir se ele estava confuso ou apenas inconveniente.</li>
-          <li><strong>Custo afundado</strong> — a consulta que deu muito trabalho permanece no painel porque deu trabalho, não porque sustenta uma decisão. É a violação mais comum da heurística 1.</li>
-          <li><strong>Maldição do conhecimento</strong> — o título faz sentido para quem construiu e apenas para quem construiu. Quem escreveu a consulta não consegue mais ler o rótulo como um estranho o lê.</li>
+          <li>Confirmação: o gráfico que contrariava a hipótese foi removido "porque estava confuso". Vale verificar se ele estava confuso ou apenas inconveniente.</li>
+          <li>Custo afundado: a consulta trabalhosa permanece no painel pelo esforço investido, sem sustentar decisão. É a violação mais comum da heurística 1.</li>
+          <li>Maldição do conhecimento: o título só faz sentido para quem construiu o painel, que não consegue mais ler o rótulo como um estranho o lê.</li>
         </ol>
-        <p>Não existe correção individual para esses três. A correção é de método: a auditoria de hoje é cruzada, a devolutiva é escrita antes de qualquer defesa oral, e o reteste é feito por alguém que não participou da correção. Esse é o motivo pelo qual a Aula 06 não é uma aula de autoavaliação.</p>
-
-        <h3>9.1 TBL — duas decisões antes de construir qualquer coisa</h3>
-        <p>Das 9h20 às 10h00 a turma entra na <a href="../tbl/tbl_aula_06.html">sala de Team-Based Learning</a> pelo QR projetado. Um caso único — o painel de acompanhamento dos grupos, aquele que o orientador abre quatro minutos antes da reunião — e duas decisões de projeto, cada uma com quatro táticas. <strong>Nenhuma alternativa é a correta.</strong> Cada tática declara o ganho que produz e o custo que cobra, e escolher uma é aceitar o custo dela diante de todos.</p>
-        <p>A primeira questão trata da <em>tela de abertura</em>: é ela que fixa a âncora com que todo o resto do painel será lido, e nela convergem o denominador ausente, o ranking de pessoas e a cor semântica, sobre a magnitude que a Aula 03 definiu. A segunda trata da <em>lacuna que o dado já tem</em>: 552 dos 2.688 commits não resolvem para nenhum integrante, e a decisão sobre esse resíduo é, simultaneamente, uma decisão sobre viés de sobrevivência, taxa-base e erro fundamental de atribuição — apoiada no perfil da Aula 01 e na reconciliação da Aula 04.</p>
-        <p>Cada questão percorre cinco etapas em nove minutos: decisão individual com justificativa escrita (três minutos), discussão com a distribuição e as justificativas da turma à vista, sem nome de autor (quatro minutos), liberação do dado novo quando a questão o tiver, segunda decisão (dois minutos) e síntese. As quatro táticas permanecem na tela em todas as etapas, e o número de votos de cada rodada é impresso dentro do cartão da própria tática — a discussão não deve depender de alguém lembrar o que era a alternativa <code>C</code>.</p>
-        <p>O que se mede não é acerto: é o <strong>deslocamento</strong> entre a primeira decisão e a segunda. Manter a posição diante do dado novo é uma decisão tão registrável quanto mudá-la, desde que declarada. O mecanismo que produz esse deslocamento — prova social, ancoragem na distribuição projetada, reavaliação diante de evidência — é exatamente o que a primeira parte da aula descreveu, operando agora sobre quem está na sala. A justificativa exigida a cada rodada é o mesmo par <em>decisão + suporte</em> que a Aula 05 pediu no fluxo anotado e que a auditoria das 10h20 vai cobrar de cada achado.</p>
+        <p>Não há correção individual para esses sintomas; a correção é de método. A auditoria de um painel deve ser feita por quem não o construiu, a devolutiva é escrita antes de qualquer defesa oral e o reteste é feito por alguém que não participou da correção. Esse é o motivo pelo qual, na Aula 07, cada protótipo é analisado pelos colegas de forma independente.</p>
       </section>
 
       <section class="content-block">
-        <h2>10. Prática — do fluxo anotado ao protótipo HTML</h2>
-        <p>A segunda parte começa às 10h20 e usa como entrada o <code>docs/05_fluxo_de_interacao_anotado.md</code>, o frame do grupo no Miro e o painel do projeto no Metabase. O Metabase continua sendo fonte de evidência e referência do estado atual; o artefato produzido hoje é um protótipo HTML de alta fidelidade, versionado no repositório do grupo.</p>
-        <p>Alta fidelidade não significa acabamento decorativo. Significa proximidade do comportamento final: conteúdo plausível, hierarquia de informação, navegação, filtros, estados alternativos, responsividade, acessibilidade e suporte explícito à decisão. O protótipo precisa permitir que alguém execute a tarefa registrada no fluxo sem receber explicação oral.</p>
+        <h2>12. TBL: decidir antes de auditar</h2>
+        <p>Das 9h20 às 10h00, a turma entra na <a href="../tbl/tbl_aula_06.html">sala de Team-Based Learning</a> pelo QR projetado. O caso é o painel de acompanhamento dos grupos, que o orientador abre quatro minutos antes da reunião, e há duas decisões de projeto, cada uma com quatro táticas. Nenhuma alternativa é a correta: cada tática declara o ganho que produz e o custo que cobra, e escolher uma implica aceitar o custo dela.</p>
+        <p>A primeira questão trata da curadoria da tela de abertura, que define a referência com que o restante é lido. Nela convergem denominador, ancoragem, ranking de pessoas e cor semântica, sobre a magnitude definida na Aula 03. A segunda trata da lacuna que o dado já tem: 552 dos 2.688 commits não têm autoria atribuída, e a decisão sobre esse resíduo envolve sobrevivência, taxa-base e erro fundamental de atribuição, sobre o perfil da Aula 01 e a reconciliação da Aula 04.</p>
+        <p>Cada questão percorre cinco etapas em nove minutos: decisão individual com justificativa escrita (3 minutos), discussão com a distribuição e as justificativas da turma à vista, sem nome de autor (4 minutos), liberação de uma evidência nova em uma das questões, segunda decisão (2 minutos) e síntese. A justificativa precisa ter entre 10 e 240 caracteres. As quatro táticas permanecem na tela em todas as etapas, e o resultado da votação aparece dentro do cartão de cada tática.</p>
+        <p>O que se mede é o deslocamento entre a primeira decisão e a decisão tomada depois de ouvir a turma. Manter a escolha diante da evidência nova conta como decisão, desde que declarada. O deslocamento expressa o mesmo mecanismo cognitivo descrito na primeira parte da aula (ancoragem na distribuição projetada, influência dos pares, reavaliação diante de evidência), agora operando sobre quem decide.</p>
+      </section>
 
-        <h3>10.1 Etapa 1 — Extrair o contrato de interface</h3>
-        <p>O fluxo anotado descreve ações, estados, evidências e divergências. O contrato converte essas anotações em decisões implementáveis. Crie <code>CONTRATO.md</code> e, para cada passo relevante, preencha:</p>
+      <section class="content-block">
+        <h2>13. Do fluxo ao protótipo</h2>
+
+        <h3>13.1 O fluxo vira contrato de interface</h3>
+        <p>O fluxo anotado da Aula 05 já contém as decisões que o protótipo precisa implementar. Cada elemento da tela deve remontar a uma linha do fluxo, o que evita desenhar um painel por gosto. A tabela abaixo converte as anotações do fluxo em decisões de interface.</p>
         <table>
-          <thead><tr><th>Campo</th><th>Pergunta operacional</th></tr></thead>
+          <thead><tr><th>No fluxo anotado</th><th>No protótipo</th><th>Pergunta operacional</th></tr></thead>
           <tbody>
-            <tr><td>Tarefa</td><td>O que o leitor tenta decidir neste ponto?</td></tr>
-            <tr><td>Entrada</td><td>Que ação, filtro ou seleção inicia o passo?</td></tr>
-            <tr><td>Evidência</td><td>Que dado sustenta a decisão, com qual unidade, base e período?</td></tr>
-            <tr><td>Estado</td><td>O que aparece em condição normal, vazia, carregando e com erro?</td></tr>
-            <tr><td>Divergência</td><td>Qual leitura indevida foi observada na Aula 05?</td></tr>
-            <tr><td>Contramedida</td><td>Que elemento interrompe essa leitura antes que ela vire decisão?</td></tr>
-            <tr><td>Aceite</td><td>Que comportamento observável demonstra que o passo funciona?</td></tr>
+            <tr><td>Ação do usuário</td><td>Controle, affordance e resposta esperada</td><td>Que ação, filtro ou seleção inicia o passo, e o que a tela devolve?</td></tr>
+            <tr><td>Estado do sistema</td><td>Tela, componente, estado vazio e estado de erro</td><td>O que aparece em condição normal, sem dados e com falha?</td></tr>
+            <tr><td>Evidência consultada</td><td>Métrica, unidade, denominador e período</td><td>Que dado sustenta a decisão, com qual base e em qual janela?</td></tr>
+            <tr><td>Divergência <code>D</code></td><td>Risco de viés e suporte que o previne</td><td>Que elemento interrompe a leitura indevida antes que ela vire decisão?</td></tr>
+            <tr><td>Decisão</td><td>O que o leitor consegue decidir ao fim da tarefa</td><td>Que comportamento observável mostra que o passo funciona?</td></tr>
           </tbody>
         </table>
-        <p>Quando o fluxo não trouxer resposta, não deixe o agente preencher por plausibilidade. Use <code>[DECISÃO PENDENTE]</code>. Uma lacuna visível é mais segura que uma regra inventada com boa aparência.</p>
+        <p>Quando o fluxo não trouxer resposta para uma linha, a lacuna deve ficar visível no protótipo, marcada como decisão pendente. Uma lacuna declarada é mais segura do que uma regra inventada com boa aparência.</p>
 
-        <h3>10.2 Prompt para extrair o contrato</h3>
-        <pre><code>Você é o analista de interface desta rodada. Não edite HTML.
-
-Leia docs/05_fluxo_de_interacao_anotado.md e as divergências D1..Dn.
-Converta o fluxo em CONTRATO.md. Para cada passo, registre:
-tarefa de decisão, ação do usuário, estado do sistema, evidência necessária,
-unidade/denominador/período, divergência observada, suporte preventivo e
-critério de aceite verificável.
-
-Regras:
-- não invente métrica, dado, público ou regra de negócio;
-- marque ausências como [DECISÃO PENDENTE] e explique o impacto;
-- ligue cada componente proposto a uma tarefa e a uma evidência;
-- verifique taxa-base, denominador, rastreabilidade e unidade de análise;
-- preserve a unidade de saída no grupo; não crie ranking de pessoas.
-
-Termine com: mapa de telas, estados obrigatórios, decisões pendentes e
-checklist de aceite. Pare antes de implementar.</code></pre>
-
-        <h3>10.3 Etapa 2 — Construir com IA agêntica</h3>
-        <p>O agente construtor recebe o contrato, não apenas o pedido “faça um dashboard”. A diferença é causal: sem contrato, a IA completa lacunas pela aparência mais provável; com contrato, ela precisa justificar cada componente pelo trabalho que realiza.</p>
-        <pre><code>Leia FLUXO.md e CONTRATO.md integralmente antes de editar.
-Construa um protótipo de alta fidelidade em HTML, CSS e JavaScript puros.
-
-Requisitos:
-- uma página principal navegável e responsiva;
-- HTML semântico, foco visível, teclado e contraste adequado;
-- estados normal, vazio, carregando e erro;
-- conteúdo plausível, sempre identificado como demonstração;
-- unidade, denominador, período e fonte próximos de cada métrica;
-- detalhes rastreáveis até a evidência de origem;
-- nenhuma cor como único portador de significado;
-- nenhum ranking de pessoas ou veredito automático;
-- nenhum dado, cálculo ou regra ausente no contrato deve ser inventado.
-
-Antes de editar, devolva entendimento, plano de arquivos e bloqueios.
-Depois de implementar, teste cada critério de aceite e registre em ANALISE.md:
-o que foi atendido, o que não foi verificável e quais decisões seguem abertas.</code></pre>
-      </section>
-
-      <section class="content-block">
-        <h2>11. Skills para as análises</h2>
-        <p>Prompt resolve uma execução. Skill estabiliza uma forma de trabalhar que será reutilizada. Uma skill útil não diz apenas “seja um especialista”; ela define quando agir, quais artefatos ler, que critérios aplicar, qual saída produzir e quando parar. Os três modelos abaixo podem ser salvos como <code>SKILL.md</code> em pastas separadas no ambiente agêntico usado pelo grupo.</p>
-
-        <h3>11.1 Skill <code>fluxo-para-interface</code></h3>
-        <pre><code>---
-name: fluxo-para-interface
-description: Converte um fluxo de interação anotado em contrato verificável de interface. Use antes de prototipar; não use para decidir estética ou implementar HTML.
----
-
-# Fluxo para interface
-
-Leia o fluxo anotado, as divergências e as restrições do projeto.
-Para cada passo, extraia tarefa, ação, estado, evidência, decisão e aceite.
-Ligue toda sugestão de componente a uma evidência do fluxo.
-
-Não invente requisito. Marque lacunas como `[DECISÃO PENDENTE]`, com impacto.
-Cheque unidade de análise, denominador, período, fonte e rastreabilidade.
-
-Produza `CONTRATO.md` com mapa de telas, matriz passo→componente,
-estados normal/vazio/carregando/erro e checklist de aceite.
-Pare antes de alterar código.</code></pre>
-
-        <h3>11.2 Skill <code>auditoria-heuristica</code></h3>
-        <pre><code>---
-name: auditoria-heuristica
-description: Audita protótipos de dados pelas dez heurísticas da disciplina, com evidência e severidade. Use depois de existir uma versão navegável; não use para revisar gosto visual.
----
-
-# Auditoria heurística
-
-Leia o contrato e percorra a tarefa principal no protótipo.
-Aplique as dez heurísticas em ordem, uma passagem por heurística.
-Descreva o que está na tela antes de interpretar.
-
-Para cada achado registre: id, elemento, evidência, heurística, decisão
-afetada, severidade 0–4, correção mínima e método de reteste.
-Se não houver evidência suficiente, marque `não verificável`.
-
-Ordene por severidade. Não altere o protótipo durante a auditoria.
-Produza `docs/06_auditoria_heuristica.md` e pare.</code></pre>
-
-        <h3>11.3 Skill <code>analise-antivies</code></h3>
-        <pre><code>---
-name: analise-antivies
-description: Examina interfaces analíticas em busca de vieses cognitivos e vieses fabricados pela visualização. Use para revisar métricas, recortes e codificações; não use para inferir intenção do autor.
----
-
-# Análise antiviés
-
-Inspecione cada afirmação visual e pergunte:
-1. Qual é a taxa-base e o denominador?
-2. O recorte exclui casos que mudariam a conclusão?
-3. Ordem, escala, cor ou enquadramento ancoram uma leitura?
-4. Há regressão à média, padrão em ruído ou sobrevivência?
-5. Top N, ordinal ou precisão numérica ocultam a distribuição?
-6. A interface transforma descrição em veredito sobre pessoas?
-
-Registre somente achados apontáveis no artefato. Para cada um, forneça
-leitura induzida, evidência, decisão afetada, severidade e contramedida.
-Produza `docs/06_analise_antivies.md`. Não edite o HTML.</code></pre>
-      </section>
-
-      <section class="content-block">
-        <h2>12. Fluxo agêntico de análise, correção e reteste</h2>
-        <p>O fluxo usa papéis separados porque o construtor tende a explicar a própria intenção, enquanto o leitor só encontra o que ficou na tela. Separação de papéis reduz confirmação; não elimina responsabilidade. O grupo continua decidindo o que entra, o que sai e o que pode ser afirmado.</p>
-        <ol class="steps">
-          <li><strong>Analista</strong> — executa <code>fluxo-para-interface</code>, produz o contrato e não altera código.</li>
-          <li><strong>Construtor</strong> — implementa o HTML a partir do contrato e registra decisões pendentes.</li>
-          <li><strong>Auditor heurístico</strong> — recebe fluxo, contrato e protótipo, mas não a justificativa oral do construtor.</li>
-          <li><strong>Auditor antiviés</strong> — procura mecanismos de julgamento indevido e produz relatório independente.</li>
-          <li><strong>Corretor</strong> — consolida relatórios sem apagar divergências, corrige primeiro severidade <code>4</code> e depois <code>3</code>.</li>
-          <li><strong>Leitor humano</strong> — executa a tarefa do fluxo sem explicação prévia; sua frase literal e seu caminho encerram ou reabrem o achado.</li>
-        </ol>
-
-        <h3>12.1 Prompt do orquestrador</h3>
-        <pre><code>Conduza esta rodada com papéis separados e preserve todas as saídas.
-
-1. Analista: execute fluxo-para-interface e pare em CONTRATO.md.
-2. Construtor: implemente o protótipo conforme o contrato.
-3. Auditor A: execute auditoria-heuristica sem editar arquivos do protótipo.
-4. Auditor B: execute analise-antivies sem ler a defesa do construtor.
-5. Consolidador: una achados equivalentes, preserve discordâncias e ordene
-   por severidade. Não reduza severidade sem indicar evidência nova.
-6. Corretor: preserve a versão anterior e corrija os achados 4 e 3.
-7. Verificador: repita as duas auditorias e compare antes/depois.
-
-Pare antes de declarar sucesso. Entregue ao grupo o roteiro de reteste humano,
-com tarefa, ponto de partida, comportamento observado e critério de fechamento.</code></pre>
-
-        <h3>12.2 Prompt de correção</h3>
-        <pre><code>Leia os dois relatórios de auditoria e o CONTRATO.md.
-Não corrija por volume de comentários; corrija por severidade da decisão.
-Preserve a versão anterior. Para cada achado 4 ou 3:
-- confirme a evidência no HTML;
-- aplique a menor mudança que interrompe a leitura indevida;
-- mantenha rastreabilidade ao passo do fluxo;
-- atualize ANALISE.md com antes, depois e limite da correção;
-- rode novamente os critérios de aceite.
-
-Não feche o achado. Marque-o como `aguardando reteste humano`.</code></pre>
-      </section>
-
-      <section class="content-block">
-        <h2>13. Artefatos, agenda e orientação para a prática</h2>
-        <table>
-          <thead><tr><th>Horário</th><th>Ação</th><th>Gate</th></tr></thead>
-          <tbody>
-            <tr><td>8h30–8h45</td><td>Recap da Aula 05 e duas famílias de heurística</td><td>Uma divergência <code>D</code> explicada por grupo</td></tr>
-            <tr><td>8h45–9h10</td><td>Dez heurísticas, severidade e crítica válida</td><td>Um achado classificado com decisão afetada</td></tr>
-            <tr><td>9h10–9h20</td><td>Atalhos cognitivos e vieses do artefato</td><td>Denominador, enquadramento e curadoria revisados</td></tr>
-            <tr><td>9h20–10h00</td><td><strong>TBL — duas decisões sobre o painel do orientador</strong></td><td>Duas decisões registradas com justificativa por participante</td></tr>
-            <tr><td>10h00–10h20</td><td><strong>Intervalo</strong></td><td>—</td></tr>
-            <tr><td>10h20–10h35</td><td>Fluxo anotado → contrato de interface</td><td><code>CONTRATO.md</code> sem lacunas ocultas</td></tr>
-            <tr><td>10h35–11h10</td><td>Construção do protótipo HTML com agente</td><td>Tarefa principal navegável em desktop e mobile</td></tr>
-            <tr><td>11h10–11h25</td><td>Criação e execução das três skills</td><td>Relatórios independentes produzidos</td></tr>
-            <tr><td>11h25–11h45</td><td>Consolidação e correção dos achados 4 e 3</td><td>Antes e depois preservados</td></tr>
-            <tr><td>11h45–12h05</td><td>Reteste humano do fluxo</td><td>Frase literal, caminho e decisão registrados</td></tr>
-            <tr><td>12h05–12h10</td><td>Fechamento e commit</td><td>Protótipo e rastro de decisão versionados</td></tr>
-          </tbody>
-        </table>
-
-        <h3>13.1 Entrega verificável</h3>
+        <h3>13.2 O que o protótipo precisa permitir</h3>
+        <p>A fidelidade de um protótipo se mede pela decisão que ele permite simular, e não pelo acabamento visual. Quatro dimensões orientam essa fidelidade:</p>
         <ul>
-          <li><code>CONTRATO.md</code> ligado ao fluxo anotado da Aula 05;</li>
-          <li><code>index.html</code> com CSS e JavaScript necessários ao protótipo;</li>
-          <li>as três skills no ambiente agêntico do grupo;</li>
-          <li><code>docs/06_auditoria_heuristica.md</code> e <code>docs/06_analise_antivies.md</code>;</li>
-          <li><code>ANALISE.md</code> com prompts, decisões pendentes, antes/depois e reteste.</li>
+          <li>Conteúdo: rótulos, unidade, denominador, período e fonte, mesmo quando os valores são fictícios.</li>
+          <li>Comportamento: navegação da tarefa principal, filtros e detalhe, com retorno ao ponto de partida.</li>
+          <li>Julgamento: o suporte aparece no ponto em que a inferência indevida surgiria, e não em nota de rodapé.</li>
+          <li>Rastreabilidade: cada tela remonta ao fluxo, e cada número declara de onde viria no dado real.</li>
         </ul>
+        <p>Um protótipo com essas quatro dimensões permite que alguém execute a tarefa registrada no fluxo sem explicação oral, que é o teste aplicado na apresentação da Aula 07.</p>
+      </section>
 
-        <h3>13.2 Critérios de avaliação</h3>
-        <p>O protótipo é avaliado pela cadeia completa, não pela aparência isolada: aderência ao fluxo, qualidade do contrato, comportamento navegável, evidência próxima da decisão, prevenção de vieses, acessibilidade, independência das auditorias e reteste humano. O grupo precisa demonstrar um fluxo completo e ao menos um achado de severidade <code>3</code> ou <code>4</code> corrigido.</p>
+      <section class="content-block">
+        <h2>14. Atividade para a Aula 07: protótipo do painel do projeto</h2>
+        <p>Cada grupo constrói o protótipo do painel do projeto a partir do fluxo anotado da Aula 05 e o apresenta no início da Aula 07, em 26/09. O protótipo é o primeiro contato da turma com a interface de cada grupo e a base do painel narrativo trabalhado na Aula 07.</p>
 
+        <h3>14.1 Restrições</h3>
+        <table>
+          <thead><tr><th>Restrição</th><th>O que significa</th></tr></thead>
+          <tbody>
+            <tr><td>Formato</td><td>Figma ou HTML responsivo, à escolha do grupo</td></tr>
+            <tr><td>Preto e branco</td><td>Somente preto, branco e tons de cinza; a hierarquia vem de posição, tamanho, peso e espaçamento</td></tr>
+            <tr><td>Sem conexão</td><td>Nenhum banco de dados, API ou ferramenta de BI; o protótipo funciona sozinho</td></tr>
+            <tr><td>Dados fictícios</td><td>Valores inventados e plausíveis, sinalizados na própria tela como fictícios</td></tr>
+          </tbody>
+        </table>
+        <p>A restrição de cor tem função didática. Sem cor, a leitura depende da estrutura do painel, e nenhum verde ou vermelho entrega o veredito antes do número (heurísticas 6 e 9). A cor entra numa etapa posterior, com função declarada. A restrição de conexão separa a decisão de interface da engenharia de dados: o grupo discute o que a tela afirma sem depender do estado do banco.</p>
+
+        <h3>14.2 Passo a passo</h3>
+        <ol class="steps">
+          <li>Abra o fluxo anotado da Aula 05 e escolha a tarefa principal do orientador que o protótipo vai simular, do início até a decisão.</li>
+          <li>Preencha, para cada passo da tarefa, as cinco linhas da tabela da seção 13.1. Marque como pendente o que o fluxo não responde.</li>
+          <li>Escolha pelo menos uma divergência <code>D</code> da Aula 05 e defina o suporte que a previne no ponto em que a leitura indevida surgiria.</li>
+          <li>Monte as telas no Figma ou em HTML. No HTML, use somente arquivos locais, sem chamadas a banco, API ou ferramenta de BI.</li>
+          <li>Preencha com dados fictícios plausíveis e escreva na tela que os dados são fictícios.</li>
+          <li>Coloque unidade, denominador e período junto de cada número.</li>
+          <li>Percorra a tabela dos sete vieses da seção 9 e confirme que nenhum aparece nas telas.</li>
+          <li>Verifique a leitura no celular: redimensione o HTML até a largura de um telefone ou crie um quadro móvel no Figma.</li>
+          <li>Recomendado: peça a alguém de fora do grupo para executar a tarefa sem explicação e anote onde a pessoa hesitou.</li>
+          <li>Deixe o link do Figma ou o HTML aberto no navegador, pronto para compartilhar a tela.</li>
+        </ol>
+
+        <h3>14.3 Apresentação e critérios</h3>
+        <p>A apresentação acontece no início da Aula 07 pelo Google Meet, mesmo com a turma em sala. O grupo compartilha a tela, e cada colega acompanha no próprio computador e analisa o protótipo de forma independente, registrando achados com a estrutura da seção 6. A análise individual, feita antes de qualquer discussão, evita que a primeira opinião dita em voz alta ancore as demais. Na apresentação, verifica-se:</p>
+        <ul>
+          <li>a tarefa principal do fluxo da Aula 05 é navegável do início até a decisão;</li>
+          <li>cada número exibe unidade, denominador e período;</li>
+          <li>pelo menos uma divergência <code>D</code> da Aula 05 aparece tratada, com o suporte que a previne;</li>
+          <li>nenhum dos sete vieses do artefato aparece na tela;</li>
+          <li>o painel é legível no celular, em HTML responsivo ou em um quadro móvel no Figma;</li>
+          <li>o link do Figma ou o HTML está pronto para compartilhar a tela no Meet.</li>
+        </ul>
         <div class="note">
-          <strong>Orientação final</strong>
-          <p>A atividade é prática e não termina em uma lista de perguntas. Comece pelos arquivos da Aula 05, mantenha o painel do Metabase aberto como fonte de evidência e use dados pseudonimizados no HTML. Não cole credenciais, dados identificados ou segredos em prompts. Ao final, o protótipo auditado entra na Aula 07 como base do storytelling: a narrativa deve nascer de uma interface que já sabe o que pode e o que não pode afirmar.</p>
+          <strong>Antes de começar</strong>
+          <p>Use dados fictícios mesmo quando os dados reais do projeto estiverem à mão: o protótipo circula na tela compartilhada, e nenhum dado identificado de estudante deve aparecer nele. As leituras que o protótipo ainda não previne reaparecem na Aula 07 como limites que a história do painel precisa declarar.</p>
         </div>
       </section>
 
