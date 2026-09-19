@@ -156,7 +156,13 @@ html.tbl-root, html.tbl-root > body.tbl-page { height: auto; overflow: visible; 
    -------------------------------------------------------------------------- */
 
 .tbl-page .opcoes { display: flex; flex-direction: column; gap: 12px; }
-.tbl-painel .opcoes.colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 12px; }
+
+/* Na projeção os quatro cartões são discutidos com a turma olhando para eles.
+   `auto-fit` deixava o quarto cair para a linha de baixo em telas de 1280px,
+   fora do campo de visão; o número de colunas passa a ser fixo por faixa. */
+.tbl-painel .opcoes.colunas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 1100px) { .tbl-painel .opcoes.colunas { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 720px)  { .tbl-painel .opcoes.colunas { grid-template-columns: 1fr; } }
 
 .tbl-page button.opcao, .tbl-page div.opcao {
   display: grid; grid-template-columns: 40px 1fr; gap: 14px;
@@ -299,8 +305,40 @@ html.tbl-root, html.tbl-root > body.tbl-page { height: auto; overflow: visible; 
 .tbl-page .tbl-nav a { color: var(--ink); }
 .tbl-page .rodape { font-family: var(--font-mono); font-size: .66rem; color: var(--muted); letter-spacing: .06em; }
 
+/* Modo questão. Fora do lobby o topo encolhe para que o enunciado e os quatro
+   cartões caibam na altura da tela sem rolagem: o QR já cumpriu a função de
+   fazer a turma entrar, e a instrução da fase é para quem conduz, não para a
+   projeção. O botão "Mostrar topo completo" devolve tudo quando necessário. */
+/* Em telas de notebook a compressão por regra não basta: a raiz é reescalada
+   em modo foco, e como toda a folha usa rem, a projeção inteira acompanha. */
+@media (max-height: 960px) { html.tbl-root.foco { font-size: 14.5px; } }
+@media (max-height: 820px) { html.tbl-root.foco { font-size: 12.5px; } }
+
+.tbl-painel.foco main { padding: 10px 14px 24px; gap: 10px; }
+.tbl-painel.foco .grade { grid-template-columns: 1fr; }
+.tbl-painel.foco #bloco-qr { display: none; }
+/* O tempo continua visível no relógio do cabeçalho, que é fixo no topo. */
+.tbl-painel.foco .cronometro { display: none; }
+.tbl-painel.foco header .relogio { font-size: 1.9rem; }
+.tbl-painel.foco #fase-descricao,
+.tbl-painel.foco #fase-instrucao { display: none; }
+.tbl-painel.foco .grade .bloco { padding: 10px 14px; }
+.tbl-painel.foco .controles { margin-top: 8px; gap: 6px; }
+.tbl-painel.foco .controles button { padding: 7px 10px; font-size: .72rem; }
+.tbl-painel.foco #projecao { padding: 14px 16px; }
+.tbl-painel.foco #projecao > h2 { font-size: 1.02rem; margin: 8px 0 4px; }
+.tbl-painel.foco #projecao > p { margin-bottom: 10px; }
+.tbl-painel.foco .opcao { padding: 11px; gap: 9px; grid-template-columns: 30px 1fr; }
+.tbl-painel.foco .opcao > .letra { width: 30px; height: 30px; font-size: .88rem; }
+.tbl-painel.foco .opcao h4 { font-size: .9rem; margin-bottom: 2px; }
+.tbl-painel.foco .opcao .tatica { margin-bottom: 5px; }
+.tbl-painel.foco .opcao p { font-size: .79rem; line-height: 1.45; margin-bottom: 6px; }
+.tbl-painel.foco .troca { font-size: .755rem; line-height: 1.4; gap: 3px; }
+.tbl-painel.foco .placar { margin-top: 7px; padding-top: 7px; }
+
 @media (max-width: 1080px) {
-  .tbl-painel .grade { grid-template-columns: 1fr; }
+  .tbl-painel .grade,
+  .tbl-painel.foco .grade { grid-template-columns: 1fr; }
   .tbl-painel .cronometro .tempo { font-size: 2.6rem; }
 }
 @media (max-width: 560px) {

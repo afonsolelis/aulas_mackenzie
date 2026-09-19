@@ -63,20 +63,20 @@ insert into hubtbl_casos (session_slug, caso_titulo, caso_texto, contexto)
 values (
   'mack-dv-a06-2026-2',
   'O painel que o orientador lê em quatro minutos',
-  'O painel de acompanhamento dos grupos existe para responder a uma pergunta de orientação: **com qual grupo o professor precisa conversar nesta semana, e sobre o quê**. Ele é aberto **quatro minutos antes da reunião**, no celular, entre uma aula e outra. Quem constrói o painel tem o semestre inteiro; quem o lê tem esses quatro minutos.
+  'O painel de acompanhamento dos grupos responde a uma pergunta de orientação: **com qual grupo o professor precisa conversar nesta semana, e sobre o quê**. Ele é aberto no celular, entre uma aula e outra, nos **quatro minutos** que antecedem a reunião. O grupo que o constrói dispõe do semestre inteiro; a leitura que decide a conversa ocorre nesses quatro minutos, sem consulta a nenhuma outra fonte.
 
-A base do período reúne **2.688 commits de 41 estudantes, distribuídos em 9 grupos ao longo de 5 sprints**. A autoria resolve para um integrante em **2.136 desses commits**: os **552 restantes** chegam com e-mail de cliente git fora da conta institucional e aparecem como **[externo]** ou **[bot]**. Nada na plataforma registra o trabalho descartado antes do commit, a revisão feita por chamada de vídeo ou a programação em par no mesmo teclado.
+A base do período reúne **2.688 commits de 34 estudantes, distribuídos em 6 grupos ao longo de 5 sprints**. A autoria resolve para um integrante em **2.136** desses commits. Os **552 restantes** chegam com e-mail de cliente git fora da conta institucional e são exibidos como **[externo]** ou **[bot]**. A plataforma não registra o trabalho descartado antes do commit, a revisão feita por chamada de vídeo nem a programação em par no mesmo teclado, de modo que o rastro disponível descreve o que virou objeto no repositório, e não o esforço empregado.
 
-A tela de abertura, hoje, é um **ranking dos nove grupos por volume de commits**, ordenado do maior para o menor, com **cor semântica** nos três últimos. O **filtro padrão traz as duas últimas sprints**, e o período completo está a um clique que ninguém deu. Abaixo do ranking há uma tela de **participação interna do grupo, com uma barra por integrante**.
+A tela de abertura é hoje um **ranking dos seis grupos por volume de commits**, ordenado do maior para o menor, com **cor semântica** nos dois últimos. O **filtro padrão traz as duas últimas sprints**; o período completo exige um clique que nenhum dos acessos registrados no semestre executou. Abaixo do ranking, uma segunda tela mostra a **participação interna do grupo, com uma barra por integrante**.
 
-Na Aula 05 este mesmo grupo registrou as divergências **D1 a D6** entre o modelo do usuário e o do projetista, cada uma com decisão e suporte exigido. A mais cara delas foi literal: o orientador lê **"12 commits" como "trabalhou pouco"**, e decide a partir daí quem chamar para conversar. O fluxo anotado descreve onde essa inferência nasce; **nenhum elemento da interface a impede no ponto exato em que ela acontece**.
+Na Aula 05 o grupo registrou as divergências **D1 a D6** entre o modelo do usuário e o do projetista, cada uma com decisão e suporte exigido. Em **D3** a divergência foi observada em voz alta: o orientador lê **"12 commits" como "trabalhou pouco"** e decide, a partir dessa leitura, quem chamar para conversar. O fluxo anotado identifica onde a inferência nasce. **Nenhum elemento da interface a impede no ponto em que ela acontece.**
 
-A entrega de hoje, às 12h10, é o protótipo auditado com os achados de severidade **3 e 4 corrigidos e retestados**. Cada decisão abaixo custa alguma coisa — ao orientador, ao estudante que aparece na tela ou ao grupo que precisa implementá-la em uma manhã. **Nenhuma das alternativas é a correta.**',
+A entrega das 12h10 é o protótipo auditado, com os achados de severidade **3 e 4** corrigidos e retestados. As decisões abaixo antecedem essa construção, e cada uma cobra um custo do orientador, do estudante que aparece na tela ou do grupo que precisa implementá-la em uma manhã. **Nenhuma das alternativas é a correta.**',
   '[
-    {"rotulo":"Base do período","valor":"2.688 commits","nota":"5 sprints · 9 grupos · 41 estudantes"},
+    {"rotulo":"Base do período","valor":"2.688 commits","nota":"5 sprints · 6 grupos · 34 estudantes"},
     {"rotulo":"Autoria resolvida","valor":"2.136 de 2.688","nota":"79,5% · os outros 552 são [externo] ou [bot]"},
-    {"rotulo":"Tela de abertura","valor":"ranking por volume","nota":"ordenado, com cor semântica nos três últimos"},
-    {"rotulo":"Filtro padrão","valor":"últimas 2 sprints","nota":"o período completo está a um clique não dado"},
+    {"rotulo":"Tela de abertura","valor":"ranking por volume","nota":"ordenado, com cor semântica nos dois últimos"},
+    {"rotulo":"Filtro padrão","valor":"últimas 2 sprints","nota":"o período completo exige um clique nunca executado"},
     {"rotulo":"Tempo de leitura","valor":"4 minutos","nota":"no celular, antes da reunião de orientação"},
     {"rotulo":"Divergência mais cara","valor":"D3","nota":"\"12 commits\" lido como \"trabalhou pouco\""}
   ]'::jsonb
@@ -96,7 +96,7 @@ values (
   'mack-dv-a06-2026-2', 1,
   'Curadoria da tela de abertura',
   'Os quatro minutos antes da reunião',
-  'A tela de abertura é um ranking dos nove grupos por volume de commits, e é ela que fixa a régua com que todo o resto do painel será lido. O grupo tem esta manhã para mudá-la. Que decisão de projeto ele toma para essa tela?',
+  'A tela de abertura é um ranking dos seis grupos por volume de commits, e é ela que fixa a régua com que todo o resto do painel será lido. O grupo tem esta manhã para mudá-la. Que decisão de projeto ele toma para essa tela?',
   '[
     {
       "letra":"A","titulo":"Proporção ao lado do absoluto","tatica":"Dar denominador à magnitude",
@@ -106,7 +106,7 @@ values (
     },
     {
       "letra":"B","titulo":"Distribuição no lugar do ranking","tatica":"Trocar a pergunta que a tela faz",
-      "texto":"A abertura deixa de ordenar grupos e passa a mostrar a distribuição do indicador entre os nove, com a mediana marcada e a faixa de variação do período; o nome do grupo aparece só quando o leitor aponta para o ponto.",
+      "texto":"A abertura deixa de ordenar grupos e passa a mostrar a distribuição do indicador entre os seis, com a mediana marcada e a faixa de variação do período; o nome do grupo aparece só quando o leitor aponta para o ponto.",
       "ganho":"Remove a lista do melhor ao pior, que é exatamente o formato que o erro fundamental de atribuição pede, e mostra se a diferença observada é grande diante da variação normal entre grupos.",
       "custo":"Ler distribuição é uma competência que o orientador não pediu e não tem em quatro minutos. Se ele não localizar o próprio grupo de imediato, volta para a planilha, onde não há suporte nenhum."
     },
@@ -118,7 +118,7 @@ values (
     },
     {
       "letra":"D","titulo":"Manter o ranking e anotar","tatica":"Contramedida sobre a tela existente",
-      "texto":"O ranking continua como está, e recebe uma anotação fixa de que volume de commits não mede esforço, mais a faixa de variação normal entre grupos no período e a remoção da cor semântica dos três últimos.",
+      "texto":"O ranking continua como está, e recebe uma anotação fixa de que volume de commits não mede esforço, mais a faixa de variação normal entre grupos no período e a remoção da cor semântica dos dois últimos.",
       "ganho":"Custo de implementação baixo numa manhã curta, preserva a tela que o orientador já sabe ler e coloca a declaração de limite no lugar exato onde a inferência indevida acontece.",
       "custo":"Anotação não desfaz codificação: a barra continua ordenando pessoas do melhor ao pior, e o leitor apressado lê o comprimento, não o texto. Trata o sintoma na tela e mantém o formato que o produz."
     }
