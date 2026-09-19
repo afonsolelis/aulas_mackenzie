@@ -19,7 +19,7 @@
           <h1 class="deck-title">Storytelling com Dados</h1>
           <p class="deck-meta">Aula 07 &nbsp;&bull;&nbsp; 26/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Um painel auditado ainda não é uma decisão tomada.</p>
+          <p class="deck-subtitle">Da apresentação dos protótipos ao painel que sustenta uma recomendação.</p>
         </div>
       </div>
     </div>
@@ -29,12 +29,21 @@
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">O que vai acontecer hoje</h2>
-          <p class="deck-summary">Você mapeou a divergência na Aula 05 e corrigiu o que a auditoria da Aula 06 apontou. Hoje o painel deixa de ser um instrumento de exploração e passa a ser uma peça de argumentação — que precisa sobreviver a doze minutos diante de quem vai usá-la. Intervalo das 10h00 às 10h20.</p>
+          <h2 class="deck-title">Roteiro da aula</h2>
+          <p class="deck-summary">Na Aula 05, cada grupo mapeou as divergências do fluxo; na Aula 06, estudou os vieses que o painel produz e construiu um protótipo em preto e branco. A aula começa com a apresentação desses protótipos pelo Meet. Depois, o painel deixa de ser instrumento de exploração e passa a ser peça de argumentação, que precisa se sustentar em doze minutos diante de quem vai usá-la. Intervalo das 10h00 às 10h20.</p>
         </div>
-        <div class="deck-grid">
+        <div class="deck-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
           <article class="deck-card">
-            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <h3>8h30 &ndash; 9h20 &middot; Protótipos</h3>
+            <ul>
+              <li>Seis grupos, pelo Google Meet</li>
+              <li>Cinco minutos de apresentação</li>
+              <li>Três minutos de análise individual</li>
+              <li>Achados devolvidos pelo chat</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>9h20 &ndash; 10h00 &middot; Teoria</h3>
             <ul>
               <li>Exploração e explicação</li>
               <li>Ideia central e falsificabilidade</li>
@@ -58,17 +67,58 @@
       </div>
     </div>
 
+    <!-- SLIDE 2A - APRESENTACAO DOS PROTOTIPOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Abertura &middot; 8h30 &ndash; 9h20</span>
+          <h2 class="deck-title">Apresentação dos protótipos</h2>
+          <p class="deck-summary">Cada um dos seis grupos apresenta o protótipo do painel pedido na Aula 06. A apresentação acontece pelo Google Meet, mesmo em sala: cada aluno acompanha a tela compartilhada no próprio computador e analisa o protótipo de forma independente.</p>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>1 &middot; Entrar no Meet</strong><span>Microfone e alto-falante desligados; o áudio vem da própria sala.</span></div>
+          <div class="quality-gate"><strong>2 &middot; Compartilhar</strong><span>O grupo compartilha a tela com o protótipo em Figma ou HTML.</span></div>
+          <div class="quality-gate"><strong>3 &middot; Apresentar &middot; 5 min</strong><span>Percorrer a tarefa principal do fluxo da Aula 05 até a decisão.</span></div>
+          <div class="quality-gate"><strong>4 &middot; Apontar</strong><span>Mostrar a divergência <code>D</code> tratada e o suporte que a previne.</span></div>
+          <div class="quality-gate"><strong>5 &middot; Analisar &middot; 3 min</strong><span>Cada aluno registra, sozinho, um achado sobre o protótipo.</span></div>
+          <div class="quality-gate"><strong>6 &middot; Devolver</strong><span>Os achados vão para o grupo pelo chat do Meet antes do próximo protótipo.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2B - ANALISE INDEPENDENTE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Abertura &middot; Análise independente</span>
+          <h2 class="deck-title">Como registrar cada achado</h2>
+          <p class="deck-summary">O achado segue a estrutura da Aula 06; opinião sem evidência na tela não conta.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Evidência: o que se vê na tela, descrito sem interpretação.</li>
+          <li>Heurística violada, pelo número de 1 a 10.</li>
+          <li>Viés do artefato, se houver: um dos sete vistos na Aula 06.</li>
+          <li>Severidade de 0 a 4, justificada pela decisão que o leitor tomaria errado.</li>
+          <li>Correção mínima, no elemento concreto.</li>
+        </ol>
+        <div class="deck-callout">
+          <strong>Por que cada um no próprio computador</strong>
+          <p style="margin:8px 0 0;">A análise individual, feita antes de qualquer discussão, evita que a primeira opinião dita em voz alta ancore as demais. É o mesmo mecanismo de ancoragem estudado na Aula 06, agora aplicado à turma como avaliadora.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- SLIDE 3 - PLACEHOLDER / RECAP -->
     <div class="slide">
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Construção do conteúdo &middot; Recap</span>
           <h2 class="deck-title">Onde a sequência parou</h2>
-          <p class="deck-summary">Aula 05: você descobriu que o orientador e o seu grupo chamavam de "entrega" duas coisas diferentes, e registrou cada divergência com a decisão de projeto e o suporte que ela exige. Aula 06: outro grupo auditou o seu painel com as dez heurísticas, você recebeu achados com severidade, corrigiu e retestou.</p>
+          <p class="deck-summary">Aula 05: o orientador e o grupo chamavam de "entrega" duas coisas diferentes, e cada divergência foi registrada com a decisão de projeto e o suporte que ela exige. Aula 06: a turma estudou as heurísticas de avaliação e os vieses do artefato, e cada grupo construiu o protótipo apresentado na abertura desta aula.</p>
         </div>
         <div class="deck-callout">
           <strong>O que ainda falta</strong>
-          <p style="margin:8px 0 0;">Um painel correto, auditado e retestado continua sendo um conjunto de respostas soltas. O cliente não precisa de respostas soltas: precisa de uma recomendação que ele possa executar antes da próxima sprint. A distância entre as duas coisas é o assunto de hoje.</p>
+          <p style="margin:8px 0 0;">Um protótipo correto e revisado pela turma continua sendo um conjunto de respostas soltas. O cliente precisa de uma recomendação que possa executar antes da próxima sprint, e a distância entre as duas coisas é o assunto de hoje.</p>
         </div>
       </div>
     </div>
@@ -553,7 +603,7 @@ ABA 4 · LIMITES    o que este painel NÃO pode afirmar
         <div>
           <span class="deck-kicker">Prática &middot; Etapa 3 &middot; 11h10 &ndash; 11h45</span>
           <h2 class="deck-title">Montar o painel narrativo no Metabase</h2>
-          <p class="deck-summary">Quarenta minutos. Duplique o painel auditado da Aula 06 e trabalhe sobre a cópia.</p>
+          <p class="deck-summary">Quarenta minutos. Duplique o painel do projeto no Metabase e trabalhe sobre a cópia, usando o protótipo apresentado na abertura como referência de estrutura.</p>
         </div>
         <ol class="deck-steps">
           <li>Crie as abas <strong>Situação</strong>, <strong>Evidência</strong>, <strong>Decisão</strong> e <strong>Limites</strong>.</li>
