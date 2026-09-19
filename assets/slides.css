@@ -973,3 +973,43 @@ pre code {
   .chart-frame svg { min-height: 200px; }
   .chart-compare { grid-template-columns: 1fr; }
 }
+
+/* Par comparativo "como costuma aparecer x versão corrigida" — vieses do artefato, Aula 06 DV. */
+.bias-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.bias-frame {
+  margin: 0;
+  padding: 12px 14px 10px;
+  background: var(--deck-panel);
+  border: 1px solid var(--deck-line);
+  border-radius: 4px;
+}
+
+.bias-frame.is-fixed { border-color: var(--deck-accent); box-shadow: inset 0 0 0 1px var(--deck-accent); }
+.bias-tag { display: block; margin-bottom: 6px; font-family: var(--font-mono); font-size: 0.66em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--deck-muted); }
+.bias-frame.is-fixed .bias-tag { color: var(--deck-text); }
+.bias-frame svg { display: block; width: 100%; height: auto; max-height: 236px; }
+.bias-frame svg text { fill: var(--deck-muted); font-family: var(--font-mono); font-size: 11px; }
+.bias-frame svg .strong { fill: var(--deck-text); font-weight: 700; }
+.bias-frame svg .tile { font-size: 10px; font-weight: 700; }
+.bias-frame svg .hero { font-family: var(--font-sans); font-size: 58px; font-weight: 800; }
+.bias-frame svg .kpi { fill: var(--deck-text); font-family: var(--font-sans); font-size: 30px; font-weight: 800; }
+.bias-frame svg .grid { stroke: var(--deck-line); stroke-width: 1; stroke-dasharray: 3 4; }
+.bias-frame svg .axis { stroke: var(--deck-text); stroke-width: 1.2; }
+.bias-frame svg .ref { stroke: var(--deck-text); stroke-width: 2.5; stroke-dasharray: 4 3; }
+.bias-frame figcaption { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--deck-line-soft); font-size: 0.78em; line-height: 1.4; }
+.bias-source { margin: 10px 0 0; font-family: var(--font-mono); font-size: 0.66em; color: var(--deck-muted); }
+
+@media (max-width: 900px) {
+  .bias-pair { grid-template-columns: 1fr; }
+}
+
+@media (max-height: 800px) {
+  .bias-frame svg { max-height: 172px; }
+  .bias-frame figcaption { margin-top: 4px; padding-top: 6px; font-size: 0.72em; }
+  .deck-shell.is-dense:has(.bias-pair) { gap: 14px; padding-top: 34px; }
+}
