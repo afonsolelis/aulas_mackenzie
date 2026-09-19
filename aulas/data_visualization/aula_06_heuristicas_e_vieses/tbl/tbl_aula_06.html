@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="tbl-root">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Aula 06 - TBL - Heuristicas e Vieses - Data Visualization 2026</title>
+  <meta name="description" content="Sala de Team-Based Learning da Aula 06: um caso e duas decisoes de projeto sobre o painel do orientador, com quatro taticas de ganho e custo declarados em cada questao.">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../../../../assets/slides.css">
+  <link rel="stylesheet" href="../../../../assets/tbl.css">
+</head>
+<body class="tbl-page tbl-aluno">
+  <header class="barra">
+    <div class="marca">
+      <img src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Mackenzie">
+      <div>
+        <span class="quem" id="quem">Data Visualization &middot; Aula 06</span>
+        <div class="fase" id="fase">Sala TBL</div>
+      </div>
+    </div>
+    <div class="relogio" id="relogio">--:--</div>
+  </header>
+
+  <main>
+    <section id="tela-entrada">
+      <span class="selo">Team-Based Learning &middot; 19/09/2026</span>
+      <h1 style="margin-top:12px">O painel que o orientador lê em quatro minutos</h1>
+      <p style="margin-top:12px">Um caso e duas decisões de projeto, ligando o fluxo anotado da Aula 05 às heurísticas e aos vieses de hoje. Em cada questão você decide sozinho, ouve a turma e decide outra vez. <strong>Nenhuma alternativa é a correta</strong>: cada uma é uma tática com ganho e custo declarados.</p>
+      <form id="form-entrada" style="margin-top:18px">
+        <label for="nome">Como você quer aparecer para o professor</label>
+        <input id="nome" type="text" maxlength="24" autocomplete="off" autocapitalize="words"
+               spellcheck="false" placeholder="entre 2 e 24 caracteres" required>
+        <p class="aviso erro" id="erro-entrada" role="alert" hidden></p>
+        <button class="acao" type="submit" style="margin-top:12px">Entrar na sala</button>
+      </form>
+      <p style="margin-top:14px;font-size:.86rem;color:var(--muted)">A turma lê suas justificativas sem o seu nome. Sua identificação fica guardada só neste aparelho, para você voltar se a página fechar.</p>
+      <p class="recado" id="conexao"></p>
+    </section>
+
+    <section id="tela-sala" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="selo" id="selo-fase">Lobby</span>
+        <span class="rodape" id="presenca"></span>
+      </div>
+      <div id="conteudo" style="display:flex;flex-direction:column;gap:16px;margin-top:16px"></div>
+      <p class="recado" id="recado" hidden></p>
+    </section>
+
+    <nav class="tbl-nav" aria-label="Navegação da aula" style="margin-top:8px">
+      <a href="../slides/slide_aula_06_heuristicas_e_vieses.html">Slides</a>
+      <a href="../material/material_aula_06_heuristicas_e_vieses.html">Material</a>
+      <a href="../../../../pages/home_data_visualization.html">Disciplina</a>
+      <a href="../../../../index.html">Hub</a>
+    </nav>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script>
+  /* ------------------------------------------------------------------
+     A chave publicável é pública por desenho: a proteção está na RLS e
+     nas funções security definer do esquema hubtbl_. O corte de
+     informação por fase é feito no banco, não aqui.
+     ------------------------------------------------------------------ */
+  const SUPABASE_URL = 'https://lwamaovuxcevsjfvtqhf.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ';
+  const SLUG  = new URLSearchParams(location.search).get('sala') || 'mack-dv-a06-2026-2';
+  const GUARDA = 'mack-tbl:' + SLUG;
+  const LETRAS = ['A', 'B', 'C', 'D'];
+
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g,
+    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+  // O caso vem em parágrafos separados por linha em branco, com os pontos de
+  // apoio entre asteriscos duplos. A conversão ocorre depois do escape, então
+  // o texto do banco não injeta marcação.
+  const paragrafos = t => String(t ?? '').split(/\n\s*\n/)
+    .map(p => p.trim()).filter(Boolean)
+    .map(p => `<p>${esc(p).replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')}</p>`)
+    .join('');
+
+  const NOMES_FASE = {
+    lobby: 'Lobby', voto1: 'Primeira decisão', discussao: 'Discussão',
+    voto2: 'Segunda decisão', sintese: 'Síntese', revelacao: 'Fechamento'
+  };
+  const TITULOS_FASE = {
+    lobby: 'Leia o caso', voto1: 'Decida', discussao: 'Justifique e ouça',
+    voto2: 'Decida outra vez', sintese: 'O que moveu a sala', revelacao: 'As duas decisões'
+  };
+
+  let eu = null;            // { id, nome }
+  let s = null;             // último estado recebido
+  let chaveRender = '';     // impede redesenhar a tela enquanto o aluno digita
+  let escolhaAtual = null;
+  let rascunho = '';
+  let rodadaEmTela = null;
+  let prazo = 0;
+  let enviando = false;
+
+  try { eu = JSON.parse(localStorage.getItem(GUARDA)); } catch { eu = null; }
+  const guardar = v => { try { v ? localStorage.setItem(GUARDA, JSON.stringify(v))
+                                 : localStorage.removeItem(GUARDA); } catch {} };
+
+  const relogio = n => {
+    n = Math.max(0, Number(n) || 0);
+    return String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0');
+  };
+
+  function recado(texto, erro) {
+    const el = $('#recado');
+    el.textContent = texto || '';
+    el.hidden = !texto;
+    el.classList.toggle('erro', !!erro);
+  }
+
+  async function rpc(fn, args) {
+    const { data, error } = await db.rpc(fn, args);
+    if (error) throw new Error(error.message);
+    if (data && data.ok === false) throw new Error(data.erro);
+    return data;
+  }
+
+  /* --------------------------- desenho --------------------------- */
+
+  function htmlPassos() {
+    const total = s.total_questoes || 0;
+    if (!total) return '';
+    let itens = '';
+    for (let i = 1; i <= total; i++) {
+      const estado = s.fase === 'revelacao' || i < s.questao ? 'feito'
+                   : (i === s.questao && s.fase !== 'lobby') ? 'agora' : '';
+      itens += `<span class="passo ${estado}">${i}</span>`;
+    }
+    return `<div class="passos">${itens}</div>`;
+  }
+
+  function htmlCaso(aberto) {
+    const ind = (s.contexto || []).map(i =>
+      `<div class="indicador"><span>${esc(i.rotulo)}</span><b>${esc(i.valor)}</b><em>${esc(i.nota)}</em></div>`).join('');
+    const corpo = `${paragrafos(s.caso_texto)}<div class="indicadores">${ind}</div>`;
+    if (aberto) {
+      return `<div class="bloco"><span class="selo">Caso</span>
+        <h2 style="margin-top:10px">${esc(s.caso_titulo)}</h2>${corpo}</div>`;
+    }
+    return `<details class="caso"><summary>Reler o caso: ${esc(s.caso_titulo)}</summary><div>${corpo}</div></details>`;
+  }
+
+  /* As alternativas permanecem na tela em todas as fases. O placar de cada
+     rodada é impresso dentro do próprio cartão, para que o número nunca fique
+     separado da tática que o produziu — é isso que sustenta a discussão. */
+  function placarDe(escolha) {
+    const linha = (dados, rotulo) => {
+      if (!dados || !dados.length) return '';
+      const total = dados.reduce((a, x) => a + x.votos, 0);
+      const item = dados.find(x => x.escolha === escolha);
+      const votos = item ? item.votos : 0;
+      const pct = total ? Math.round(100 * votos / total) : 0;
+      const lider = total && votos === Math.max(...dados.map(x => x.votos)) && votos > 0;
+      return `<span class="${lider ? 'subiu' : ''}">${rotulo} <b>${votos}</b> · ${pct}%</span>`;
+    };
+    const mostra1 = ['discussao','voto2','sintese','revelacao'].includes(s.fase);
+    const mostra2 = ['sintese','revelacao'].includes(s.fase);
+    const partes = (mostra1 ? linha(s.rodada1, '1ª') : '') + (mostra2 ? linha(s.rodada2, '2ª') : '');
+    return partes ? `<div class="placar">${partes}</div>` : '';
+  }
+
+  function htmlAlternativas(interativo, comPlacar) {
+    return (s.alternativas || []).map((o, i) => {
+      const miolo = `<span class="letra">${esc(o.letra)}</span>
+        <div><h4>${esc(o.titulo)}</h4>
+          <span class="tatica">${esc(o.tatica)}</span>
+          <p>${esc(o.texto)}</p>
+          <div class="troca">
+            <span class="ganho"><b>Ganho.</b> ${esc(o.ganho)}</span>
+            <span class="custo"><b>Custo.</b> ${esc(o.custo)}</span>
+          </div>${comPlacar ? placarDe(i) : ''}</div>`;
+      return interativo
+        ? `<button type="button" class="opcao" data-escolha="${i}" aria-pressed="${escolhaAtual === i}">${miolo}</button>`
+        : `<div class="opcao">${miolo}</div>`;
+    }).join('');
+  }
+
+  function htmlEnunciado(pergunta) {
+    return `<div class="bloco"><span class="selo">${esc(s.categoria)} · questão ${s.questao} de ${s.total_questoes}</span>
+      <h2 style="margin-top:10px">${esc(pergunta || s.pergunta)}</h2>
+      <p style="margin:0;font-size:.86rem;color:var(--muted)">${esc(s.questao_titulo || '')}</p></div>`;
+  }
+
+  function htmlOpcoes(rodada) {
+    const meu = (s.meus_votos || {})[String(rodada)];
+    if (escolhaAtual === null && meu) { escolhaAtual = meu.escolha; rascunho = meu.justificativa || ''; }
+    const pergunta = rodada === 2 && s.dado_novo ? s.dado_novo.pergunta : s.pergunta;
+    const rotuloJust = rodada === 1
+      ? 'O que precisa ser verdade para a sua escolha funcionar?'
+      : s.dado_novo
+        ? 'A sua escolha anterior sobrevive ao dado novo? Explique.'
+        : 'O que sustentou ou mudou a sua decisão depois de ouvir a turma?';
+    const registrado = meu
+      ? `<p class="aviso" style="margin-bottom:12px">Decisão registrada: <b>${LETRAS[meu.escolha]}</b>. Você pode mudá-la enquanto a rodada estiver aberta.</p>`
+      : '';
+    return htmlEnunciado(pergunta) + `
+      <div class="bloco">${registrado}
+        <div class="opcoes">${htmlAlternativas(true, rodada === 2)}</div>
+        <div class="justifica">
+          <label for="justificativa">${rotuloJust}</label>
+          <textarea id="justificativa" maxlength="240" placeholder="entre 10 e 240 caracteres">${esc(rascunho)}</textarea>
+          <p class="contagem" id="contagem">0/240</p>
+        </div>
+        <button class="acao" id="registrar" type="button">Registrar decisão</button>
+      </div>`;
+  }
+
+  function htmlBarras(dados, titulo, antes) {
+    const total = (dados || []).reduce((a, x) => a + x.votos, 0);
+    const linhas = (dados || []).map(x => {
+      const pct = total ? Math.round(100 * x.votos / total) : 0;
+      return `<div class="barra"><span class="rotulo">${LETRAS[x.escolha]}</span>
+        <span class="trilho"><span class="preenche ${antes ? 'antes' : ''}" style="width:${pct}%"></span></span>
+        <span class="valor">${x.votos} · ${pct}%</span></div>`;
+    }).join('');
+    return `<h3>${esc(titulo)}</h3><div class="barras">${linhas}</div>`;
+  }
+
+  function htmlVozes(lista, titulo) {
+    if (!lista || !lista.length) return '';
+    const itens = lista.map(v =>
+      `<div class="voz"><span class="letra">${LETRAS[v.escolha]}</span><span>${esc(v.texto)}</span></div>`).join('');
+    return `<h3 style="margin-top:16px">${esc(titulo)}</h3><div class="vozes">${itens}</div>`;
+  }
+
+  function htmlTrajetos(lista, titulo) {
+    if (!lista || !lista.length) return '';
+    const itens = lista.map(t => `
+      <div class="${t.de === t.para ? '' : 'mudou'}">
+        <span>${LETRAS[t.de]} → ${LETRAS[t.para]} ${t.de === t.para ? '· manteve' : '· mudou'}</span>
+        <b>${t.pessoas}</b></div>`).join('');
+    return `<h3 style="margin-top:16px">${esc(titulo)}</h3><div class="trajeto">${itens}</div>`;
+  }
+
+  function htmlDadoNovo() {
+    const r = s.dado_novo;
+    if (!r) return '';
+    const ev = (r.evidencias || []).map(e => `<li>${esc(e)}</li>`).join('');
+    return `<div class="bloco destaque"><span class="selo">Dado novo</span>
+      <h2 style="margin-top:10px">${esc(r.titulo)}</h2>
+      <p>${esc(r.texto)}</p>
+      ${ev ? `<h3 style="margin-top:14px">O que os leitores fizeram</h3><ul class="evidencias">${ev}</ul>` : ''}</div>`;
+  }
+
+  function htmlDiscussao() {
+    const meu = (s.meus_votos || {})['1'];
+    const minha = meu && s.alternativas
+      ? `Você escolheu <b>${LETRAS[meu.escolha]} · ${esc(s.alternativas[meu.escolha].titulo)}</b>. Defenda primeiro o custo dessa tática, e só depois questione a alternativa vizinha.`
+      : 'Você não registrou decisão na primeira rodada. Acompanhe a discussão e decida na segunda.';
+    return htmlDadoNovo() + htmlEnunciado() + `
+      <div class="bloco destaque"><span class="selo">Sua posição</span><p style="margin-top:10px">${minha}</p></div>
+      <div class="bloco"><h3>As quatro táticas e como a turma decidiu</h3>
+        <div class="opcoes">${htmlAlternativas(false, true)}</div></div>
+      <div class="bloco">${htmlVozes(s.justificativas1, 'As hipóteses declaradas pela turma')}</div>
+      <div class="bloco"><h2>Perguntas que organizam a discussão</h2>
+        <div class="roteiro">
+          <div><b>1 · Heurística</b><span>Qual das dez heurísticas a sua tática protege, e qual delas ela sacrifica?</span></div>
+          <div><b>2 · Viés</b><span>Que atalho de julgamento a sua escolha torna mais difícil em quem lê a tela?</span></div>
+          <div><b>3 · Custo assumido</b><span>Quem paga o custo: o orientador, o estudante que aparece na tela ou o grupo que implementa?</span></div>
+          <div><b>4 · Reteste</b><span>Que observação de uso mostraria que a leitura errada deixou de ser fácil?</span></div>
+        </div></div>`;
+  }
+
+  function htmlSintese() {
+    const t = s.trajetos || [];
+    const total = t.reduce((a, x) => a + x.pessoas, 0);
+    const manteve = t.filter(x => x.de === x.para).reduce((a, x) => a + x.pessoas, 0);
+    const principal = t.filter(x => x.de !== x.para).sort((a, b) => b.pessoas - a.pessoas)[0];
+    const leitura = principal
+      ? `A mudança mais frequente foi de <b>${LETRAS[principal.de]}</b> para <b>${LETRAS[principal.para]}</b>, com ${principal.pessoas} ${principal.pessoas === 1 ? 'pessoa' : 'pessoas'}. Mudar registra a revisão de um critério; não transforma a alternativa escolhida em resposta correta.`
+      : 'A turma manteve as posições nesta questão.';
+    return htmlEnunciado() + `
+      <div class="bloco"><h3>As quatro táticas, antes e depois da discussão</h3>
+        <div class="opcoes">${htmlAlternativas(false, true)}</div></div>
+      <div class="bloco">${htmlBarras(s.rodada1, 'Primeira decisão', true)}
+        <div style="height:14px"></div>
+        ${htmlBarras(s.rodada2, 'Decisão depois da discussão')}</div>
+      <div class="bloco"><h2>O que moveu a sala nesta questão</h2>
+        <div class="numeros">
+          <div><b>${total}</b>decidiram duas vezes</div>
+          <div><b>${manteve}</b>mantiveram a posição</div>
+          <div><b>${total - manteve}</b>mudaram a decisão</div>
+        </div>
+        <p style="margin-top:14px">${leitura}</p>
+        ${htmlTrajetos(t, 'Primeira decisão → decisão depois da discussão')}</div>
+      ${(s.justificativas2 || []).length ? `<div class="bloco">${htmlVozes(s.justificativas2, 'O que a turma declarou na segunda decisão')}</div>` : ''}`;
+  }
+
+  /* No fechamento as alternativas de cada questão continuam impressas por
+     extenso, com os dois placares: é a tela que o professor usa para fechar a
+     discussão, e ela não pode depender da memória de quem leu. */
+  function htmlRevelacao() {
+    const qs = s.consolidado || [];
+    const blocos = qs.map(q => {
+      const t = q.trajetos || [];
+      const total = t.reduce((a, x) => a + x.pessoas, 0);
+      const mudou = t.filter(x => x.de !== x.para).reduce((a, x) => a + x.pessoas, 0);
+      const linha = (dados, rotulo, escolha) => {
+        if (!dados || !dados.length) return '';
+        const soma = dados.reduce((a, x) => a + x.votos, 0);
+        const item = dados.find(x => x.escolha === escolha);
+        const votos = item ? item.votos : 0;
+        const pct = soma ? Math.round(100 * votos / soma) : 0;
+        const lider = soma && votos === Math.max(...dados.map(x => x.votos)) && votos > 0;
+        return `<span class="${lider ? 'subiu' : ''}">${rotulo} <b>${votos}</b> · ${pct}%</span>`;
+      };
+      const alt = (q.alternativas || []).map((o, i) =>
+        `<div class="opcao"><span class="letra">${esc(o.letra)}</span>
+          <div><h4>${esc(o.titulo)}</h4><span class="tatica">${esc(o.tatica)}</span>
+            <p>${esc(o.texto)}</p>
+            <div class="troca">
+              <span class="ganho"><b>Ganho.</b> ${esc(o.ganho)}</span>
+              <span class="custo"><b>Custo.</b> ${esc(o.custo)}</span>
+            </div>
+            <div class="placar">${linha(q.rodada1, '1ª', i)}${linha(q.rodada2, '2ª', i)}</div>
+          </div></div>`).join('');
+      return `<div class="bloco"><span class="selo">Questão ${q.ordem} · ${esc(q.categoria)}</span>
+        <h2 style="margin:10px 0 4px">${esc(q.titulo)}</h2>
+        <p style="font-size:.9rem;color:var(--muted)">${esc(q.pergunta || '')}</p>
+        <div class="opcoes" style="margin-top:12px">${alt}</div>
+        <div style="margin-top:16px">${htmlBarras(q.rodada1, 'Primeira decisão', true)}
+          <div style="height:12px"></div>
+          ${htmlBarras(q.rodada2, 'Depois da discussão')}</div>
+        <p class="aviso" style="margin-top:14px">${mudou} de ${total} mudaram a decisão nesta questão.</p></div>`;
+    }).join('');
+    const totalMudancas = qs.reduce((a, q) =>
+      a + (q.trajetos || []).filter(x => x.de !== x.para).reduce((b, x) => b + x.pessoas, 0), 0);
+    return `<div class="bloco destaque"><span class="selo">Fechamento</span>
+        <h2 style="margin-top:10px">Duas decisões sobre o mesmo painel</h2>
+        <p>A primeira questão tratou da tela que fixa a régua de leitura; a segunda, da lacuna que o dado já trazia antes de qualquer gráfico. Foram ${totalMudancas} ${totalMudancas === 1 ? 'mudança' : 'mudanças'} de decisão. Cada tática escolhida protege uma heurística e expõe outra — e é essa exposição que o protótipo das 10h20 precisa registrar como achado, com evidência, severidade e reteste.</p></div>
+      ${blocos}`;
+  }
+
+  function desenhar() {
+    $('#fase').textContent = TITULOS_FASE[s.fase] || 'Sala TBL';
+    $('#selo-fase').textContent = (NOMES_FASE[s.fase] || s.fase) +
+      (s.fase === 'revelacao' || s.fase === 'lobby' ? '' : ` · questão ${s.questao} de ${s.total_questoes}`);
+    $('#quem').textContent = eu ? eu.nome + ' · Aula 06' : 'Data Visualization · Aula 06';
+
+    const rodada = { voto1: 1, voto2: 2 }[s.fase] || null;
+    const chave = JSON.stringify([s.fase, s.questao, s.meus_votos, s.votacao_aberta,
+      s.rodada1, s.rodada2, !!s.dado_novo, (s.justificativas1 || []).length,
+      (s.justificativas2 || []).length, (s.consolidado || []).length]);
+    if (chave === chaveRender) return;
+    chaveRender = chave;
+
+    // Cada rodada começa sem escolha e sem texto: repetir a decisão anterior já
+    // marcada levaria a confirmá-la sem reexaminá-la. A decisão já registrada
+    // nesta rodada é restaurada adiante, a partir de meus_votos.
+    const passo = s.questao + ':' + rodada;
+    if (passo !== rodadaEmTela) { escolhaAtual = null; rascunho = ''; rodadaEmTela = passo; recado(''); }
+
+    let html = htmlPassos();
+    if (s.fase === 'lobby') {
+      html += htmlCaso(true) +
+        `<p class="aviso">Leia o caso com atenção. São ${s.total_questoes} questões, e a primeira abre quando o professor liberar.</p>`;
+    } else if (s.fase === 'discussao') {
+      html += htmlDiscussao() + htmlCaso(false);
+    } else if (s.fase === 'sintese') {
+      html += htmlSintese() + htmlCaso(false);
+    } else if (s.fase === 'revelacao') {
+      html += htmlRevelacao() + htmlCaso(false);
+    } else if (rodada) {
+      html += (rodada === 2 ? htmlDadoNovo() : '') + htmlOpcoes(rodada) +
+        (rodada === 2 ? `<div class="bloco">${htmlVozes(s.justificativas1, 'As hipóteses declaradas pela turma')}</div>` : '') +
+        htmlCaso(false);
+    }
+    $('#conteudo').innerHTML = html;
+
+    if (rodada) {
+      const ta = $('#justificativa');
+      if (ta) {
+        ta.addEventListener('input', () => { rascunho = ta.value; atualizarContagem(); atualizarBotao(); });
+        atualizarContagem();
+      }
+      atualizarBotao();
+    }
+  }
+
+  function atualizarContagem() {
+    const el = $('#contagem');
+    if (el) el.textContent = (rascunho || '').trim().length + '/240';
+  }
+
+  function atualizarBotao() {
+    const b = $('#registrar');
+    if (!b) return;
+    const fechada = !s.votacao_aberta || (prazo && Date.now() > prazo);
+    const curta = (rascunho || '').trim().length < 10;
+    b.disabled = enviando || fechada || escolhaAtual === null || curta;
+    b.textContent = fechada ? 'Rodada encerrada'
+      : enviando ? 'Registrando…'
+      : escolhaAtual === null ? 'Escolha uma tática'
+      : curta ? 'Escreva a justificativa'
+      : 'Registrar decisão';
+  }
+
+  function atualizarCabecalho() {
+    const restante = s && prazo ? Math.max(0, Math.ceil((prazo - Date.now()) / 1000)) : null;
+    const el = $('#relogio');
+    el.textContent = restante === null ? '--:--' : relogio(restante);
+    el.classList.toggle('acabando', restante !== null && restante <= 60);
+    if (s) {
+      $('#presenca').textContent = s.participantes + ' na sala · ' +
+        (['voto1','voto2'].includes(s.fase) ? s.votos_rodada + ' já decidiram' : 'aguardando o professor');
+      atualizarBotao();
+    }
+  }
+
+  /* --------------------------- ciclo --------------------------- */
+
+  async function atualizar() {
+    if (!eu) return;
+    try {
+      const novo = await rpc('hubtbl_estado', { p_slug: SLUG, p_participante: eu.id });
+      if (!novo.inscrito) {   // a sala foi reiniciada para outra turma
+        eu = null; guardar(null); s = null; prazo = 0; chaveRender = ''; rodadaEmTela = null;
+        $('#quem').textContent = 'Data Visualization · Aula 06';
+        $('#fase').textContent = 'Sala TBL';
+        atualizarCabecalho();
+        $('#tela-sala').hidden = true; $('#tela-entrada').hidden = false;
+        $('#erro-entrada').textContent = 'A sala foi reiniciada pelo professor. Entre novamente.';
+        $('#erro-entrada').hidden = false;
+        return;
+      }
+      s = novo;
+      prazo = s.restante === null ? 0 : Date.now() + s.restante * 1000;
+      $('#tela-entrada').hidden = true;
+      $('#tela-sala').hidden = false;
+      desenhar();
+      atualizarCabecalho();
+      $('#conexao').textContent = '';
+    } catch (e) {
+      $('#conexao').textContent = 'Sem conexão com a sala. Nova tentativa em instantes.';
+    }
+  }
+
+  async function registrar() {
+    const rodada = { voto1: 1, voto2: 2 }[s.fase];
+    if (!rodada || escolhaAtual === null) return;
+    enviando = true; atualizarBotao(); recado('');
+    try {
+      await rpc('hubtbl_votar', {
+        p_participante: eu.id, p_rodada: rodada,
+        p_escolha: escolhaAtual, p_justificativa: rascunho
+      });
+      recado('Decisão registrada. Você pode mudá-la enquanto a rodada estiver aberta.');
+      chaveRender = '';
+      await atualizar();
+    } catch (e) {
+      recado(e.message, true);
+    } finally {
+      enviando = false; atualizarBotao();
+    }
+  }
+
+  $('#form-entrada').addEventListener('submit', async e => {
+    e.preventDefault();
+    const nome = $('#nome').value.trim();
+    $('#erro-entrada').hidden = true;
+    try {
+      const r = await rpc('hubtbl_entrar', { p_slug: SLUG, p_nome: nome, p_id: eu ? eu.id : null });
+      eu = { id: r.participante_id, nome: r.nome };
+      guardar(eu);
+      chaveRender = '';
+      await atualizar();
+    } catch (err) {
+      $('#erro-entrada').textContent = err.message;
+      $('#erro-entrada').hidden = false;
+    }
+  });
+
+  document.addEventListener('click', e => {
+    const cartao = e.target.closest('button.opcao');
+    if (cartao) {
+      escolhaAtual = Number(cartao.dataset.escolha);
+      document.querySelectorAll('button.opcao').forEach(b =>
+        b.setAttribute('aria-pressed', String(Number(b.dataset.escolha) === escolhaAtual)));
+      atualizarBotao();
+      const ta = $('#justificativa');
+      if (ta && !ta.value) ta.focus({ preventScroll: true });
+      return;
+    }
+    if (e.target.closest('#registrar')) registrar();
+  });
+
+  // A virada de fase chega pelo Realtime; a consulta periódica cobre presença,
+  // contagem de votos e eventual perda do canal.
+  db.channel('mack-tbl-' + SLUG)
+    .on('postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'hubtbl_sessions', filter: 'slug=eq.' + SLUG },
+        () => { chaveRender = ''; atualizar(); })
+    .subscribe();
+
+  if (eu && eu.id) { $('#nome').value = eu.nome; atualizar(); }
+  setInterval(atualizar, 4000);
+  setInterval(atualizarCabecalho, 500);
+  </script>
+</body>
+</html>

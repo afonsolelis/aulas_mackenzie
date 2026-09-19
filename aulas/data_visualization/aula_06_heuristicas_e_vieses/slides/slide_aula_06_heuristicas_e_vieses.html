@@ -30,17 +30,27 @@
         <div>
           <span class="deck-kicker">Agenda</span>
           <h2 class="deck-title">O que vai acontecer hoje</h2>
-          <p class="deck-summary">Na Aula 05 você anotou o fluxo e as divergências de leitura. Hoje estudamos <em>por que</em> esses erros acontecem e transformamos o fluxo em um protótipo HTML de alta fidelidade. A IA implementa e audita; o grupo responde pelas decisões. Intervalo das 10h00 às 10h20.</p>
+          <p class="deck-summary">Na Aula 05 você anotou o fluxo e as divergências de leitura. Hoje estudamos <em>por que</em> esses erros acontecem, decidimos sobre um painel real em equipe e transformamos o fluxo em um protótipo HTML de alta fidelidade. A IA implementa e audita; o grupo responde pelas decisões. Intervalo das 10h00 às 10h20.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
+            <h3>8h30 &ndash; 9h20 &middot; Teoria</h3>
             <ul>
               <li>Duas famílias com o mesmo nome</li>
               <li>As dez heurísticas e a severidade 0&ndash;4</li>
               <li>Atalhos cognitivos de quem lê</li>
               <li>Sete vieses que o artefato fabrica</li>
               <li>Mapa, cauda longa e ordinal</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>9h20 &ndash; 10h00 &middot; TBL</h3>
+            <ul>
+              <li>Um caso: o painel do orientador</li>
+              <li>Duas decisões, quatro táticas cada</li>
+              <li>Decide sozinho, ouve a turma, decide outra vez</li>
+              <li>Nenhuma alternativa é a correta</li>
+              <li>O deslocamento da sala é o dado</li>
             </ul>
           </article>
           <article class="deck-card">
@@ -450,6 +460,49 @@ RETESTE      como verificar que a leitura errada não é mais fácil</div>
       </div>
     </div>
 
+    <!-- SLIDE 20A - TBL: O CASO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Team-Based Learning &middot; 9h20</span>
+          <h2 class="deck-title">Decidir antes de auditar</h2>
+          <p class="deck-summary">A teoria acabou. Antes de construir qualquer protótipo, a turma decide sobre um painel que já existe — o de acompanhamento dos grupos, aquele que o orientador abre quatro minutos antes da reunião. <strong>Nenhuma alternativa é a correta.</strong> Cada uma é uma tática com ganho e custo declarados, e escolher uma é aceitar o custo dela.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Questão 1 &middot; Curadoria da tela de abertura</h3>
+            <p style="margin:0;">A tela que fixa a régua com que todo o resto é lido. Denominador, ancoragem, ranking de pessoas e cor semântica, sobre a magnitude que a Aula 03 definiu.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Questão 2 &middot; A lacuna que o dado já tem</h3>
+            <p style="margin:0;">552 dos 2.688 commits não resolvem para ninguém. Sobrevivência, taxa-base e erro fundamental de atribuição, sobre o perfil da Aula 01 e a reconciliação da Aula 04.</p>
+          </article>
+        </div>
+        <div class="deck-callout">
+          <strong>O que se mede aqui não é acerto.</strong> É o deslocamento entre a sua primeira decisão e a que você toma depois de ouvir a turma — o mesmo mecanismo cognitivo que a aula acabou de descrever, operando sobre você.
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 20B - TBL: O CICLO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">TBL &middot; Como funciona cada questão</span>
+          <h2 class="deck-title">Nove minutos, cinco etapas</h2>
+          <p class="deck-summary">Entre pelo QR projetado. As quatro táticas ficam na tela em todas as etapas: o número da votação aparece dentro do cartão da tática que o produziu, para que a discussão nunca dependa de lembrar qual era a letra C.</p>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>1 &middot; Decida &middot; 3 min</strong><span>Escolha uma tática e escreva o que precisa ser verdade para ela funcionar.</span></div>
+          <div class="quality-gate"><strong>2 &middot; Discuta &middot; 4 min</strong><span>A distribuição e as justificativas aparecem sem nome. Defenda primeiro o custo da sua escolha.</span></div>
+          <div class="quality-gate"><strong>3 &middot; Dado novo</strong><span>Uma das questões libera uma evidência só agora. Ela muda o critério sem mudar as alternativas.</span></div>
+          <div class="quality-gate"><strong>4 &middot; Decida outra vez &middot; 2 min</strong><span>Declare se a sua escolha anterior sobrevive — manter também é uma decisão.</span></div>
+          <div class="quality-gate"><strong>5 &middot; Síntese</strong><span>As duas distribuições lado a lado e quem mudou de quê para quê.</span></div>
+          <div class="quality-gate"><strong>Regra</strong><span>Justificativa entre 10 e 240 caracteres. Sem ela a decisão não registra.</span></div>
+        </div>
+      </div>
+    </div>
+
     <!-- SLIDE 21 - PRATICA VISAO GERAL -->
     <div class="slide">
       <div class="deck-shell">
@@ -639,6 +692,8 @@ Ordene por severidade e grave o relatório em docs/06_auditoria.md.</code></pre>
       <a href="../../../../index.html" class="back-home">Hub</a>
       <a href="../../../../pages/home_data_visualization.html" class="back-home">Data Visualization</a>
       <a href="../material/material_aula_06_heuristicas_e_vieses.html" class="material-link">Material</a>
+      <a href="../tbl/tbl_aula_06.html" class="material-link">TBL</a>
+      <a href="../tbl/painel_aula_06.html" class="material-link">Painel do TBL</a>
     </div>
     <div class="nav-wrapper">
       <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
