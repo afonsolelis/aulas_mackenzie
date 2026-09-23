@@ -1,7 +1,7 @@
 # Roadmap — Data Visualization
 
 **MBA Engenharia de Dados — Mackenzie — 2026**
-Documento vivo de planejamento das 8 aulas da disciplina. Sábados, 8h30 – 12h10, de 15/08/2026 a 03/10/2026. Carga total: 32 h/a.
+Documento vivo de planejamento das 8 aulas da disciplina. Sábados, 8h30 – 12h10, de 15/08/2026 a 03/10/2026. Entrega final assíncrona até 10/10/2026, 23h59. Carga total: 32 h/a.
 
 ---
 
@@ -11,7 +11,7 @@ A ementa institucional contempla percepção humana, representações para dados
 
 A disciplina tem dois tempos. Nas Aulas 01 a 04 o conjunto Olist funciona como bancada: a Aula 01 estabelece o perfil dos dados e formula perguntas de negócio; a Aula 02 localiza aquisição, persistência, camada semântica e consumo nas principais arquiteturas de BI e converte o esquema operacional em fatos e dimensões; a Aula 03 trata a codificação de quantidades; a Aula 04 constrói uma cadeia analítica local completa, do Excel ao OLAP.
 
-A partir da Aula 05 o objeto muda. O trabalho passa a incidir sobre o projeto do módulo — o dashboard do processo PBL, com um cliente concreto — e o eixo deixa de ser a construção do gráfico para ser a distância entre o que o usuário acredita que o número significa e o que o dado de fato registra. As Aulas 05, 06 e 07 tratam, nessa ordem, da divergência entre modelo mental e ciclo de vida do dado, das heurísticas de avaliação e dos vieses de julgamento, e da narrativa que leva a audiência da pergunta à recomendação. A Aula 08 é ateliê de finalização e entrega.
+A partir da Aula 05 o objeto muda. O trabalho passa a incidir sobre o projeto do módulo — o dashboard do processo PBL, com um cliente concreto — e o eixo deixa de ser a construção do gráfico para ser a distância entre o que o usuário acredita que o número significa e o que o dado de fato registra. As Aulas 05, 06 e 07 tratam, nessa ordem, da divergência entre modelo mental e ciclo de vida do dado, das heurísticas de avaliação e dos vieses de julgamento, e da narrativa que leva a audiência da pergunta à recomendação. A Aula 07 abre com a apresentação dos protótipos e liga o protótipo a um Postgres no Supabase. A Aula 08 é somente acompanhamento de projeto, e a entrega final é assíncrona, até 10/10/2026.
 
 ---
 
@@ -26,8 +26,8 @@ Oito aulas, uma progressão única:
 04  Construir a cadeia local      Excel, SQLite, HTML, DuckDB, OLAP e IA
 05  Confrontar modelos mentais    fluxo de interação anotado, divergência, decisão e suporte
 06  Auditar o julgamento          heurísticas de avaliação, vieses cognitivos, severidade
-07  Contar a história             exploração vs. explicação, dashboard narrativo, defesa
-08  Fechar e entregar             ateliê, rastreabilidade contra requisitos, entrega
+07  Do protótipo ao painel        protótipos apresentados, Supabase, RLS, views e login
+08  Acompanhar o projeto          atendimento por grupo, rastreabilidade, entrega em 10/10
 ```
 
 Cada aula produz artefatos verificáveis e um registro escrito no repositório do aluno. Nas aulas regulares, o artefato principal fica no **Metabase**; a Aula 03 produz uma visualização D3, a Aula 04 produz scripts, dois bancos, dois HTMLs e reconciliações no Codespaces, e a Aula 06 transforma o fluxo anotado em um protótipo HTML de alta fidelidade com IA agêntica. Das Aulas 05 a 08 o artefato deixa de ser um exercício sobre o Olist e passa a ser uma peça do projeto do módulo: fluxo, protótipo, narrativa e entrega final incidem sobre o mesmo problema decisório.
@@ -74,7 +74,7 @@ O produto da disciplina é um dossiê auditável que registra como cada decisão
 | 04 | `04_pipeline_excel_olap.md` | proveniência, reconciliação, tempos e limitações dos dois bancos |
 | 05 | `05_fluxo_de_interacao_anotado.md` | fluxo por raias, divergências, decisão de projeto e suporte exigido |
 | 06 | `06_auditoria_heuristica_e_vieses.md` | achados com severidade, viés nomeado, correção e reteste |
-| 07 | `07_narrativa_e_defesa.md` | ideia central, storyboard, fichas de KPI e roteiro da defesa |
+| 07 | `07_painel_e_recorte.md` | plataforma escolhida, views do painel e decisões de recorte com o efeito de cada uma |
 | 08 | `08_dossie_final.md` | consolidação, rastreabilidade contra os requisitos e limitações |
 
 ### Auditoria heurística transversal
@@ -105,8 +105,8 @@ Uma crítica válida registra `evidência → heurística → severidade → con
 | Integração de fontes e publicação | Aula 04, do Excel aos HTMLs via SQLite e DuckDB |
 | Mapas | Aula 06, como caso canônico de viés: o coroplético de volume sem normalização |
 | Indicadores de performance | Aula 05, quando a ficha técnica do KPI é o suporte exigido por uma divergência de definição; Aula 07, na composição do painel |
-| Dashboards | Aula 07, na construção do painel narrativo; Aula 08, na entrega |
-| Storytelling com dados | Aula 07 |
+| Dashboards | Aula 07, na passagem do protótipo ao painel real; Aula 08, no acompanhamento até a entrega |
+| Storytelling com dados | Aula 07, como referência do material para montar o painel narrativo |
 
 Data Discovery (Aula 01) e arquitetura/modelagem de BI (Aula 02) funcionam como pré-requisitos práticos para os tópicos de representação e asseguram que os gráficos posteriores utilizem métricas rastreáveis.
 
@@ -147,7 +147,7 @@ A conta compartilhada troca isolamento por atrito zero na primeira aula. A contr
 |---|---|
 | Instância é ponto único de falha da aula | Export de serialização semanal; dump do Postgres versionado |
 | Query pesada de um aluno degrada a sessão | Timeout de query configurado; índices nas colunas de junção |
-| Aluno perde trabalho ao final do curso | Exportação das perguntas e dashboards em `.json` na Aula 08 |
+| Aluno perde trabalho ao final do curso | Exportação das perguntas e dashboards em `.json` na entrega final (10/10) |
 | Aluno edita ou apaga o trabalho de outro | Regra de convivência combinada na Aula 01; serialização semanal permite restaurar |
 | Aluno quer continuar depois do curso | `docker-compose.yml` da instância entregue no repositório da disciplina |
 
@@ -184,6 +184,7 @@ Duas vias de acesso, com regimes de privacidade distintos:
 |---|---|---|
 | CSVs em `dados/projeto_pbl/` | T28, grupos G01–G03 — 2.688 commits, 540 MRs, 1.238 cartões, 13.194 eventos de quadro | **Pseudonimizado**: pessoas viram `G01-A01`, instituição vira *Instituto Ápice*. Versionado e baixável na página do projeto |
 | Schema `pbl` no Metabase | 75 grupos de 15 turmas do ciclo 2026-1b | **Identificado**. Restrito ao ambiente da disciplina |
+| `projeto_pbl_completo.zip` | 75 grupos de 15 turmas — 1.859 pessoas, 376 sprints, 429 colunas de quadro, 53.230 commits, 9.208 MRs, 17.027 cartões, 183.422 eventos de quadro | **Pseudonimizado**, código `T28-G01-A01`. Distribuído só no canal da turma para a carga no Supabase (Aula 07); nunca entra no repositório do curso, que é público |
 
 A partir da Aula 05 esse conjunto deixa de ser apenas o material do projeto e passa a ser o
 objeto das aulas: o fluxo anotado, o protótipo HTML auditado e a narrativa incidem sobre ele.
@@ -205,7 +206,7 @@ olist-dataviz/
 │   ├── 04_pipeline_excel_olap.md      # Aula 04 — reconciliação, tempos e limitações
 │   ├── 05_fluxo_de_interacao_anotado.md   # Aula 05 — divergências, decisão e suporte
 │   ├── 06_auditoria_heuristica_e_vieses.md # Aula 06 — achados, severidade e reteste
-│   ├── 07_narrativa_e_defesa.md           # Aula 07 — ideia central, storyboard e KPI
+│   ├── 07_painel_e_recorte.md             # Aula 07 — views do painel e decisões de recorte
 │   └── 08_dossie_final.md                 # Aula 08 — consolidação e rastreabilidade
 ├── sql/                       # consultas nativas relevantes, versionadas
 └── export/
@@ -217,9 +218,9 @@ olist-dataviz/
 
 ## 4. Mapa detalhado das aulas
 
-**Formato da manhã.** Bloco de fundamentação das 8h30 às 10h00, intervalo das 10h00 às 10h20 e prática das 10h20 às 12h10, sempre aberta por dez minutos de direcionamento — entregáveis, ordem das etapas e gate de saída de cada uma — antes de os grupos começarem a trabalhar. A Aula 04 (100% prática) e a Aula 08 (ateliê) organizam a manhã em blocos próprios.
+**Formato da manhã.** Bloco de fundamentação das 8h30 às 10h00, intervalo das 10h00 às 10h20 e prática das 10h20 às 12h10, sempre aberta por dez minutos de direcionamento — entregáveis, ordem das etapas e gate de saída de cada uma — antes de os grupos começarem a trabalhar. A Aula 04 (100% prática), a Aula 07 (apresentação dos protótipos, demonstração e ateliê) e a Aula 08 (acompanhamento) organizam a manhã em blocos próprios.
 
-As aulas combinam fundamentação, demonstração e prática. Duas são exceções deliberadas: a Aula 04, 100% prática, com os conceitos introduzidos durante a execução guiada; e a Aula 08, ateliê de finalização e entrega, sem bloco teórico. O Metabase sustenta as aulas regulares; as Aulas 03 e 04 usam GitHub Codespaces e assistência de IA para produzir artefatos versionáveis. A partir da Aula 05 o conjunto de trabalho é o rastro PBL do projeto do módulo, e o Olist permanece disponível como fonte de contraexemplos na auditoria.
+As aulas combinam fundamentação, demonstração e prática. Duas são exceções deliberadas: a Aula 04, 100% prática, com os conceitos introduzidos durante a execução guiada; e a Aula 08, somente acompanhamento de projeto, sem bloco teórico e sem conteúdo novo. O Metabase sustenta as aulas regulares; as Aulas 03 e 04 usam GitHub Codespaces e assistência de IA para produzir artefatos versionáveis. A partir da Aula 05 o conjunto de trabalho é o rastro PBL do projeto do módulo, e o Olist permanece disponível como fonte de contraexemplos na auditoria.
 
 ### Aula 01 — 15/08/2026 — Data Discovery com Metabase
 **Conceitual:** o que é data discovery e por que antecede a visualização; perfilamento de dados (completude, cardinalidade, distribuição, outliers); tipos semânticos vs. tipos físicos; da pergunta vaga à pergunta respondível; grão da análise.
@@ -257,17 +258,20 @@ As aulas combinam fundamentação, demonstração e prática. Duas são exceçõ
 **Artefato:** `docs/06_auditoria_heuristica_e_vieses.md` com os achados recebidos, o viés nomeado em cada um, a severidade, a correção aplicada e o resultado do reteste + a lista de contramedidas incorporadas ao painel.
 **Saída verificável:** o grupo apresenta pelo menos um achado de severidade `3` ou `4` que recebeu, mostra o painel antes e depois da correção e explica qual viés a versão anterior induzia em quem lia.
 
-### Aula 07 — 26/09/2026 — Storytelling com Dados
-**Conceitual:** exploração e explicação como atividades distintas; a ideia central em uma frase e o que a torna falsificável; contexto, conflito e resolução aplicados a evidência; sequenciamento e a ordem que a audiência consegue seguir; anotação como camada de significado e o título que afirma em vez de rotular; atenção pré-atentiva e a economia da remoção; adequação ao público — o orientador, a coordenação e o próprio grupo observado; narrativa honesta e o lugar da limitação dentro da história; ética de narrar sobre pessoas que aprendem; ficha técnica do KPI e o painel narrativo em abas como suporte da história; recomendação, próximo passo e a defesa oral sob pergunta hostil.
-**Prática:** redação da ideia central em uma frase e crítica cruzada dessa frase; storyboard de sete quadros com a mensagem de cada um escrita antes do gráfico; montagem do dashboard narrativo em três abas — situação, evidência e decisão — com filtros e a aba explícita do que o painel não pode afirmar; ensaio cronometrado de doze minutos diante de outro grupo; rodada de perguntas hostis e ajuste do roteiro.
-**Artefato:** dashboard narrativo em abas + `docs/07_narrativa_e_defesa.md` com ideia central, storyboard, fichas de KPI, roteiro da defesa e as perguntas difíceis previstas com suas respostas.
-**Saída verificável:** o grupo conduz a audiência da pergunta do cliente à recomendação em doze minutos, sem apresentar um único gráfico que não sustente a ideia central e sem omitir a limitação que a evidência impõe.
+### Aula 07 — 26/09/2026 — Do Protótipo ao Painel com Supabase
+**8h30 – 10h00 · Apresentação dos protótipos:** cada grupo apresenta pelo Google Meet o protótipo em preto e branco feito na Aula 06, e o professor faz a análise individual de cada aluno.
+**10h00 – 10h20 · Intervalo.**
+**Demonstração do professor:** o protótipo HTML ligado a um Postgres no Supabase. Carga do recorte completo pseudonimizado das 15 turmas (`projeto_pbl_completo.zip`, distribuído só no canal da turma) pelo Session pooler; RLS de leitura só para `authenticated` nas oito tabelas; views agregadas com `security_invoker = true`, que herdam o RLS, e `revoke` para `anon`; login pelo Supabase Auth; chave publicável no código da página e chave secreta (`service_role`) fora de qualquer arquivo servido ao navegador. Sem login, a API responde `401 permission denied`.
+**Ateliê:** os grupos começam a implementar o painel real, no Metabase (schema `pbl`) ou no protótipo HTML ligado ao Supabase, a partir do kit em `aulas/data_visualization/aula_07_storytelling_com_dados/laboratorio/`.
+**Artefato:** protótipo apresentado e analisado + primeiras views e página do painel real, ou coleção no Metabase, com as decisões do recorte registradas (histórico herdado, sprints sem data, autoria de 88,5% e limite de 1.000 linhas por requisição).
+**Saída verificável:** o grupo escolheu a plataforma do painel e mostra ao menos um número do painel real que confere com a consulta SQL de origem; no Supabase, a view responde `401` sem login.
 
-### Aula 08 — 03/10/2026 — Entrega do Projeto Final
-**Sem bloco teórico.** Ateliê de finalização e entrega. O professor circula em dois papéis: cliente, para a validação final contra a lista de requisitos elicitada, e banca, na rodada de entregas.
-**Prática:** abertura com os critérios de aceite e o checklist de entrega; ateliê com atendimento por grupo; verificação de rastreabilidade requisito a requisito, incluindo o registro das lacunas que os dados não sustentam; fechamento do dossiê das oito aulas; congelamento do painel e exportação da coleção em `.json`; entrega e defesa.
-**Artefato:** dashboard narrativo publicado, coleção exportada, `docs/08_dossie_final.md` consolidando as sete aulas anteriores e a defesa apresentada.
-**Saída verificável:** cada requisito da lista elicitada tem, no painel ou no dossiê, o item que o atende ou a razão declarada de não ser atendido; nada fica sem resposta.
+### Aula 08 — 03/10/2026 — Acompanhamento do Projeto Final
+**Somente acompanhamento de projeto.** Sem bloco teórico, sem conteúdo novo e sem defesa oral. O professor atende os grupos no papel do cliente (o orientador) e acompanha o andamento.
+**Prática:** rodízio de atendimento com tempo fixo por grupo; cada grupo traz o painel no estado atual e a lista de requisitos com o que falta; o cliente anota a lista, valida atendidos, ressalvas e lacunas e responde às dúvidas; os grupos fora do atendimento trabalham na matriz de rastreabilidade, no dossiê e no fechamento da plataforma escolhida.
+**Entrega final (assíncrona, até 10/10/2026, 23h59):** dashboard narrativo no Metabase ou no protótipo HTML ligado ao Supabase + `docs/08_dossie_final.md` consolidando as aulas, com a matriz de rastreabilidade e as lacunas declaradas.
+**Saída verificável da aula:** lista de requisitos anotada pelo cliente e plano de fechamento, com responsável e prazo, versionado no repositório.
+**Saída verificável da entrega:** cada requisito da lista elicitada tem, no painel ou no dossiê, o item que o atende ou a razão declarada de não ser atendido; nada fica sem resposta.
 
 ---
 
@@ -291,10 +295,11 @@ A tese da disciplina: **a qualidade da pergunta determina a qualidade da visuali
 
 | Componente | Peso | Quando |
 |---|---|---|
-| Artefatos semanais no ambiente da aula e no repositório | 40% | Aulas 01 a 07 |
-| Dashboard narrativo final | 30% | Aula 08 |
-| Apresentação e defesa | 20% | Aula 08 |
+| Artefatos semanais no ambiente da aula e no repositório | 50% | Aulas 01 a 07 |
+| Dashboard narrativo final, avaliado com o dossiê | 40% | Entrega assíncrona até 10/10/2026, 23h59 |
 | Participação nas revisões por pares | 10% | Contínuo |
+
+**Revisão de 23/09/2026.** A defesa oral, que valia 20%, saiu da avaliação. Os 20 pontos foram divididos igualmente: 10 para os artefatos semanais e 10 para o dashboard narrativo. O grupo escolhe a plataforma do dashboard: Metabase (schema `pbl`) ou protótipo HTML ligado ao Supabase.
 
 Critério transversal: toda escolha de representação precisa de justificativa explícita e evidência de teste. Trabalho sem brief, rastreabilidade, alternativa considerada, auditoria e limitação declarada é avaliado como incompleto, ainda que visualmente correto.
 
@@ -340,8 +345,8 @@ Semanalmente:
 - [x] Aula 04 — 05/09/2026 — Do Excel ao OLAP com SQLite, DuckDB e IA
 - [x] Aula 05 — 12/09/2026 — Modelo Mental do Usuário e Ciclo de Vida do Dado
 - [x] Aula 06 — 19/09/2026 — Heurísticas e Vieses
-- [x] Aula 07 — 26/09/2026 — Storytelling com Dados
-- [x] Aula 08 — 03/10/2026 — Entrega do Projeto Final
+- [x] Aula 07 — 26/09/2026 — Do Protótipo ao Painel com Supabase
+- [x] Aula 08 — 03/10/2026 — Acompanhamento do Projeto Final
 
 ---
 
@@ -354,4 +359,4 @@ Semanalmente:
 - Todo material encerra com orientação para a atividade prática em sala — a disciplina é 100% prática, sem seção de exercícios escritos.
 - Design system conforme `specs/design_system.md`: off-white, texto preto, cantos de 4px, alta densidade, responsivo.
 
-**Desvios conscientes da spec:** a Aula 08 não tem bloco teórico — é ateliê de finalização e entrega, e `specs/repositorio_de_aulas.md` foi atualizada para registrar essa segunda exceção ao lado da Aula 04. Além disso, `specs/repositorio_de_aulas.md` determina que a parte prática use o ambiente AWS Student Lab. Data Visualization usa a instância Metabase hospedada pelo professor — a disciplina não tem componente de infraestrutura em nuvem, e o AWS Student Lab expira em 4 horas, o que inviabilizaria a persistência do trabalho ao longo das 8 semanas.
+**Desvios conscientes da spec:** a Aula 08 não tem bloco teórico nem conteúdo novo. Ela é somente acompanhamento de projeto, com atendimento dos grupos pelo professor no papel do cliente, e a entrega final é assíncrona, até 10/10/2026, sem defesa oral. `specs/repositorio_de_aulas.md` registra essa segunda exceção ao lado da Aula 04. Além disso, `specs/repositorio_de_aulas.md` determina que a parte prática use o ambiente AWS Student Lab. Data Visualization usa a instância Metabase hospedada pelo professor — a disciplina não tem componente de infraestrutura em nuvem, e o AWS Student Lab expira em 4 horas, o que inviabilizaria a persistência do trabalho ao longo das 8 semanas.

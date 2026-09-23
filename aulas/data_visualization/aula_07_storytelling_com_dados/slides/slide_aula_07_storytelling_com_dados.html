@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
-  <title>Aula 07 — Storytelling com Dados</title>
+  <title>Aula 07 — Do Protótipo ao Painel com Supabase</title>
   <link href="../../../../assets/slides.css" rel="stylesheet">
 </head>
 <body>
@@ -16,10 +16,10 @@
         <div>
           <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
           <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
-          <h1 class="deck-title">Storytelling com Dados</h1>
+          <h1 class="deck-title">Do Protótipo ao Painel com Supabase</h1>
           <p class="deck-meta">Aula 07 &nbsp;&bull;&nbsp; 26/09/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Da apresentação dos protótipos ao painel que sustenta uma recomendação.</p>
+          <p class="deck-subtitle">Apresentação dos protótipos, demonstração com o recorte completo das 15 turmas e início da implementação do painel real.</p>
         </div>
       </div>
     </div>
@@ -30,11 +30,11 @@
         <div>
           <span class="deck-kicker">Agenda</span>
           <h2 class="deck-title">Roteiro da aula</h2>
-          <p class="deck-summary">Na Aula 05, cada grupo mapeou as divergências do fluxo; na Aula 06, estudou os vieses que o painel produz e construiu um protótipo em preto e branco. A aula começa com a apresentação desses protótipos pelo Meet. Depois, o painel deixa de ser instrumento de exploração e passa a ser peça de argumentação, que precisa se sustentar em doze minutos diante de quem vai usá-la. Intervalo das 10h00 às 10h20.</p>
+          <p class="deck-summary">A manhã começa pelos protótipos em preto e branco da Aula 06, com dados fictícios. Depois do intervalo, das 10h00 às 10h10, o professor mostra como ligar um protótipo a dados reais no Supabase, e os grupos começam a fazer o mesmo com o próprio painel.</p>
         </div>
         <div class="deck-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
           <article class="deck-card">
-            <h3>8h30 &ndash; 9h20 &middot; Protótipos</h3>
+            <h3>8h30 &ndash; 10h00 &middot; Protótipos</h3>
             <ul>
               <li>Cada grupo, pelo Google Meet</li>
               <li>Cinco minutos de apresentação</li>
@@ -43,35 +43,47 @@
             </ul>
           </article>
           <article class="deck-card">
-            <h3>9h20 &ndash; 10h00 &middot; Teoria</h3>
+            <h3>10h10 &ndash; 11h00 &middot; Demonstração</h3>
             <ul>
-              <li>Exploração e explicação</li>
-              <li>Ideia central e falsificabilidade</li>
-              <li>Contexto, conflito e resolução</li>
-              <li>Anotação, título e remoção</li>
-              <li>Ficha técnica do KPI e painel em abas</li>
+              <li>Projeto no Supabase e Session pooler</li>
+              <li>Tabelas, carga e reconciliação</li>
+              <li>Views agregadas e controle de acesso</li>
+              <li>Painel de exemplo com login</li>
             </ul>
           </article>
           <article class="deck-card">
-            <h3>10h20 &ndash; 12h10 &middot; Prática</h3>
+            <h3>11h00 &ndash; 12h10 &middot; Ateliê</h3>
             <ul>
-              <li>Direcionamento da atividade</li>
-              <li>Ideia central e crítica cruzada</li>
-              <li>Storyboard de sete quadros</li>
-              <li>Painel narrativo em abas no Metabase</li>
-              <li>Ensaio cronometrado de doze minutos</li>
-              <li>Rodada de perguntas hostis</li>
+              <li>Recorte carregado no projeto do grupo</li>
+              <li>View da pergunta de decisão</li>
+              <li>Protótipo lendo a view</li>
+              <li>Professor circula como orientador</li>
             </ul>
           </article>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 2A - APRESENTACAO DOS PROTOTIPOS -->
+    <!-- SLIDE 3 - PLACEHOLDER / RECAP -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Abertura &middot; 8h30 &ndash; 9h20</span>
+          <span class="deck-kicker">Construção do conteúdo &middot; Recap</span>
+          <h2 class="deck-title">Onde a sequência parou</h2>
+          <p class="deck-summary">Na Aula 05, cada grupo anotou o fluxo do orientador e registrou as divergências entre o que ele entende e o que o dado sustenta. Na Aula 06, a turma estudou heurísticas e vieses, e cada grupo construiu um protótipo em preto e branco, no Figma ou em HTML, com dados fictícios.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>O que falta hoje</strong>
+          <p style="margin:8px 0 0;">O protótipo mostra a forma da resposta. Falta saber se o dado real sustenta essa resposta, em que unidade e com que lacunas. A manhã leva o protótipo até uma view que responde à pergunta de decisão do grupo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - APRESENTACAO DOS PROTOTIPOS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Abertura &middot; 8h30 &ndash; 10h00</span>
           <h2 class="deck-title">Apresentação dos protótipos</h2>
           <p class="deck-summary">Cada grupo apresenta o protótipo do painel pedido na Aula 06. A apresentação acontece pelo Google Meet, mesmo em sala: cada aluno acompanha a tela compartilhada no próprio computador e analisa o protótipo de forma independente.</p>
         </div>
@@ -86,7 +98,7 @@
       </div>
     </div>
 
-    <!-- SLIDE 2B - ANALISE INDEPENDENTE -->
+    <!-- SLIDE 5 - ANALISE INDEPENDENTE -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -108,602 +120,333 @@
       </div>
     </div>
 
-    <!-- SLIDE 3 - PLACEHOLDER / RECAP -->
+    <!-- SLIDE 6 - DO PROTOTIPO AO DADO REAL -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Construção do conteúdo &middot; Recap</span>
-          <h2 class="deck-title">Onde a sequência parou</h2>
-          <p class="deck-summary">Aula 05: o orientador e o grupo chamavam de "entrega" duas coisas diferentes, e cada divergência foi registrada com a decisão de projeto e o suporte que ela exige. Aula 06: a turma estudou as heurísticas de avaliação e os vieses do artefato, e cada grupo construiu o protótipo apresentado na abertura desta aula.</p>
+          <span class="deck-kicker">Demonstração &middot; 10h10</span>
+          <h2 class="deck-title">Do protótipo ao dado real</h2>
+          <p class="deck-summary">O protótipo usa números inventados, que sempre cabem no gráfico. O dado real traz histórico herdado, sprints sem data e commits sem autor, e cada uma dessas lacunas muda o que o painel pode afirmar.</p>
         </div>
-        <div class="deck-callout">
-          <strong>O que ainda falta</strong>
-          <p style="margin:8px 0 0;">Um protótipo correto e revisado pela turma continua sendo um conjunto de respostas soltas. O cliente precisa de uma recomendação que possa executar antes da próxima sprint, e a distância entre as duas coisas é o assunto de hoje.</p>
-        </div>
+        <div class="deck-schema">CSVs do recorte      projeto_pbl_completo.zip, oito arquivos
+      |
+psql \copy           no Codespace, pelo Session pooler (porta 5432)
+      |
+Postgres             oito tabelas com RLS: leitura só para authenticated
+      |
+views agregadas      security_invoker = true, uma linha por grupo ou grupo e semana
+      |
+API do Supabase      chave publicável + login do usuário
+      |
+protótipo HTML       o mesmo layout, agora lendo a view</div>
       </div>
     </div>
 
-    <!-- SLIDE 4 - METODO -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Método C-D-P-V-D &middot; Aula 07</span>
-          <h2 class="deck-title">O método aplicado até a decisão</h2>
-        </div>
-        <div class="method-flow">
-          <div class="method-step"><strong>Contexto</strong><span>Quem ouve e o que decide depois.</span></div>
-          <div class="method-step"><strong>Dados</strong><span>O que sustenta e o que limita a afirmação.</span></div>
-          <div class="method-step is-current"><strong>Pergunta</strong><span>A ideia central em uma frase.</span></div>
-          <div class="method-step is-current"><strong>Visual</strong><span>Sequência, anotação e remoção.</span></div>
-          <div class="method-step is-current"><strong>Decisão</strong><span>Recomendação, próximo passo e defesa.</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 5 - TESE -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Tese da aula</span>
-          <h2 class="deck-title">A narrativa ordena a evidência</h2>
-          <p class="deck-summary">A narrativa conduz a audiência pela evidência na ordem adequada, até uma conclusão que ela consiga defender depois, sem o grupo presente. Sem essa estrutura, o painel devolve a decisão a quem pediu ajuda, que era o problema original.</p>
-        </div>
-        <div class="deck-callout">
-          <strong>O critério de hoje</strong>
-          <p style="margin:8px 0 0;">Um gráfico entra no painel narrativo quando sustenta a ideia central ou quando a testa sem conseguir derrubá-la; o esforço de construção não conta como critério. Os demais gráficos permanecem na coleção de exploração, fora da história.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 6 - EXPLORACAO VS EXPLICACAO -->
+    <!-- SLIDE 7 - O RECORTE -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Fundamento</span>
-          <h2 class="deck-title">Exploração e explicação</h2>
-          <p class="deck-summary">As duas usam a mesma ferramenta e seguem regras opostas. Misturá-las é a causa mais comum de apresentações que não convencem.</p>
+          <span class="deck-kicker">Demonstração &middot; Dados</span>
+          <h2 class="deck-title">O recorte completo das 15 turmas</h2>
+          <p class="deck-summary">75 grupos pseudonimizados; cada pessoa é um código como <code>T28-G01-A01</code>.</p>
         </div>
         <table class="deck-table">
-          <thead><tr><th>&nbsp;</th><th>Exploração</th><th>Explicação</th></tr></thead>
+          <thead><tr><th>Arquivo</th><th>Linhas</th><th>Arquivo</th><th>Linhas</th></tr></thead>
           <tbody>
-            <tr><td>Quem faz</td><td>O analista, procurando</td><td>O analista, defendendo</td></tr>
-            <tr><td>Pergunta</td><td>O que há aqui?</td><td>O que isto exige que se faça?</td></tr>
-            <tr><td>Volume</td><td>Muitos gráficos, tudo é candidato</td><td>Poucos, cada um com uma função</td></tr>
-            <tr><td>Ordem</td><td>Livre, guiada pela curiosidade</td><td>Fixa, guiada pelo argumento</td></tr>
-            <tr><td>Erro típico</td><td>Parar cedo demais</td><td>Mostrar o caminho inteiro da busca</td></tr>
+            <tr><td>grupos</td><td>75</td><td>commits</td><td>53.230</td></tr>
+            <tr><td>pessoas</td><td>1.859</td><td>merge_requests</td><td>9.208</td></tr>
+            <tr><td>sprints</td><td>376</td><td>cartoes</td><td>17.027</td></tr>
+            <tr><td>quadro_colunas</td><td>429</td><td>kanban_eventos</td><td>183.422</td></tr>
           </tbody>
         </table>
+        <div class="deck-callout" style="margin-top:8px;">
+          <strong>Onde o arquivo circula</strong>
+          <p style="margin:8px 0 0;"><code>projeto_pbl_completo.zip</code> vai só para o canal da turma; o repositório do curso é público e não o recebe. Não publique o recorte em repositório aberto, portfólio ou rede social.</p>
+        </div>
       </div>
     </div>
 
-    <!-- SLIDE 7 - IDEIA CENTRAL -->
+    <!-- SLIDE 8 - CRIAR PROJETO E CONECTAR -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Ideia central</span>
-          <h2 class="deck-title">A ideia central em uma frase</h2>
-          <p class="deck-summary">A ideia central é a única frase que a audiência deve conseguir repetir uma semana depois. Se ela não couber em uma frase, o grupo ainda não decidiu o que está afirmando.</p>
+          <span class="deck-kicker">Demonstração &middot; Passo 1</span>
+          <h2 class="deck-title">Criar o projeto e conectar</h2>
+          <p class="deck-summary">Em supabase.com, crie o projeto e anote a senha do banco. Em Connect, copie a string do Session pooler, na porta 5432. A conexão direta usa só IPv6 e não funciona no Codespaces.</p>
         </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>Frases que não funcionam</strong>
-            <ul>
-              <li>"Analisamos o rastro de trabalho dos três grupos"</li>
-              <li>"O painel mostra commits, cartões e merge requests"</li>
-              <li>"Há oportunidades de melhoria no processo"</li>
-              <li>Ninguém discorda delas, e por isso nada se decide</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>O que caracteriza a ideia central</strong>
-            <ul>
-              <li>Nomeia um sujeito e uma tensão</li>
-              <li>Aponta uma janela de tempo</li>
-              <li>Implica alguém fazendo algo diferente</li>
-              <li>Alguém razoável poderia discordar dela</li>
-            </ul>
-          </div>
-        </div>
+        <pre><code>sudo apt-get update &amp;&amp; sudo apt-get install -y postgresql-client unzip
+export SUPABASE_DB_URL='postgresql://postgres.xxxx:SENHA@aws-0-sa-east-1.pooler.supabase.com:5432/postgres'
+unzip projeto_pbl_completo.zip</code></pre>
       </div>
     </div>
 
-    <!-- SLIDE 8 - FALSIFICABILIDADE -->
+    <!-- SLIDE 9 - TABELAS CARGA VIEWS -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Ideia central &middot; Falsificabilidade</span>
-          <h2 class="deck-title">Teste de falsificabilidade</h2>
-          <p class="deck-summary">Uma ideia central só se sustenta se o grupo conseguir descrever, antes de olhar o painel, que evidência a derrubaria.</p>
+          <span class="deck-kicker">Demonstração &middot; Passo 2</span>
+          <h2 class="deck-title">Tabelas, carga e views</h2>
+          <p class="deck-summary">Três scripts do kit, na ordem. O <code>\copy</code> lê os CSVs no Codespace e envia pela conexão; a consulta final do <code>02_carga.sql</code> põe as linhas carregadas ao lado do manifesto, e as duas colunas precisam ser iguais.</p>
         </div>
-        <div class="deck-callout">
-          <strong>Quatro perguntas antes de aceitar a própria frase</strong>
-          <ol style="margin:10px 0 0; padding-left:22px;">
-            <li>Que resultado, se aparecesse no dado, obrigaria o grupo a abandonar esta frase?</li>
-            <li>Esse resultado é observável nesta base, ou está fora do que a fonte enxerga?</li>
-            <li>O grupo procurou esse resultado ou apenas o que confirma a frase?</li>
-            <li>Se ele apareceu em parte, isso está na história ou ficou de fora?</li>
-          </ol>
-          <p style="margin:8px 0 0;">Uma frase que nenhum dado poderia contrariar expressa uma opinião, ainda que venha acompanhada de gráfico.</p>
-        </div>
+        <pre><code>psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f sql/01_tabelas.sql
+cd projeto_pbl_completo &amp;&amp; psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f ../sql/02_carga.sql &amp;&amp; cd ..
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f sql/03_views.sql</code></pre>
       </div>
     </div>
 
-    <!-- SLIDE 9 - CONTEXTO CONFLITO RESOLUCAO -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Estrutura</span>
-          <h2 class="deck-title">Contexto, conflito e resolução</h2>
-          <p class="deck-summary">A estrutura narrativa clássica serve aqui para organizar a atenção da audiência sobre a evidência.</p>
-        </div>
-        <table class="deck-table">
-          <thead><tr><th>Momento</th><th>Função</th><th>No projeto do módulo</th></tr></thead>
-          <tbody>
-            <tr><td>Contexto</td><td>Estabelecer o mundo estável e comum a todos</td><td>Três grupos da T28, cinco sprints, um orientador que não assiste a todas as reuniões</td></tr>
-            <tr><td>Conflito</td><td>Introduzir a tensão que exige atenção agora</td><td>O sinal que contraria o que se supunha sobre um dos grupos</td></tr>
-            <tr><td>Resolução</td><td>Fechar com a ação possível e o seu custo</td><td>Onde intervir primeiro, com que conversa e antes de qual prazo</td></tr>
-          </tbody>
-        </table>
-        <div class="deck-callout" style="margin-top:14px;">
-          <strong>De onde vem o conflito</strong>
-          <p style="margin:8px 0 0;">O conflito é a diferença entre o que o cliente esperava e o que a evidência mostra. Quando essa diferença não existe, a história honesta afirma que a suposição se confirma e informa a margem, o que também constitui um desfecho.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 10 - SEQUENCIAMENTO -->
+    <!-- SLIDE 10 - USUARIO CHAVE PAINEL -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Sequenciamento</span>
-          <h2 class="deck-title">A ordem que a audiência segue</h2>
-          <p class="deck-summary">A ordem em que o grupo descobriu raramente coincide com a ordem em que o cliente entende. Reordenar os quadros faz parte do projeto da apresentação.</p>
-        </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>Ordem da descoberta</strong>
-            <ul>
-              <li>Perfil dos dados, depois hipótese</li>
-              <li>Tentativas descartadas no meio</li>
-              <li>A conclusão aparece no fim, se aparecer</li>
-              <li>Só faz sentido para quem viveu o processo</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>Ordem da explicação</strong>
-            <ul>
-              <li>Uma coisa nova por quadro</li>
-              <li>Cada quadro pressupõe apenas o anterior</li>
-              <li>A pergunta do cliente abre; a recomendação fecha</li>
-              <li>Quem chega no meio consegue se orientar</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 11 - ANOTACAO E TITULO -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Anotação</span>
-          <h2 class="deck-title">Título que afirma, nota que sustenta</h2>
-          <p class="deck-summary">A anotação acrescenta significado ao gráfico: transporta para dentro dele o que só existia na cabeça de quem o construiu.</p>
-        </div>
-        <table class="deck-table">
-          <thead><tr><th>Título que rotula</th><th>Título que afirma</th></tr></thead>
-          <tbody>
-            <tr><td>Commits por sprint</td><td>O [grupo] concentra [X]% do que escreve nos [N] dias finais de cada sprint</td></tr>
-            <tr><td>Cartões por coluna</td><td>[N] cartões permanecem em revisão por mais tempo do que a sprint inteira dura</td></tr>
-            <tr><td>Merge requests por revisor</td><td>[X]% das integrações do [grupo] são aprovadas por uma única pessoa</td></tr>
-          </tbody>
-        </table>
-        <div class="deck-callout" style="margin-top:14px;">
-          <strong>Regra</strong>
-          <p style="margin:8px 0 0;">Os colchetes são intencionais: a forma do título pode ser ensinada, e o resultado depende do recorte de cada grupo. Preencha com o que o recorte do grupo sustenta; o número afirmado precisa estar visível no gráfico, logo abaixo do título.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 12 - PRE-ATENTIVO E REMOCAO -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Atenção</span>
-          <h2 class="deck-title">Atributos pré-atentivos e remoção</h2>
-          <p class="deck-summary">Cor, peso, tamanho e posição são percebidos em milissegundos, antes de qualquer leitura consciente. Quando tudo recebe destaque, nenhum elemento se diferencia.</p>
-        </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>Direcionar</strong>
-            <ul>
-              <li>Um único elemento em cor de destaque por quadro</li>
-              <li>Tudo o mais em cinza, ainda legível</li>
-              <li>Rótulo direto na série que importa</li>
-              <li>Destaque redundante com texto, nunca só cor</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>Remover</strong>
-            <ul>
-              <li>Grade pesada, borda dupla, sombra</li>
-              <li>Legenda que o rótulo direto tornou inútil</li>
-              <li>Casa decimal que não muda decisão</li>
-              <li>O gráfico que não sustenta nem testa a ideia central</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 13 - PUBLICO -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Público</span>
-          <h2 class="deck-title">A mesma evidência para três audiências</h2>
-          <p class="deck-summary">A forma da história muda conforme a decisão de quem escuta. O grupo escolhe uma audiência principal e declara a escolha.</p>
-        </div>
-        <table class="deck-table">
-          <thead><tr><th>Audiência</th><th>Decide</th><th>A história precisa</th></tr></thead>
-          <tbody>
-            <tr><td>Orientador (cliente)</td><td>Onde intervir antes da próxima sprint</td><td>Sinal cedo, grupo nomeado, conversa sugerida, custo baixo</td></tr>
-            <tr><td>Coordenação</td><td>Onde ajustar o desenho do módulo</td><td>Padrão que atravessa grupos, comparabilidade e limitação declarada</td></tr>
-            <tr><td>O próprio grupo observado</td><td>Como mudar o próprio processo</td><td>Linguagem não punitiva, foco no fluxo, direito de resposta</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 14 - NARRATIVA HONESTA -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Honestidade</span>
-          <h2 class="deck-title">A limitação tem um lugar na história</h2>
-          <p class="deck-summary">Uma limitação escondida vira contra-argumento nas mãos de quem pergunta. Declarada pelo grupo no momento adequado, ela demonstra domínio do recorte.</p>
-        </div>
-        <div class="deck-callout">
-          <strong>Onde ela entra</strong>
-          <p style="margin:8px 0 0;">No quadro imediatamente anterior à recomendação, depois que a evidência convenceu e antes de a ação ser pedida. Cedo demais, a audiência descarta a história inteira; tarde demais, sente-se enganada.</p>
-          <p style="margin:10px 0 0;">Três limitações que este recorte impõe a qualquer grupo: a autoria de commit resolve para um código em 2.136 dos 2.688 commits; não há diff nem texto de revisão, então nada se afirma sobre qualidade de código; a extração é uma fotografia datada, e a ausência de rastro não prova ausência de trabalho.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 15 - ETICA -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Ética</span>
-          <h2 class="deck-title">Narrar sobre pessoas em formação</h2>
-          <p class="deck-summary">Os dados são reais e as pessoas foram pseudonimizadas, mas o orientador que ouvir a história sabe exatamente quem é <code>G02-A04</code>.</p>
-        </div>
-        <table class="deck-table">
-          <thead><tr><th>Evitar</th><th>Preferir</th></tr></thead>
-          <tbody>
-            <tr><td>Ranking de pessoas por volume</td><td>Medida de concentração do trabalho no grupo</td></tr>
-            <tr><td>Narrativa que atribui intenção ao aluno</td><td>Descrição do que o rastro registra, no verbo do dado</td></tr>
-            <tr><td>Silêncio na fonte lido como omissão</td><td>Silêncio declarado como ausência de evidência</td></tr>
-            <tr><td>Conclusão sem direito de resposta</td><td>Recomendação que começa por uma conversa com o grupo</td></tr>
-          </tbody>
-        </table>
-        <div class="deck-callout" style="margin-top:14px;">
-          <strong>O teste da sala</strong>
-          <p style="margin:8px 0 0;">O grupo apresentaria este quadro com o aluno descrito nele sentado na primeira fileira? Se a resposta for não, o quadro precisa mudar.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 16 - INDICADOR E METRICA -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Indicadores de performance</span>
-          <h2 class="deck-title">Diferença entre métrica e indicador</h2>
-          <p class="deck-summary">Toda métrica pode virar indicador. A conversão só compensa quando alguém aceita responder por ela e sabe o que fazer quando ela se move.</p>
-        </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>Métrica</strong>
-            <ul>
-              <li>Existe porque é calculável</li>
-              <li>Não tem faixa de referência</li>
-              <li>Ninguém responde por ela</li>
-              <li>A variação não desencadeia ação</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>Indicador</strong>
-            <ul>
-              <li>Existe porque uma decisão depende dele</li>
-              <li>Tem meta ou faixa declarada</li>
-              <li>Tem dono e frequência de leitura</li>
-              <li>A variação desencadeia uma ação</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 17 - FICHA TECNICA DO KPI -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Suporte &middot; Ficha técnica</span>
-          <h2 class="deck-title">Ficha técnica de cada KPI</h2>
-          <p class="deck-summary">A ficha resolve divergências de vocabulário e de grão. Ela fica ao lado do número, e não em um anexo.</p>
-        </div>
-        <table class="deck-table">
-          <thead><tr><th>Campo</th><th>O que preencher</th></tr></thead>
-          <tbody>
-            <tr><td>Definição</td><td>Uma frase que qualquer leitor entende sem ver a consulta</td></tr>
-            <tr><td>Fórmula</td><td>Numerador, denominador, filtro e janela</td></tr>
-            <tr><td>Grão</td><td>A unidade de uma linha: commit, cartão, MR, sprint ou grupo</td></tr>
-            <tr><td>Meta</td><td>Faixa de referência e de onde ela veio</td></tr>
-            <tr><td>Dono</td><td>Quem responde quando o número se move</td></tr>
-            <tr><td>Frequência</td><td>De quanto em quanto tempo é lido e por quem</td></tr>
-            <tr><td>Limitação</td><td>O que este número não autoriza afirmar</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 18 - PAINEL EM ABAS -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Dashboards</span>
-          <h2 class="deck-title">O painel narrativo em abas</h2>
-          <p class="deck-summary">As três primeiras abas correspondem aos momentos da história, na ordem em que o grupo a defende; a quarta declara os limites.</p>
-        </div>
-        <div class="deck-schema">ABA 1 · SITUAÇÃO   quem, quando, quanto: o mundo comum
-                   3 grupos · 5 sprints · o KPI principal com ficha
-
-ABA 2 · EVIDÊNCIA  o conflito e o que o testa
-                   2 a 4 quadros, cada um com título que afirma
-
-ABA 3 · DECISÃO    recomendação, custo, próximo passo e dono
-                   1 quadro + o texto da ação
-
-ABA 4 · LIMITES    o que este painel não pode afirmar
-                   cobertura de autoria, ausência de diff, janela da extração</div>
-      </div>
-    </div>
-
-    <!-- SLIDE 19 - ABA DE LIMITES -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Dashboards &middot; A quarta aba</span>
-          <h2 class="deck-title">O que este painel não pode afirmar</h2>
-          <p class="deck-summary">Uma aba explícita, escrita em frases completas, que qualquer leitor encontra sozinho. Ela existe porque o painel circula sem o grupo.</p>
-        </div>
-        <div class="deck-callout">
-          <strong>Três frases que precisam estar lá</strong>
-          <ol style="margin:10px 0 0; padding-left:22px;">
-            <li>O que a fonte não observa e, por isso, não aparece em nenhum gráfico.</li>
-            <li>O recorte e a janela: o que ficou fora do período e do conjunto de projetos.</li>
-            <li>A leitura errada mais provável, nomeada, com a razão pela qual ela não se sustenta.</li>
-          </ol>
-          <p style="margin:8px 0 0;">Os filtros do painel entram aqui também: filtro que muda o denominador precisa dizer isso na própria aba.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 20 - RECOMENDACAO -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Ação</span>
-          <h2 class="deck-title">Da conclusão à recomendação</h2>
-          <p class="deck-summary">Conclusão descreve o que se descobriu. Recomendação descreve o que alguém faz na segunda-feira.</p>
-        </div>
-        <table class="deck-table">
-          <thead><tr><th>Elemento</th><th>Pergunta que responde</th></tr></thead>
-          <tbody>
-            <tr><td>Ação</td><td>O que exatamente será feito?</td></tr>
-            <tr><td>Dono</td><td>Quem faz?</td></tr>
-            <tr><td>Prazo</td><td>Antes de quê?</td></tr>
-            <tr><td>Custo</td><td>Quanto tempo ou atrito isso exige?</td></tr>
-            <tr><td>Sinal de verificação</td><td>Como saberemos, no próprio painel, se funcionou?</td></tr>
-            <tr><td>Alternativa descartada</td><td>O que também era possível e por que não?</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 21 - DEFESA -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Defesa</span>
-          <h2 class="deck-title">Preparação para perguntas hostis</h2>
-          <p class="deck-summary">A pergunta hostil revela com antecedência a lacuna que a banca encontraria na Aula 08. Quatro famílias cobrem a maior parte das perguntas.</p>
-        </div>
-        <table class="deck-table">
-          <thead><tr><th>Família</th><th>Forma típica</th><th>Resposta que funciona</th></tr></thead>
-          <tbody>
-            <tr><td>Procedência</td><td>"De onde saiu esse número?"</td><td>Fonte, grão, filtro e janela, em uma frase</td></tr>
-            <tr><td>Contra-hipótese</td><td>"E se for só porque o grupo é maior?"</td><td>O quadro que já normaliza, ou a admissão do limite</td></tr>
-            <tr><td>Escopo</td><td>"Isso vale para as outras turmas?"</td><td>O recorte declarado e o que ele não cobre</td></tr>
-            <tr><td>Consequência</td><td>"E se eu agir e estiver errado?"</td><td>O custo do erro nos dois sentidos, dito em voz alta</td></tr>
-          </tbody>
-        </table>
-        <div class="deck-callout" style="margin-top:14px;">
-          <strong>Resposta proibida</strong>
-          <p style="margin:8px 0 0;">"Boa pergunta, a gente pode olhar isso depois." Se a pergunta é previsível, a resposta pode ser preparada, e ao menos uma delas precisa estar no documento antes do ensaio.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 22 - PRATICA VISAO GERAL -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Direcionamento da atividade &middot; 10h20</span>
-          <h2 class="deck-title">Etapas da prática até a defesa</h2>
-          <p class="deck-summary">Ao final da manhã, cada grupo tem doze minutos ensaiados e as perguntas difíceis respondidas por escrito.</p>
-        </div>
-        <div class="quality-gates">
-          <div class="quality-gate"><strong>1 &middot; Ideia</strong><span>Uma frase, criticada por outro grupo.</span></div>
-          <div class="quality-gate"><strong>2 &middot; Storyboard</strong><span>Sete quadros, mensagem antes do gráfico.</span></div>
-          <div class="quality-gate"><strong>3 &middot; Painel</strong><span>Três abas mais a aba de limites.</span></div>
-          <div class="quality-gate"><strong>4 &middot; Ensaio</strong><span>Doze minutos cronometrados.</span></div>
-          <div class="quality-gate"><strong>5 &middot; Hostil</strong><span>Perguntas duras e ajuste do roteiro.</span></div>
-          <div class="quality-gate"><strong>6 &middot; Registro</strong><span><code>07_narrativa_e_defesa.md</code> fechado.</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 23 - ETAPA 1 -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Prática &middot; Etapa 1 &middot; 10h20 &ndash; 10h35</span>
-          <h2 class="deck-title">A ideia central e a crítica cruzada</h2>
-          <p class="deck-summary">Quinze minutos. O Metabase permanece fechado nos primeiros dez.</p>
+          <span class="deck-kicker">Demonstração &middot; Passo 3</span>
+          <h2 class="deck-title">Usuário, chave e painel de exemplo</h2>
         </div>
         <ol class="deck-steps">
-          <li>Escreva a ideia central em uma frase, sem conjunção aditiva e sem número aproximado.</li>
-          <li>Escreva embaixo, em uma linha, que evidência a derrubaria.</li>
-          <li>Troque a folha com outro grupo, sem explicar nada em voz alta.</li>
-          <li>O outro grupo devolve três coisas: o que entendeu, o que não conseguiu discordar e o que faltou.</li>
-          <li>Reescreva a frase uma vez. Só uma. A versão final entra no documento.</li>
+          <li>Em Authentication &gt; Users &gt; Add user, crie um usuário com Auto Confirm User.</li>
+          <li>Em Project Settings &gt; API Keys, copie a URL e a chave publicável.</li>
+          <li>Cole as duas no topo do <code>&lt;script&gt;</code> de <code>public/painel_exemplo.html</code>.</li>
+          <li>Sirva a página com <code>cd public &amp;&amp; python3 -m http.server 8000</code> e entre com o usuário criado.</li>
         </ol>
       </div>
     </div>
 
-    <!-- SLIDE 24 - ETAPA 2 -->
+    <!-- SLIDE 11 - CONTROLE DE ACESSO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 2 &middot; 10h35 &ndash; 11h00</span>
-          <h2 class="deck-title">Storyboard de sete quadros</h2>
-          <p class="deck-summary">Vinte e cinco minutos. A mensagem de cada quadro é escrita antes da escolha de qualquer gráfico.</p>
+          <span class="deck-kicker">Conceito &middot; Controle de acesso</span>
+          <h2 class="deck-title">Quem consegue ler o dado</h2>
+          <p class="deck-summary">A chave publicável fica no código da página, e qualquer pessoa pode lê-la. Por isso ela sozinha não pode abrir o dado.</p>
         </div>
         <table class="deck-table">
-          <thead><tr><th>#</th><th>Quadro</th><th>A mensagem responde</th></tr></thead>
+          <thead><tr><th>Camada</th><th>O que faz</th><th>Sem ela</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td>Contexto</td><td>Quem decide, sobre o quê e com que prazo</td></tr>
-            <tr><td>2</td><td>Situação</td><td>Como o processo se comporta quando nada chama atenção</td></tr>
-            <tr><td>3</td><td>Conflito</td><td>O que contraria a expectativa do cliente</td></tr>
-            <tr><td>4</td><td>Evidência principal</td><td>O quadro que sustenta a ideia central</td></tr>
-            <tr><td>5</td><td>Contraprova</td><td>O que testaria a ideia e não conseguiu derrubá-la</td></tr>
-            <tr><td>6</td><td>Limite</td><td>O que a evidência não autoriza afirmar</td></tr>
-            <tr><td>7</td><td>Recomendação</td><td>A ação, o dono, o prazo e o sinal de verificação</td></tr>
+            <tr><td>RLS nas oito tabelas</td><td>Política de leitura só para <code>authenticated</code></td><td>A chave publicável lê as tabelas</td></tr>
+            <tr><td><code>security_invoker = true</code></td><td>A view herda o RLS de quem consulta</td><td>A view roda com os privilégios de quem a criou e devolve tudo</td></tr>
+            <tr><td><code>revoke</code> de <code>anon</code></td><td>Sem login, a API responde <code>401</code></td><td>Visitante sem conta consulta as views</td></tr>
+            <tr><td>Chave <code>service_role</code></td><td>Ignora o RLS; fica fora do navegador</td><td>Quem abre a página tem acesso total</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- SLIDE 25 - ETAPA 3 -->
+    <!-- SLIDE 12 - AGREGACAO NO BANCO -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 3 &middot; 11h00 &ndash; 11h35</span>
-          <h2 class="deck-title">Montar o painel narrativo no Metabase</h2>
-          <p class="deck-summary">Trinta e cinco minutos. Duplique o painel do projeto no Metabase e trabalhe sobre a cópia, usando o protótipo apresentado na abertura como referência de estrutura.</p>
+          <span class="deck-kicker">Conceito &middot; Agregação</span>
+          <h2 class="deck-title">Por que a agregação fica no banco</h2>
+          <p class="deck-summary">A API do Supabase devolve no máximo 1.000 linhas por requisição. Um painel que baixa 53.230 commits para somar no JavaScript está errado antes de ficar lento.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Views do kit</strong>
+            <ul>
+              <li><code>v_commits_do_modulo</code>: commits sem o histórico herdado</li>
+              <li><code>v_ritmo_semanal</code>: grupo e semana</li>
+              <li><code>v_participacao</code>: uma linha por grupo</li>
+              <li><code>v_revisao</code>: merge requests por grupo</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Unidade de análise</strong>
+            <ul>
+              <li>Toda view agrega por grupo</li>
+              <li>Nenhuma view expõe <code>pessoa_id</code> ou <code>autor_id</code></li>
+              <li>A participação aparece como distribuição interna do grupo</li>
+              <li>O navegador recebe no máximo uma linha por grupo e semana</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - DECISOES DE RECORTE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Dossiê</span>
+          <h2 class="deck-title">Decisões de recorte para o dossiê</h2>
+          <p class="deck-summary">Cada decisão muda um número do painel e precisa ser declarada no dossiê do grupo.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Fato do recorte</th><th>Decisão</th></tr></thead>
+          <tbody>
+            <tr><td>2.475 commits (4,6%) herdados do repositório-modelo, datas de 2022 a 2025</td><td>Excluídos por <code>v_commits_do_modulo</code>; o total aparece em <code>commits_herdados_excluidos</code></td></tr>
+            <tr><td>371 de 376 sprints sem início nem prazo</td><td>Commit não se atribui a sprint por data; cartões e MRs trazem a sprint pelo nome</td></tr>
+            <tr><td>88,5% dos commits com autoria resolvida</td><td>O resto aparece como <code>[externo]</code> ou <code>[bot]</code> e fica visível ao lado do número</td></tr>
+            <tr><td>A view de ritmo só traz semanas com commit</td><td>O painel completa as semanas vazias com zero</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - SEMANAS COM ZERO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Gráfico de ritmo</span>
+          <h2 class="deck-title">Semanas sem commit entram como zero</h2>
+          <p class="deck-summary">A pergunta do gráfico de ritmo é se o grupo trabalhou ao longo do módulo ou na véspera. A resposta está nas semanas paradas.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>O que acontece sem o preenchimento</strong>
+          <p style="margin:8px 0 0;">A view devolve só as semanas em que houve commit. Desenhadas assim, as barras ficam lado a lado, o intervalo parado desaparece e o padrão de véspera some do gráfico. O <code>painel_exemplo.html</code> resolve isso na função <code>completarSemanas</code>, que cria as semanas ausentes com zero commits.</p>
+          <p style="margin:10px 0 0;">O gráfico usa <code>commitado_em</code>, a hora de gravação do commit, porque <code>autorado_em</code> pode ser reescrito por rebase.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - ATELIE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Ateliê &middot; 11h00 &ndash; 12h10</span>
+          <h2 class="deck-title">Do protótipo ao painel do grupo</h2>
+          <p class="deck-summary">Os grupos começam a implementar o painel real. O professor circula no papel de orientador, o cliente do painel.</p>
         </div>
         <ol class="deck-steps">
-          <li>Crie as abas Situação, Evidência, Decisão e Limites.</li>
-          <li>Distribua os sete quadros do storyboard e apague do painel narrativo tudo o que sobrou.</li>
-          <li>Reescreva cada título para afirmar; o número afirmado precisa estar visível abaixo.</li>
-          <li>Preencha a ficha técnica dos KPIs que ficaram, com os sete campos, ao lado do número.</li>
-          <li>Configure os filtros e declare, na aba Limites, qual deles muda o denominador.</li>
+          <li>Carregar o recorte no projeto Supabase do grupo e conferir a reconciliação.</li>
+          <li>Escrever a view da pergunta de decisão do próprio protótipo.</li>
+          <li>Ligar o protótipo à view, com login.</li>
+          <li>Trocar os dados fictícios pelos reais.</li>
+          <li>Manter unidade, denominador e período em cada número, e a seção "o que este painel não afirma".</li>
         </ol>
       </div>
     </div>
 
-    <!-- SLIDE 26 - ETAPA 4 -->
+    <!-- SLIDE 16 - MODELO DE VIEW -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 4 &middot; 11h35 &ndash; 11h55</span>
-          <h2 class="deck-title">Ensaio cronometrado de doze minutos</h2>
-          <p class="deck-summary">Vinte minutos, em duplas de grupos, com cronômetro visível. Ultrapassar o tempo conta como falha.</p>
+          <span class="deck-kicker">Ateliê &middot; View própria</span>
+          <h2 class="deck-title">Modelo da view da pergunta de decisão</h2>
+          <p class="deck-summary">O modelo está comentado no fim do <code>03_views.sql</code>. Copie, troque o nome e escreva a consulta que sustenta a pergunta do protótipo.</p>
         </div>
-        <ol class="deck-steps">
-          <li>Um grupo apresenta; o outro assiste no papel do orientador, com a decisão dele em mente.</li>
-          <li>Quem apresenta conduz a história, sem explicar o processo de construção.</li>
-          <li>Quem assiste anota o minuto em que perdeu o fio e o quadro que não entendeu sozinho.</li>
-          <li>Ao final, quem assistiu repete a ideia central com as próprias palavras.</li>
-          <li>Se a repetição não coincide com a frase escrita na Etapa 1, o roteiro precisa mudar. Em seguida, os papéis se invertem.</li>
-        </ol>
+        <pre><code>create or replace view v_minha_pergunta with (security_invoker = true) as
+select turma, grupo, ...
+from ...
+group by turma, grupo;
+
+revoke all on v_minha_pergunta from anon;
+grant select on v_minha_pergunta to authenticated;</code></pre>
       </div>
     </div>
 
-    <!-- SLIDE 27 - ETAPA 5 -->
+    <!-- SLIDE 17 - O QUE CADA NUMERO CARREGA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prática &middot; Etapa 5 &middot; 11h55 &ndash; 12h10</span>
-          <h2 class="deck-title">Rodada de perguntas hostis</h2>
-          <p class="deck-summary">Quinze minutos. O professor entra no papel do orientador; o grupo que assistiu completa a bateria.</p>
+          <span class="deck-kicker">Ateliê &middot; Leitura</span>
+          <h2 class="deck-title">O que cada número precisa mostrar</h2>
+          <p class="deck-summary">A troca de dados fictícios por reais tende a apagar os suportes que o protótipo tinha. Confira cada quadro antes de considerar a ligação pronta.</p>
         </div>
-        <ol class="deck-steps">
-          <li>Cada grupo recebe pelo menos uma pergunta de cada uma das quatro famílias.</li>
-          <li>A resposta sai em até trinta segundos, ou vira uma lacuna registrada.</li>
-          <li>Anote a pergunta literal, sem suavizá-la.</li>
-          <li>Escreva a resposta preparada no documento, com o quadro do painel que a sustenta.</li>
-          <li>Ajuste o roteiro dos doze minutos: o que muda de lugar, o que sai e o que ganha uma frase.</li>
-        </ol>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Em cada número</strong>
+            <ul>
+              <li>Unidade: commits, merge requests, cartões</li>
+              <li>Denominador: sobre o total de quê</li>
+              <li>Período: janela e fuso</li>
+              <li>Lacuna ao lado: sem autoria, herdados excluídos</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>O que este painel não afirma</strong>
+            <ul>
+              <li>Qualidade de código: não há diff nem texto de revisão</li>
+              <li>Esforço individual: a unidade é o grupo</li>
+              <li>Trabalho sem rastro na plataforma</li>
+              <li>A sprint de cada commit, pela data</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- SLIDE 28 - ENTREGA -->
+    <!-- SLIDE 18 - ENTREGA DO DIA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Entrega</span>
-          <h2 class="deck-title">Entregas da aula</h2>
+          <h2 class="deck-title">Entrega do dia</h2>
         </div>
-        <div class="deck-grid">
+        <div class="deck-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
           <article class="deck-card">
-            <h3>No Metabase</h3>
-            <p>Dashboard narrativo em abas (situação, evidência, decisão e limites), com filtros configurados, títulos que afirmam e ficha técnica ao lado de cada KPI.</p>
+            <h3>Carga</h3>
+            <p>Projeto Supabase do grupo carregado, com a reconciliação batendo nas oito tabelas.</p>
           </article>
           <article class="deck-card">
-            <h3>No repositório</h3>
-            <p><code>docs/07_narrativa_e_defesa.md</code> com ideia central, storyboard de sete quadros, fichas de KPI, roteiro da defesa e as perguntas difíceis previstas com suas respostas.</p>
+            <h3>View</h3>
+            <p>Ao menos uma view própria respondendo a uma pergunta de decisão do protótipo.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Painel</h3>
+            <p>Protótipo lendo dessa view, com login.</p>
           </article>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 29 - AVALIACAO -->
+    <!-- SLIDE 19 - PLATAFORMA DO DASHBOARD FINAL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Projeto &middot; Plataforma</span>
+          <h2 class="deck-title">Plataforma do dashboard final</h2>
+          <p class="deck-summary">O grupo escolhe uma das duas e declara a escolha no dossiê.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Metabase</strong>
+            <ul>
+              <li>Instância da disciplina</li>
+              <li>Dados no schema <code>pbl</code></li>
+              <li>Painel montado com perguntas salvas</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Protótipo HTML com Supabase</strong>
+            <ul>
+              <li>Projeto Supabase do grupo</li>
+              <li>Recorte completo das 15 turmas</li>
+              <li>Views próprias, RLS e login</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - AVALIACAO E PRAZO -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Avaliação</span>
-          <h2 class="deck-title">Como este trabalho é avaliado</h2>
+          <span class="deck-kicker">Projeto &middot; Avaliação</span>
+          <h2 class="deck-title">Avaliação e prazo do projeto</h2>
+          <p class="deck-summary">A entrega é assíncrona, até 10/10/2026, às 23h59. Não há defesa oral.</p>
         </div>
         <table class="deck-table">
-          <thead><tr><th>Critério</th><th>O que se espera</th></tr></thead>
+          <thead><tr><th>Componente</th><th>Peso</th></tr></thead>
           <tbody>
-            <tr><td>Ideia central</td><td>Uma frase falsificável, com a evidência que a derrubaria declarada</td></tr>
-            <tr><td>Economia</td><td>Nenhum quadro no painel narrativo que não sustente ou teste a frase</td></tr>
-            <tr><td>Anotação</td><td>Todo título afirma, e o número afirmado está visível</td></tr>
-            <tr><td>Suporte</td><td>Ficha técnica completa para cada KPI que permaneceu</td></tr>
-            <tr><td>Honestidade</td><td>A limitação está dentro da história, no quadro anterior à ação</td></tr>
-            <tr><td>Ação</td><td>Recomendação com dono, prazo, custo e sinal de verificação</td></tr>
-            <tr><td>Defesa</td><td>Perguntas hostis previstas, com resposta escrita e quadro que a sustenta</td></tr>
+            <tr><td>Artefatos semanais</td><td>50%</td></tr>
+            <tr><td>Dashboard narrativo</td><td>40%</td></tr>
+            <tr><td>Revisão por pares</td><td>10%</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- SLIDE 30 - PROXIMA -->
+    <!-- SLIDE 21 - PROXIMA -->
     <div class="slide">
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Próxima aula &middot; 03/10</span>
-          <h2 class="deck-title">Entrega do Projeto Final</h2>
-          <p class="deck-summary">Ateliê de finalização, sem bloco teórico. O professor circula em dois papéis: cliente, para a validação final contra a lista de requisitos elicitada, e banca, na rodada de entregas.</p>
+          <h2 class="deck-title">Acompanhamento do projeto</h2>
+          <p class="deck-summary">A Aula 08 é dedicada ao acompanhamento do projeto, sem conteúdo novo. O professor atende os grupos sobre o painel, as views e o dossiê.</p>
         </div>
         <div class="deck-callout">
           <strong>Traga pronto</strong>
-          <p style="margin:8px 0 0;">O painel narrativo publicado, os doze minutos ensaiados e o dossiê das sete aulas com a rastreabilidade requisito a requisito, inclusive as lacunas que os dados não sustentam, com a razão declarada.</p>
+          <p style="margin:8px 0 0;">O painel lendo dados reais na plataforma escolhida, as decisões de recorte registradas no dossiê e a lista das dúvidas que impedem o grupo de fechar a entrega de 10/10.</p>
         </div>
       </div>
     </div>

@@ -119,5 +119,5 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 | 04 | 05/09/2026 | Do Excel ao OLAP com SQLite, DuckDB e IA |
 | 05 | 12/09/2026 | Modelo Mental do Usuário e Ciclo de Vida do Dado |
 | 06 | 19/09/2026 | Heurísticas e Vieses |
-| 07 | 26/09/2026 | Storytelling com Dados |
-| 08 | 03/10/2026 | Entrega do Projeto Final |
+| 07 | 26/09/2026 | Do Protótipo ao Painel com Supabase |
+| 08 | 03/10/2026 | Acompanhamento do Projeto Final |

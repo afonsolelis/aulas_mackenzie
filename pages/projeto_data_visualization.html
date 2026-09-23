@@ -25,7 +25,7 @@
         <p>
           O cliente do trabalho é uma pessoa concreta: o <strong>professor orientador</strong> de três grupos do <strong>Instituto Ápice</strong>, uma instituição de ensino por projetos. Ele acompanha equipes que trabalham em paralelo, não assiste a todas as reuniões e precisa decidir, a cada sprint, <em>onde intervir primeiro</em>. O trabalho começa por descobrir do que ele precisa — e só depois por representá-lo.
         </p>
-        <p class="meta">Entrega final &middot; 03/10/2026 &middot; Elicitação, dashboard, dossiê e defesa</p>
+        <p class="meta">Entrega final &middot; 10/10/2026, 23h59 &middot; Entrega assíncrona, sem defesa oral &middot; Elicitação, dashboard e dossiê</p>
       </section>
 
       <section class="content-block">
@@ -113,6 +113,23 @@
           <p>A autoria resolve para um código em 2.136 dos 2.688 commits &mdash; <strong>79%</strong> &mdash; porque o e-mail configurado no cliente git nem sempre corresponde à conta institucional. Essa lacuna é dado, não defeito, e pertence ao Gate 2 do seu dossiê.</p>
         </div>
 
+        <h2>Recorte completo das 15 turmas, para o Supabase</h2>
+        <p>Além dos CSVs da T28 acima, existe o recorte completo pseudonimizado das 15 turmas, com 75 grupos, no arquivo <code>projeto_pbl_completo.zip</code>. Ele é distribuído somente no canal da turma, para a carga no Postgres do Supabase demonstrada na Aula 07. O repositório do curso é público, e por isso esse arquivo não está nesta página. O código de pessoa leva a turma à frente do grupo e do integrante, como <code>T28-G01-A01</code>.</p>
+        <table>
+          <thead><tr><th>Arquivo</th><th>Linhas</th></tr></thead>
+          <tbody>
+            <tr><td><code>grupos.csv</code></td><td>75</td></tr>
+            <tr><td><code>pessoas.csv</code></td><td>1.859</td></tr>
+            <tr><td><code>sprints.csv</code></td><td>376</td></tr>
+            <tr><td><code>quadro_colunas.csv</code></td><td>429</td></tr>
+            <tr><td><code>commits.csv</code></td><td>53.230</td></tr>
+            <tr><td><code>merge_requests.csv</code></td><td>9.208</td></tr>
+            <tr><td><code>cartoes.csv</code></td><td>17.027</td></tr>
+            <tr><td><code>kanban_eventos.csv</code></td><td>183.422</td></tr>
+          </tbody>
+        </table>
+        <p>O dashboard pode ser feito no Metabase, sobre o schema <code>pbl</code>, ou no protótipo HTML ligado ao Supabase, com esse recorte. A escolha é do grupo. O roteiro de carga, as views e o controle de acesso estão no <a href="../aulas/data_visualization/aula_07_storytelling_com_dados/laboratorio/README.md">kit do laboratório da Aula 07</a>.</p>
+
         <h2>Acesso pelo Metabase</h2>
         <p>O mesmo recorte, mais o conjunto completo das 15 turmas, está carregado no Postgres que o Metabase da disciplina já consulta, no schema <code>pbl</code>. Não é preciso configurar conexão nem abrir túnel: entre no Metabase, escolha a fonte <em>Olist</em> e o schema <code>pbl</code> estará ao lado dos schemas usados nas aulas.</p>
         <div class="note">
@@ -167,7 +184,8 @@
         <div class="note">
           <strong>Confidencialidade</strong>
           <p>Os CSVs desta página estão pseudonimizados: nenhum nome, e-mail ou username de aluno aparece neles. Ainda assim, descrevem o trabalho real de pessoas reais e circulam como material didático da turma — não como dado público. Sem publicação em repositório aberto, portfólio ou rede social, e sem tentativa de reidentificar quem quer que seja.</p>
-          <p>O schema <code>pbl</code> no Metabase é diferente: ali os dados continuam <strong>identificados</strong>, porque a extração preserva a origem. O acesso é restrito ao ambiente da disciplina, e nada dali sai em captura de tela ou exportação. A entrega final é apresentada dentro do ambiente da disciplina.</p>
+          <p>A mesma restrição vale para <code>projeto_pbl_completo.zip</code>, o recorte completo das 15 turmas: ele circula somente no canal da turma, e nem o arquivo nem os CSVs dele entram em repositório aberto, portfólio ou rede social. No projeto Supabase do grupo, as tabelas ficam protegidas por RLS e o painel só mostra dados depois do login.</p>
+          <p>O schema <code>pbl</code> no Metabase é diferente: ali os dados continuam <strong>identificados</strong>, porque a extração preserva a origem. O acesso é restrito ao ambiente da disciplina, e nada dali sai em captura de tela ou exportação.</p>
         </div>
         <div class="note">
           <strong>Autoridade humana</strong>
@@ -182,12 +200,12 @@
         <table>
           <thead><tr><th>Entregável</th><th>Descrição</th><th>Peso</th></tr></thead>
           <tbody>
-            <tr><td>Requisitos e artefatos semanais</td><td>Lista de requisitos elicitados — público, decisão, frequência, critério de aceite, evidência e lacunas — seguida das perguntas salvas no Metabase e dos registros escritos das aulas 01 a 07</td><td>40%</td></tr>
-            <tr><td>Dashboard narrativo</td><td>Organizado em abas, respondendo às perguntas de decisão com filtros e detalhamento por clique</td><td>30%</td></tr>
-            <tr><td>Defesa</td><td>Apresentação de 12 minutos, da pergunta de negócio à recomendação sustentada por evidência</td><td>20%</td></tr>
+            <tr><td>Requisitos e artefatos semanais</td><td>Lista de requisitos elicitados (público, decisão, frequência, critério de aceite, evidência e lacunas), seguida das perguntas salvas no Metabase e dos registros escritos das aulas 01 a 07</td><td>50%</td></tr>
+            <tr><td>Dashboard narrativo</td><td>Organizado em abas, respondendo às perguntas de decisão com filtros e detalhamento até a origem, no Metabase (schema <code>pbl</code>) ou no protótipo HTML ligado ao Supabase, à escolha do grupo. Entregue até 10/10/2026, 23h59, com o dossiê <code>docs/08_dossie_final.md</code> consolidando as aulas</td><td>40%</td></tr>
             <tr><td>Revisão por pares</td><td>Participação nas auditorias heurísticas das entregas dos outros grupos</td><td>10%</td></tr>
           </tbody>
         </table>
+        <p>Não há defesa oral. A entrega é assíncrona, e o professor avalia o painel e o dossiê no estado em que estiverem no prazo. A Aula 08, em 03/10/2026, é dedicada ao acompanhamento dos grupos.</p>
         <p>O critério transversal da disciplina permanece válido aqui: toda escolha de representação precisa de justificativa explícita, alternativa descartada, auditoria heurística e evidência de teste. Um painel visualmente correto que responde à pergunta errada não tem valor.</p>
 
         <div class="actions">

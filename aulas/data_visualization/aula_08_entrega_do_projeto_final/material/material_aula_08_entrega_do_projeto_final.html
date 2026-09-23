@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
-  <title>Material Aula 08 — Entrega do Projeto Final</title>
+  <title>Material Aula 08 — Acompanhamento do Projeto Final</title>
   <link rel="stylesheet" href="../../../../assets/styles.css">
 </head>
 <body>
@@ -19,118 +19,201 @@
     <header class="hero">
       <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
       <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
-      <h1>Aula 08 — Entrega do Projeto Final</h1>
+      <h1>Aula 08 — Acompanhamento do Projeto Final</h1>
       <p class="meta">Aula 08 &middot; 03/10/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>Ateliê de finalização e entrega, sem bloco teórico. A manhã inteira é bancada de trabalho com atendimento por grupo: verificação de rastreabilidade requisito a requisito, fechamento do dossiê das oito aulas, congelamento do painel, exportação da coleção em <code>.json</code> e defesa diante da banca. O professor circula em dois papéis — cliente, na validação final contra a lista de requisitos elicitada, e banca, na rodada de entregas.</p>
+      <p>Aula de acompanhamento do projeto do módulo, sem bloco teórico, sem conteúdo novo e sem defesa oral. O professor atende os grupos em rodízio no papel do orientador, o cliente do projeto, e acompanha o andamento de cada painel. A entrega final é assíncrona, até 10/10/2026 às 23h59, e reúne o dashboard narrativo e o dossiê <code>docs/08_dossie_final.md</code>. Este material descreve como a manhã funciona, o que precisa estar pronto até o prazo, como os pesos da avaliação ficaram e o passo a passo de fechamento nas duas plataformas aceitas.</p>
     </header>
 
     <article class="material">
 
       <section class="content-block">
-        <h2>1. O que esta aula é — e o que ela não é</h2>
-        <p>As sete aulas anteriores produziram peças. A Aula 01 estabeleceu contexto, perfil e limitações da fonte. A Aula 02 declarou grãos e reconciliou o modelo dimensional. A Aula 03 tratou a codificação de quantidades e registrou a alternativa descartada. A Aula 04 construiu uma cadeia analítica local completa e provou a proveniência de cada número. A partir da Aula 05 o objeto passou a ser o projeto do módulo: o fluxo de interação anotado expôs as divergências entre o que o orientador acredita que o número significa e o que o dado registra; a Aula 06 submeteu o painel à auditoria heurística cruzada, com severidade, correção e reteste; a Aula 07 transformou evidência em narrativa, com ideia central, storyboard, fichas de KPI e um painel em abas.</p>
-        <p>A Aula 08 não acrescenta tema novo. Ela faz a única coisa que ainda não foi feita: <strong>verificar, requisito a requisito, se o trabalho responde ao que o cliente pediu</strong>. É um ateliê — trabalho de oficina, com atendimento individual, sob prazo e com gates de saída. Não há exposição teórica, e a razão é prática: com um cliente esperando um painel e um repositório a fechar, a manhã rende mais em bancada do que em explicação.</p>
-        <p>Isso muda o que significa "estar pronto". Um painel não fica pronto quando parece bom; fica pronto quando cada linha da lista de requisitos elicitada tem, no painel ou no dossiê, o item que a atende ou a razão escrita de não ser atendida. A entrega é uma <em>prestação de contas</em>, não uma apresentação.</p>
+        <h2>1. O que acontece nesta aula</h2>
+        <p>As sete aulas anteriores produziram as peças do projeto. A Aula 01 estabeleceu contexto, perfil e limitações da fonte. A Aula 02 declarou grãos e reconciliou o modelo dimensional. A Aula 03 tratou a codificação de quantidades e registrou a alternativa descartada. A Aula 04 construiu uma cadeia analítica local e provou a proveniência de cada número. A partir da Aula 05 o objeto passou a ser o projeto do módulo: o fluxo de interação anotado expôs as divergências entre o que o orientador acredita que o número significa e o que o dado registra; a Aula 06 transformou o fluxo em protótipo e o submeteu à auditoria heurística e de vieses; a Aula 07 abriu com a apresentação dos protótipos e mostrou como ligar o protótipo a um Postgres no Supabase, e os grupos começaram a implementar o painel real.</p>
+        <p>A uma semana da entrega, o tempo rende mais em conversa com o cliente sobre o painel que já existe do que em tema novo. Por isso a Aula 08 é inteiramente de acompanhamento. O professor passa pelos grupos no papel do orientador, olha o painel no estado em que ele está e responde às dúvidas sobre os requisitos. Enquanto um grupo é atendido, os outros trabalham no próprio painel e no dossiê.</p>
+        <p>A entrega não acontece nesta manhã. Ela é assíncrona e fecha em 10/10/2026, às 23h59, sem apresentação e sem arguição. O que o professor avalia é o que estiver no repositório e no painel nesse horário, e é o dossiê que precisa explicar o trabalho a quem não estava na sala.</p>
         <div class="note">
           <strong>Saída verificável desta aula</strong>
-          <p>Cada requisito da lista elicitada tem, no painel ou no dossiê, o item que o atende ou a razão declarada de não ser atendido. Nada fica sem resposta.</p>
+          <p>Cada grupo sai com a lista de requisitos anotada pelo cliente, cada pendência com responsável e prazo, e um plano de fechamento até 10/10 registrado no repositório.</p>
         </div>
       </section>
 
       <section class="content-block">
-        <h2>2. O contrato: a lista de requisitos elicitada</h2>
-        <p>O projeto do módulo abriu por elicitação. O professor da disciplina respondeu no papel do <strong>professor orientador</strong> de três grupos de graduação do <em>Instituto Ápice</em>, e cada equipe conduziu a sua própria entrevista. Duas equipes que perguntaram coisas diferentes saíram com requisitos diferentes — e isso sempre foi o ponto. Não existe uma lista oficial comum a todos os grupos: existe a lista que <em>o seu grupo</em> construiu na conversa, e é contra ela que o seu painel será avaliado hoje.</p>
-        <p>Essa lista é o primeiro artefato do projeto e funciona como contrato. Ela sobreviveu às Aulas 05, 06 e 07 sendo corrigida: divergências de vocabulário mudaram a definição de termos como "entrega" e "atraso"; achados de auditoria com severidade alta forçaram a remoção ou a reformulação de itens; a construção da narrativa revelou requisitos que o painel atendia por acidente e outros que ele nunca chegou a tocar. A versão de hoje é a versão válida, e a matriz de rastreabilidade é escrita contra ela.</p>
-        <p>Antes de qualquer verificação, confira que cada requisito da sua lista carrega os cinco campos que a elicitação exige. Requisito sem critério de aceite não é requisito: é desejo, e desejo não pode ser verificado.</p>
+        <h2>2. Como a manhã é organizada</h2>
+        <p>A sugestão é um rodízio de atendimento com tempo fixo por grupo. O tempo de cada atendimento é definido na abertura, dividindo as duas rodadas pelo número de grupos presentes, e a ordem é anunciada no mesmo momento para que ninguém espere sem saber quando será chamado. Um tempo fixo evita que o primeiro grupo consuma a manhã e obriga cada equipe a chegar com as perguntas escritas.</p>
         <table>
-          <thead><tr><th>Campo</th><th>O que registra</th><th>Por que importa hoje</th></tr></thead>
+          <thead><tr><th>Horário</th><th>Bloco</th><th>O que sai do bloco</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 8h45</td><td>Abertura: ordem do rodízio, tempo por grupo e checklist de 10/10</td><td>cada grupo sabe o seu horário e o que precisa trazer à mesa</td></tr>
+            <tr><td>8h45 &ndash; 10h00</td><td>Rodízio de atendimento, primeira rodada</td><td>lista de requisitos anotada pelo cliente</td></tr>
+            <tr><td>10h00 &ndash; 10h20</td><td>Intervalo</td><td>&mdash;</td></tr>
+            <tr><td>10h20 &ndash; 11h50</td><td>Conclusão da primeira rodada, depois retornos curtos para quem pediu</td><td>pendências com responsável e prazo</td></tr>
+            <tr><td>11h50 &ndash; 12h10</td><td>Fechamento: cada grupo registra o plano até 10/10</td><td>plano de fechamento versionado no repositório</td></tr>
+          </tbody>
+        </table>
+        <p>Quando não está em atendimento, o grupo trabalha. As tarefas que rendem nesse intervalo são as que não dependem do cliente: completar a matriz de rastreabilidade, abrir cada número até a origem, escrever as razões das ressalvas e das lacunas, revisar os registros de <code>docs/01</code> a <code>docs/07</code> e, para quem usa o Supabase, conferir as views e o controle de acesso.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>3. O que cada grupo traz ao atendimento</h2>
+        <p>O atendimento parte do estado real do trabalho. Dois objetos precisam estar abertos quando o professor chegar à mesa: o painel e a lista de requisitos com o que falta. Um grupo que chega só com o painel costuma gastar o tempo mostrando gráficos, e a conversa termina sem que o cliente tenha dito o que ainda não foi atendido.</p>
+        <h3>3.1 O painel no estado atual</h3>
+        <p>O painel é aberto na plataforma escolhida pelo grupo: a coleção no Metabase, sobre o schema <code>pbl</code>, ou o protótipo HTML ligado ao Supabase, com o login já feito. Ele abre no filtro em que deve ser lido, para que o cliente veja o que o orientador veria. Se o painel ainda não carrega dados reais, o grupo mostra o protótipo e diz com clareza qual parte já está ligada ao banco e qual ainda é estática.</p>
+        <h3>3.2 A lista de requisitos com o que falta</h3>
+        <p>A lista é a mesma elicitada no início do projeto e corrigida nas Aulas 05, 06 e 07. Para o atendimento ela ganha duas colunas: o estado atual e o que ainda falta. As dúvidas para o cliente ficam escritas na mesma tabela, ao lado do requisito a que se referem.</p>
+        <pre><code>| Req. | Enunciado (voz do cliente)            | Estado hoje          | O que falta                       | Dúvida para o cliente            |
+|------|---------------------------------------|----------------------|-----------------------------------|----------------------------------|
+| R1   | Saber se o trabalho está concentrado  | atendido             | faixa de não atribuído no gráfico | &mdash;                                |
+| R2   | Saber se a revisão foi genuína        | ressalva, sem razão  | escrever onde a afirmação para    | o tempo até aprovação basta?     |
+| R3   | Saber quem leu o código dos colegas   | sem resposta         | declarar a lacuna nas quatro partes | aceita conviver com a lacuna?  |</code></pre>
+      </section>
+
+      <section class="content-block">
+        <h2>4. Roteiro de cada atendimento</h2>
+        <p>O professor responde como o orientador dos três grupos do <em>Instituto Ápice</em>. Ele não corrige o trabalho: diz se o que está na tela serve para a decisão que precisa tomar. A regra da Aula 05 continua valendo, e quem construiu conduz a tela sem explicar o que ela deveria dizer sozinha.</p>
+        <ol class="steps">
+          <li>Abra pela lista de requisitos. Leia os requisitos ainda abertos e pergunte ao cliente se a prioridade mudou. Mostrar o painel antes desloca a conversa para a estética.</li>
+          <li>Mostre um requisito atendido e abra o número até a origem. No Metabase, clique no valor e chegue ao detalhamento; no HTML com Supabase, mostre a view que produz o número e a consulta equivalente em <code>sql/</code>.</li>
+          <li>Apresente uma ressalva ou uma lacuna com a razão já escrita. Pergunte se o limite é aceitável para a decisão do orientador.</li>
+          <li>Faça as perguntas que o grupo escreveu na lista. Uma pergunta por requisito rende mais do que uma pergunta geral sobre o painel.</li>
+          <li>Anote literalmente cada frase do cliente, com o requisito a que ela pertence. A interpretação fica para depois do atendimento, com a frase escrita à frente.</li>
+          <li>Feche com as pendências. Cada item que sai do atendimento recebe um responsável e um prazo anterior a 10/10.</li>
+        </ol>
+        <div class="note">
+          <strong>Quando o cliente recusa um requisito</strong>
+          <p>Se ainda há tempo até 10/10, o requisito recusado vira tarefa do plano de fechamento. Se não há, ele vira lacuna declarada, com a razão e a data em que o grupo decidiu não atendê-lo.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>5. O contrato: a lista de requisitos elicitada</h2>
+        <p>O projeto do módulo abriu por elicitação, e cada equipe conduziu a própria entrevista com o orientador. Não existe uma lista oficial comum: existe a lista que o seu grupo construiu, e é contra ela que o painel será avaliado. Divergências de vocabulário mudaram termos como "entrega" e "atraso", achados de auditoria forçaram a reformulação de itens e o protótipo revelou requisitos que o painel atendia por acidente. A versão válida é a mais recente, e a matriz de rastreabilidade é escrita contra ela.</p>
+        <p>Antes de qualquer verificação, confira que cada requisito carrega os cinco campos que a elicitação exige. Um requisito sem critério de aceite não pode ser verificado.</p>
+        <table>
+          <thead><tr><th>Campo</th><th>O que registra</th><th>Por que importa agora</th></tr></thead>
           <tbody>
             <tr><td>Público</td><td>Quem lê e com que familiaridade com o processo PBL</td><td>Define quanto contexto precisa estar na tela</td></tr>
-            <tr><td>Decisão associada</td><td>O que o orientador decide olhando aquilo</td><td>Requisito que não serve decisão não entra no painel</td></tr>
+            <tr><td>Decisão associada</td><td>O que o orientador decide olhando aquilo</td><td>Requisito que não serve a uma decisão sai do painel</td></tr>
             <tr><td>Frequência de uso</td><td>De quanto em quanto tempo ele consulta</td><td>Separa o que fica na primeira aba do que fica no detalhamento</td></tr>
             <tr><td>Critério de aceite</td><td>A frase que diz quando o requisito está satisfeito</td><td>É o teste aplicado em cada linha da matriz</td></tr>
             <tr><td>Evidência que o sustentaria</td><td>Tabela, campo e grão que produzem a resposta</td><td>Antecipa se a fonte alcança ou se haverá lacuna</td></tr>
           </tbody>
         </table>
-        <p>Se algum campo estiver vazio, feche-o agora e registre no dossiê que ele foi fechado hoje e com base em quê. Um campo preenchido retroativamente sem conversa é uma suposição — e supor no lugar do cliente é exatamente o erro que a disciplina passou oito semanas combatendo.</p>
+        <p>Se algum campo estiver vazio, o atendimento é o momento de fechá-lo com o cliente. Registre no dossiê que o campo foi fechado na Aula 08 e com base em que resposta. Preencher o campo sozinho, sem conversa, é supor no lugar do cliente.</p>
         <div class="note">
-          <strong>A armadilha do pedido literal, uma última vez</strong>
-          <p>"Quero ver quantos commits cada aluno fez" é pedido de <em>solução</em>, não requisito. Atendido ao pé da letra produz um ranking de pessoas, resposta que esta disciplina considera incorreta. A necessidade por trás é outra: <em>saber se o trabalho está concentrado em poucos integrantes, para conversar com o grupo antes da próxima sprint</em>. Se alguma linha da sua lista ainda estiver escrita como solução, reescreva-a como necessidade antes da validação com o cliente.</p>
+          <strong>O pedido literal</strong>
+          <p>"Quero ver quantos commits cada aluno fez" é um pedido de solução. Atendido ao pé da letra, produz um ranking de pessoas, que esta disciplina considera resposta incorreta. A necessidade por trás é saber se o trabalho está concentrado em poucos integrantes, para conversar com o grupo antes da próxima sprint. Se alguma linha da lista ainda estiver escrita como solução, reescreva-a como necessidade antes do atendimento.</p>
         </div>
       </section>
 
       <section class="content-block">
-        <h2>3. Critérios de aceite: quando um requisito está atendido</h2>
-        <p>O critério de aceite específico de cada requisito veio da entrevista. Além dele, a disciplina impõe quatro condições gerais que valem para todos os requisitos, de todos os grupos. Falhar em uma delas devolve o requisito ao estado de pendente, ainda que o cliente tenha gostado do gráfico.</p>
+        <h2>6. Checklist do que precisa estar pronto até 10/10, 23h59</h2>
+        <p>A entrega final reúne o dashboard narrativo e o dossiê. O checklist abaixo confere a presença dos artefatos; a matriz de rastreabilidade, na seção 8, confere se eles respondem ao contrato. Um grupo pode ter todos os itens e ainda deixar requisitos sem resposta, por isso a ordem recomendada é começar pela matriz.</p>
+        <table>
+          <thead><tr><th>#</th><th>Item</th><th>Onde fica</th><th>Estado de pronto</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Lista de requisitos elicitada</td><td>dossiê, seção 2</td><td>priorizada, com os cinco campos e as anotações do atendimento</td></tr>
+            <tr><td>2</td><td>Registros das Aulas 01 a 07</td><td><code>docs/01</code> a <code>docs/07</code></td><td>versionados e atualizados, sem pendência em aberto</td></tr>
+            <tr><td>3</td><td>Dossiê final</td><td><code>docs/08_dossie_final.md</code></td><td>consolida as aulas, a matriz completa e as limitações</td></tr>
+            <tr><td>4</td><td>Dashboard narrativo</td><td>Metabase ou HTML + Supabase</td><td>abas de situação, evidência e decisão, com filtros</td></tr>
+            <tr><td>5</td><td>Aba de limitações</td><td>dentro do dashboard</td><td>o que o painel não pode afirmar, escrito e visível</td></tr>
+            <tr><td>6</td><td>Consultas</td><td><code>sql/</code></td><td>um arquivo por consulta ou por etapa, executável</td></tr>
+            <tr><td>7</td><td>Painel reconstruível</td><td><code>export/</code> no Metabase, <code>public/</code> no Supabase</td><td>o professor consegue abrir ou reconstruir o painel a partir do repositório</td></tr>
+            <tr><td>8</td><td>Acesso do professor</td><td>canal da turma</td><td>link do repositório e, no Supabase, usuário de leitura</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="content-block">
+        <h2>7. Plataforma do painel: Metabase ou HTML com Supabase</h2>
+        <p>O grupo escolhe onde o dashboard vive. As duas opções passam pela mesma rubrica e pelos mesmos pesos. A escolha muda a fonte de dados, o regime de privacidade e o que precisa estar no repositório para que o professor abra o painel.</p>
+        <table>
+          <thead><tr><th>&nbsp;</th><th>Metabase</th><th>Protótipo HTML + Supabase</th></tr></thead>
+          <tbody>
+            <tr><td>Fonte</td><td>schema <code>pbl</code> do Postgres da disciplina</td><td>Postgres do projeto Supabase do grupo, carregado com <code>projeto_pbl_completo.zip</code></td></tr>
+            <tr><td>Regime dos dados</td><td>identificado, restrito ao ambiente da disciplina</td><td>pseudonimizado, distribuído só no canal da turma</td></tr>
+            <tr><td>Painel</td><td>coleção do grupo com sufixo <code>ENTREGA FINAL</code></td><td>página em <code>public/</code>, com login e views agregadas</td></tr>
+            <tr><td>O que vai para o repositório</td><td><code>export/perguntas.json</code>, <code>export/dashboard.json</code> e <code>sql/</code></td><td><code>sql/</code> com tabelas, carga e views, e <code>public/</code> com a página</td></tr>
+            <tr><td>Nunca vai para o repositório</td><td>token de sessão</td><td>CSVs do zip, senha do banco e chave secreta</td></tr>
+          </tbody>
+        </table>
+
+        <h3>7.1 O recorte completo das 15 turmas</h3>
+        <p>Para o Supabase, os grupos usam o recorte completo pseudonimizado das 15 turmas, com 75 grupos, no arquivo <code>projeto_pbl_completo.zip</code>. O arquivo circula somente no canal da turma. O repositório do curso é público, e esse arquivo não entra nele. O código de pessoa segue o formato <code>T28-G01-A01</code>, com a turma à frente do grupo e do integrante. Os CSVs da turma T28 (grupos G01 a G03) publicados na <a href="../../../../pages/projeto_data_visualization.html">página do projeto</a> continuam disponíveis.</p>
+        <table>
+          <thead><tr><th>Arquivo</th><th>Linhas</th></tr></thead>
+          <tbody>
+            <tr><td><code>grupos.csv</code></td><td>75</td></tr>
+            <tr><td><code>pessoas.csv</code></td><td>1.859</td></tr>
+            <tr><td><code>sprints.csv</code></td><td>376</td></tr>
+            <tr><td><code>quadro_colunas.csv</code></td><td>429</td></tr>
+            <tr><td><code>commits.csv</code></td><td>53.230</td></tr>
+            <tr><td><code>merge_requests.csv</code></td><td>9.208</td></tr>
+            <tr><td><code>cartoes.csv</code></td><td>17.027</td></tr>
+            <tr><td><code>kanban_eventos.csv</code></td><td>183.422</td></tr>
+          </tbody>
+        </table>
+        <p>O roteiro de carga, as views e a página de exemplo estão no <a href="../../aula_07_storytelling_com_dados/laboratorio/README.md">kit do laboratório da Aula 07</a>. A consulta final do <code>02_carga.sql</code> mostra as linhas carregadas ao lado do manifesto, e as duas colunas precisam coincidir com a tabela acima.</p>
+
+        <h3>7.2 Decisões do recorte que entram no dossiê</h3>
+        <p>O recorte completo traz quatro propriedades que qualquer grupo que o use precisa declarar no dossiê, porque mudam o que o painel pode afirmar.</p>
+        <table>
+          <thead><tr><th>Propriedade</th><th>O que o dado mostra</th><th>Consequência para o painel</th></tr></thead>
+          <tbody>
+            <tr><td>Histórico herdado</td><td>2.475 commits (4,6%) são anteriores à criação do repositório do grupo, com datas de 2022 a 2025, vindos do repositório-modelo</td><td>sem o corte feito por <code>v_commits_do_modulo</code>, o autor do modelo conta como integrante ativo de todos os grupos</td></tr>
+            <tr><td>Sprints sem data</td><td>371 das 376 sprints não têm início nem prazo</td><td>não dá para atribuir commit a sprint por data; cartões e merge requests trazem a sprint pelo nome</td></tr>
+            <tr><td>Autoria</td><td>88,5% dos commits resolvem para um integrante; o resto aparece como <code>[externo]</code> ou <code>[bot]</code></td><td>a faixa de não atribuído precisa aparecer ao lado do número</td></tr>
+            <tr><td>Limite da API</td><td>a API devolve no máximo 1.000 linhas por requisição</td><td>a agregação fica nas views, e o navegador recebe no máximo uma linha por grupo e semana</td></tr>
+          </tbody>
+        </table>
+        <p>Quem usa os CSVs da T28 publicados na página do projeto trabalha com outra proporção de autoria: 2.136 dos 2.688 commits, 79%, resolvem para um código. O dossiê declara o número do recorte que o grupo de fato usou.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>8. Rastreabilidade requisito a requisito</h2>
+        <p>A matriz de rastreabilidade é o instrumento central do fechamento e a seção mais consultada do dossiê. Como não há defesa oral, é ela que mostra ao professor, sem ninguém do grupo presente, onde cada requisito é atendido. A matriz tem uma linha por requisito da lista elicitada, inclusive os que o painel não atende, e nenhuma linha fica em branco.</p>
+
+        <h3>8.1 Critérios de aceite comuns</h3>
+        <p>O critério de aceite de cada requisito veio da entrevista. Além dele, quatro condições valem para todos os requisitos de todos os grupos. Falhar em uma delas devolve o requisito ao estado de pendente, ainda que o cliente tenha gostado do gráfico.</p>
         <table>
           <thead><tr><th>Condição</th><th>O que exige</th><th>Como se verifica na tela</th></tr></thead>
           <tbody>
-            <tr><td>Localização</td><td>Existe um item nomeado que responde ao requisito</td><td>Você aponta a aba e o nome do cartão, não "está no dashboard"</td></tr>
-            <tr><td>Rastreabilidade</td><td>Do número exibido chega-se à linha de origem</td><td>Clique no valor, abra o detalhamento e alcance o registro</td></tr>
-            <tr><td>Declaração</td><td>Grão, unidade, período, filtro e fonte visíveis</td><td>A informação está onde o número é lido, não em anexo</td></tr>
-            <tr><td>Acionabilidade</td><td>O leitor consegue dizer que decisão tomaria</td><td>O cliente verbaliza a ação sem que você explique o gráfico</td></tr>
+            <tr><td>Localização</td><td>Existe um item nomeado que responde ao requisito</td><td>A matriz aponta a aba e o nome do cartão</td></tr>
+            <tr><td>Rastreabilidade</td><td>Do número exibido chega-se à linha de origem</td><td>No Metabase, pelo detalhamento; no Supabase, pela view e pela consulta em <code>sql/</code></td></tr>
+            <tr><td>Declaração</td><td>Grão, unidade, período, filtro e fonte visíveis</td><td>A informação está onde o número é lido, e não em anexo</td></tr>
+            <tr><td>Acionabilidade</td><td>O leitor consegue dizer que decisão tomaria</td><td>O cliente verbaliza a ação no atendimento, sem explicação do grupo</td></tr>
           </tbody>
         </table>
-        <p>A condição de rastreabilidade é a mais fácil de perder na reta final. Um indicador construído sobre uma consulta agregada demais, ou sobre uma tabela intermediária que ninguém consegue abrir, não sustenta decisão: ele obriga o leitor a acreditar. Um painel que pede fé no lugar de evidência falha na dimensão mais pesada da rubrica, que é qualidade e integridade.</p>
-        <p>A condição de acionabilidade é a mais desconfortável, porque só o cliente pode declará-la satisfeita. É exatamente por isso que o atendimento das 9h40 existe: ninguém valida o próprio trabalho. Se, olhando o cartão, o orientador não consegue dizer o que faria a seguir, o problema não é dele — é do cartão.</p>
-      </section>
+        <p>A acionabilidade só pode ser declarada pelo cliente, e por isso o atendimento desta manhã pesa tanto. Se, olhando o cartão, o orientador não consegue dizer o que faria em seguida, o cartão precisa mudar até 10/10.</p>
 
-      <section class="content-block">
-        <h2>4. Checklist de entrega</h2>
-        <p>O checklist é a lista fechada do que precisa existir às 11h10. Ele não substitui a matriz de rastreabilidade: o checklist verifica a <em>presença</em> dos artefatos; a matriz verifica se eles <em>respondem</em> ao contrato. Um grupo pode ter os nove itens e ainda assim ter requisitos sem resposta.</p>
-        <table>
-          <thead><tr><th>#</th><th>Item</th><th>Onde vive</th><th>Estado de pronto</th></tr></thead>
-          <tbody>
-            <tr><td>1</td><td>Lista de requisitos elicitada</td><td>dossiê, seção 2</td><td>priorizada, com os cinco campos preenchidos</td></tr>
-            <tr><td>2</td><td>Registros das Aulas 01 a 07</td><td><code>docs/01</code> a <code>docs/07</code></td><td>versionados, atualizados, sem pendência em aberto</td></tr>
-            <tr><td>3</td><td>Dossiê final</td><td><code>docs/08_dossie_final.md</code></td><td>consolida as sete aulas, a matriz e as limitações</td></tr>
-            <tr><td>4</td><td>Dashboard narrativo</td><td>coleção do grupo no Metabase</td><td>abas de situação, evidência e decisão, com filtros</td></tr>
-            <tr><td>5</td><td>Aba de limitações</td><td>dashboard</td><td>o que o painel não pode afirmar, escrito e visível</td></tr>
-            <tr><td>6</td><td>Perguntas salvas</td><td>coleção do grupo</td><td>título que afirma, unidade e fonte em cada uma</td></tr>
-            <tr><td>7</td><td>Consultas nativas</td><td><code>sql/</code></td><td>um arquivo por consulta, executável</td></tr>
-            <tr><td>8</td><td>Serialização</td><td><code>export/</code></td><td><code>perguntas.json</code> e <code>dashboard.json</code></td></tr>
-            <tr><td>9</td><td>Roteiro da defesa</td><td><code>docs/07_narrativa_e_defesa.md</code></td><td>doze minutos, cronometrado ao menos uma vez</td></tr>
-          </tbody>
-        </table>
-        <div class="note">
-          <strong>Ordem de trabalho recomendada</strong>
-          <p>Comece pela matriz e só depois volte ao checklist. A matriz revela o que falta; conferir os arquivos primeiro dá a sensação enganosa de completude, porque todos podem existir enquanto metade dos requisitos continua sem resposta.</p>
-        </div>
-      </section>
-
-      <section class="content-block">
-        <h2>5. A matriz de rastreabilidade</h2>
-        <p>A matriz é o instrumento central da Aula 08 e a seção mais consultada do dossiê final. Ela tem uma linha por requisito da lista elicitada — todas as linhas, inclusive as que o painel não atende — e oito colunas. Nenhuma linha fica em branco, e nenhuma recebe "parcial" sem razão escrita.</p>
-
-        <h3>5.1 Anatomia de uma linha</h3>
+        <h3>8.2 Anatomia de uma linha</h3>
         <table>
           <thead><tr><th>Campo</th><th>O que preencher</th></tr></thead>
           <tbody>
-            <tr><td>Identificador</td><td><code>R1</code>, <code>R2</code>, … conforme a numeração da lista elicitada</td></tr>
+            <tr><td>Identificador</td><td><code>R1</code>, <code>R2</code>, ... conforme a numeração da lista elicitada</td></tr>
             <tr><td>Enunciado</td><td>A necessidade na voz do cliente, sem tradução para solução</td></tr>
             <tr><td>Decisão servida</td><td>O que o orientador decide olhando isto, e com que consequência</td></tr>
             <tr><td>Critério de aceite</td><td>A frase que diz quando o requisito está satisfeito</td></tr>
             <tr><td>Onde é atendido</td><td>Aba e nome exato do cartão no painel, ou seção do dossiê</td></tr>
-            <tr><td>Evidência no dado</td><td>Tabela, campo e grão que sustentam a afirmação</td></tr>
+            <tr><td>Evidência no dado</td><td>Tabela ou view, campo e grão que sustentam a afirmação</td></tr>
             <tr><td>Estado</td><td><code>atendido</code> &middot; <code>atendido com ressalva</code> &middot; <code>lacuna declarada</code></td></tr>
             <tr><td>Razão</td><td>Obrigatória em ressalva e em lacuna; vazia apenas quando atendido</td></tr>
           </tbody>
         </table>
 
-        <h3>5.2 Os três estados</h3>
-        <p><strong>Atendido</strong> significa que as quatro condições da seção anterior foram verificadas com o painel aberto. Não é uma intenção nem uma avaliação otimista do próprio trabalho: é o resultado de ter clicado no número e chegado à origem.</p>
-        <p><strong>Atendido com ressalva</strong> significa que o painel responde ao requisito, mas a resposta é mais fraca do que o enunciado sugere. O caso típico no rastro PBL é a revisão de código: o recorte traz a contagem de comentários de cada merge request, mas não o texto dos comentários nem o diff. Dá para medir se houve revisão e quanto tempo ela levou; não dá para afirmar se ela foi criteriosa. A ressalva registra exatamente onde a afirmação para.</p>
-        <p><strong>Lacuna declarada</strong> significa que a fonte não alcança o requisito. Não é falha do grupo — é propriedade do recorte. Uma lacuna bem escrita vale entrega; uma lacuna escondida atrás de um gráfico que finge sustentar o que não sustenta é o erro mais caro da disciplina, porque produz decisão errada sobre pessoas reais.</p>
+        <h3>8.3 Os três estados</h3>
+        <p>Atendido significa que as quatro condições foram verificadas com o painel aberto, clicando no número e chegando à origem. Ler a própria consulta e concluir que ela responde é a forma mais comum de aprovar um requisito que, na tela, não está atendido.</p>
+        <p>Atendido com ressalva significa que o painel responde ao requisito, mas a resposta é mais fraca do que o enunciado sugere. O caso típico no rastro PBL é a revisão de código: o recorte traz a contagem de comentários de cada merge request, mas não o texto dos comentários nem o diff. Dá para medir se houve revisão e quanto tempo ela levou; não dá para afirmar se ela foi criteriosa. A ressalva registra onde a afirmação para.</p>
+        <p>Lacuna declarada significa que a fonte não alcança o requisito. A lacuna decorre do recorte e não conta contra o grupo. Uma lacuna bem escrita conta como entrega; uma lacuna escondida atrás de um gráfico que aparenta sustentá-la produz decisão errada sobre pessoas reais.</p>
 
-        <h3>5.3 Exemplo de forma</h3>
-        <p>As três linhas abaixo mostram o formato esperado. Os enunciados do seu grupo saem da sua entrevista e podem divergir destes — inclusive contradizê-los.</p>
+        <h3>8.4 Exemplo de forma</h3>
+        <p>As três linhas abaixo mostram o formato esperado. Os enunciados do seu grupo saem da sua entrevista e podem divergir destes.</p>
         <table>
           <thead><tr><th>Requisito</th><th>Onde é atendido</th><th>Evidência no dado</th><th>Estado</th><th>Razão</th></tr></thead>
           <tbody>
             <tr>
               <td>Saber se o trabalho está concentrado em poucos integrantes</td>
-              <td>Aba Evidência &middot; distribuição interna do esforço por sprint</td>
-              <td>Commits por autor resolvido, agregados no grão da sprint, com faixa de não atribuído visível</td>
+              <td>Aba Evidência &middot; distribuição interna do esforço</td>
+              <td>Commits por autor resolvido, no grão do grupo, com faixa de não atribuído visível</td>
               <td>Atendido</td>
               <td>&mdash;</td>
             </tr>
@@ -139,7 +222,7 @@
               <td>Aba Evidência &middot; tempo até aprovação e tamanho da mudança</td>
               <td>Merge requests: abertura, aprovação, revisores e contagem de comentários</td>
               <td>Ressalva</td>
-              <td>O recorte não traz o texto dos comentários nem o diff; a base sustenta que houve revisão e quanto ela demorou, não que ela foi criteriosa</td>
+              <td>O recorte não traz o texto dos comentários nem o diff; sustenta que houve revisão e quanto ela demorou, mas não que foi criteriosa</td>
             </tr>
             <tr>
               <td>Saber quem leu o código dos colegas</td>
@@ -150,11 +233,22 @@
             </tr>
           </tbody>
         </table>
+
+        <h3>8.5 Passo a passo da verificação</h3>
+        <ol class="steps">
+          <li>Copie cada requisito da lista para uma linha da matriz, preservando o enunciado original. Se o enunciado ficou ruim, registre isso como achado.</li>
+          <li>Para cada linha, escreva a aba e o nome exato do cartão. Se for preciso mais de uma frase para dizer onde está, a resposta provavelmente está espalhada pelo painel.</li>
+          <li>Clique no valor exibido e chegue à origem. No Supabase, rode a mesma consulta no editor SQL e compare o número. Anote tabela ou view, campo e grão.</li>
+          <li>Confira se grão, unidade, período, filtro e fonte estão visíveis no próprio cartão.</li>
+          <li>Classifique o estado. Na dúvida entre atendido e ressalva, escolha ressalva e escreva onde a afirmação para.</li>
+          <li>Escreva as razões de todas as ressalvas e lacunas antes do atendimento.</li>
+          <li>Percorra a matriz de cima a baixo procurando célula vazia. Nenhuma pode ficar.</li>
+        </ol>
       </section>
 
       <section class="content-block">
-        <h2>6. A lacuna declarada como entregável</h2>
-        <p>Recusar um requisito com razão escrita é trabalho profissional, e é a diferença entre um analista e um produtor de gráficos. O cliente pediu algo que a fonte não observa; a resposta honesta não é um painel silencioso sobre o assunto, nem um indicador aproximado apresentado como se fosse a resposta. A resposta honesta é uma declaração com quatro partes.</p>
+        <h2>9. Lacunas declaradas</h2>
+        <p>Recusar um requisito com razão escrita é trabalho profissional. O cliente pediu algo que a fonte não observa, e a resposta honesta tem quatro partes. Silenciar sobre o assunto, ou apresentar um indicador aproximado como se fosse a resposta, deixa o orientador decidir com base em algo que o dado não sustenta.</p>
         <table>
           <thead><tr><th>Parte</th><th>O que escrever</th></tr></thead>
           <tbody>
@@ -164,123 +258,79 @@
             <tr><td>O que a resolveria</td><td>Que captura adicional seria necessária, e a que custo para quem é observado</td></tr>
           </tbody>
         </table>
-        <p>Três lacunas são estruturais no rastro de trabalho PBL e devem constar do dossiê de qualquer grupo, atendam ou não a um requisito explícito. A primeira: a extração é uma fotografia com data, e nada posterior a ela existe na base. A segunda: não há diff nem texto de revisão, o que impede qualquer afirmação sobre a qualidade do código escrito. A terceira, e a mais delicada: <strong>ausência de rastro não é ausência de trabalho</strong> — conversa fora da plataforma, programação em par no mesmo teclado e código descartado antes do commit não aparecem, e um integrante pouco visível nos dados é um integrante sobre o qual esta fonte não tem evidência.</p>
-        <p>Some-se a essas a lacuna de identidade trabalhada na Aula 05. No recorte publicado, a autoria de commit resolve para um código em 2.136 dos 2.688 commits — 79% —, porque o e-mail configurado no cliente git nem sempre corresponde à conta institucional. Um painel que divide commits por pessoa e ignora esse resíduo produz uma distribuição que soma menos que o total, e faz o integrante mal configurado aparecer como integrante ausente. O suporte que essa lacuna exige é uma faixa explícita de não atribuído, com o percentual, dentro do próprio gráfico — não numa nota de rodapé.</p>
-        <p>Vale a mesma disciplina para a decisão sobre a janela temporal. O recorte contém commits datados de anos anteriores ao módulo, herança do repositório-template, e a data do commit é gravada pelo cliente e pode ser reescrita por <em>rebase</em>. Filtrar pela janela das sprints é uma decisão legítima; escondê-la não é. Toda afirmação de cadência precisa declarar se usa a data do autor ou a hora registrada pelo servidor.</p>
+        <p>Três lacunas são estruturais no rastro PBL e entram no dossiê de qualquer grupo. A extração é uma fotografia com data, e nada posterior a ela existe na base. Não há diff nem texto de revisão, o que impede afirmar algo sobre a qualidade do código. E a ausência de rastro não prova ausência de trabalho: conversa fora da plataforma, programação em par no mesmo teclado e código descartado antes do commit não aparecem, de modo que um integrante pouco visível nos dados é alguém sobre quem esta fonte não tem evidência.</p>
+        <p>Somam-se a elas a lacuna de identidade, com a proporção de autoria do recorte usado (79% nos CSVs da T28, 88,5% no recorte completo), e as decisões de janela temporal. O histórico herdado do repositório-modelo precisa ser excluído ou declarado, e toda afirmação de cadência precisa dizer se usa a data do autor, que o cliente git grava e o <em>rebase</em> pode reescrever, ou a hora registrada pelo servidor. A faixa de não atribuído aparece dentro do gráfico, com o percentual, e não numa nota de rodapé.</p>
       </section>
 
       <section class="content-block">
-        <h2>7. Restrições inegociáveis</h2>
-        <p>Três regras acompanham o projeto desde o início e valem, sem exceção, no momento da entrega. Uma entrega tecnicamente impecável que viole qualquer uma delas é avaliada como incorreta.</p>
+        <h2>10. Restrições inegociáveis</h2>
+        <p>Três regras acompanham o projeto desde o início e valem sem exceção na entrega. Uma entrega tecnicamente correta que viole qualquer uma delas é avaliada como incorreta.</p>
         <div class="note">
           <strong>Confidencialidade</strong>
-          <p>Os CSVs publicados na página do projeto estão pseudonimizados — pessoas viraram códigos como <code>G01-A01</code> e a instituição virou <em>Instituto Ápice</em> —, mas descrevem o trabalho real de pessoas reais e circulam como material didático da turma, não como dado público. Nada de publicação em repositório aberto, portfólio ou rede social, e nenhuma tentativa de reidentificação. O schema <code>pbl</code> no Metabase é ainda mais restrito: ali os dados permanecem identificados, o acesso é limitado ao ambiente da disciplina, e nada dali sai em captura de tela ou exportação. A defesa acontece dentro do ambiente da disciplina.</p>
+          <p>Os CSVs da T28 publicados na página do projeto e o arquivo <code>projeto_pbl_completo.zip</code> estão pseudonimizados, mas descrevem o trabalho real de pessoas reais e circulam como material didático da turma. O zip é distribuído somente no canal da turma e não pode ser publicado em repositório aberto, portfólio ou rede social, nem ser usado em tentativa de reidentificação. Os CSVs do zip nunca entram no repositório do grupo; acrescente <code>projeto_pbl_completo*</code> ao <code>.gitignore</code>. O schema <code>pbl</code> no Metabase é mais restrito: ali os dados permanecem identificados, o acesso é limitado ao ambiente da disciplina e nada sai dele em captura de tela ou exportação de dados.</p>
         </div>
         <div class="note">
           <strong>Autoridade humana</strong>
-          <p>O dashboard produz evidência, análise e pergunta — nunca veredito. Ele não atribui nota, não classifica aluno e não recomenda sanção. Quem interpreta e decide é o docente. Um painel que ranqueia pessoas está fora do escopo e será avaliado como incorreto, ainda que tecnicamente bem construído.</p>
+          <p>O dashboard produz evidência, análise e pergunta, e nunca veredito. Ele não atribui nota, não classifica aluno e não recomenda sanção. Quem interpreta e decide é o docente. Um painel que ranqueia pessoas está fora do escopo e é avaliado como incorreto, ainda que bem construído.</p>
         </div>
         <div class="note">
           <strong>Unidade de análise</strong>
-          <p>A saída é sempre o <strong>grupo</strong>. O indivíduo aparece apenas como componente da distribuição interna do grupo, para responder sobre equilíbrio de participação — jamais como sujeito de comparação entre grupos ou turmas.</p>
+          <p>A saída é sempre o grupo. O indivíduo aparece apenas como componente da distribuição interna do grupo, para responder sobre equilíbrio de participação, e nunca como sujeito de comparação entre grupos ou turmas. O recorte completo tem 75 grupos de 15 turmas, e isso não autoriza um ranking de grupos: comparações entre grupos precisam servir a uma decisão do orientador e declarar o que torna os grupos comparáveis.</p>
         </div>
       </section>
 
       <section class="content-block">
-        <h2>8. Passo a passo — verificação de rastreabilidade</h2>
-        <p>Primeiro bloco de bancada, das 8h50 às 9h40. Trabalhe com duas janelas lado a lado: o painel no Metabase e a matriz em edição. A verificação é feita <em>na tela</em>, clicando. Ler a própria consulta e concluir que ela responde é a forma mais comum de aprovar um requisito que, na prática, não está atendido.</p>
+        <h2>11. Passo a passo: o dossiê final</h2>
+        <p>Sem defesa oral, o dossiê é a única voz do grupo na avaliação. O <code>docs/08_dossie_final.md</code> não repete os sete documentos anteriores: ele os costura e mostra que as decisões de cada aula sobreviveram às seguintes. Um bom dossiê é lido por alguém que não acompanhou o semestre e ainda assim entende o que foi decidido, por quê, e o que o painel não pode afirmar.</p>
         <ol class="steps">
-          <li><strong>Transcreva a lista.</strong> Copie cada requisito elicitado para uma linha da matriz, preservando o enunciado original. Não reescreva para facilitar a verificação — se o enunciado ficou ruim, isso é um achado a registrar, não um texto a maquiar.</li>
-          <li><strong>Aponte o item que atende.</strong> Para cada linha, escreva a aba e o nome exato do cartão. Se você precisa de mais de uma frase para explicar onde está, provavelmente está espalhado — e espalhado costuma significar não atendido.</li>
-          <li><strong>Desça até a origem.</strong> Clique no valor exibido, abra o detalhamento e confirme que chega à linha de registro. Anote a tabela, o campo e o grão na coluna de evidência. Se o caminho quebra em algum ponto, o estado ainda não é "atendido".</li>
-          <li><strong>Confira as declarações.</strong> Verifique se grão, unidade, período, filtro e fonte estão visíveis onde o número é lido. Uma nota no dossiê não satisfaz esta condição: a informação precisa estar no cartão.</li>
-          <li><strong>Classifique o estado.</strong> Marque <code>atendido</code>, <code>atendido com ressalva</code> ou <code>lacuna declarada</code>. Na dúvida entre atendido e ressalva, escolha ressalva e escreva onde a afirmação para.</li>
-          <li><strong>Escreva as razões antes de chamar o cliente.</strong> Toda ressalva e toda lacuna precisam da razão pronta. Descobrir a razão durante o atendimento consome o tempo da validação e transfere ao cliente um trabalho que é seu.</li>
-          <li><strong>Feche o bloco com uma varredura.</strong> Percorra a matriz de cima a baixo procurando célula vazia. Célula vazia é gate reprovado.</li>
+          <li>Releia os registros de <code>docs/01</code> a <code>docs/07</code> e liste tudo que mudou desde que cada um foi escrito: definições de termos, filtros, grãos, gráficos removidos e correções de auditoria.</li>
+          <li>Corrija nos originais o que ficou desatualizado, registrando a mudança. O dossiê mostra a trajetória, inclusive os erros corrigidos, e não a reescreve.</li>
+          <li>Monte as nove seções na ordem indicada abaixo.</li>
+          <li>Cole a matriz completa na seção 4, com todas as linhas, estados e razões, e as anotações do atendimento desta aula.</li>
+          <li>Na seção 7, declare a plataforma escolhida e o motivo, e descreva as abas do painel e como abrir cada número até a origem.</li>
+          <li>Ancore cada afirmação numa evidência: uma consulta em <code>sql/</code>, uma tabela ou view do recorte, ou um achado de auditoria com severidade. Frase sem âncora sai do texto.</li>
+          <li>Escreva a recomendação em uma frase acionável: o próximo passo que o orientador pode dar, e o que ele deve observar para saber se funcionou.</li>
+          <li>Versione com uma mensagem de fechamento do módulo.</li>
         </ol>
-        <div class="note">
-          <strong>Gate do bloco</strong>
-          <p>Uma linha por requisito, nenhuma célula em branco, toda ressalva e toda lacuna com razão escrita.</p>
-        </div>
-      </section>
-
-      <section class="content-block">
-        <h2>9. Passo a passo — atendimento com o cliente</h2>
-        <p>Das 9h40 às 10h20, em rodadas por grupo. O professor responde no papel do orientador e valida o painel contra a lista que ele mesmo ajudou a elicitar. Ele não corrige o seu trabalho: ele diz se o trabalho serve. A regra da Aula 05 continua valendo — quem construiu conduz a tela, mas não explica o que a tela deveria dizer sozinha.</p>
-        <ol class="steps">
-          <li><strong>Abra pela matriz, não pelo painel.</strong> O cliente valida o contrato primeiro. Mostrar o dashboard antes desloca a conversa para a estética e desperdiça a rodada.</li>
-          <li><strong>Percorra os atendidos, linha a linha.</strong> Para cada um, abra o cartão correspondente e peça a confirmação: <em>isto responde ao que você pediu?</em> Anote a resposta na matriz.</li>
-          <li><strong>Apresente as ressalvas com a razão pronta.</strong> Diga onde a afirmação para e pergunte se o limite é aceitável para a decisão que ele precisa tomar.</li>
-          <li><strong>Apresente as lacunas com as quatro partes.</strong> O que foi pedido, por que a fonte não alcança, o que o painel afirma no lugar e o que a resolveria. Pergunte se ele concorda em conviver com a lacuna.</li>
-          <li><strong>Registre literalmente toda correção pedida.</strong> Anote a frase do cliente e o requisito a que ela pertence. Não interprete durante a conversa; interprete depois, com a frase escrita à frente.</li>
-          <li><strong>Feche com a classificação.</strong> Cada requisito sai da rodada aceito, aceito com ressalva ou recusado. Requisito recusado que ainda dá tempo de atender vira trabalho do bloco seguinte; requisito recusado sem tempo vira lacuna declarada, com razão e data.</li>
-        </ol>
-        <div class="note">
-          <strong>Gate do bloco</strong>
-          <p>Cada requisito com estado validado pelo cliente e registrado na matriz, inclusive os recusados.</p>
-        </div>
-      </section>
-
-      <section class="content-block">
-        <h2>10. Passo a passo — consolidação do dossiê</h2>
-        <p>Das 10h20 às 10h50. O dossiê final não repete os sete documentos anteriores: ele os costura e demonstra que as decisões de cada aula sobreviveram às seguintes. Um bom <code>docs/08_dossie_final.md</code> é lido por alguém que não acompanhou o semestre e ainda assim entende o que foi decidido, por quê, e o que o painel não pode afirmar.</p>
-        <ol class="steps">
-          <li><strong>Releia os sete documentos</strong> e liste, em rascunho, tudo que mudou desde que cada um foi escrito: definições de termos, filtros, grãos, gráficos removidos, correções de auditoria.</li>
-          <li><strong>Corrija nos originais.</strong> O que ficou desatualizado em <code>docs/01</code> a <code>docs/07</code> se corrige lá, com a mudança registrada. Não reescreva a história dentro do <code>docs/08</code>: o valor do dossiê está em mostrar a trajetória, inclusive os erros corrigidos.</li>
-          <li><strong>Monte as nove seções</strong> do dossiê final na ordem indicada abaixo.</li>
-          <li><strong>Cole a matriz completa</strong> na seção 4, com todas as linhas, todos os estados e todas as razões.</li>
-          <li><strong>Verifique a ancoragem.</strong> Toda afirmação do dossiê precisa apontar para uma evidência: uma consulta em <code>sql/</code>, uma tabela do recorte ou um achado de auditoria com severidade. Frase sem âncora sai do texto.</li>
-          <li><strong>Escreva a recomendação</strong> em uma frase acionável: o próximo passo que o orientador pode dar amanhã, e o que ele deve observar para saber se funcionou.</li>
-          <li><strong>Versione</strong> com uma mensagem única de fechamento do módulo.</li>
-        </ol>
-        <p>A estrutura das nove seções do dossiê final:</p>
         <pre><code>1 · CONTEXTO       cliente, decisão servida e consequência do erro
 2 · REQUISITOS     a lista elicitada, priorizada, com critérios de aceite
-3 · FONTE          origem, recorte, grão e o que a extração não observa
+3 · FONTE          recorte usado, grão, contagens e o que a extração não observa
 4 · MATRIZ         uma linha por requisito, com estado e razão
 5 · DECISÕES       as divergências D1..Dn e o suporte que cada uma exigiu
 6 · AUDITORIA      achados recebidos, severidade, correção e reteste
-7 · NARRATIVA      ideia central, storyboard e fichas de KPI
+7 · PAINEL         plataforma, abas, ideia central e caminho até a origem
 8 · LIMITAÇÕES     o que o painel não pode afirmar, e por quê
-9 · RECOMENDAÇÃO   o próximo passo que o cliente pode dar amanhã</code></pre>
-        <div class="note">
-          <strong>Gate do bloco</strong>
-          <p><code>docs/08_dossie_final.md</code> versionado, com as nove seções preenchidas e a matriz completa.</p>
-        </div>
+9 · RECOMENDAÇÃO   o próximo passo que o orientador pode dar</code></pre>
       </section>
 
       <section class="content-block">
-        <h2>11. Passo a passo — congelamento do painel</h2>
-        <p>Às 10h50. A instância do Metabase é compartilhada e as coleções são visíveis e editáveis por todos — a regra de convivência combinada na Aula 01 continua valendo, e agora tem consequência de nota. Congelar é tornar inequívoco qual estado do trabalho está sendo entregue.</p>
+        <h2>12. Passo a passo: fechamento no Metabase</h2>
+        <p>A instância do Metabase é compartilhada e as coleções são visíveis e editáveis por todos. Congelar torna inequívoco qual estado do trabalho está sendo entregue. A instância é hospedada pelo professor e não sobrevive ao semestre, e por isso a exportação em <code>.json</code> é o que fica com o grupo.</p>
+
+        <h3>12.1 Congelar a coleção</h3>
         <ol class="steps">
-          <li><strong>Renomeie a coleção do grupo</strong> acrescentando o sufixo <code>— ENTREGA FINAL</code>. Isso separa o material avaliado de qualquer rascunho que ainda exista na instância.</li>
-          <li><strong>Arquive os rascunhos.</strong> Toda pergunta que não sustenta nenhum requisito da matriz sai da coleção viva. Curadoria é critério da disciplina: mantém-se apenas o que contribui para a decisão final.</li>
-          <li><strong>Confira cartão a cartão.</strong> Título que afirma em vez de rotular, unidade declarada, período e filtro visíveis, fonte identificada. Um cartão sem essas quatro coisas ainda não está pronto.</li>
-          <li><strong>Fixe os filtros padrão</strong> do dashboard no estado em que ele deve ser lido pela banca. Um painel que abre num recorte diferente do que a narrativa pressupõe desmonta a defesa nos primeiros trinta segundos.</li>
-          <li><strong>Confirme a aba de limitações.</strong> Ela é parte do painel, não um apêndice: o que o dashboard não pode afirmar precisa estar dentro do dashboard.</li>
-          <li><strong>Pare de editar.</strong> A partir daqui, correção pedida na defesa vira nota no dossiê, não alteração no painel. Editar durante a rodada de entregas invalida a comparação entre grupos.</li>
+          <li>Renomeie a coleção do grupo acrescentando o sufixo <code>ENTREGA FINAL</code>.</li>
+          <li>Arquive as perguntas que não sustentam nenhum requisito da matriz.</li>
+          <li>Confira cartão a cartão: título que afirma em vez de rotular, unidade, período, filtro e fonte.</li>
+          <li>Fixe os filtros padrão do dashboard no estado em que ele deve ser lido.</li>
+          <li>Confirme que a aba de limitações está dentro do dashboard.</li>
+          <li>Pare de editar a coleção depois da exportação. O que mudar depois dela não corresponde ao que está no repositório.</li>
         </ol>
-      </section>
 
-      <section class="content-block">
-        <h2>12. Passo a passo — exportação da coleção em <code>.json</code></h2>
-        <p>A instância do Metabase é hospedada pelo professor e não sobrevive ao semestre. O que fica com você é o que estiver no repositório. A exportação transforma o trabalho feito no ambiente compartilhado em artefato versionado, e é o item 8 do checklist de entrega.</p>
-        <p>O Metabase expõe uma API REST autenticada por token de sessão. O procedimento abaixo usa <code>curl</code> e <code>jq</code> e roda em qualquer terminal — inclusive no Codespaces já usado nas Aulas 03 e 04. O endereço e as credenciais da instância da disciplina estão na <a href="../../../../pages/projeto_data_visualization.html">página do projeto</a>.</p>
-
-        <h3>12.1 Autenticar e guardar o token</h3>
-        <p>Exporte as credenciais como variáveis de ambiente para que a senha não fique no histórico do shell nem no repositório:</p>
+        <h3>12.2 Autenticar e guardar o token</h3>
+        <p>O Metabase expõe uma API REST autenticada por token de sessão. Os comandos abaixo usam <code>curl</code> e <code>jq</code> e rodam no terminal do Codespaces. O endereço e as credenciais estão na <a href="../../../../pages/projeto_data_visualization.html">página do projeto</a>.</p>
         <pre><code>export MB_URL="https://metabase-production-76b0.up.railway.app"
 export MB_USER="alunos@aula.local"
-read -rs MB_PASS && export MB_PASS
+read -rs MB_PASS &amp;&amp; export MB_PASS
 
 export MB_TOKEN=$(curl -s -X POST "$MB_URL/api/session" \
   -H "Content-Type: application/json" \
   -d "{\"username\":\"$MB_USER\",\"password\":\"$MB_PASS\"}" | jq -r .id)
 
 test -n "$MB_TOKEN" &amp;&amp; echo "sessao aberta"</code></pre>
-        <p>O token é temporário e vale apenas para esta sessão. Ele nunca é versionado, colado em prompt de IA, exibido em captura de tela ou escrito no dossiê.</p>
+        <p>O token é temporário e nunca é versionado, colado em prompt de IA, exibido em captura de tela ou escrito no dossiê.</p>
 
-        <h3>12.2 Localizar a coleção e os identificadores</h3>
+        <h3>12.3 Localizar a coleção e os identificadores</h3>
         <pre><code>curl -s "$MB_URL/api/collection" \
   -H "X-Metabase-Session: $MB_TOKEN" \
   | jq -r '.[] | "\(.id)  \(.name)"' | grep -i "ENTREGA FINAL"
@@ -290,9 +340,9 @@ export MB_COL=ID_DA_SUA_COLECAO
 curl -s "$MB_URL/api/collection/$MB_COL/items" \
   -H "X-Metabase-Session: $MB_TOKEN" \
   | jq -r '.data[] | "\(.model)  \(.id)  \(.name)"'</code></pre>
-        <p>A listagem devolve o modelo de cada item — <code>card</code> para as perguntas, <code>dashboard</code> para o painel — com o identificador numérico e o nome. Anote-os: são a entrada dos dois passos seguintes.</p>
+        <p>A listagem devolve o modelo de cada item (<code>card</code> para as perguntas, <code>dashboard</code> para o painel), com o identificador e o nome.</p>
 
-        <h3>12.3 Serializar as perguntas</h3>
+        <h3>12.4 Serializar as perguntas e o dashboard</h3>
         <pre><code>mkdir -p export sql
 
 curl -s "$MB_URL/api/collection/$MB_COL/items?models=card" \
@@ -303,21 +353,17 @@ while read -r ID; do
 done &lt; /tmp/cards.txt | jq -s '.' &gt; export/perguntas.json
 
 jq 'length' export/perguntas.json
-wc -l &lt; /tmp/cards.txt</code></pre>
-        <p>O resultado é um arquivo único com um objeto por pergunta, contendo nome, descrição, definição da consulta e configuração de visualização. Os dois últimos comandos existem para conferência: a contagem devolvida por <code>jq</code> precisa coincidir com o número de perguntas listadas na coleção. Se não coincidir, alguma requisição falhou e o arquivo está incompleto.</p>
+wc -l &lt; /tmp/cards.txt
 
-        <h3>12.4 Serializar o dashboard</h3>
-        <pre><code>export MB_DASH=ID_DO_SEU_DASHBOARD
-
+export MB_DASH=ID_DO_SEU_DASHBOARD
 curl -s "$MB_URL/api/dashboard/$MB_DASH" \
   -H "X-Metabase-Session: $MB_TOKEN" | jq '.' &gt; export/dashboard.json
 
 jq -r '.name' export/dashboard.json
 jq -r '.dashcards | length' export/dashboard.json</code></pre>
-        <p>A serialização do dashboard traz as abas, o posicionamento dos cartões, os filtros e a ligação de cada cartão com a pergunta que o alimenta. É ela que permite reconstruir o painel numa instância futura, depois que a do professor for desligada.</p>
+        <p>A contagem devolvida por <code>jq 'length'</code> precisa coincidir com o número de perguntas da coleção; se não coincidir, alguma requisição falhou. A serialização do dashboard traz as abas, a posição dos cartões, os filtros e a ligação de cada cartão com a pergunta que o alimenta.</p>
 
         <h3>12.5 Versionar o SQL nativo</h3>
-        <p>A serialização é legível por máquina, mas ninguém revisa uma consulta dentro de um JSON. Extraia o SQL de cada pergunta nativa para arquivos próprios:</p>
         <pre><code>jq -r '.[] | select(.dataset_query.type == "native") | .id' export/perguntas.json \
 | while read -r ID; do
     jq -r --argjson id "$ID" \
@@ -326,84 +372,54 @@ jq -r '.dashcards | length' export/dashboard.json</code></pre>
   done
 
 ls -1 sql/</code></pre>
-        <p>Perguntas construídas no query builder não têm SQL nativo e não aparecem aqui — isso é esperado, e para elas a serialização em <code>export/perguntas.json</code> é registro suficiente. Se o comando falhar por diferença de versão da API, extraia o SQL pela interface: abra a pergunta, converta o editor para consulta nativa e copie o texto. Renomeie cada arquivo com o nome da pergunta para que o repositório continue legível.</p>
-
-        <h3>12.6 Conferir e versionar</h3>
-        <pre><code>git add docs/ sql/ export/
-git status --short
-git commit -m "Entrega final do modulo: dossie, consultas e serializacao"</code></pre>
-        <div class="note">
-          <strong>Antes do commit, confirme três coisas</strong>
-          <p>Que <code>export/perguntas.json</code> e <code>export/dashboard.json</code> existem e são JSON válido; que nenhuma credencial, token de sessão ou dado identificado entrou nos arquivos; e que <code>docs/08_dossie_final.md</code> está na mesma árvore. Se um token aparecer no diff, interrompa, remova o arquivo do índice e abra uma nova sessão.</p>
-        </div>
+        <p>Perguntas feitas no query builder não têm SQL nativo, e para elas a serialização em <code>export/perguntas.json</code> basta. Se o comando falhar por diferença de versão da API, abra a pergunta, converta o editor para consulta nativa e copie o texto. Renomeie cada arquivo com o nome da pergunta.</p>
       </section>
 
       <section class="content-block">
-        <h2>13. Estado final do repositório</h2>
-        <p>Às 11h10, a pasta do grupo precisa estar assim. A estrutura é a mesma anunciada no roadmap da disciplina desde a Aula 01 e não mudou ao longo do semestre.</p>
+        <h2>13. Passo a passo: fechamento no HTML com Supabase</h2>
+        <p>O painel em HTML roda no navegador e consulta o Supabase com a chave publicável, que fica no código da página e qualquer pessoa pode ler. A segurança vem do RLS nas tabelas, das views com <code>security_invoker = true</code>, que herdam esse RLS, e do login. O fechamento confere essas três camadas e deixa no repositório tudo que o professor precisa para reconstruir o banco e abrir a página.</p>
+        <ol class="steps">
+          <li>Confirme a carga. Rode de novo a consulta final do <code>02_carga.sql</code> e compare com as contagens da seção 7.1. Qualquer diferença precisa ser explicada no dossiê.</li>
+          <li>Versione o SQL. A pasta <code>sql/</code> leva as tabelas, a carga e todas as views que o painel consulta, incluindo as que o grupo criou além das do kit. Cada view nova segue o modelo comentado no fim do <code>03_views.sql</code>: <code>security_invoker = true</code>, <code>revoke</code> para <code>anon</code> e <code>grant select</code> para <code>authenticated</code>.</li>
+          <li>Teste o acesso sem login. A resposta esperada é <code>401</code> com <code>permission denied</code>:
+            <pre><code>curl -s "$SUPABASE_URL/rest/v1/v_participacao?select=*&amp;limit=1" \
+  -H "apikey: $SUPABASE_CHAVE_PUBLICAVEL"</code></pre>
+          </li>
+          <li>Procure segredos no que será versionado. A chave secreta (<code>service_role</code>) ignora o RLS e nunca entra em arquivo servido ao navegador:
+            <pre><code>grep -rnE "service_role|sb_secret|postgresql://" public/ sql/ docs/ || echo "nenhum segredo encontrado"
+git status --short | grep -i "\.csv\|\.zip" || echo "nenhum dado do recorte no indice"</code></pre>
+          </li>
+          <li>Crie um usuário de leitura para o professor em Authentication, Users, Add user, com Auto Confirm User. As credenciais seguem pelo canal da turma e nunca entram no repositório.</li>
+          <li>Documente como abrir. Um <code>README.md</code> na raiz diz a ordem dos scripts de <code>sql/</code>, onde trocar a URL e a chave publicável e o comando para servir a página (<code>cd public &amp;&amp; python3 -m http.server 8000</code>).</li>
+          <li>Abra o painel numa janela anônima, entre com o usuário de leitura e confira que cada número bate com a consulta correspondente no editor SQL do Supabase.</li>
+        </ol>
+      </section>
+
+      <section class="content-block">
+        <h2>14. Estado final do repositório</h2>
+        <p>Em 10/10, às 23h59, a pasta do grupo precisa conter os registros das aulas, o dossiê, as consultas e o painel reconstruível. A pasta <code>export/</code> vale para quem entrega no Metabase, e <code>public/</code> para quem entrega em HTML com Supabase.</p>
         <pre><code>olist-dataviz/
+├── README.md                               como abrir o painel
 ├── docs/
-│   ├── 01_brief_e_qualidade.md             contexto, perfil e regras de dados
-│   ├── 02_arquitetura_e_modelo.md          arquitetura, grãos, barramento e testes
-│   ├── 03_registro_numerico.md             decisões numéricas e alternativas
-│   ├── 04_pipeline_excel_olap.md           reconciliação, tempos e limitações
-│   ├── 05_fluxo_de_interacao_anotado.md    divergências, decisão e suporte
-│   ├── 06_auditoria_heuristica_e_vieses.md achados, severidade e reteste
-│   ├── 07_narrativa_e_defesa.md            ideia central, storyboard e KPI
+│   ├── 01_brief_e_qualidade.md ... 07      registros das Aulas 01 a 07
 │   └── 08_dossie_final.md                  consolidação e rastreabilidade
-├── sql/                                    consultas nativas versionadas
-└── export/
-    ├── perguntas.json                      serialização das perguntas
-    └── dashboard.json                      serialização do dashboard final</code></pre>
-      </section>
-
-      <section class="content-block">
-        <h2>14. A defesa</h2>
-        <p>Das 11h10 às 12h00, cada grupo apresenta doze minutos diante da banca, seguidos de arguição. O formato foi ensaiado na Aula 07 e não muda aqui. O relógio corre: ultrapassar o tempo custa pontos na dimensão de comunicação da rubrica, porque conduzir uma audiência dentro de um limite é parte do trabalho.</p>
-
-        <h3>14.1 Os cinco movimentos</h3>
-        <table>
-          <thead><tr><th>Tempo</th><th>Movimento</th><th>O que precisa aparecer</th></tr></thead>
-          <tbody>
-            <tr><td>0 &ndash; 2 min</td><td>A pergunta do cliente</td><td>quem decide, o quê, com que frequência e com que consequência se errar</td></tr>
-            <tr><td>2 &ndash; 4 min</td><td>O que a fonte registra</td><td>recorte, grão, janela e o que a extração não observa</td></tr>
-            <tr><td>4 &ndash; 8 min</td><td>A evidência</td><td>a aba de evidência conduzida ao vivo, com um detalhamento até a origem</td></tr>
-            <tr><td>8 &ndash; 10 min</td><td>A limitação</td><td>ao menos um requisito que virou lacuna, com a razão dita em voz alta</td></tr>
-            <tr><td>10 &ndash; 12 min</td><td>A recomendação</td><td>o próximo passo que o orientador pode dar, e como saberá se funcionou</td></tr>
-          </tbody>
-        </table>
-        <p>Nenhum gráfico entra na apresentação se não sustentar a ideia central. A economia da remoção, trabalhada na Aula 07, vale aqui mais do que em qualquer outro momento: doze minutos com quatro gráficos bem escolhidos comunicam mais do que doze minutos com onze.</p>
-
-        <h3>14.2 A arguição</h3>
-        <p>As perguntas da banca não são surpresa. Todas foram trabalhadas nas Aulas 05, 06 e 07, e todas têm resposta pronta em algum lugar do seu dossiê. Chegar sem elas mapeadas é escolha, não azar.</p>
-        <table>
-          <thead><tr><th>Pergunta</th><th>Onde a resposta já existe</th></tr></thead>
-          <tbody>
-            <tr><td>De onde vem este número? Abra até a linha de origem.</td><td>Detalhamento do painel e a consulta correspondente em <code>sql/</code></td></tr>
-            <tr><td>Você usou a data do autor ou a hora do servidor?</td><td>Divergência de temporalidade registrada em <code>docs/05</code></td></tr>
-            <tr><td>O que acontece com os commits cuja autoria não resolve?</td><td>Faixa de não atribuído visível no gráfico, com percentual</td></tr>
-            <tr><td>Isto ranqueia pessoas?</td><td>Unidade de análise declarada e a decisão registrada de não ranquear</td></tr>
-            <tr><td>Que requisito da lista este cartão atende?</td><td>Matriz de rastreabilidade, seção 4 do <code>docs/08</code></td></tr>
-            <tr><td>O que este painel não pode afirmar?</td><td>Aba de limitações do dashboard e seção 8 do dossiê</td></tr>
-            <tr><td>Que alternativa você descartou para chegar a esta codificação?</td><td><code>docs/03</code> e as decisões de projeto do <code>docs/05</code></td></tr>
-            <tr><td>Qual foi o achado de severidade mais alta que você recebeu?</td><td><code>docs/06</code>, com correção aplicada e resultado do reteste</td></tr>
-          </tbody>
-        </table>
+├── sql/                                    consultas, tabelas, carga e views
+├── export/                                 Metabase: perguntas.json e dashboard.json
+└── public/                                 Supabase: página do painel, sem segredos</code></pre>
       </section>
 
       <section class="content-block">
         <h2>15. Avaliação</h2>
-        <p>A nota da disciplina se forma em quatro componentes, dois deles fechados hoje.</p>
+        <p>A defesa oral saiu da avaliação. Os 20% que ela valia foram divididos igualmente: 10 pontos percentuais passaram para os artefatos semanais e 10 para o dashboard narrativo.</p>
         <table>
           <thead><tr><th>Componente</th><th>Peso</th><th>Quando</th></tr></thead>
           <tbody>
-            <tr><td>Requisitos e artefatos semanais no ambiente da aula e no repositório</td><td>40%</td><td>Aulas 01 a 07</td></tr>
-            <tr><td>Dashboard narrativo final</td><td>30%</td><td>Aula 08</td></tr>
-            <tr><td>Apresentação e defesa</td><td>20%</td><td>Aula 08</td></tr>
+            <tr><td>Requisitos e artefatos semanais no ambiente da aula e no repositório</td><td>50%</td><td>Aulas 01 a 07</td></tr>
+            <tr><td>Dashboard narrativo final, avaliado com o dossiê que o documenta</td><td>40%</td><td>até 10/10/2026, 23h59</td></tr>
             <tr><td>Participação nas revisões por pares</td><td>10%</td><td>Contínuo</td></tr>
           </tbody>
         </table>
-        <p>Dentro de cada artefato, a rubrica comum distribui o peso em seis dimensões. Ela é a mesma desde a Aula 01 e é o instrumento que a banca aplica ao painel entregue.</p>
+        <p>Dentro de cada artefato, a rubrica comum distribui o peso em seis dimensões. Ela é a mesma desde a Aula 01 e é aplicada ao painel entregue, na plataforma que o grupo escolheu.</p>
         <table>
           <thead><tr><th>Dimensão</th><th>Peso</th><th>Evidência esperada</th></tr></thead>
           <tbody>
@@ -419,37 +435,31 @@ git commit -m "Entrega final do modulo: dossie, consultas e serializacao"</code>
         <table>
           <thead><tr><th>Anula a entrega</th><th>Custa pontos</th></tr></thead>
           <tbody>
-            <tr><td>Ranking de pessoas entre grupos</td><td>Requisito sem linha na matriz</td></tr>
+            <tr><td>Ranking de pessoas</td><td>Requisito sem linha na matriz</td></tr>
             <tr><td>Veredito, nota ou sanção sugerida pelo painel</td><td>Lacuna existente e não declarada</td></tr>
             <tr><td>Número que não pode ser aberto até a origem</td><td>Título que rotula em vez de afirmar</td></tr>
-            <tr><td>Dado identificado fora do ambiente da disciplina</td><td>Defesa que estoura os doze minutos</td></tr>
+            <tr><td>Dado identificado fora do ambiente da disciplina, ou CSV do recorte em repositório aberto</td><td>Painel que o professor não consegue abrir com o que foi entregue</td></tr>
           </tbody>
         </table>
       </section>
 
       <section class="content-block">
-        <h2>16. Roteiro de execução prática em sala</h2>
-        <p>A aula inteira é prática. O roteiro abaixo é o mesmo apresentado no slide de cronograma e organiza a manhã em blocos, cada um com um gate de saída verificável.</p>
-        <table>
-          <thead><tr><th>Horário</th><th>Bloco</th><th>Gate de saída</th></tr></thead>
-          <tbody>
-            <tr><td>8h30 &ndash; 8h50</td><td>Abertura: critérios de aceite e checklist de entrega</td><td>lista de requisitos aberta ao lado do painel</td></tr>
-            <tr><td>8h50 &ndash; 9h40</td><td>Ateliê A &middot; matriz de rastreabilidade requisito a requisito</td><td>uma linha por requisito, nenhuma célula em branco</td></tr>
-            <tr><td>9h40 &ndash; 10h20</td><td>Atendimento com o cliente, por grupo</td><td>cada requisito aceito, com ressalva ou recusado, registrado na matriz</td></tr>
-            <tr><td>10h20 &ndash; 10h50</td><td>Ateliê B &middot; fechamento do dossiê das oito aulas</td><td><code>docs/08_dossie_final.md</code> versionado com as nove seções</td></tr>
-            <tr><td>10h50 &ndash; 11h10</td><td>Congelamento do painel e exportação em <code>.json</code></td><td><code>export/</code> e <code>sql/</code> completos no repositório</td></tr>
-            <tr><td>11h10 &ndash; 12h00</td><td>Rodada de defesas diante da banca</td><td>doze minutos por grupo, mais arguição</td></tr>
-            <tr><td>12h00 &ndash; 12h10</td><td>Encerramento da disciplina</td><td>&mdash;</td></tr>
-          </tbody>
-        </table>
+        <h2>16. Como entregar</h2>
+        <p>A entrega é assíncrona e o prazo é 10/10/2026, às 23h59. Não há apresentação. O professor avalia o estado do repositório e do painel nesse horário, lendo o dossiê e abrindo o painel com o que foi entregue.</p>
+        <ol class="steps">
+          <li>Feche a matriz: nenhuma linha sem estado, nenhuma ressalva ou lacuna sem razão.</li>
+          <li>Congele o painel, pela seção 12 no Metabase ou pela seção 13 no Supabase.</li>
+          <li>Versione <code>docs/</code>, <code>sql/</code> e <code>export/</code> ou <code>public/</code>, confira o <code>git status</code> e faça o commit de fechamento.</li>
+          <li>Envie no canal da turma o link do repositório. Quem usa o Supabase envia também o usuário de leitura do professor.</li>
+        </ol>
+      </section>
 
-        <div class="note">
-          <strong>Orientação final para a atividade prática</strong>
-          <p>Chegue com o painel em estado apresentável, o repositório sincronizado e a lista de requisitos elicitada acessível — em arquivo, não de memória. O trabalho da manhã acontece no Metabase da disciplina, sobre o rastro de trabalho PBL do projeto do módulo, e no repositório do grupo. O terminal do Codespaces é suficiente para a exportação e para o versionamento, e a assistência de IA pode ser usada para redigir e revisar o dossiê, desde que nenhum dado identificado, credencial ou token de sessão entre no prompt.</p>
-          <p>Faça o teste final antes da defesa: passe a sua matriz para alguém de outro grupo e peça que sorteie três linhas. Para cada uma, você tem sessenta segundos para mostrar na tela onde o requisito é atendido — ou para ler a razão de ele não ser. Se em alguma das três você precisar procurar, o painel ainda não está pronto, e o que falta costuma ser curadoria ou nomenclatura, não gráfico novo.</p>
-          <p>Se usar IA para consolidar o dossiê, peça a consolidação apenas a partir do que já foi produzido: <em>escreva o dossiê final usando somente o conteúdo de docs/01 a docs/07 e a matriz anexada; não invente número, requisito ou limitação que não esteja nos arquivos</em>. Depois leia linha a linha e responda pelo texto — a autoria e a responsabilidade pela afirmação continuam sendo do grupo, e a banca pergunta ao grupo.</p>
-          <p>A entrega termina quando a matriz não tem linha sem resposta, quando o painel congelado abre no estado que a narrativa pressupõe e quando a serialização no repositório permite reconstruir o trabalho fora da instância do professor — não quando a última cor do dashboard fica agradável.</p>
-        </div>
+      <section class="content-block">
+        <h2>17. Orientação para a atividade prática em sala</h2>
+        <p>A manhã inteira é prática. Chegue com o painel aberto na plataforma escolhida, o repositório sincronizado e a lista de requisitos com as colunas de estado, do que falta e das dúvidas para o cliente. Anote o seu horário no rodízio logo na abertura.</p>
+        <p>Fora do atendimento, trabalhe no terminal do Codespaces e na plataforma do painel. No Metabase, use o tempo para abrir cada número até a origem e preparar a exportação. No Supabase, rode a verificação de carga, teste a resposta <code>401</code> sem login e procure segredos nos arquivos que serão versionados. As tarefas de fechamento das seções 11 a 13 podem ser começadas hoje e terminadas até 10/10.</p>
+        <p>A assistência de IA pode ser usada para redigir e revisar o dossiê e para escrever consultas, desde que nenhum dado identificado, credencial, token de sessão ou chave entre no prompt. Para consolidar o dossiê, peça apenas o que já existe: <em>escreva o dossiê final usando somente o conteúdo de docs/01 a docs/07, a matriz anexada e as anotações do atendimento; não invente número, requisito ou limitação que não esteja nos arquivos</em>. Depois leia linha a linha: a responsabilidade pelo que está escrito é do grupo.</p>
+        <p>Antes de sair, faça um teste com outro grupo. Entregue a matriz e peça que sorteie três linhas. Para cada uma, mostre na tela em até sessenta segundos onde o requisito é atendido, ou leia a razão de ele não ser. Se em alguma das três for preciso procurar, anote no plano de fechamento o que falta, com responsável e prazo, e versione o plano antes das 12h10.</p>
       </section>
 
       <div class="actions">

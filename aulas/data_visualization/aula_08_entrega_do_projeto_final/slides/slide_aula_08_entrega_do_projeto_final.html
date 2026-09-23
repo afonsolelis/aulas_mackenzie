@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
-  <title>Aula 08 — Entrega do Projeto Final</title>
+  <title>Aula 08 — Acompanhamento do Projeto Final</title>
   <link href="../../../../assets/slides.css" rel="stylesheet">
 </head>
 <body>
@@ -16,62 +16,205 @@
         <div>
           <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
           <span class="deck-kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
-          <h1 class="deck-title">Entrega do Projeto Final</h1>
+          <h1 class="deck-title">Acompanhamento do Projeto Final</h1>
           <p class="deck-meta">Aula 08 &nbsp;&bull;&nbsp; 03/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Nenhum requisito fica sem resposta &mdash; nem os que o dado não sustenta.</p>
+          <p class="deck-subtitle">Atendimento por grupo e verificação do que falta para a entrega de 10/10/2026, 23h59.</p>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 2 - AGENDA / CRONOGRAMA DO ATELIÊ -->
+    <!-- SLIDE 2 - AGENDA -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Agenda &middot; Ateliê</span>
-          <h2 class="deck-title">A manhã inteira é trabalho</h2>
-          <p class="deck-summary">Sem bloco teórico. O professor circula em dois papéis: cliente, na validação contra a lista de requisitos elicitada, e banca, na rodada de entregas.</p>
+          <span class="deck-kicker">Agenda &middot; Acompanhamento</span>
+          <h2 class="deck-title">Como a manhã está organizada</h2>
+          <p class="deck-summary">Não há bloco teórico nem conteúdo novo, e não há defesa oral. O professor atende cada grupo no papel do orientador, o cliente do projeto, e acompanha o andamento. Enquanto um grupo é atendido, os demais trabalham no próprio painel.</p>
         </div>
         <table class="deck-table">
-          <thead><tr><th>Horário</th><th>Bloco</th><th>Gate de saída</th></tr></thead>
+          <thead><tr><th>Horário</th><th>Bloco</th><th>O que sai do bloco</th></tr></thead>
           <tbody>
-            <tr><td>8h30 &ndash; 8h50</td><td>Abertura: critérios de aceite e checklist</td><td>lista de requisitos aberta ao lado do painel</td></tr>
-            <tr><td>8h50 &ndash; 9h40</td><td>Ateliê A &middot; matriz de rastreabilidade</td><td>uma linha por requisito, nenhuma célula em branco</td></tr>
-            <tr><td>9h40 &ndash; 10h20</td><td>Atendimento com o cliente, por grupo</td><td>cada requisito aceito, com ressalva ou recusado</td></tr>
-            <tr><td>10h20 &ndash; 10h50</td><td>Ateliê B &middot; fechamento do dossiê</td><td><code>docs/08_dossie_final.md</code> versionado</td></tr>
-            <tr><td>10h50 &ndash; 11h10</td><td>Congelamento e exportação em <code>.json</code></td><td><code>export/</code> e <code>sql/</code> completos</td></tr>
-            <tr><td>11h10 &ndash; 12h00</td><td>Rodada de defesas diante da banca</td><td>doze minutos por grupo, mais arguição</td></tr>
-            <tr><td>12h00 &ndash; 12h10</td><td>Encerramento da disciplina</td><td>&mdash;</td></tr>
+            <tr><td>8h30 &ndash; 8h45</td><td>Abertura: ordem do rodízio e checklist de 10/10</td><td>cada grupo sabe o seu horário</td></tr>
+            <tr><td>8h45 &ndash; 10h00</td><td>Rodízio de atendimento, primeira rodada</td><td>lista de requisitos anotada pelo cliente</td></tr>
+            <tr><td>10h00 &ndash; 10h20</td><td>Intervalo</td><td>&mdash;</td></tr>
+            <tr><td>10h20 &ndash; 11h50</td><td>Primeira rodada até o fim, depois retornos curtos</td><td>pendências com dono e prazo</td></tr>
+            <tr><td>11h50 &ndash; 12h10</td><td>Fechamento: plano de cada grupo até 10/10</td><td>plano registrado no repositório</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- SLIDE 3 - O QUE PRECISA ESTAR PRONTO -->
+    <!-- SLIDE 3 - PLACEHOLDER / ESTADO DO PROJETO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Construção do conteúdo &middot; Estado do projeto</span>
+          <h2 class="deck-title">O que cada grupo traz ao atendimento</h2>
+          <p class="deck-summary">O atendimento parte do estado real do trabalho. O grupo abre o painel na plataforma escolhida e a lista de requisitos elicitada, com a coluna do que falta preenchida antes de o professor chegar à mesa.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+          <article class="deck-card">
+            <h3>Painel no estado atual</h3>
+            <ul>
+              <li>Metabase, coleção do grupo no schema <code>pbl</code></li>
+              <li>ou protótipo HTML ligado ao Supabase, com login</li>
+              <li>aberto no filtro em que deve ser lido</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Lista de requisitos com o que falta</h3>
+            <ul>
+              <li>uma linha por requisito da elicitação</li>
+              <li>estado atual e o que ainda falta fazer</li>
+              <li>dúvidas para o cliente, escritas antes</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - ATENDIMENTO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Rodízio &middot; Professor no papel do orientador</span>
+          <h2 class="deck-title">Roteiro de cada atendimento</h2>
+          <p class="deck-summary">O tempo por grupo é fixo e é anunciado na abertura, conforme o número de grupos presentes. O cliente não corrige o painel: ele diz se o que está na tela serve para a decisão que precisa tomar.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <article class="deck-card">
+            <h3>1 &middot; Lista primeiro</h3>
+            <ul>
+              <li>o grupo lê os requisitos ainda abertos</li>
+              <li>o cliente confirma se a prioridade mudou</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>2 &middot; Painel depois</h3>
+            <ul>
+              <li>um requisito atendido, aberto até a origem</li>
+              <li>uma ressalva ou lacuna, com a razão</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>3 &middot; Registro</h3>
+            <ul>
+              <li>frase do cliente anotada literalmente</li>
+              <li>cada pendência com dono e prazo</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - CHECKLIST -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Checklist de entrega &middot; 11h10</span>
-          <h2 class="deck-title">O que precisa existir antes da defesa</h2>
-          <p class="deck-summary">O checklist verifica a presença dos artefatos; a matriz verifica se eles respondem ao contrato. Comece pela matriz — ter os nove itens não significa ter os requisitos atendidos.</p>
+          <span class="deck-kicker">Checklist &middot; 10/10/2026, 23h59</span>
+          <h2 class="deck-title">O que precisa estar pronto até 10/10</h2>
+          <p class="deck-summary">A entrega é assíncrona e reúne o dashboard narrativo e o dossiê. O checklist confere se os artefatos existem. A matriz de rastreabilidade confere se eles respondem ao que o cliente pediu.</p>
         </div>
         <table class="deck-table">
-          <thead><tr><th>#</th><th>Item</th><th>Onde vive</th></tr></thead>
+          <thead><tr><th>#</th><th>Item</th><th>Onde fica</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td>Lista de requisitos elicitada</td><td>dossiê, seção 2</td></tr>
+            <tr><td>1</td><td>Lista de requisitos elicitada, atualizada</td><td>dossiê, seção 2</td></tr>
             <tr><td>2</td><td>Registros das Aulas 01 a 07</td><td><code>docs/01</code> a <code>docs/07</code></td></tr>
-            <tr><td>3</td><td>Dossiê final</td><td><code>docs/08_dossie_final.md</code></td></tr>
-            <tr><td>4</td><td>Dashboard narrativo em abas</td><td>coleção do grupo no Metabase</td></tr>
-            <tr><td>5</td><td>Aba de limitações</td><td>dashboard</td></tr>
-            <tr><td>6</td><td>Perguntas salvas com título que afirma</td><td>coleção do grupo</td></tr>
-            <tr><td>7</td><td>Consultas nativas</td><td><code>sql/</code></td></tr>
-            <tr><td>8</td><td>Serialização</td><td><code>export/perguntas.json</code> e <code>dashboard.json</code></td></tr>
-            <tr><td>9</td><td>Roteiro da defesa, cronometrado</td><td><code>docs/07_narrativa_e_defesa.md</code></td></tr>
+            <tr><td>3</td><td>Dossiê final com a matriz</td><td><code>docs/08_dossie_final.md</code></td></tr>
+            <tr><td>4</td><td>Dashboard narrativo com aba de limitações</td><td>Metabase ou HTML + Supabase</td></tr>
+            <tr><td>5</td><td>Consultas versionadas</td><td><code>sql/</code></td></tr>
+            <tr><td>6</td><td>Exportação ou código do painel</td><td><code>export/</code> ou <code>public/</code></td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - PLATAFORMA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Plataforma &middot; Escolha do grupo</span>
+          <h2 class="deck-title">Metabase ou HTML com Supabase</h2>
+          <p class="deck-summary">As duas plataformas passam pela mesma rubrica. Muda o que precisa estar no repositório para que o professor abra e reconstrua o painel.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>&nbsp;</th><th>Metabase</th><th>Protótipo HTML + Supabase</th></tr></thead>
+          <tbody>
+            <tr><td>Dados</td><td>schema <code>pbl</code>, identificado</td><td><code>projeto_pbl_completo.zip</code>, pseudonimizado</td></tr>
+            <tr><td>Painel</td><td>coleção com sufixo <code>ENTREGA FINAL</code></td><td>página em <code>public/</code>, com login</td></tr>
+            <tr><td>Repositório</td><td><code>export/*.json</code> e <code>sql/</code></td><td>tabelas, carga e views em <code>sql/</code></td></tr>
+            <tr><td>Acesso do professor</td><td>instância da disciplina</td><td>usuário de leitura enviado no canal da turma</td></tr>
+            <tr><td>Nunca entra no repositório</td><td>token de sessão</td><td>CSVs do zip e chave secreta</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - RASTREABILIDADE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Rastreabilidade &middot; Requisito a requisito</span>
+          <h2 class="deck-title">Três estados para cada requisito</h2>
+          <p class="deck-summary">A matriz tem uma linha por requisito da lista elicitada, inclusive os que o painel não atende. Cada linha aponta onde o requisito é atendido, a evidência no dado e o estado.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
+          <article class="deck-card">
+            <h3>Atendido</h3>
+            <ul>
+              <li>aba e cartão nomeados</li>
+              <li>clique no número chega à linha de origem</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Atendido com ressalva</h3>
+            <ul>
+              <li>o painel responde, com limite</li>
+              <li>a razão diz onde a afirmação para</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Lacuna declarada</h3>
+            <ul>
+              <li>a fonte não alcança o requisito</li>
+              <li>razão escrita no dossiê e no painel</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - AVALIACAO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Avaliação &middot; Pesos</span>
+          <h2 class="deck-title">Composição da nota</h2>
+          <p class="deck-summary">A defesa oral saiu da avaliação, e os 20% que ela valia foram divididos entre os artefatos semanais e o dashboard. A rubrica de seis dimensões continua a mesma.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Componente</th><th>Peso</th><th>Quando</th></tr></thead>
+          <tbody>
+            <tr><td>Artefatos semanais</td><td>50%</td><td>Aulas 01 a 07</td></tr>
+            <tr><td>Dashboard narrativo, com o dossiê</td><td>40%</td><td>até 10/10/2026, 23h59</td></tr>
+            <tr><td>Revisão por pares</td><td>10%</td><td>contínuo</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - COMO ENTREGAR -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega &middot; Assíncrona</span>
+          <h2 class="deck-title">Como entregar</h2>
+          <p class="deck-summary">A avaliação considera o estado do repositório e do painel em 10/10/2026, às 23h59. Não há apresentação.</p>
+        </div>
         <div class="deck-callout">
-          <strong>No material</strong>
-          <p style="margin:8px 0 0;">Critérios de aceite, anatomia da matriz de rastreabilidade e seus três estados, passo a passo do congelamento e da exportação pela API do Metabase, os cinco movimentos da defesa, a rubrica e o que anula a entrega.</p>
+          <strong>Antes do prazo</strong>
+          <p style="margin:8px 0 0;">Congele o painel, versione <code>docs/</code>, <code>sql/</code> e <code>export/</code> ou <code>public/</code> e envie no canal da turma o link do repositório. Quem escolheu o Supabase envia também o usuário de leitura. O material traz o passo a passo das duas plataformas.</p>
         </div>
       </div>
     </div>

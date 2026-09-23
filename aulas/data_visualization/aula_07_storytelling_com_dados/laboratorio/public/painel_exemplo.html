@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel de exemplo · Supabase</title>
+  <!--
+    Painel de exemplo da Aula 07. Mostra o caminho mínimo do protótipo ao dado real:
+    login, consulta a uma view agregada e desenho do resultado.
+
+    Para usar no seu projeto:
+      1. Troque SUPABASE_URL e SUPABASE_CHAVE_PUBLICAVEL pelos valores de
+         Project Settings > API Keys do seu projeto.
+      2. Crie um usuário em Authentication > Users > Add user (marque Auto Confirm).
+      3. Abra esta página com um servidor local (python3 -m http.server) e entre.
+
+    A chave publicável pode ficar no código: sem login, o RLS não devolve nenhuma linha.
+    A chave secreta (service_role) nunca entra em arquivo que vai para o navegador.
+  -->
+  <style>
+    :root {
+      --fundo: #fafaf8;
+      --texto: #111;
+      --secundario: #555;
+      --linha: #cfcfcf;
+      --barra: #333;
+      --barra-clara: #b5b5b5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--fundo);
+      color: var(--texto);
+      font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 1.5rem; margin: 0 0 4px; }
+    h2 { font-size: 1.1rem; margin: 0 0 8px; }
+    .meta { color: var(--secundario); font-size: .9rem; margin: 0 0 24px; }
+    form, .filtros { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; margin-bottom: 24px; }
+    label { display: grid; gap: 4px; font-size: .85rem; color: var(--secundario); }
+    input, select, button {
+      font: inherit; padding: 8px 10px; border: 1px solid var(--texto);
+      border-radius: 4px; background: #fff; color: var(--texto);
+    }
+    button { background: var(--texto); color: #fff; cursor: pointer; }
+    .grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .cartao { border: 1px solid var(--linha); border-radius: 4px; background: #fff; padding: 16px; }
+    .numero { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+    .nota { color: var(--secundario); font-size: .85rem; margin: 6px 0 0; }
+    .bloco { border: 1px solid var(--linha); border-radius: 4px; background: #fff; padding: 16px; margin-bottom: 24px; }
+    svg { width: 100%; height: auto; display: block; }
+    .erro { border: 2px solid var(--texto); padding: 12px; margin-bottom: 16px; }
+    .limites li { margin-bottom: 4px; }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Ritmo e participação do grupo</h1>
+  <p class="meta">Fonte: rastro pseudonimizado do GitLab, 15 turmas do Instituto Ápice, extração de 29/08/2026. Commits contados a partir da criação do repositório do grupo.</p>
+
+  <div id="erro" class="erro" role="alert" hidden></div>
+
+  <form id="login">
+    <label>E-mail <input type="email" name="email" autocomplete="username" required></label>
+    <label>Senha <input type="password" name="senha" autocomplete="current-password" required></label>
+    <button type="submit">Entrar</button>
+  </form>
+
+  <section id="painel" hidden>
+    <div class="filtros">
+      <label>Grupo <select id="grupo"></select></label>
+      <button type="button" id="sair">Sair</button>
+    </div>
+
+    <div class="grade">
+      <div class="cartao">
+        <div class="numero" id="kpi-maior"></div>
+        <p class="nota">dos commits atribuídos vieram do integrante que mais commitou. Em um grupo equilibrado de <span id="kpi-n"></span> integrantes, cada um ficaria perto de <span id="kpi-igual"></span>.</p>
+      </div>
+      <div class="cartao">
+        <div class="numero" id="kpi-revisor"></div>
+        <p class="nota">dos merge requests integrados tiveram revisor designado. Mediana de <span id="kpi-horas"></span> h entre abertura e integração.</p>
+      </div>
+      <div class="cartao">
+        <div class="numero" id="kpi-sem-autoria"></div>
+        <p class="nota">commits sem autoria resolvida ([externo] ou [bot]), fora do cálculo de participação.</p>
+      </div>
+    </div>
+
+    <div class="bloco">
+      <h2>Commits por semana, sem merges</h2>
+      <p class="nota" id="ritmo-legenda"></p>
+      <svg id="ritmo" role="img" aria-labelledby="ritmo-legenda"></svg>
+    </div>
+
+    <div class="bloco limites">
+      <h2>O que este painel não afirma</h2>
+      <ul>
+        <li>Commit registra escrita versionada. Programação em par, leitura de código e trabalho fora do GitLab não deixam rastro nesta fonte.</li>
+        <li>Poucos commits de um integrante significam pouca evidência sobre ele nesta fonte, e não ausência no trabalho do grupo.</li>
+        <li>A base registra o revisor designado, sem o texto dos comentários. Por isso ela não mostra se a revisão aconteceu.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+  const SUPABASE_URL = "https://SEU-PROJETO.supabase.co";
+  const SUPABASE_CHAVE_PUBLICAVEL = "sb_publishable_SUA_CHAVE";
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_CHAVE_PUBLICAVEL);
+  const $ = (id) => document.getElementById(id);
+  const pct = (v) => v == null ? "sem dado" : `${String(v).replace(".", ",")}%`;
+
+  function mostrarErro(mensagem) {
+    $("erro").textContent = mensagem;
+    $("erro").hidden = false;
+  }
+
+  // Toda consulta passa por aqui: erro de RLS ou de rede aparece na tela, não some no console.
+  async function consultar(view, filtro = {}) {
+    let q = supabase.from(view).select("*");
+    for (const [coluna, valor] of Object.entries(filtro)) q = q.eq(coluna, valor);
+    const { data, error } = await q;
+    if (error) throw new Error(`${view}: ${error.message}`);
+    return data;
+  }
+
+  async function carregarGrupos() {
+    // v_participacao tem uma linha por grupo: 75 linhas, abaixo do limite de 1.000 da API.
+    const linhas = await consultar("v_participacao");
+    linhas.sort((a, b) => (a.turma + a.grupo).localeCompare(b.turma + b.grupo));
+    $("grupo").innerHTML = linhas
+      .map((l) => `<option value="${l.turma}|${l.grupo}">${l.turma} · ${l.grupo}</option>`)
+      .join("");
+    await desenhar();
+  }
+
+  async function desenhar() {
+    $("erro").hidden = true;
+    const [turma, grupo] = $("grupo").value.split("|");
+    try {
+      const [[part], [rev], ritmo] = await Promise.all([
+        consultar("v_participacao", { turma, grupo }),
+        consultar("v_revisao", { turma, grupo }),
+        consultar("v_ritmo_semanal", { turma, grupo }),
+      ]);
+
+      $("kpi-maior").textContent = pct(part?.pct_maior_autor);
+      $("kpi-n").textContent = part?.integrantes_com_commit ?? "?";
+      $("kpi-igual").textContent = part?.integrantes_com_commit
+        ? pct((100 / part.integrantes_com_commit).toFixed(1))
+        : "sem dado";
+      $("kpi-sem-autoria").textContent = part?.commits_sem_autoria ?? "sem dado";
+      $("kpi-revisor").textContent = pct(rev?.pct_com_revisor);
+      $("kpi-horas").textContent = rev?.mediana_horas_ate_merge == null
+        ? "sem dado"
+        : String(rev.mediana_horas_ate_merge).replace(".", ",");
+
+      desenharRitmo(ritmo, `${turma} · ${grupo}`);
+    } catch (e) {
+      mostrarErro(`Não foi possível carregar os dados. ${e.message}`);
+    }
+  }
+
+  // A view só devolve semanas com commit. Sem preencher as vazias com zero, as barras
+  // ficam lado a lado e o intervalo parado some do gráfico, que é justamente o que a
+  // pergunta "trabalhou ao longo do módulo ou na véspera?" precisa ver.
+  function completarSemanas(linhas) {
+    if (!linhas.length) return [];
+    const porSemana = new Map(linhas.map((l) => [l.semana, l]));
+    const datas = linhas.map((l) => l.semana).sort();
+    const saida = [];
+    for (let d = new Date(datas[0] + "T00:00:00Z"); d <= new Date(datas.at(-1) + "T00:00:00Z");
+         d.setUTCDate(d.getUTCDate() + 7)) {
+      const semana = d.toISOString().slice(0, 10);
+      saida.push(porSemana.get(semana) ?? { semana, commits: 0, integrantes_com_commit: 0 });
+    }
+    return saida;
+  }
+
+  function desenharRitmo(linhasDaView, rotulo) {
+    const linhas = completarSemanas(linhasDaView);
+    const svg = $("ritmo");
+    // A largura do desenho acompanha a do elemento, para o texto do eixo sair em
+    // tamanho real também no celular em vez de encolher junto com o viewBox.
+    const L = Math.max(320, Math.round(svg.getBoundingClientRect().width) || 960);
+    const A = 260, m = { t: 12, r: 8, b: 36, l: 40 };
+    const max = Math.max(1, ...linhas.map((l) => l.commits));
+    const passo = (L - m.l - m.r) / Math.max(1, linhas.length);
+    const y = (v) => A - m.b - (v / max) * (A - m.t - m.b);
+    const fmt = (d) => d.slice(8, 10) + "/" + d.slice(5, 7);
+
+    svg.setAttribute("viewBox", `0 0 ${L} ${A}`);
+    const barras = linhas.map((l, i) => {
+      const x = m.l + i * passo;
+      // Semanas sem integrante identificado ficam em cinza claro: o volume existe,
+      // mas não se sabe de quem é.
+      const cor = l.commits === 0 || l.integrantes_com_commit > 0 ? "var(--barra)" : "var(--barra-clara)";
+      const cada = Math.ceil(52 / passo);   // um rótulo a cada ~52 px
+      const rotuloX = i % cada === 0
+        ? `<text x="${x + passo / 2}" y="${A - m.b + 16}" font-size="11" text-anchor="middle">${fmt(l.semana)}</text>`
+        : "";
+      return `<rect x="${x + 1}" y="${y(l.commits)}" width="${Math.max(1, passo - 2)}" height="${A - m.b - y(l.commits)}" fill="${cor}">
+                <title>Semana de ${fmt(l.semana)}: ${l.commits} commits, ${l.integrantes_com_commit} integrantes</title></rect>${rotuloX}`;
+    }).join("");
+    svg.innerHTML = `
+      <line x1="${m.l}" x2="${L - m.r}" y1="${A - m.b}" y2="${A - m.b}" stroke="var(--texto)"/>
+      <text x="${m.l - 6}" y="${y(max) + 4}" font-size="11" text-anchor="end">${max}</text>
+      <text x="${m.l - 6}" y="${A - m.b}" font-size="11" text-anchor="end">0</text>
+      ${barras}`;
+    const total = linhas.reduce((s, l) => s + l.commits, 0);
+    const paradas = linhas.filter((l) => l.commits === 0).length;
+    $("ritmo-legenda").textContent =
+      `${rotulo}: ${total} commits em ${linhas.length} semanas, ${paradas} delas sem nenhum commit. Semana começa na segunda-feira, horário de Brasília. Barra clara: semana com commits, mas sem autoria identificada.`;
+  }
+
+  async function entrar(sessao) {
+    $("login").hidden = !!sessao;
+    $("painel").hidden = !sessao;
+    if (sessao) {
+      try { await carregarGrupos(); } catch (e) { mostrarErro(e.message); }
+    }
+  }
+
+  $("login").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const f = new FormData(ev.target);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: f.get("email"), password: f.get("senha"),
+    });
+    if (error) return mostrarErro(`Login recusado: ${error.message}`);
+    $("erro").hidden = true;
+    entrar(data.session);
+  });
+  $("sair").addEventListener("click", async () => { await supabase.auth.signOut(); entrar(null); });
+  $("grupo").addEventListener("change", desenhar);
+
+  const { data } = await supabase.auth.getSession();
+  entrar(data.session);
+</script>
+</body>
+</html>
