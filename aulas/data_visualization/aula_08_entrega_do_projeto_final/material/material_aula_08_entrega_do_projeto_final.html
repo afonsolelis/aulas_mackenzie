@@ -118,7 +118,7 @@
             <tr><td>5</td><td>Aba de limitações</td><td>dentro do dashboard</td><td>o que o painel não pode afirmar, escrito e visível</td></tr>
             <tr><td>6</td><td>Consultas</td><td><code>sql/</code></td><td>um arquivo por consulta ou por etapa, executável</td></tr>
             <tr><td>7</td><td>Painel reconstruível</td><td><code>export/</code> no Metabase, <code>public/</code> no Supabase</td><td>o professor consegue abrir ou reconstruir o painel a partir do repositório</td></tr>
-            <tr><td>8</td><td>Acesso do professor</td><td>canal da turma</td><td>link do repositório e, no Supabase, usuário de leitura</td></tr>
+            <tr><td>8</td><td>Acesso do professor</td><td><a href="../entrega/entrega_projeto_final.html">formulário de entrega</a></td><td>link do repositório no GitHub e, no Supabase, usuário de leitura</td></tr>
           </tbody>
         </table>
       </section>
@@ -389,7 +389,7 @@ ls -1 sql/</code></pre>
             <pre><code>grep -rnE "service_role|sb_secret|postgresql://" public/ sql/ docs/ || echo "nenhum segredo encontrado"
 git status --short | grep -i "\.csv\|\.zip" || echo "nenhum dado do recorte no indice"</code></pre>
           </li>
-          <li>Crie um usuário de leitura para o professor em Authentication, Users, Add user, com Auto Confirm User. As credenciais seguem pelo canal da turma e nunca entram no repositório.</li>
+          <li>Crie um usuário de leitura para o professor em Authentication, Users, Add user, com Auto Confirm User. As credenciais vão no campo "Como acessar o painel" do formulário de entrega, que só o professor vê, e nunca entram no repositório.</li>
           <li>Documente como abrir. Um <code>README.md</code> na raiz diz a ordem dos scripts de <code>sql/</code>, onde trocar a URL e a chave publicável e o comando para servir a página (<code>cd public &amp;&amp; python3 -m http.server 8000</code>).</li>
           <li>Abra o painel numa janela anônima, entre com o usuário de leitura e confira que cada número bate com a consulta correspondente no editor SQL do Supabase.</li>
         </ol>
@@ -450,7 +450,8 @@ git status --short | grep -i "\.csv\|\.zip" || echo "nenhum dado do recorte no i
           <li>Feche a matriz: nenhuma linha sem estado, nenhuma ressalva ou lacuna sem razão.</li>
           <li>Congele o painel, pela seção 12 no Metabase ou pela seção 13 no Supabase.</li>
           <li>Versione <code>docs/</code>, <code>sql/</code> e <code>export/</code> ou <code>public/</code>, confira o <code>git status</code> e faça o commit de fechamento.</li>
-          <li>Envie no canal da turma o link do repositório. Quem usa o Supabase envia também o usuário de leitura do professor.</li>
+          <li>Preencha o <a href="../entrega/entrega_projeto_final.html">formulário de entrega</a> com o grupo, os integrantes e o link do repositório no GitHub. Quem usa o Supabase informa também o usuário de leitura do professor. Se o repositório for privado, adicione o usuário <code>afonsolelis</code> como colaborador antes de enviar.</li>
+          <li>Guarde o comprovante. Para corrigir algo, envie de novo até o prazo: vale o envio mais recente.</li>
         </ol>
       </section>
 

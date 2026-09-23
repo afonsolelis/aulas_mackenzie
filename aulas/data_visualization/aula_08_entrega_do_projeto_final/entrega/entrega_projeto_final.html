@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+    <title>Entrega do Projeto Final · Data Visualization 2026</title>
+    <meta name="description" content="Formulário de entrega do projeto final de Data Visualization: grupo, integrantes, repositório no GitHub e painel." />
+    <link rel="stylesheet" href="../../../../assets/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <div class="material-nav" style="margin-bottom: 2rem;">
+        <a href="../../../../pages/home_data_visualization.html">&larr; Data Visualization</a>
+        <a href="../material/material_aula_08_entrega_do_projeto_final.html">Material da Aula 08</a>
+        <a href="../../../../pages/projeto_data_visualization.html">Projeto do módulo</a>
+        <a href="../../../../index.html">Hub de Disciplinas</a>
+      </div>
+
+      <section class="hero" data-year="2026">
+        <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+        <span class="kicker">MBA Engenharia de Dados &middot; Data Visualization &middot; Aula 08</span>
+        <h1>Entrega do Projeto Final</h1>
+        <p id="prazo">Carregando o formulário...</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Antes de enviar</h2>
+        <ul>
+          <li>Um integrante envia pelo grupo. Para corrigir algo, envie de novo: vale o envio mais recente feito até o prazo.</li>
+          <li>O repositório precisa conter o dossiê em <code>docs/</code>, os arquivos de SQL e, no caso do Supabase, o código do painel.</li>
+          <li>Se o repositório for privado, adicione o usuário <code>afonsolelis</code> como colaborador no GitHub antes de enviar.</li>
+          <li>Não coloque no repositório o recorte <code>projeto_pbl_completo</code>, senhas nem a chave secreta do Supabase.</li>
+        </ul>
+        <p id="instrucoes" class="meta"></p>
+      </section>
+
+      <section class="content-block">
+        <h2>Dados da entrega</h2>
+        <div id="recado" class="aviso" role="status" hidden></div>
+
+        <form id="form-entrega" class="form-grid" novalidate>
+          <label>Grupo
+            <input name="grupo" required maxlength="60" placeholder="Ex.: Grupo 3" autocomplete="off" />
+          </label>
+
+          <label>Integrantes
+            <span class="dica">Nome completo de cada integrante, um por linha.</span>
+            <textarea name="integrantes" required maxlength="2000"></textarea>
+          </label>
+
+          <label>Repositório no GitHub
+            <span class="dica">Formato https://github.com/usuario/repositorio</span>
+            <input name="repositorio" type="url" required placeholder="https://github.com/usuario/repositorio"
+                   pattern="https://github\.com/[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+(\.git)?/?" />
+          </label>
+
+          <label>Plataforma do painel
+            <select name="plataforma" required>
+              <option value="">Escolha</option>
+              <option value="metabase">Metabase, schema pbl</option>
+              <option value="supabase">Protótipo HTML ligado ao Supabase</option>
+            </select>
+          </label>
+
+          <label>Link do painel
+            <span class="dica">Endereço publicado do painel ou do dashboard no Metabase. Opcional.</span>
+            <input name="painel" type="url" maxlength="500" placeholder="https://" />
+          </label>
+
+          <label>Como acessar o painel
+            <span class="dica">Para o Supabase, informe o usuário de leitura criado para o professor. Só o professor vê este campo.</span>
+            <textarea name="acesso" maxlength="1000"></textarea>
+          </label>
+
+          <label>Observações
+            <span class="dica">Lacunas declaradas, requisitos não atendidos ou qualquer aviso para a correção. Opcional.</span>
+            <textarea name="observacoes" maxlength="4000"></textarea>
+          </label>
+
+          <div class="actions">
+            <button class="button primario" type="submit" id="enviar">Enviar entrega</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="content-block" id="comprovante" hidden>
+        <h2>Comprovante</h2>
+        <p>Entrega registrada. Guarde estes dados:</p>
+        <div class="entrega-grupo"><dl id="comprovante-dados"></dl></div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+    <script>
+      const SUPABASE_URL = 'https://lwamaovuxcevsjfvtqhf.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ';
+      const SLUG = 'mack-dv-2026-2-final';
+
+      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+      const form = document.getElementById('form-entrega');
+      const recado = document.getElementById('recado');
+      const quando = (iso) => new Date(iso).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
+
+      function avisar(texto, tipo) {
+        recado.textContent = texto;
+        recado.className = 'aviso' + (tipo ? ' ' + tipo : '');
+        recado.hidden = false;
+      }
+
+      async function carregar() {
+        const { data, error } = await db.rpc('entrega_formulario', { p_slug: SLUG });
+        if (error || !data) {
+          document.getElementById('prazo').textContent = 'Não foi possível carregar o formulário.';
+          form.hidden = true;
+          return;
+        }
+        document.getElementById('prazo').textContent =
+          `${data.turma} · prazo ${quando(data.prazo)}, horário de Brasília.`;
+        document.getElementById('instrucoes').textContent = data.instrucoes || '';
+        if (!data.aceitando) {
+          avisar('O formulário está fechado para novos envios.', 'erro');
+          form.hidden = true;
+        }
+      }
+
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        if (!form.reportValidity()) return;
+        const f = new FormData(form);
+        const botao = document.getElementById('enviar');
+        botao.disabled = true;
+        const { data, error } = await db.rpc('entrega_enviar', {
+          p_slug: SLUG,
+          p_grupo: f.get('grupo'),
+          p_integrantes: f.get('integrantes'),
+          p_repositorio: f.get('repositorio'),
+          p_plataforma: f.get('plataforma'),
+          p_painel: f.get('painel'),
+          p_acesso: f.get('acesso'),
+          p_observacoes: f.get('observacoes'),
+        });
+        botao.disabled = false;
+        if (error) {
+          avisar(error.message || 'O envio falhou. Tente de novo.', 'erro');
+          return;
+        }
+        avisar('Entrega registrada.', 'ok');
+        const dl = document.getElementById('comprovante-dados');
+        dl.replaceChildren();
+        for (const [rotulo, valor] of [
+          ['Grupo', f.get('grupo')],
+          ['Repositório', data.repositorio],
+          ['Enviado em', quando(data.enviado_em)],
+          ['Código', data.id],
+        ]) {
+          const dt = document.createElement('dt'); dt.textContent = rotulo;
+          const dd = document.createElement('dd'); dd.textContent = valor;
+          dl.append(dt, dd);
+        }
+        document.getElementById('comprovante').hidden = false;
+        document.getElementById('comprovante').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      carregar();
+    </script>
+  </body>
+</html>

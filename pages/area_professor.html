@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+    <title>Área do Professor · Entregas</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <div class="material-nav" style="margin-bottom: 2rem;">
+        <a href="../index.html">&larr; Hub de Disciplinas</a>
+        <a href="../professor.html">Professor Afonso</a>
+      </div>
+
+      <section class="hero" data-year="2026">
+        <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+        <span class="kicker">Área do professor &middot; Entregas das turmas</span>
+        <h1>Entregas e correção</h1>
+        <p>Formulários de entrega de cada turma, com o repositório no GitHub de cada grupo, nota e comentário de correção.</p>
+      </section>
+
+      <section class="content-block" id="tela-token">
+        <h2>Token do professor</h2>
+        <form id="form-token" class="form-inline">
+          <input id="token" type="password" inputmode="numeric" autocomplete="current-password"
+                 placeholder="Token" required aria-label="Token do professor" />
+          <button class="button primario" type="submit">Entrar</button>
+        </form>
+        <div id="recado-token" class="aviso erro" role="alert" hidden></div>
+      </section>
+
+      <div id="painel" hidden>
+        <section class="content-block">
+          <div class="form-inline">
+            <label class="form-field">Formulário
+              <select id="formulario"></select>
+            </label>
+            <button class="button" type="button" id="atualizar">Atualizar</button>
+            <button class="button" type="button" id="exportar">Exportar CSV</button>
+            <button class="button" type="button" id="sair">Sair</button>
+          </div>
+          <div id="recado" class="aviso" role="status" hidden></div>
+        </section>
+
+        <section class="content-block">
+          <h2 id="form-titulo"></h2>
+          <p class="meta" id="form-meta"></p>
+          <div class="form-inline">
+            <label class="form-field">Novo prazo
+              <input type="datetime-local" id="novo-prazo" />
+            </label>
+            <button class="button" type="button" id="salvar-prazo">Salvar prazo</button>
+            <button class="button" type="button" id="alternar-aberto"></button>
+          </div>
+        </section>
+
+        <section class="content-block">
+          <h2>Grupos</h2>
+          <p class="meta" id="resumo"></p>
+          <div id="grupos"></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+    <script>
+      const SUPABASE_URL = 'https://lwamaovuxcevsjfvtqhf.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ';
+      // O token fica só nesta aba (sessionStorage) e é validado no banco a cada chamada.
+      const CHAVE_SESSAO = 'entregas_token';
+
+      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+      const $ = (id) => document.getElementById(id);
+      let formularios = [];
+
+      const quando = (iso) => iso ? new Date(iso).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' }) : '';
+      const lerToken = () => { try { return sessionStorage.getItem(CHAVE_SESSAO) || ''; } catch { return ''; } };
+      const gravarToken = (t) => { try { t ? sessionStorage.setItem(CHAVE_SESSAO, t) : sessionStorage.removeItem(CHAVE_SESSAO); } catch {} };
+
+      function avisar(el, texto, tipo) {
+        el.textContent = texto;
+        el.className = 'aviso' + (tipo ? ' ' + tipo : '');
+        el.hidden = !texto;
+      }
+
+      // Monta elementos só com textContent: todo conteúdo vem de formulário de aluno.
+      function el(tag, texto, attrs = {}) {
+        const e = document.createElement(tag);
+        if (texto != null) e.textContent = texto;
+        for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+        return e;
+      }
+      function link(url) {
+        if (!url || !/^https?:\/\//i.test(url)) return el('span', url || '—');
+        return el('a', url, { href: url, target: '_blank', rel: 'noopener noreferrer' });
+      }
+
+      async function chamar(fn, args) {
+        const { data, error } = await db.rpc(fn, { p_token: lerToken(), ...args });
+        if (error) throw new Error(error.message);
+        if (!data.ok) throw new Error(data.erro);
+        return data;
+      }
+
+      async function carregar() {
+        const data = await chamar('entrega_painel', {});
+        formularios = data.formularios;
+        const sel = $('formulario');
+        const atual = sel.value;
+        sel.replaceChildren(...formularios.map((f) =>
+          el('option', `${f.disciplina} · ${f.turma} · ${f.titulo}`, { value: f.slug })));
+        if (atual && formularios.some((f) => f.slug === atual)) sel.value = atual;
+        desenhar();
+      }
+
+      // Agrupa os envios por grupo; o primeiro de cada lista é o mais recente.
+      function porGrupo(respostas) {
+        const mapa = new Map();
+        for (const r of respostas) {
+          const chave = r.grupo.trim().toLowerCase();
+          if (!mapa.has(chave)) mapa.set(chave, []);
+          mapa.get(chave).push(r);
+        }
+        for (const lista of mapa.values()) lista.sort((a, b) => b.enviado_em.localeCompare(a.enviado_em));
+        return [...mapa.values()].sort((a, b) =>
+          a[0].grupo.localeCompare(b[0].grupo, 'pt-BR', { numeric: true }));
+      }
+
+      function desenhar() {
+        const f = formularios.find((x) => x.slug === $('formulario').value);
+        const alvo = $('grupos');
+        alvo.replaceChildren();
+        if (!f) { $('form-titulo').textContent = 'Nenhum formulário cadastrado.'; return; }
+
+        const aceitando = f.aberto && new Date() <= new Date(f.prazo);
+        $('form-titulo').textContent = `${f.titulo} · ${f.disciplina}`;
+        $('form-meta').textContent =
+          `${f.turma} · prazo ${quando(f.prazo)} · ${aceitando ? 'recebendo envios' : 'fechado para envios'}`;
+        $('alternar-aberto').textContent = f.aberto ? 'Fechar formulário' : 'Reabrir formulário';
+        const p = new Date(f.prazo);
+        $('novo-prazo').value = new Date(p.getTime() - p.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+        const grupos = porGrupo(f.respostas);
+        const corrigidos = grupos.filter((g) => g[0].corrigido_em).length;
+        $('resumo').textContent = `${grupos.length} grupos enviaram · ${corrigidos} corrigidos · ${f.respostas.length} envios no total`;
+
+        for (const envios of grupos) {
+          const r = envios[0];
+          const card = el('article', null, { class: 'entrega-grupo' });
+          card.append(el('h3', r.grupo));
+          card.append(el('p', `Último envio em ${quando(r.enviado_em)}` +
+            (envios.length > 1 ? ` · ${envios.length} envios` : ''), { class: 'meta' }));
+
+          const dl = el('dl');
+          const linha = (rotulo, valor) => {
+            dl.append(el('dt', rotulo));
+            const dd = el('dd');
+            valor instanceof Node ? dd.append(valor) : dd.textContent = valor || '—';
+            dl.append(dd);
+          };
+          linha('Repositório', link(r.repositorio_url));
+          linha('Plataforma', r.plataforma === 'supabase' ? 'Protótipo HTML com Supabase' : 'Metabase');
+          linha('Painel', link(r.painel_url));
+          linha('Acesso', r.acesso_painel);
+          linha('Integrantes', r.integrantes);
+          linha('Observações', r.observacoes);
+          card.append(dl);
+
+          const corr = el('form', null, { class: 'form-inline' });
+          const nota = el('input', null, { type: 'number', min: '0', max: '10', step: '0.1',
+            placeholder: 'Nota de 0 a 10', 'aria-label': `Nota do ${r.grupo}` });
+          if (r.nota != null) nota.value = r.nota;
+          const comentario = el('textarea', null, { rows: '2', placeholder: 'Comentário de correção',
+            'aria-label': `Comentário do ${r.grupo}` });
+          comentario.value = r.comentario || '';
+          const botao = el('button', 'Salvar correção', { class: 'button primario', type: 'submit' });
+          const estado = el('p', r.corrigido_em ? `Corrigido em ${quando(r.corrigido_em)}` : 'Sem correção',
+            { class: 'meta' });
+          corr.append(nota, comentario, botao);
+          corr.addEventListener('submit', async (ev) => {
+            ev.preventDefault();
+            botao.disabled = true;
+            try {
+              await chamar('entrega_corrigir', {
+                p_id: r.id,
+                p_nota: nota.value === '' ? null : Number(nota.value),
+                p_comentario: comentario.value,
+              });
+              await carregar();
+              avisar($('recado'), `Correção do ${r.grupo} salva.`, 'ok');
+            } catch (e) {
+              avisar($('recado'), e.message, 'erro');
+              botao.disabled = false;
+            }
+          });
+          card.append(corr, estado);
+
+          if (envios.length > 1) {
+            const hist = el('details');
+            hist.append(el('summary', 'Envios anteriores'));
+            const ul = el('ul');
+            for (const antigo of envios.slice(1)) {
+              const li = el('li', `${quando(antigo.enviado_em)} · `);
+              li.append(link(antigo.repositorio_url));
+              ul.append(li);
+            }
+            hist.append(ul);
+            card.append(hist);
+          }
+          alvo.append(card);
+        }
+      }
+
+      function exportarCsv() {
+        const f = formularios.find((x) => x.slug === $('formulario').value);
+        if (!f) return;
+        const cel = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const linhas = [['grupo', 'integrantes', 'repositorio', 'plataforma', 'painel', 'enviado_em', 'nota', 'comentario']];
+        for (const [r] of porGrupo(f.respostas)) {
+          linhas.push([r.grupo, r.integrantes.replace(/\s*\n\s*/g, '; '), r.repositorio_url, r.plataforma,
+            r.painel_url, quando(r.enviado_em), r.nota, r.comentario]);
+        }
+        const csv = '﻿' + linhas.map((l) => l.map(cel).join(';')).join('\r\n');
+        const a = el('a', null, { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv' })),
+          download: `entregas_${f.slug}.csv` });
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      async function entrar() {
+        try {
+          await carregar();
+          $('tela-token').hidden = true;
+          $('painel').hidden = false;
+          avisar($('recado-token'), '');
+        } catch (e) {
+          gravarToken('');
+          $('tela-token').hidden = false;
+          $('painel').hidden = true;
+          avisar($('recado-token'), e.message, 'erro');
+        }
+      }
+
+      $('form-token').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        gravarToken($('token').value.trim());
+        $('token').value = '';
+        entrar();
+      });
+      $('formulario').addEventListener('change', () => { avisar($('recado'), ''); desenhar(); });
+      $('atualizar').addEventListener('click', () => carregar().catch((e) => avisar($('recado'), e.message, 'erro')));
+      $('exportar').addEventListener('click', exportarCsv);
+      $('sair').addEventListener('click', () => { gravarToken(''); location.reload(); });
+      $('alternar-aberto').addEventListener('click', async () => {
+        const f = formularios.find((x) => x.slug === $('formulario').value);
+        try {
+          await chamar('entrega_ajustar', { p_slug: f.slug, p_aberto: !f.aberto, p_prazo: null });
+          await carregar();
+        } catch (e) { avisar($('recado'), e.message, 'erro'); }
+      });
+      $('salvar-prazo').addEventListener('click', async () => {
+        const f = formularios.find((x) => x.slug === $('formulario').value);
+        const valor = $('novo-prazo').value;
+        if (!valor) return;
+        try {
+          // datetime-local vem sem fuso; new Date o interpreta no fuso do navegador.
+          await chamar('entrega_ajustar', { p_slug: f.slug, p_aberto: null, p_prazo: new Date(valor).toISOString() });
+          await carregar();
+          avisar($('recado'), 'Prazo atualizado.', 'ok');
+        } catch (e) { avisar($('recado'), e.message, 'erro'); }
+      });
+
+      if (lerToken()) entrar();
+    </script>
+  </body>
+</html>
