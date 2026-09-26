@@ -28,7 +28,7 @@
         <ul>
           <li>Um integrante envia pelo grupo inteiro. O grupo tem de um a cinco integrantes.</li>
           <li>Para corrigir algo, envie de novo com o mesmo link do GitHub. Vale o envio mais recente.</li>
-          <li>Se o repositório for privado, adicione o usuário <code>afonsolelis</code> como colaborador no GitHub.</li>
+          <li>O repositório precisa ser público. O formulário confere isso no GitHub antes de enviar.</li>
         </ul>
         <p id="instrucoes" class="meta"></p>
       </section>
@@ -60,7 +60,7 @@
           </label>
 
           <label>Repositório no GitHub
-            <span class="dica">Formato https://github.com/usuario/repositorio</span>
+            <span class="dica">Repositório público, no formato https://github.com/usuario/repositorio</span>
             <input name="repositorio" type="url" required placeholder="https://github.com/usuario/repositorio"
                    pattern="https://github\.com/[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+(\.git)?/?" />
           </label>
@@ -115,6 +115,18 @@
         document.getElementById('instrucoes').textContent = data.instrucoes || '';
       }
 
+      // 404 na API pública do GitHub significa repositório privado ou inexistente.
+      // Outras falhas (limite de consultas, rede) não bloqueiam o envio.
+      async function repositorioPublico(url) {
+        const caminho = url.trim().replace(/(\.git)?\/?$/, '').replace('https://github.com/', '');
+        try {
+          const r = await fetch(`https://api.github.com/repos/${caminho}`);
+          if (r.status === 404) return false;
+          if (r.ok) return !(await r.json()).private;
+        } catch {}
+        return true;
+      }
+
       form.addEventListener('submit', async (ev) => {
         ev.preventDefault();
         if (!form.reportValidity()) return;
@@ -122,6 +134,11 @@
         const integrantes = f.getAll('integrante').map((n) => n.trim()).filter(Boolean);
         const botao = document.getElementById('enviar');
         botao.disabled = true;
+        if (!(await repositorioPublico(f.get('repositorio')))) {
+          botao.disabled = false;
+          avisar('O repositório não foi encontrado ou é privado. Deixe-o público no GitHub e confira o link.', 'erro');
+          return;
+        }
         const { data, error } = await db.rpc('entrega_enviar_grupo', {
           p_slug: slug,
           p_integrantes: integrantes,
