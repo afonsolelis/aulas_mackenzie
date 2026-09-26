@@ -43,7 +43,7 @@ create table if not exists entrega_respostas (
   grupo            text not null,
   integrantes      text not null,
   repositorio_url  text not null,
-  plataforma       text not null check (plataforma in ('metabase', 'supabase')),
+  plataforma       text check (plataforma in ('metabase', 'supabase')),
   painel_url       text,
   acesso_painel    text,
   observacoes      text,
@@ -52,6 +52,19 @@ create table if not exists entrega_respostas (
   comentario       text,
   corrigido_em     timestamptz
 );
+
+-- Tabela criada antes do formulário de grupo: a plataforma deixa de ser obrigatória.
+alter table entrega_respostas alter column plataforma drop not null;
+
+-- Formulários por turma, sem prazo. Formulários da mesma série compartilham o
+-- endereço do aluno: só a turma aberta recebe envios, e fechar uma turma abre
+-- a próxima com numero + 1. As turmas fechadas ficam guardadas para consulta.
+alter table entrega_formularios alter column prazo drop not null;
+alter table entrega_formularios add column if not exists serie text;
+alter table entrega_formularios add column if not exists numero int;
+alter table entrega_formularios add column if not exists fechado_em timestamptz;
+create unique index if not exists entrega_formularios_serie_aberta
+  on entrega_formularios (serie) where aberto and serie is not null;
 
 create index if not exists entrega_respostas_form
   on entrega_respostas (formulario_slug, grupo, enviado_em desc);
@@ -117,8 +130,22 @@ as $$
   select jsonb_build_object(
     'slug', slug, 'disciplina', disciplina, 'turma', turma, 'titulo', titulo,
     'instrucoes', instrucoes, 'prazo', prazo,
-    'aceitando', aberto and now() <= prazo)
+    'aceitando', aberto and (prazo is null or now() <= prazo))
   from entrega_formularios where slug = p_slug;
+$$;
+
+-- Turma aberta de uma série; o formulário do aluno pergunta por ela ao carregar.
+create or replace function entrega_turma_aberta(p_serie text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'slug', slug, 'disciplina', disciplina, 'turma', turma, 'titulo', titulo,
+    'instrucoes', instrucoes, 'criado_em', criado_em)
+  from entrega_formularios where serie = p_serie and aberto;
 $$;
 
 create or replace function entrega_enviar(
@@ -178,6 +205,60 @@ begin
   return jsonb_build_object('id', v_id, 'enviado_em', v_em, 'repositorio', v_rep);
 end $$;
 
+-- Formulário curto: integrantes (1 obrigatório, até 5) e repositório. O grupo
+-- é identificado pelo repositório, então reenviar com o mesmo link substitui
+-- a versão anterior na área do professor.
+create or replace function entrega_enviar_grupo(
+  p_slug text, p_integrantes text[], p_repositorio text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  f      entrega_formularios;
+  v_rep  text := regexp_replace(trim(coalesce(p_repositorio, '')), '(\.git)?/?$', '');
+  v_nome text[];
+  v_grp  text;
+  v_id   uuid;
+  v_em   timestamptz;
+begin
+  select * into f from entrega_formularios where slug = p_slug;
+  if not found then
+    raise exception 'Formulário não encontrado.';
+  end if;
+  if not f.aberto or now() > coalesce(f.prazo, 'infinity') then
+    raise exception 'Esta turma foi encerrada. Recarregue a página e envie de novo.';
+  end if;
+  select coalesce(array_agg(n order by ord), '{}') into v_nome
+    from (select trim(x) as n, ord from unnest(coalesce(p_integrantes, '{}')) with ordinality as t(x, ord)) s
+   where n <> '';
+  if cardinality(v_nome) = 0 then
+    raise exception 'Informe o nome de pelo menos um integrante.';
+  end if;
+  if cardinality(v_nome) > 5 then
+    raise exception 'O grupo tem no máximo 5 integrantes.';
+  end if;
+  if exists (select 1 from unnest(v_nome) n where length(n) not between 3 and 120) then
+    raise exception 'Cada nome precisa ter entre 3 e 120 caracteres.';
+  end if;
+  if v_rep !~ '^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$' then
+    raise exception 'O repositório precisa ser um link do GitHub no formato https://github.com/usuario/repositorio.';
+  end if;
+  v_grp := substr(v_rep, length('https://github.com/') + 1);
+  if (select count(*) from entrega_respostas
+       where formulario_slug = p_slug and lower(grupo) = lower(v_grp)
+         and enviado_em > now() - interval '10 minutes') >= 5 then
+    raise exception 'Muitos envios deste repositório em poucos minutos. Aguarde e tente de novo.';
+  end if;
+
+  insert into entrega_respostas (formulario_slug, grupo, integrantes, repositorio_url)
+  values (p_slug, v_grp, array_to_string(v_nome, E'\n'), v_rep)
+  returning id, enviado_em into v_id, v_em;
+
+  return jsonb_build_object('id', v_id, 'enviado_em', v_em, 'repositorio', v_rep);
+end $$;
+
 -- ---------------------------------------------------------------------
 -- Lado do professor
 -- ---------------------------------------------------------------------
@@ -196,11 +277,12 @@ begin
   return jsonb_build_object('ok', true, 'formularios', coalesce((
     select jsonb_agg(jsonb_build_object(
       'slug', f.slug, 'disciplina', f.disciplina, 'turma', f.turma, 'titulo', f.titulo,
-      'prazo', f.prazo, 'aberto', f.aberto,
+      'prazo', f.prazo, 'aberto', f.aberto, 'serie', f.serie, 'numero', f.numero,
+      'criado_em', f.criado_em, 'fechado_em', f.fechado_em,
       'respostas', coalesce((
         select jsonb_agg(to_jsonb(r) - 'formulario_slug' order by r.grupo, r.enviado_em desc)
         from entrega_respostas r where r.formulario_slug = f.slug), '[]'::jsonb))
-      order by f.prazo desc, f.slug)
+      order by f.aberto desc, coalesce(f.fechado_em, f.prazo, f.criado_em) desc, f.slug)
     from entrega_formularios f), '[]'::jsonb));
 end $$;
 
@@ -247,19 +329,61 @@ begin
   end if;
   update entrega_formularios
      set aberto = coalesce(p_aberto, aberto), prazo = coalesce(p_prazo, prazo)
-   where slug = p_slug;
+   where slug = p_slug and serie is null;
   if not found then
-    return jsonb_build_object('ok', false, 'erro', 'Formulário não encontrado.');
+    return jsonb_build_object('ok', false, 'erro', 'Formulário não encontrado ou organizado por turmas.');
   end if;
   return jsonb_build_object('ok', true);
 end $$;
 
+-- Fecha a turma aberta de uma série e abre a próxima, vazia. As respostas da
+-- turma fechada continuam na tabela e aparecem na área do professor.
+create or replace function entrega_fechar_turma(p_token text, p_slug text, p_nova_turma text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_erro text := entrega_checar_token(p_token);
+  f      entrega_formularios;
+  v_num  int;
+  v_nome text;
+  v_slug text;
+begin
+  if v_erro is not null then
+    return jsonb_build_object('ok', false, 'erro', v_erro);
+  end if;
+  select * into f from entrega_formularios where slug = p_slug for update;
+  if not found or f.serie is null then
+    return jsonb_build_object('ok', false, 'erro', 'Formulário não encontrado ou sem turmas.');
+  end if;
+  if not f.aberto then
+    return jsonb_build_object('ok', false, 'erro', 'Esta turma já está fechada.');
+  end if;
+  v_num  := coalesce((select max(numero) from entrega_formularios where serie = f.serie), 0) + 1;
+  v_nome := coalesce(nullif(trim(p_nova_turma), ''), 'Turma ' || v_num);
+  if length(v_nome) > 80 then
+    return jsonb_build_object('ok', false, 'erro', 'O nome da turma tem no máximo 80 caracteres.');
+  end if;
+  v_slug := f.serie || '-' || v_num;
+
+  update entrega_formularios set aberto = false, fechado_em = now() where slug = f.slug;
+  insert into entrega_formularios (slug, disciplina, turma, titulo, instrucoes, serie, numero)
+  values (v_slug, f.disciplina, v_nome, f.titulo, f.instrucoes, f.serie, v_num);
+  return jsonb_build_object('ok', true, 'slug', v_slug, 'turma', v_nome);
+end $$;
+
 revoke all on function entrega_formulario(text), entrega_enviar(text, text, text, text, text, text, text, text),
+  entrega_turma_aberta(text), entrega_enviar_grupo(text, text[], text),
   entrega_painel(text), entrega_corrigir(text, uuid, numeric, text),
-  entrega_ajustar(text, text, boolean, timestamptz) from public;
+  entrega_ajustar(text, text, boolean, timestamptz),
+  entrega_fechar_turma(text, text, text) from public;
 grant execute on function entrega_formulario(text), entrega_enviar(text, text, text, text, text, text, text, text),
+  entrega_turma_aberta(text), entrega_enviar_grupo(text, text[], text),
   entrega_painel(text), entrega_corrigir(text, uuid, numeric, text),
-  entrega_ajustar(text, text, boolean, timestamptz) to anon, authenticated;
+  entrega_ajustar(text, text, boolean, timestamptz),
+  entrega_fechar_turma(text, text, text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------
 -- Formulários
@@ -276,5 +400,14 @@ values (
 on conflict (slug) do update set
   disciplina = excluded.disciplina, turma = excluded.turma, titulo = excluded.titulo,
   instrucoes = excluded.instrucoes;
+
+-- Série sem prazo: cria só a primeira turma. As seguintes nascem pelo botão
+-- "Fechar turma" da área do professor (entrega_fechar_turma).
+insert into entrega_formularios (slug, disciplina, turma, titulo, instrucoes, serie, numero)
+select 'mack-dv-grupos-1', 'Data Visualization', 'MBA Engenharia de Dados · 2026.2',
+       'Integrantes e repositório do grupo',
+       'Um envio por grupo, feito por um integrante. Para corrigir, envie de novo com o mesmo link do GitHub: vale o envio mais recente.',
+       'mack-dv-grupos', 1
+where not exists (select 1 from entrega_formularios where serie = 'mack-dv-grupos');
 
 commit;

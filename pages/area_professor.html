@@ -48,7 +48,13 @@
         <section class="content-block">
           <h2 id="form-titulo"></h2>
           <p class="meta" id="form-meta"></p>
-          <div class="form-inline">
+          <div class="form-inline" id="controle-turma" hidden>
+            <label class="form-field">Nome da próxima turma
+              <input type="text" id="nova-turma" maxlength="80" placeholder="Opcional" />
+            </label>
+            <button class="button primario" type="button" id="fechar-turma">Fechar turma e abrir a próxima</button>
+          </div>
+          <div class="form-inline" id="controle-prazo">
             <label class="form-field">Novo prazo
               <input type="datetime-local" id="novo-prazo" />
             </label>
@@ -112,8 +118,13 @@
         const sel = $('formulario');
         const atual = sel.value;
         sel.replaceChildren(...formularios.map((f) =>
-          el('option', `${f.disciplina} · ${f.turma} · ${f.titulo}`, { value: f.slug })));
-        if (atual && formularios.some((f) => f.slug === atual)) sel.value = atual;
+          el('option', `${f.disciplina} · ${f.turma} · ${f.titulo}` + (f.serie && !f.aberto ? ' (fechada)' : ''),
+            { value: f.slug })));
+        // ?serie= abre na turma aberta da série; ?f= abre um formulário específico.
+        const url = new URLSearchParams(location.search);
+        const daSerie = formularios.find((f) => f.serie && f.serie === url.get('serie') && f.aberto);
+        const pedido = atual || daSerie?.slug || url.get('f');
+        if (pedido && formularios.some((f) => f.slug === pedido)) sel.value = pedido;
         desenhar();
       }
 
@@ -136,13 +147,21 @@
         alvo.replaceChildren();
         if (!f) { $('form-titulo').textContent = 'Nenhum formulário cadastrado.'; return; }
 
-        const aceitando = f.aberto && new Date() <= new Date(f.prazo);
         $('form-titulo').textContent = `${f.titulo} · ${f.disciplina}`;
-        $('form-meta').textContent =
-          `${f.turma} · prazo ${quando(f.prazo)} · ${aceitando ? 'recebendo envios' : 'fechado para envios'}`;
-        $('alternar-aberto').textContent = f.aberto ? 'Fechar formulário' : 'Reabrir formulário';
-        const p = new Date(f.prazo);
-        $('novo-prazo').value = new Date(p.getTime() - p.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        // Formulários em série não têm prazo: a turma fica aberta até o professor fechar.
+        $('controle-turma').hidden = !(f.serie && f.aberto);
+        $('controle-prazo').hidden = !!f.serie;
+        if (f.serie) {
+          $('form-meta').textContent = `${f.turma} · aberta em ${quando(f.criado_em)} · ` +
+            (f.aberto ? 'recebendo envios' : `fechada em ${quando(f.fechado_em)}`);
+        } else {
+          const aceitando = f.aberto && new Date() <= new Date(f.prazo);
+          $('form-meta').textContent =
+            `${f.turma} · prazo ${quando(f.prazo)} · ${aceitando ? 'recebendo envios' : 'fechado para envios'}`;
+          $('alternar-aberto').textContent = f.aberto ? 'Fechar formulário' : 'Reabrir formulário';
+          const p = new Date(f.prazo);
+          $('novo-prazo').value = new Date(p.getTime() - p.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        }
 
         const grupos = porGrupo(f.respostas);
         const corrigidos = grupos.filter((g) => g[0].corrigido_em).length;
@@ -163,11 +182,14 @@
             dl.append(dd);
           };
           linha('Repositório', link(r.repositorio_url));
-          linha('Plataforma', r.plataforma === 'supabase' ? 'Protótipo HTML com Supabase' : 'Metabase');
-          linha('Painel', link(r.painel_url));
-          linha('Acesso', r.acesso_painel);
+          // O formulário de grupo só pede integrantes e repositório.
+          if (r.plataforma) {
+            linha('Plataforma', r.plataforma === 'supabase' ? 'Protótipo HTML com Supabase' : 'Metabase');
+            linha('Painel', link(r.painel_url));
+            linha('Acesso', r.acesso_painel);
+          }
           linha('Integrantes', r.integrantes);
-          linha('Observações', r.observacoes);
+          if (r.plataforma) linha('Observações', r.observacoes);
           card.append(dl);
 
           const corr = el('form', null, { class: 'form-inline' });
@@ -251,7 +273,12 @@
         $('token').value = '';
         entrar();
       });
-      $('formulario').addEventListener('change', () => { avisar($('recado'), ''); desenhar(); });
+      $('formulario').addEventListener('change', () => {
+        avisar($('recado'), '');
+        delete $('fechar-turma').dataset.confirmar;
+        $('fechar-turma').textContent = 'Fechar turma e abrir a próxima';
+        desenhar();
+      });
       $('atualizar').addEventListener('click', () => carregar().catch((e) => avisar($('recado'), e.message, 'erro')));
       $('exportar').addEventListener('click', exportarCsv);
       $('sair').addEventListener('click', () => { gravarToken(''); location.reload(); });
@@ -261,6 +288,27 @@
           await chamar('entrega_ajustar', { p_slug: f.slug, p_aberto: !f.aberto, p_prazo: null });
           await carregar();
         } catch (e) { avisar($('recado'), e.message, 'erro'); }
+      });
+      $('fechar-turma').addEventListener('click', async () => {
+        const f = formularios.find((x) => x.slug === $('formulario').value);
+        const botao = $('fechar-turma');
+        // Dois cliques: o primeiro só pede confirmação, sem janela do navegador.
+        if (botao.dataset.confirmar !== f.slug) {
+          botao.dataset.confirmar = f.slug;
+          botao.textContent = `Confirmar: fechar ${f.turma} (${porGrupo(f.respostas).length} grupos)`;
+          return;
+        }
+        delete botao.dataset.confirmar;
+        botao.disabled = true;
+        try {
+          const r = await chamar('entrega_fechar_turma', { p_slug: f.slug, p_nova_turma: $('nova-turma').value });
+          $('nova-turma').value = '';
+          $('formulario').value = r.slug;
+          await carregar();
+          avisar($('recado'), `${f.turma} fechada e guardada. ${r.turma} aberta e recebendo envios.`, 'ok');
+        } catch (e) { avisar($('recado'), e.message, 'erro'); }
+        botao.disabled = false;
+        botao.textContent = 'Fechar turma e abrir a próxima';
       });
       $('salvar-prazo').addEventListener('click', async () => {
         const f = formularios.find((x) => x.slug === $('formulario').value);
