@@ -410,4 +410,18 @@ select 'mack-dv-grupos-1', 'Data Visualization', 'MBA Engenharia de Dados · 202
        'mack-dv-grupos', 1
 where not exists (select 1 from entrega_formularios where serie = 'mack-dv-grupos');
 
+insert into entrega_formularios (slug, disciplina, turma, titulo, instrucoes, serie, numero)
+select 'mack-cloud-grupos-1', 'Cloud Computing e SRE', 'MBA Engenharia de Dados · 2026.1',
+       'Integrantes e repositório do grupo',
+       'Um envio por grupo, feito por um integrante. Para corrigir, envie de novo com o mesmo link do GitHub: vale o envio mais recente.',
+       'mack-cloud-grupos', 1
+where not exists (select 1 from entrega_formularios where serie = 'mack-cloud-grupos');
+
+insert into entrega_formularios (slug, disciplina, turma, titulo, instrucoes, serie, numero)
+select 'mack-dc-grupos-1', 'Data Collection and Storage', 'MBA Engenharia de Dados · 2026.2',
+       'Integrantes e repositório do grupo',
+       'Um envio por grupo, feito por um integrante. Para corrigir, envie de novo com o mesmo link do GitHub: vale o envio mais recente.',
+       'mack-dc-grupos', 1
+where not exists (select 1 from entrega_formularios where serie = 'mack-dc-grupos');
+
 commit;

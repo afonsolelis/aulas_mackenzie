@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+    <title>Grupo e Repositório · Data Collection 2026</title>
+    <meta name="description" content="Formulário de Data Collection and Storage: integrantes do grupo e link do repositório no GitHub." />
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <div class="material-nav" style="margin-bottom: 2rem;">
+        <a href="home_data_collection.html">&larr; Data Collection and Storage</a>
+        <a href="../index.html">Hub de Disciplinas</a>
+      </div>
+
+      <section class="hero" data-year="2026">
+        <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+        <span class="kicker">MBA Engenharia de Dados &middot; Data Collection and Storage &middot; Entrega</span>
+        <h1>Grupo e repositório</h1>
+        <p id="turma-atual">Carregando o formulário...</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Antes de enviar</h2>
+        <ul>
+          <li>Um integrante envia pelo grupo inteiro. O grupo tem de um a cinco integrantes.</li>
+          <li>Para corrigir algo, envie de novo com o mesmo link do GitHub. Vale o envio mais recente.</li>
+          <li>O repositório precisa ser público. O formulário confere isso no GitHub antes de enviar.</li>
+        </ul>
+        <p id="instrucoes" class="meta"></p>
+      </section>
+
+      <section class="content-block">
+        <h2>Dados do grupo</h2>
+        <div id="recado" class="aviso" role="status" hidden></div>
+
+        <form id="form-entrega" class="form-grid" novalidate>
+          <label>Integrante 1
+            <span class="dica">Nome completo. Obrigatório.</span>
+            <input name="integrante" required minlength="3" maxlength="120" autocomplete="off" />
+          </label>
+          <label>Integrante 2
+            <span class="dica">Opcional.</span>
+            <input name="integrante" minlength="3" maxlength="120" autocomplete="off" />
+          </label>
+          <label>Integrante 3
+            <span class="dica">Opcional.</span>
+            <input name="integrante" minlength="3" maxlength="120" autocomplete="off" />
+          </label>
+          <label>Integrante 4
+            <span class="dica">Opcional.</span>
+            <input name="integrante" minlength="3" maxlength="120" autocomplete="off" />
+          </label>
+          <label>Integrante 5
+            <span class="dica">Opcional.</span>
+            <input name="integrante" minlength="3" maxlength="120" autocomplete="off" />
+          </label>
+
+          <label>Repositório no GitHub
+            <span class="dica">Repositório público, no formato https://github.com/usuario/repositorio</span>
+            <input name="repositorio" type="url" required placeholder="https://github.com/usuario/repositorio"
+                   pattern="https://github\.com/[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+(\.git)?/?" />
+          </label>
+
+          <div class="actions">
+            <button class="button primario" type="submit" id="enviar">Enviar</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="content-block" id="comprovante" hidden>
+        <h2>Comprovante</h2>
+        <p>Envio registrado. Guarde estes dados:</p>
+        <div class="entrega-grupo"><dl id="comprovante-dados"></dl></div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+    <script>
+      const SUPABASE_URL = 'https://lwamaovuxcevsjfvtqhf.supabase.co';
+      const SUPABASE_KEY = 'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ';
+      // A série tem uma turma aberta por vez; o slug dela vem do banco ao carregar.
+      const SERIE = 'mack-dc-grupos';
+      let slug = null;
+
+      const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+      const form = document.getElementById('form-entrega');
+      const recado = document.getElementById('recado');
+      const quando = (iso) => new Date(iso).toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short' });
+
+      function avisar(texto, tipo) {
+        recado.textContent = texto;
+        recado.className = 'aviso' + (tipo ? ' ' + tipo : '');
+        recado.hidden = false;
+      }
+
+      async function carregar() {
+        const { data, error } = await db.rpc('entrega_turma_aberta', { p_serie: SERIE });
+        if (error) {
+          document.getElementById('turma-atual').textContent = 'Não foi possível carregar o formulário.';
+          form.hidden = true;
+          return;
+        }
+        if (!data) {
+          document.getElementById('turma-atual').textContent = 'Nenhuma turma recebendo envios agora.';
+          form.hidden = true;
+          return;
+        }
+        slug = data.slug;
+        document.getElementById('turma-atual').textContent = data.turma;
+        document.getElementById('instrucoes').textContent = data.instrucoes || '';
+      }
+
+      // 404 na API pública do GitHub significa repositório privado ou inexistente.
+      // Outras falhas (limite de consultas, rede) não bloqueiam o envio.
+      async function repositorioPublico(url) {
+        const caminho = url.trim().replace(/(\.git)?\/?$/, '').replace('https://github.com/', '');
+        try {
+          const r = await fetch(`https://api.github.com/repos/${caminho}`);
+          if (r.status === 404) return false;
+          if (r.ok) return !(await r.json()).private;
+        } catch {}
+        return true;
+      }
+
+      form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        if (!form.reportValidity()) return;
+        const f = new FormData(form);
+        const integrantes = f.getAll('integrante').map((n) => n.trim()).filter(Boolean);
+        const botao = document.getElementById('enviar');
+        botao.disabled = true;
+        if (!(await repositorioPublico(f.get('repositorio')))) {
+          botao.disabled = false;
+          avisar('O repositório não foi encontrado ou é privado. Deixe-o público no GitHub e confira o link.', 'erro');
+          return;
+        }
+        const { data, error } = await db.rpc('entrega_enviar_grupo', {
+          p_slug: slug,
+          p_integrantes: integrantes,
+          p_repositorio: f.get('repositorio'),
+        });
+        botao.disabled = false;
+        if (error) {
+          avisar(error.message || 'O envio falhou. Tente de novo.', 'erro');
+          return;
+        }
+        avisar('Envio registrado.', 'ok');
+        const dl = document.getElementById('comprovante-dados');
+        dl.replaceChildren();
+        for (const [rotulo, valor] of [
+          ['Integrantes', integrantes.join(', ')],
+          ['Repositório', data.repositorio],
+          ['Enviado em', quando(data.enviado_em)],
+          ['Código', data.id],
+        ]) {
+          const dt = document.createElement('dt'); dt.textContent = rotulo;
+          const dd = document.createElement('dd'); dd.textContent = valor;
+          dl.append(dt, dd);
+        }
+        document.getElementById('comprovante').hidden = false;
+        document.getElementById('comprovante').scrollIntoView({ behavior: 'smooth' });
+      });
+
+      carregar();
+    </script>
+  </body>
+</html>
