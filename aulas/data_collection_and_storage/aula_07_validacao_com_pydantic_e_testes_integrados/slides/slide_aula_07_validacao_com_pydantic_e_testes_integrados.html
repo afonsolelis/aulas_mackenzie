@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+  <title>Aula 07 &middot; Validação com Pydantic e Testes Integrados</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="07" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Validação com Pydantic e Testes Integrados</h1>
+          <p class="deck-meta">Aula 07 &nbsp;&bull;&nbsp; 28/11/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Contratos de dados para os pipelines das Aulas 03 e 06, quarentena dos inválidos e testes com HTTP gravado e contêineres reais.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Uma hora de conceito, o resto ao vivo</h2>
+          <p class="deck-summary">O professor constrói a camada de validação e a suíte de testes em SDD; o material traz os sete prompts completos para o grupo reproduzir.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h30 &middot; Conceitos</h3>
+            <ul>
+              <li>Onde a validação entra no pipeline</li>
+              <li>Contrato de dados, quarentena e DLQ</li>
+              <li>Pydantic v2: modelos, coerção e erros</li>
+              <li>Pirâmide de testes, VCR e Testcontainers</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>9h30 &ndash; 12h10 &middot; Prática em SDD</h3>
+            <ul>
+              <li>Persona, objetivos e spec de qualidade</li>
+              <li>Contratos de livro, PTAX e sensor</li>
+              <li>Quarentena no MinIO e DLQ no RabbitMQ</li>
+              <li>Testes de unidade, VCR e Testcontainers</li>
+              <li>Validação ATAM com seis cenários</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - PROBLEMA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Ponto de partida &middot; Problema</span>
+          <h2 class="deck-title">Os pipelines gravam o que recebem</h2>
+          <p class="deck-summary">As Aulas 03 e 06 entregaram coleta e gravação funcionando. Nenhuma das duas verifica se o dado gravado faz sentido.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Pipeline</th><th>Entrada observada</th><th>O que acontece hoje</th></tr></thead>
+          <tbody>
+            <tr><td>Aula 03 &middot; books.toscrape.com</td><td><code>Â£51.77</code> (HTML lido como ISO-8859-1)</td><td>preço vira texto ou zero na camada seguinte</td></tr>
+            <tr><td>Aula 03 &middot; PTAX</td><td><code>dataHoraCotacao</code> sem fuso</td><td>cotação gravada com horário ambíguo</td></tr>
+            <tr><td>Aula 06 &middot; sensores</td><td>76,28 em Fahrenheit rotulado como <code>"C"</code></td><td><code>temperatura_c</code> errada e média da estufa sobe sem alarme</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - ONDE VALIDAR -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Posição</span>
+          <h2 class="deck-title">Três pontos de validação no pipeline</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step is-current"><strong>Borda de entrada</strong><span>Resposta da API, HTML ou mensagem da fila vira objeto tipado.</span></div>
+          <div class="method-step"><strong>Entre camadas</strong><span>Bronze para silver: tipos, unidades e regras de negócio.</span></div>
+          <div class="method-step"><strong>Antes da escrita</strong><span>Último gate antes do MinIO ou do ClickHouse.</span></div>
+          <div class="method-step"><strong>Quarentena</strong><span>Inválido guardado com o motivo, sem bloquear os válidos.</span></div>
+          <div class="method-step"><strong>Relatório</strong><span>Rejeições contadas por fonte, campo e regra.</span></div>
+        </div>
+        <div class="deck-callout">
+          <strong>Regra da aula</strong>
+          <p style="margin:8px 0 0;">Nenhum registro chega à camada de escrita sem passar por um contrato, e nenhuma rejeição desaparece sem registro.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - CONTRATO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Contrato de dados</span>
+          <h2 class="deck-title">O contrato escreve o que o consumidor espera</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Estrutura</h3><p>Campos, tipos, obrigatoriedade e o que fazer com campo desconhecido.</p></article>
+          <article class="deck-card"><h3>Semântica</h3><p>Unidade, faixa válida, fuso horário, moeda e relação entre campos.</p></article>
+          <article class="deck-card"><h3>Versão</h3><p>Mudança de contrato tem número, data e consumidores avisados.</p></article>
+          <article class="deck-card"><h3>Publicação</h3><p>JSON Schema gerado do modelo, versionado em <code>docs/contratos/</code>.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - QUARENTENA VS FALHAR -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Tratamento do inválido</span>
+          <h2 class="deck-title">Quarentena, DLQ ou falhar o lote</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Estratégia</th><th>Quando usar</th><th>Custo</th></tr></thead>
+          <tbody>
+            <tr><td>Quarentena no MinIO</td><td>lote de scraping ou API com poucos registros ruins</td><td>alguém precisa ler e reprocessar</td></tr>
+            <tr><td>DLQ no RabbitMQ</td><td>mensagem individual de streaming que não passa no contrato</td><td>fila cresce se ninguém consome</td></tr>
+            <tr><td>Falhar o lote</td><td>taxa de rejeição acima do limite ou contrato quebrado por inteiro</td><td>nada é gravado até a correção</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Combinação usada na aula: quarentena por registro e falha do lote quando a taxa de rejeição passa de um limite definido na spec.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - MÉTRICAS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Medida</span>
+          <h2 class="deck-title">Quatro métricas de qualidade por execução</h2>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Completude</strong><span>campos obrigatórios preenchidos / registros recebidos.</span></div>
+          <div class="quality-gate"><strong>Validade</strong><span>registros aceitos pelo contrato / registros recebidos.</span></div>
+          <div class="quality-gate"><strong>Unicidade</strong><span>chaves distintas / registros aceitos.</span></div>
+          <div class="quality-gate"><strong>Atualidade</strong><span>agora menos o carimbo do registro mais recente.</span></div>
+        </div>
+        <div class="deck-note">Metas numéricas entram na spec como hipótese até o grupo medir uma linha de base.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - PYDANTIC MODELO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Pydantic v2 &middot; BaseModel</span>
+          <h2 class="deck-title">Contrato do livro extraído do HTML</h2>
+        </div>
+        <pre><code>class Livro(BaseModel):   # linha de bronze/books_toscrape/.../livros.jsonl
+    upc: Annotated[str, Field(pattern=r"^[0-9a-f]{16}$")]
+    url: HttpUrl
+    titulo: Annotated[str, Field(min_length=1, max_length=500)]
+    categoria: Annotated[str, Field(min_length=1)]
+    avaliacao: Annotated[int, Field(ge=1, le=5)]
+    preco_gbp: Annotated[Decimal, Field(gt=0, max_digits=8, decimal_places=2)]
+    em_estoque: bool
+    qtd_estoque: Annotated[int, Field(ge=0)]
+    coletado_em: AwareDatetime</code></pre>
+        <div class="deck-note"><code>ConfigDict(extra="forbid")</code> recusa campo novo. Um <code>field_validator("preco_gbp", mode="before")</code> tira o <code>£</code> e recusa o texto com <code>Â£</code>, sinal de HTML decodificado com o charset errado.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - LAX VS STRICT -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Pydantic v2 &middot; Coerção</span>
+          <h2 class="deck-title">Modo lax converte, modo strict recusa</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Entrada</th><th>Lax (padrão)</th><th>Strict</th></tr></thead>
+          <tbody>
+            <tr><td><code>"23.5"</code> para <code>float</code></td><td>aceita, vira <code>23.5</code></td><td>recusa</td></tr>
+            <tr><td><code>"yes"</code> para <code>bool</code></td><td>aceita, vira <code>True</code></td><td>recusa (<code>bool_type</code>)</td></tr>
+            <tr><td><code>"sim"</code> para <code>bool</code></td><td>recusa (<code>bool_parsing</code>)</td><td>recusa</td></tr>
+            <tr><td>data sem fuso em <code>AwareDatetime</code></td><td>recusa (<code>timezone_aware</code>)</td><td>recusa</td></tr>
+            <tr><td>campo extra com <code>extra="forbid"</code></td><td>recusa (<code>extra_forbidden</code>)</td><td>recusa</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Strict por modelo: <code>ConfigDict(strict=True)</code>; por campo: <code>Field(strict=True)</code>; por chamada: <code>model_validate(dados, strict=True)</code>.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - VALIDATORS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Pydantic v2 &middot; Regras</span>
+          <h2 class="deck-title">Validadores de campo e de modelo</h2>
+        </div>
+        <pre><code>class LeituraBruta(BaseModel):          # mensagem da Aula 06
+    event_id: UUID
+    device_id: DeviceId                  # estufa-a-03, germinacao-01
+    medido_em: AwareDatetime
+    temperatura: float
+    unidade_temperatura: Literal["C", "F"]
+    umidade: float = Field(ge=0, le=100)
+    @model_validator(mode="after")
+    def regras_da_aula_06(self, info): ...   # faixa em °C e medido_em no futuro</code></pre>
+        <div class="deck-note"><code>field_validator</code> olha um campo; <code>model_validator</code> vê o objeto inteiro: converte F para °C antes de aplicar a faixa. <code>normalizar()</code> gera a linha de <code>iot.leituras</code> com <code>temperatura_c</code> e <code>umidade_pct</code>.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - VALIDATIONERROR -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Pydantic v2 &middot; Erros</span>
+          <h2 class="deck-title">Registrar o erro de cada registro</h2>
+        </div>
+        <pre><code>for posicao, corpo in enumerate(corpos):
+    try:
+        bruta = LeituraBruta.model_validate_json(corpo, context={"agora": agora})
+    except ValidationError as erro:
+        erros = erro.errors(include_url=False, include_context=False)
+        rejeitadas.append({"posicao": posicao, "motivo": motivo(erros),
+                           "payload": corpo.decode(), "erros": erros})
+        continue
+    validas.append(bruta.normalizar(cadastro))</code></pre>
+        <div class="deck-note"><code>motivo()</code> traduz o erro para os códigos da Aula 06 (<code>unidade_desconhecida</code>, <code>umidade_fora_da_faixa</code>...). Cada erro traz <code>loc</code>, <code>type</code>, <code>msg</code> e <code>input</code>. <code>TypeAdapter(list[CotacaoPtax])</code> valida listas; <code>model_json_schema()</code> publica o contrato.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - PIRÂMIDE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Testes &middot; Pirâmide</span>
+          <h2 class="deck-title">Pirâmide de testes num pipeline de dados</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Camada</th><th>O que prova</th><th>Ferramenta</th><th>Tempo</th></tr></thead>
+          <tbody>
+            <tr><td>Unidade</td><td>transformação pura e validadores</td><td>pytest</td><td>milissegundos</td></tr>
+            <tr><td>Contrato</td><td>a resposta real cabe no modelo</td><td>pytest + cassete VCR</td><td>milissegundos</td></tr>
+            <tr><td>Integração</td><td>o código grava e lê no serviço real</td><td>Testcontainers</td><td>segundos</td></tr>
+            <tr><td>Ponta a ponta</td><td>coleta, fila, transformação e escrita juntas</td><td>Testcontainers + compose</td><td>dezenas de segundos</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Muitos testes na base, poucos no topo. O topo pega erro de integração; a base aponta o lugar exato do erro.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - VCR -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Testes &middot; VCR</span>
+          <h2 class="deck-title">Gravar a resposta HTTP real uma vez</h2>
+        </div>
+        <pre><code>@pytest.fixture(scope="module")
+def vcr_config():
+    return {"filter_headers": ["authorization", "cookie", "set-cookie"],
+            "decode_compressed_response": True}
+@pytest.mark.vcr
+def test_ptax_cabe_no_contrato():
+    resposta = buscar_ptax("GBP", date(2026, 10, 2))
+    cotacoes = ListaPtax.validate_python(resposta["value"])
+    assert cotacoes[-1].tipo_boletim == "Fechamento PTAX"</code></pre>
+        <div class="deck-note">Padrão do pytest-recording: modo <code>none</code>, só reproduz. <code>--record-mode=once</code> grava o cassete que falta; <code>--record-mode=rewrite</code> regrava de propósito; <code>--block-network</code> prova que nada saiu para a rede.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14 - CASSETE DESATUALIZADO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Testes &middot; VCR</span>
+          <h2 class="deck-title">O cassete congela a fonte no dia da gravação</h2>
+          <p class="deck-summary">O cassete congela a resposta do dia da gravação. Se a API mudar, o teste segue verde e a produção quebra.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel"><strong>Regravar quando</strong><p>o contrato mudar, a fonte anunciar versão nova, o cassete passar da idade definida na spec ou a produção registrar rejeição nova.</p></div>
+          <div class="deck-panel"><strong>Proteger com</strong><p>teste de contrato agendado contra a API real, data de gravação no nome do cassete e revisão do diff do YAML no PR.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15 - TESTCONTAINERS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Testes &middot; Testcontainers</span>
+          <h2 class="deck-title">MinIO real num contêiner descartável</h2>
+        </div>
+        <pre><code>from testcontainers.community.minio import MinioContainer
+IMAGEM_MINIO = "coollabsio/minio:RELEASE.2025-10-15T17-29-55Z"
+@pytest.fixture(scope="session")
+def minio():
+    container = MinioContainer(image=IMAGEM_MINIO)
+    container.with_env("MINIO_ROOT_USER", container.access_key)
+    container.with_env("MINIO_ROOT_PASSWORD", container.secret_key)
+    with container:
+        yield container</code></pre>
+        <div class="deck-note">Mesma ideia para <code>RabbitMqContainer</code>, <code>ClickHouseContainer</code> e <code>PostgresContainer</code>, sempre com tag fixa.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 16 - CUSTO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Testes &middot; Custo</span>
+          <h2 class="deck-title">Quanto custa subir serviço real no teste</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Contêiner</th><th>Imagem testada</th><th>Subida medida</th></tr></thead>
+          <tbody>
+            <tr><td>MinIO</td><td><code>coollabsio/minio:RELEASE.2025-10-15T17-29-55Z</code></td><td>cerca de 1,6 s</td></tr>
+            <tr><td>RabbitMQ</td><td><code>rabbitmq:4.3.6-management</code></td><td>cerca de 5 s</td></tr>
+            <tr><td>ClickHouse</td><td><code>clickhouse/clickhouse-server:26.8.15.10</code></td><td>cerca de 6 s, com a DDL da Aula 06</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Medido pelo professor em 03/10/2026, com imagens já baixadas. O primeiro download soma tempo; a fixture de escopo <code>session</code> paga a subida uma vez por execução.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 17 - PREPARAÇÃO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 0</span>
+          <h2 class="deck-title">Pasta da aula no repositório do grupo</h2>
+        </div>
+        <pre><code>docker run --rm hello-world
+mkdir -p aula_07_validacao_testes/{docs/adr,specs,src,tests/unit,tests/contract,tests/integration}
+cd aula_07_validacao_testes
+cp &lt;aulas_mackenzie&gt;/.../laboratorio/requirements-dev.txt .
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+python -m pip install -r requirements-dev.txt
+opencode</code></pre>
+        <div class="deck-callout">
+          <strong>Antes do primeiro prompt</strong>
+          <p style="margin:8px 0 0;">Docker respondendo, <code>.env</code> no <code>.gitignore</code>, OpenCode com <code>openrouter/openrouter/free</code> e um prompt por vez.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 18 - SEQUÊNCIA SDD -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prática &middot; Sequência SDD</span>
+          <h2 class="deck-title">Sete prompts CREATE, uma revisão por etapa</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Persona: quem decide errado quando o dado é inválido.</li>
+          <li>Objetivos: métricas de qualidade com origem ou hipótese.</li>
+          <li>Spec: RF dos contratos e RNF de validade, rastreabilidade e cobertura.</li>
+          <li>Plano: C4, pontos de validação e pirâmide de testes.</li>
+          <li>Tarefas: cada uma ligada a RF/RNF e a um teste.</li>
+          <li>Implementação: teste vermelho, código, teste verde.</li>
+          <li>ATAM: seis cenários, ADRs e matriz de rastreabilidade.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 19 - SPEC DE QUALIDADE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompt 3 &middot; Especificação</span>
+          <h2 class="deck-title">Requisitos não funcionais desta aula</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>ID</th><th>Requisito</th><th>Evidência</th></tr></thead>
+          <tbody>
+            <tr><td>RNF-01</td><td>Validade: nenhum registro chega à escrita sem passar no contrato</td><td>teste de integração conta zero inválidos no destino</td></tr>
+            <tr><td>RNF-02</td><td>Rastreabilidade: toda rejeição guarda fonte, contrato, versão, entrada e erros</td><td>objeto em <code>quarantine/</code> ou mensagem na DLQ</td></tr>
+            <tr><td>RNF-03</td><td>Cobertura: cada regra do contrato tem caso válido e caso inválido</td><td>matriz regra &times; teste</td></tr>
+            <tr><td>RNF-04</td><td>Testes de unidade sem rede e sem Docker</td><td><code>pytest tests/unit --block-network</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 20 - QUARENTENA E DLQ -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompt 6 &middot; Implementação</span>
+          <h2 class="deck-title">Para onde vão os registros rejeitados</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel"><strong>Aula 03 &middot; MinIO</strong><p>Bucket <code>raw</code>, chave <code>quarantine/books_toscrape/data=AAAA-MM-DD/&lt;execucao&gt;.jsonl</code>; <code>bronze/</code> só recebe linhas válidas.</p></div>
+          <div class="deck-panel"><strong>Aula 06 &middot; RabbitMQ e ClickHouse</strong><p>Publicada em <code>iot.dlx</code> com <code>x-motivo</code>, chega em <code>leituras.dlq</code>; cópia em <code>iot.leituras_rejeitadas</code> (<code>device_id</code>, <code>motivo</code>, <code>payload</code>).</p></div>
+        </div>
+        <div class="deck-note">Filas quorum, como na Aula 06. O <code>x-death</code> de um <code>nack</code> diz só <code>rejected</code>; o motivo vem do erro do Pydantic.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 21 - GATES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Gates da prática</span>
+          <h2 class="deck-title">Gates antes do commit</h2>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Unidade</strong><span><code>pytest tests/unit -q --block-network</code>: cada regra com caso válido e inválido.</span></div>
+          <div class="quality-gate"><strong>Contrato</strong><span><code>pytest tests/contract -q --block-network</code>: cassetes reproduzem sem rede.</span></div>
+          <div class="quality-gate"><strong>Integração</strong><span><code>pytest tests/integration -m integracao -q</code>: MinIO, RabbitMQ e ClickHouse reais.</span></div>
+          <div class="quality-gate"><strong>Segredos</strong><span><code>grep</code> nos cassetes sem nenhuma credencial.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 22 - ATAM -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompt 7 &middot; Validação ATAM</span>
+          <h2 class="deck-title">Seis cenários para pressionar a solução</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Estímulo</th><th>Resposta esperada</th></tr></thead>
+          <tbody>
+            <tr><td>Campo novo na resposta da PTAX</td><td>coleta segue; campo desconhecido registrado e alertado</td></tr>
+            <tr><td>Preço com formato inesperado</td><td>registro em quarentena com o texto original</td></tr>
+            <tr><td>Unidade <code>K</code>, ou Fahrenheit rotulado como <code>C</code></td><td>DLQ com <code>unidade_desconhecida</code>; rótulo trocado só pela faixa ou pelo cadastro</td></tr>
+            <tr><td>Cassete desatualizado mascarando mudança real</td><td>teste agendado contra a API real detecta a diferença</td></tr>
+            <tr><td>Suíte lenta demais para o CI</td><td>marcadores separam unidade e integração; tempo medido</td></tr>
+            <tr><td>Docker indisponível no ambiente</td><td>integração pulada com motivo; unidade continua rodando</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 23 - CI -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Extensão &middot; GitHub Actions</span>
+          <h2 class="deck-title">A mesma suíte no CI</h2>
+        </div>
+        <pre><code>jobs:
+  testes:
+    runs-on: ubuntu-latest      # runner com Docker disponível
+    defaults: { run: { working-directory: aula_07_validacao_testes } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r requirements-dev.txt
+      - run: pytest tests/unit tests/contract -q --block-network
+      - run: pytest tests/integration -m integracao -q --durations=10</code></pre>
+      </div>
+    </div>
+
+    <!-- SLIDE 24 - ENTREGA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega &middot; 12h00</span>
+          <h2 class="deck-title">Pasta aula_07_validacao_testes no repositório</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Esqueleto SDD</h3><p><code>AGENTS.md</code>, persona, objetivos, spec, plan e tasks.</p></article>
+          <article class="deck-card"><h3>Contratos</h3><p>Livro, cotação PTAX e leitura de sensor, com JSON Schema publicado.</p></article>
+          <article class="deck-card"><h3>Testes verdes</h3><p>Unidade, contrato com cassetes e integração com Testcontainers.</p></article>
+          <article class="deck-card"><h3>Evidência</h3><p><code>docs/relatorio_rejeicoes.md</code>, <code>docs/atam.md</code> e ADRs.</p></article>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie" />
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_07_validacao_com_pydantic_e_testes_integrados.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) { slides.forEach(s => s.classList.remove("active")); slides[i].classList.add("active"); currentSlide = i; document.getElementById("current-slide").textContent = i + 1; document.getElementById("prev-btn").disabled = i === 0; document.getElementById("next-btn").disabled = i === totalSlides - 1; }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    document.addEventListener("keydown", e => { if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); nextSlide(); } else if (e.key === "ArrowLeft") { e.preventDefault(); previousSlide(); } else if (e.key.toLowerCase() === "f") toggleFullScreen(); });
+    showSlide(0);
+  </script>
+</body>
+</html>

@@ -8,6 +8,8 @@ Repositório centralizador de disciplinas e materiais do **MBA em Engenharia de 
 2. **Data Collection and Storage** ([pages/home_data_collection.html](pages/home_data_collection.html))
 3. **Data Visualization** ([pages/home_data_visualization.html](pages/home_data_visualization.html))
 
+Data Collection and Storage não usa AWS: as aulas rodam no GitHub Codespaces (ou na máquina do aluno) com Docker, OpenCode + OpenRouter (modelo `openrouter/free`) e publicação no Railway, sempre em Spec-Driven Development. Os roteiros de laboratório ficam em `aulas/data_collection_and_storage/<aula>/laboratorio/README.md`.
+
 ## Laboratório da Aula 03 — Codespaces, D3 e IA
 
 [Abrir o laboratório no GitHub Codespaces](https://codespaces.new/afonsolelis/aulas_mackenzie?quickstart=1)
@@ -50,7 +52,7 @@ python3 -m http.server 8000
 ├── specs/                  # Especificações técnicas e cronogramas
 └── aulas/
     ├── cloud_sre/                      # Slides e materiais de Cloud & SRE
-    ├── data_collection_and_storage/    # Slides e materiais de Data Collection & Storage
+    ├── data_collection_and_storage/    # Slides, materiais e laboratórios de Data Collection & Storage
     └── data_visualization/             # Slides, materiais e laboratórios de Data Visualization
 ```
 

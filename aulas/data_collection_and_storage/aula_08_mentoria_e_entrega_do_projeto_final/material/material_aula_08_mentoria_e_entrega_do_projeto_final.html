@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 08 — Mentoria e Entrega do Projeto Final</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
+      <a href="../../../../pages/entrega_grupo_data_collection.html">Formulário de grupo</a>
+      <a href="../slides/slide_aula_08_mentoria_e_entrega_do_projeto_final.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 08 — Mentoria e Entrega do Projeto Final</h1>
+      <p class="meta">Aula 08 &middot; 05/12/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p>Este documento é o enunciado oficial do projeto final da disciplina e o roteiro da Aula 08. Ele está publicado desde a Aula 01 para que cada grupo saiba, desde o primeiro sábado, o que vai entregar e como será avaliado. A Aula 08 não tem bloco teórico nem conteúdo novo: o professor atende os grupos em mentoria e a entrega fecha no mesmo dia, 05/12/2026.</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block" id="sumario">
+        <h2>Sumário</h2>
+        <ol>
+          <li><a href="#s1">Como usar este enunciado</a></li>
+          <li><a href="#s2">Objetivo do projeto</a></li>
+          <li><a href="#s3">Escopo e fora do escopo</a></li>
+          <li><a href="#s4">Requisitos mínimos da plataforma</a></li>
+          <li><a href="#s5">Fluxo SDD e artefatos exigidos</a></li>
+          <li><a href="#s6">AGENTS.md e histórico de prompts</a></li>
+          <li><a href="#s7">Rastreabilidade</a></li>
+          <li><a href="#s8">Metas verificáveis</a></li>
+          <li><a href="#s9">Custos no Railway e preservação de evidências</a></li>
+          <li><a href="#s10">Marcos e datas</a></li>
+          <li><a href="#s11">Avaliação: pesos e limitadores de nota</a></li>
+          <li><a href="#s12">A Aula 08: organização da manhã</a></li>
+          <li><a href="#s13">Checklist de preparação para a mentoria</a></li>
+          <li><a href="#s14">Roteiro do atendimento</a></li>
+          <li><a href="#s15">Prompts CREATE de abertura e de fechamento</a></li>
+          <li><a href="#s16">Como entregar</a></li>
+          <li><a href="#s17">Orientação para a atividade prática em sala</a></li>
+        </ol>
+      </section>
+
+      <section class="content-block" id="s1">
+        <h2>1. Como usar este enunciado</h2>
+        <p>O projeto final reúne, num único repositório, o que cada aula da disciplina construiu em separado. A Aula 01 apresentou o Spec-Driven Development (SDD) e a sequência de prompts no formato CREATE; as Aulas 02 e 03 coletaram dados de APIs e de páginas e os gravaram no MinIO; a Aula 04 organizou esses dados num lakehouse com Parquet e DuckDB; a Aula 05 tratou de modelagem relacional e dimensional; a Aula 06 mostrou um fluxo de streaming com RabbitMQ e ClickHouse; a Aula 07 acrescentou contratos Pydantic e testes integrados. O projeto final pede que o grupo escolha um domínio próprio e monte, com o mesmo método, uma plataforma de coleta e armazenamento que use essas peças de forma justificada.</p>
+        <p>Leia o enunciado inteiro na Aula 01 e volte a ele ao fim de cada aula, conferindo a seção 10, que diz o que o projeto deveria ter naquele ponto. As seções 1 a 11 descrevem o trabalho e a avaliação. As seções 12 a 16 descrevem a Aula 08 e a entrega, e só precisam ser estudadas com atenção na semana anterior a 05/12/2026.</p>
+        <p>Em caso de dúvida sobre o que conta como cumprido, a regra geral é a mesma de todas as aulas: vale o que pode ser verificado no repositório. Uma decisão sem registro, um teste que não roda ou uma execução que só existiu no ambiente do Railway não podem ser avaliados.</p>
+      </section>
+
+      <section class="content-block" id="s2">
+        <h2>2. Objetivo do projeto</h2>
+        <p>Cada grupo, de um a cinco integrantes, constrói em Spec-Driven Development uma plataforma de coleta e armazenamento de dados para um domínio escolhido pelo próprio grupo. A plataforma coleta de pelo menos duas fontes de tipos diferentes, guarda o dado bruto sem alteração no MinIO, organiza o dado em camadas bronze, silver e gold com Parquet e DuckDB, modela o resultado para as perguntas de uma persona definida, valida os registros com Pydantic, tem testes de unidade e de integração e roda publicada no Railway.</p>
+        <p>O domínio é livre, desde que as fontes sejam públicas e de coleta permitida. Os domínios das aulas servem de ponto de partida: clima das capitais pela Open-Meteo, preços de livros em books.toscrape.com com câmbio da PTAX, leituras de sensores simulados. Um grupo pode partir de um deles e ampliá-lo, ou escolher outro, como transporte público, qualidade do ar, editais públicos ou preços de combustível. O que o domínio precisa ter é uma persona real que toma uma decisão com aquele dado, porque é dela que saem os requisitos e as decisões de arquitetura avaliadas.</p>
+        <p>O código nasce dos prompts CREATE, escritos e enviados pelo grupo ao agente (OpenCode com a OpenRouter, como na Aula 01), na ordem persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM. A avaliação olha para o produto, mas olha igualmente para o caminho: os artefatos SDD, o histórico de prompts e o histórico de commits mostram se o código foi especificado antes de ser escrito.</p>
+        <div class="note">
+          <strong>Resultado esperado</strong>
+          <p>Uma pessoa de fora do grupo clona o repositório, cria o <code>.env</code> a partir do <code>.env.example</code>, sobe os serviços locais com <code>docker compose</code>, executa o comando documentado no README e vê o dado sair das fontes, chegar ao bucket bruto e terminar numa consulta gold que responde a uma pergunta da persona. Em seguida roda <code>pytest</code> e vê os testes passarem. A mesma pessoa abre <code>docs/rastreabilidade.md</code> e encontra, para cada requisito, a decisão, o componente e a evidência.</p>
+        </div>
+      </section>
+
+      <section class="content-block" id="s3">
+        <h2>3. Escopo e fora do escopo</h2>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Dentro do escopo</th><th>Fora do escopo</th></tr></thead>
+          <tbody>
+            <tr><td>Coleta de pelo menos duas fontes de tipos diferentes: API REST, scraping de página, arquivo publicado (CSV, JSON, planilha) ou streaming</td><td>Fontes que exigem login de outra pessoa, contornam bloqueio ou violam os termos de uso do site</td></tr>
+            <tr><td>Armazenamento bruto imutável no MinIO, com chaves particionadas por fonte e data</td><td>Serviços de nuvem da Amazon ou de outros provedores além do Railway</td></tr>
+            <tr><td>Lakehouse bronze, silver e gold com Parquet e DuckDB, schema on read</td><td>Dashboard ou aplicação de visualização (uma consulta gold documentada basta)</td></tr>
+            <tr><td>Modelagem relacional e/ou dimensional, com a escolha justificada em ADR</td><td>Modelos de machine learning e previsões</td></tr>
+            <tr><td>Validação com Pydantic e testes de unidade e de integração</td><td>Cobertura de testes como meta numérica</td></tr>
+            <tr><td>Publicação no Railway do MinIO e do job de coleta</td><td>Alta disponibilidade, múltiplas réplicas e ambientes de homologação</td></tr>
+            <tr><td>Streaming com RabbitMQ e ClickHouse, como opção justificada</td><td>Dados pessoais identificáveis de terceiros</td></tr>
+          </tbody>
+        </table></div>
+        <p>O item de dados pessoais merece atenção. O repositório precisa ser público, porque o formulário de grupo confere isso no GitHub antes de aceitar o envio, e tudo o que entra nele fica exposto. Um domínio que dependa de nome, CPF, e-mail ou localização de pessoas deve ser trocado por outro, ou o dado deve ser agregado antes de qualquer gravação.</p>
+      </section>
+
+      <section class="content-block" id="s4">
+        <h2>4. Requisitos mínimos da plataforma</h2>
+        <p>Os requisitos abaixo são o piso comum a todos os grupos. Eles entram no <code>specs/spec.md</code> do grupo reescritos para o domínio escolhido, como RF ou RNF com critério de aceite, e não como cópia desta lista. Cada um traz a aula em que a técnica foi demonstrada.</p>
+
+        <h3>4.1 Fontes e coleta (Aulas 02 e 03)</h3>
+        <p>São pelo menos duas fontes de tipos diferentes. Duas APIs REST contam como um tipo só, porque exercitam o mesmo mecanismo de coleta; uma API e uma página raspada contam como dois. A exigência existe porque cada tipo de fonte falha de um jeito: a API muda o contrato ou aplica limite de requisições, a página muda o HTML, o arquivo muda o layout das colunas, a fila acumula mensagens. O projeto precisa mostrar que o grupo tratou ao menos duas dessas falhas.</p>
+        <p>O coletor respeita os limites da fonte (intervalo entre requisições, <code>robots.txt</code> no scraping), repete chamadas que falharam com espera crescente e registra a hora da coleta junto do dado.</p>
+
+        <h3>4.2 Armazenamento bruto imutável (Aulas 01 a 03)</h3>
+        <p>Tudo o que a coleta recebe é gravado no MinIO, no bucket <code>raw</code>, exatamente como chegou: o JSON da API, o HTML da página, o CSV do arquivo. A chave do objeto identifica fonte, data e hora da coleta, como em <code>raw/open_meteo/data=2026-11-14/hora=09/sao_paulo.json</code>. Imutável quer dizer que nenhum objeto do <code>raw</code> é sobrescrito ou apagado pelo pipeline. Se a transformação tiver um erro, corrige-se a transformação e reprocessa-se a partir do bruto; se o bruto tivesse sido alterado, não haveria de onde reprocessar.</p>
+        <p>A regra precisa estar no código e não só na documentação. O componente que grava no <code>raw</code> confere se a chave já existe antes de gravar e recusa a sobrescrita, e um teste de integração demonstra essa recusa.</p>
+
+        <h3>4.3 Lakehouse bronze, silver e gold (Aula 04)</h3>
+        <p>A camada bronze é o próprio bucket <code>raw</code>. A silver contém Parquet tipado, com uma linha por registro de negócio, colunas com tipo declarado e a coluna de origem (chave do objeto bruto de onde a linha veio). A gold contém as tabelas que respondem às perguntas da persona. O DuckDB lê e grava no MinIO pela extensão <code>httpfs</code>, com o endpoint compatível com S3 configurado, como na Aula 04. Silver e gold são derivadas: precisam poder ser apagadas e reconstruídas a partir do <code>raw</code> com o mesmo comando, e rodar esse comando duas vezes sobre o mesmo período não pode duplicar linhas.</p>
+
+        <h3>4.4 Modelagem (Aula 05)</h3>
+        <p>O grupo modela o dado para as perguntas da persona. A modelagem pode ser relacional (Postgres no Railway, normalizado, quando a persona precisa consultar e atualizar entidades), dimensional (esquema estrela na gold, no DuckDB, quando a persona precisa agregar fatos por dimensões como tempo, local e categoria) ou as duas. A escolha é registrada num ADR que cita as perguntas da persona e explica por que a alternativa descartada atenderia pior. Um esquema estrela sem uma pergunta agregada que o justifique, ou um Postgres sem uma operação que precise dele, perde pontos na dimensão de arquitetura.</p>
+
+        <h3>4.5 Validação e testes (Aula 07)</h3>
+        <p>Cada fonte tem um modelo Pydantic que define o contrato do registro na passagem do bronze para a silver. Registros que falham na validação não entram na silver: vão para uma área de quarentena (por exemplo, o prefixo <code>quarentena/</code> num bucket próprio) com o motivo da rejeição, e a contagem de rejeitados aparece no log da execução.</p>
+        <p>Os testes de unidade cobrem os modelos, os parsers e as transformações, com casos válidos, inválidos e de borda. Os testes de integração cobrem as fronteiras externas do pipeline: para cada fonte HTTP, um teste com a resposta gravada pelo VCR (<code>vcrpy</code> ou <code>pytest-recording</code>), que roda sem rede; para cada serviço de armazenamento usado (MinIO e, quando houver, Postgres, RabbitMQ ou ClickHouse), um teste com Testcontainers que sobe o serviço real num contêiner. A divisão segue o que a Aula 07 mostrou: o VCR congela a resposta de quem o grupo não controla, e o Testcontainers exercita o serviço que o grupo opera.</p>
+
+        <h3>4.6 Publicação no Railway (Aulas 01 e 04)</h3>
+        <p>No Railway ficam, no mínimo, o MinIO (o mesmo publicado na Aula 01 pode ser reaproveitado) e o job de coleta, executado por agendamento como na Aula 04. Postgres entra quando a modelagem relacional for usada. As credenciais vivem nas variáveis do serviço (<code>railway variable set</code>) e nunca no repositório. Como o proxy do Railway devolve erro 502 de forma esporádica, a escrita remota tem repetição com espera crescente e é idempotente: reenviar o mesmo lote não pode gravar o dado duas vezes.</p>
+
+        <h3>4.7 Streaming como opção</h3>
+        <p>O fluxo da Aula 06 (coletor, RabbitMQ, transformador em Python e ClickHouse) é opcional no projeto final. Há duas razões. A primeira é de requisito: streaming se justifica quando a persona precisa do dado em segundos ou minutos, e a maior parte dos domínios da disciplina é bem atendida por coleta agendada de hora em hora ou de dia em dia. A segunda é de custo e de limite: o trial do Railway permite até cinco serviços por projeto, com 1 GB de RAM. MinIO, job de coleta e Postgres já ocupam três; RabbitMQ e ClickHouse levariam o projeto ao limite e consumiriam crédito mais depressa.</p>
+        <p>O grupo que adotar streaming registra a decisão num ADR com o cenário ATAM de latência que a exige. O grupo que não adotar registra a decisão contrária no mesmo formato, com a latência que a persona tolera. Nos dois casos a decisão é avaliada pela justificativa, e não pela presença da tecnologia.</p>
+      </section>
+
+      <section class="content-block" id="s5">
+        <h2>5. Fluxo SDD e artefatos exigidos</h2>
+        <p>O projeto segue a sequência de prompts da Aula 01, um bloco CREATE por etapa, cada um revisado pelo grupo antes do próximo. Os prompts completos de cada etapa estão no <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">material da Aula 01</a>; no projeto final eles são adaptados ao domínio do grupo.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Etapa</th><th>Artefato</th><th>O que precisa conter</th></tr></thead>
+          <tbody>
+            <tr><td>0. Regras do agente</td><td><code>AGENTS.md</code></td><td>escopo, comandos permitidos, política de segredos, gates de cada etapa, convenção de commits</td></tr>
+            <tr><td>1. Persona</td><td><code>docs/00_persona.md</code></td><td>quem usa o dado, que decisão toma, qual a dor atual, com que frequência consulta</td></tr>
+            <tr><td>2. Objetivos de negócio</td><td><code>docs/01_objetivos_negocio.md</code></td><td>objetivos, métricas de sucesso, drivers de negócio, restrições; números sem fonte marcados como hipótese</td></tr>
+            <tr><td>3. Especificação</td><td><code>specs/spec.md</code></td><td>RF-xx e RNF-xx com critério de aceite em Dado/Quando/Então, cada um ligado a um objetivo</td></tr>
+            <tr><td>4. Plano</td><td><code>specs/plan.md</code></td><td>diagramas C4 de contexto e de contêineres em Mermaid, escolhas técnicas ligadas a requisitos</td></tr>
+            <tr><td>5. Tarefas</td><td><code>specs/tasks.md</code></td><td>tarefas T-xx pequenas, cada uma com o RF/RNF que atende e o teste que a verifica</td></tr>
+            <tr><td>6. Implementação</td><td><code>src/</code>, <code>tests/</code></td><td>uma tarefa por vez, teste junto, commit citando a tarefa</td></tr>
+            <tr><td>7. Validação ATAM</td><td><code>docs/atam.md</code>, <code>docs/adr/</code>, <code>docs/rastreabilidade.md</code></td><td>utility tree, cenários de seis partes, riscos, pontos de sensibilidade, trade-offs, ADRs e matriz requisito &rarr; decisão &rarr; componente &rarr; evidência</td></tr>
+            <tr><td>Contínuo</td><td><code>docs/prompts.md</code></td><td>os prompts CREATE efetivamente enviados, na ordem, com o resultado de cada um</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>5.1 Onde o projeto fica no repositório</h3>
+        <p>O repositório do grupo é o mesmo desde a Aula 01, informado no formulário de grupo, com uma pasta por aula. O projeto final ganha a pasta <code>projeto_final/</code>, com o esqueleto SDD completo. Código das pastas de aula pode ser trazido para ela, desde que passe a ser coberto pela especificação do projeto e pelos testes. O README da raiz aponta para <code>projeto_final/README.md</code>.</p>
+        <pre><code>repositorio-do-grupo/
+├── README.md                      aponta para projeto_final/
+├── aula_02_coleta_json/ ...       pastas das aulas
+└── projeto_final/
+    ├── AGENTS.md
+    ├── README.md                  como rodar, testar e publicar
+    ├── docker-compose.yml         MinIO e demais serviços locais
+    ├── .env.example               nomes das variáveis, sem valores reais
+    ├── .gitignore                 inclui .env
+    ├── docs/
+    │   ├── 00_persona.md
+    │   ├── 01_objetivos_negocio.md
+    │   ├── atam.md
+    │   ├── adr/ADR-001-*.md
+    │   ├── rastreabilidade.md
+    │   ├── prompts.md
+    │   └── evidencias/            prints, listagens do bucket, saídas de consulta
+    ├── specs/
+    │   ├── spec.md
+    │   ├── plan.md
+    │   └── tasks.md
+    ├── src/
+    └── tests/
+        ├── unidade/
+        ├── integracao/
+        └── cassettes/             respostas HTTP gravadas pelo VCR</code></pre>
+
+        <h3>5.2 O ATAM do projeto</h3>
+        <p>O <code>docs/atam.md</code> é onde o grupo mostra que entende as consequências das próprias escolhas. A utility tree parte dos atributos de qualidade que a persona e os objetivos de negócio tornam relevantes (atualidade do dado, reprocessabilidade, custo, segurança das credenciais, tolerância a falha da fonte) e chega a cenários concretos, cada um com prioridade. Cada cenário tem as seis partes: fonte do estímulo, estímulo, artefato, ambiente, resposta e medida da resposta.</p>
+        <pre><code>Cenário C-02 (reprocessabilidade, prioridade alta)
+Fonte:      engenheiro do grupo
+Estímulo:   descobre erro na conversão de moeda da silver
+Artefato:   transformação bronze -> silver
+Ambiente:   operação normal, 30 dias de dados no raw
+Resposta:   silver e gold são apagadas e reconstruídas a partir do raw
+Medida:     reconstrução completa sem perda de registro e sem duplicata;
+            tempo de reconstrução: hipótese, validação pendente</code></pre>
+        <p>Depois dos cenários vêm as decisões arquiteturais que os atendem, os pontos de sensibilidade (parâmetros cuja mudança altera muito a resposta, como o intervalo de coleta), os trade-offs (decisões que melhoram um atributo e pioram outro, como coletar mais vezes por dia e consumir mais crédito) e os riscos. Cada decisão relevante vira um ADR em <code>docs/adr/</code>, com contexto, opções consideradas, decisão e consequências.</p>
+      </section>
+
+      <section class="content-block" id="s6">
+        <h2>6. AGENTS.md e histórico de prompts</h2>
+        <p>O <code>AGENTS.md</code> é lido pelo agente no início de cada sessão e define o que ele pode fazer no projeto. Ele declara o escopo (somente a pasta <code>projeto_final/</code>), os comandos permitidos (<code>docker compose</code>, <code>pytest</code>, <code>python</code>, <code>git status</code> e <code>git diff</code>; nada de <code>git push</code> sem pedido explícito), a política de segredos (ler variáveis de ambiente, nunca escrever valores em arquivo versionado), os gates de cada etapa (mostrar o plano antes de editar, parar ao fim da etapa) e a convenção de commits.</p>
+        <p>O <code>docs/prompts.md</code> é o histórico real dos prompts enviados ao agente, na ordem em que foram enviados, incluindo os que falharam ou foram refeitos. Ele serve para duas coisas. Para o grupo, é a forma de reproduzir uma etapa e de entender por que o código ficou como ficou. Para a avaliação, é a evidência de que a especificação veio antes do código e de que o grupo revisou o que o agente produziu. Um histórico reescrito no fim do semestre, com prompts perfeitos e sem nenhuma correção, perde esse valor, e o histórico de commits costuma revelar a reescrita.</p>
+        <pre><code>## P-07 · 2026-11-14 · Etapa 6, tarefa T-05
+Agente: OpenCode · modelo openrouter/openrouter/free
+Prompt (literal):
+  [C] Personagem ... [E] Extras ...
+Resultado: criou src/coleta/gravador_raw.py e tests/integracao/test_gravador_raw.py
+Revisão do grupo: o agente gravava com put_object sem conferir a chave;
+  pedimos a verificação de existência (P-08). Teste passou depois de P-08.
+Commit: a1b2c3d feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code></pre>
+        <p>Os modelos gratuitos da OpenRouter têm limite de 20 requisições por minuto e de 50 por dia para contas que compraram menos de US$ 10 em créditos, e uma sessão de agente consome várias requisições por prompt. Um projeto inteiro não cabe num único dia de trabalho com esse limite. Trabalhe um prompt por vez, distribua as etapas ao longo das semanas e, se aparecer o erro 429, espere e repita.</p>
+      </section>
+
+      <section class="content-block" id="s7">
+        <h2>7. Rastreabilidade</h2>
+        <p>Rastreabilidade é a possibilidade de partir de qualquer ponto da cadeia e chegar aos outros. De uma frase da persona chega-se ao objetivo de negócio, ao requisito, à decisão que o atende, ao componente que a implementa e ao teste ou evidência que mostra que funciona. No sentido inverso, de um arquivo em <code>src/</code> chega-se à tarefa e ao requisito que justificam a sua existência. Um arquivo que não se liga a nenhum requisito não tem justificativa registrada: ou ganha o requisito que o explica, ou sai do código.</p>
+
+        <h3>7.1 A matriz</h3>
+        <p>A matriz fica em <code>docs/rastreabilidade.md</code>, com uma linha por RF e RNF do <code>spec.md</code>, sem exceção. O estado de cada linha é <code>atendido</code> (há evidência executável ou registrada), <code>parcial</code> (há evidência para parte do critério de aceite, e a razão diz qual parte falta) ou <code>não atendido</code> (com a razão). Uma linha sem evidência não é marcada como atendida.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Requisito</th><th>Decisão</th><th>Componente</th><th>Evidência</th><th>Estado</th></tr></thead>
+          <tbody>
+            <tr><td>RF-04 grava a página bruta no <code>raw</code> sem sobrescrever</td><td>ADR-002 chave com data e hora da coleta</td><td><code>src/coleta/gravador_raw.py</code></td><td><code>tests/integracao/test_gravador_raw.py::test_recusa_sobrescrita</code> (Testcontainers)</td><td>atendido</td></tr>
+            <tr><td>RF-07 converte preço em libra para real pela PTAX do dia</td><td><code>plan.md</code>, seção 3.2</td><td><code>src/transformacao/silver_precos.py</code></td><td><code>tests/integracao/test_ptax.py</code> (VCR) e <code>tests/unidade/test_conversao.py</code></td><td>atendido</td></tr>
+            <tr><td>RNF-03 reconstrói silver e gold a partir do <code>raw</code></td><td>ADR-003 camadas derivadas</td><td><code>src/lakehouse/reprocessar.py</code></td><td><code>docs/evidencias/reprocessamento_2026-11-28.txt</code></td><td>parcial: sem teste automatizado, só execução registrada</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>7.2 Commits ligados a tarefas</h3>
+        <p>Cada commit de implementação cita a tarefa e o requisito, e faz uma coisa só. A convenção sugerida é <code>tipo(T-xx): descrição [RF-yy]</code>, como em <code>feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code>. Os testes citam o requisito no nome ou na docstring. Com isso, <code>git log --oneline --grep "RF-04"</code> mostra a história de um requisito, e a ordem dos commits mostra se o <code>spec.md</code> e o <code>tasks.md</code> vieram antes do código.</p>
+        <p>Quando a implementação revela que um requisito estava mal escrito, a correção vai para o <code>spec.md</code> no mesmo commit da mudança de código, com uma linha no histórico de prompts explicando o motivo. A especificação acompanha o sistema até a entrega.</p>
+      </section>
+
+      <section class="content-block" id="s8">
+        <h2>8. Metas verificáveis</h2>
+        <p>As metas abaixo são as que podem ser conferidas por qualquer pessoa com o repositório em mãos. Não há meta de cobertura de linhas: um número de cobertura fixado sem relação com o domínio mede quantas linhas os testes executaram, e não se os critérios de aceite foram verificados. A meta que importa é a da primeira linha da tabela.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Meta</th><th>Como se verifica</th></tr></thead>
+          <tbody>
+            <tr><td>Todo RF e RNF com teste ou evidência</td><td>nenhuma linha da matriz em <code>atendido</code> com a coluna de evidência vazia</td></tr>
+            <tr><td>Pelo menos duas fontes de tipos diferentes</td><td>dois prefixos de fonte no <code>raw</code>, com objetos de datas diferentes</td></tr>
+            <tr><td>Nenhuma sobrescrita no <code>raw</code></td><td>teste de integração que tenta gravar a mesma chave duas vezes e falha na segunda</td></tr>
+            <tr><td>Reprocessamento sem duplicata</td><td>contagem de linhas da silver e da gold igual depois de duas execuções sobre o mesmo período</td></tr>
+            <tr><td>Testes de unidade rodam sem rede</td><td><code>pytest tests/unidade</code> passa com a rede desligada; as fontes HTTP vêm das cassetes</td></tr>
+            <tr><td>Nenhum segredo no histórico do git</td><td>a busca da seção 16, passo 3, não encontra senha, chave nem URL com credencial</td></tr>
+            <tr><td>Pipeline reproduzível a partir de um clone limpo</td><td>o roteiro do README executado do zero leva o dado até a gold</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section class="content-block" id="s9">
+        <h2>9. Custos no Railway e preservação de evidências</h2>
+        <p>O trial do Railway dá um crédito único de US$ 5, válido por até 30 dias; terminado o trial, a conta passa para o plano Free, com US$ 1 por mês. A conta criada na Aula 01, em 10/10/2026, chega a 05/12/2026 depois do fim do trial. Confira no painel da conta, ao longo das aulas, qual é o plano atual e quanto crédito resta, e dimensione o projeto para isso: poucos serviços, coleta com a frequência que a persona precisa e nada além.</p>
+        <p>Os volumes de contas trial são apagados 30 dias depois do fim dos créditos. O bucket do MinIO no Railway vive num volume, e por isso o dado coletado ao longo do semestre pode deixar de existir pouco depois da entrega, ou antes dela, conforme a data em que cada conta foi criada. Duas consequências práticas decorrem disso.</p>
+        <p>A primeira: a avaliação não depende do ambiente no ar. O pipeline precisa rodar localmente com <code>docker compose</code>, a partir do repositório, e é essa execução que o professor reproduz. As evidências do Railway mostram que o grupo publicou e operou o serviço; a execução local mostra que o sistema funciona a partir do que foi entregue.</p>
+        <p>A segunda: as evidências da operação no Railway são registradas enquanto o ambiente está no ar, e não na véspera da entrega. Elas ficam em <code>docs/evidencias/</code>, com data no nome do arquivo.</p>
+        <ol class="steps">
+          <li>Registre a listagem do bucket bruto no Railway: <code>mc ls --recursive railway/raw &gt; docs/evidencias/raw_listagem_AAAA-MM-DD.txt</code>. Se a lista for muito longa, guarde as primeiras centenas de linhas e a contagem total.</li>
+          <li>Faça uma cópia local do bucket, fora do repositório: <code>mc mirror railway/raw ./backup_raw</code>. Ela permite reprocessar silver e gold mesmo que o volume do Railway seja apagado. Não versione a cópia inteira; versione apenas uma amostra pequena, se ela for usada em teste.</li>
+          <li>Salve a saída das consultas gold que respondem às perguntas da persona, com a consulta acima do resultado.</li>
+          <li>Guarde capturas de tela do painel do Railway com os serviços, o agendamento do job e o consumo de crédito. Antes de salvar, confira que nenhuma variável com senha aparece na imagem.</li>
+          <li>Copie para um arquivo um trecho dos logs de uma execução agendada (<code>railway logs</code>), mostrando início, contagens de registros e fim.</li>
+          <li>Faça o commit das evidências com mensagem que diga o que foi registrado, como <code>docs: evidências da coleta agendada de 28/11 [RNF-02]</code>.</li>
+        </ol>
+        <div class="note">
+          <strong>Depois da entrega</strong>
+          <p>Ao fim da disciplina, decida o que fazer com os serviços. Se o grupo não pretende manter o projeto, remova os serviços no painel do Railway para não consumir o crédito mensal. Se pretende, confira no painel o que o plano atual permite manter e não conte com o volume do trial.</p>
+        </div>
+      </section>
+
+      <section class="content-block" id="s10">
+        <h2>10. Marcos e datas</h2>
+        <p>A mentoria formal acontece na Aula 08, mas dúvidas sobre o projeto podem ser levadas ao professor no fim de qualquer aula. A tabela abaixo indica o que o projeto deveria ter ao fim de cada aula para chegar a 05/12 sem acúmulo. Os marcos intermediários são orientação e não são avaliados em separado; o que se avalia é o estado do repositório na entrega.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Aula</th><th>Data</th><th>Marco sugerido para o projeto final</th></tr></thead>
+          <tbody>
+            <tr><td>01</td><td>10/10/2026</td><td>grupo formado, repositório público enviado no formulário, domínio escolhido, <code>AGENTS.md</code> e persona</td></tr>
+            <tr><td>02</td><td>17/10/2026</td><td>objetivos de negócio; primeira fonte coletando para o <code>raw</code></td></tr>
+            <tr><td>03</td><td>24/10/2026</td><td>segunda fonte, de outro tipo; <code>spec.md</code> com RF e RNF das duas fontes</td></tr>
+            <tr><td>04</td><td>31/10/2026</td><td><code>plan.md</code> com C4; silver e gold no DuckDB; job agendado no Railway</td></tr>
+            <tr><td>05</td><td>07/11/2026</td><td>ADR de modelagem; modelo relacional e/ou dimensional implementado</td></tr>
+            <tr><td>06</td><td>14/11/2026</td><td>ADR de streaming (adotado ou não, com o cenário de latência)</td></tr>
+            <tr><td>07</td><td>28/11/2026</td><td>modelos Pydantic, quarentena, testes de unidade e de integração</td></tr>
+            <tr><td>08</td><td>05/12/2026</td><td>mentoria; <code>atam.md</code>, matriz e evidências completos; entrega até 23h59</td></tr>
+          </tbody>
+        </table></div>
+        <p>Não há aula em 21/11/2026. A semana entre as Aulas 06 e 07 é a que mais rende para colocar a matriz em dia, porque nesse ponto todas as decisões de arquitetura já foram tomadas.</p>
+      </section>
+
+      <section class="content-block" id="s11">
+        <h2>11. Avaliação: pesos e limitadores de nota</h2>
+        <p>A nota do projeto distribui-se em seis dimensões. O maior peso está no pipeline funcionando, porque coleta e armazenamento são o objeto da disciplina. Em seguida vêm os artefatos SDD e os testes com rastreabilidade, porque são eles que mostram que o pipeline foi especificado e verificado, e não apenas gerado pelo agente.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Dimensão</th><th>Peso</th><th>Evidência esperada</th></tr></thead>
+          <tbody>
+            <tr><td>Pipeline ponta a ponta</td><td>25%</td><td>duas fontes de tipos diferentes, <code>raw</code> imutável, bronze/silver/gold, modelagem justificada, consulta gold que responde à persona, reprocessamento sem duplicata</td></tr>
+            <tr><td>Artefatos SDD</td><td>20%</td><td><code>AGENTS.md</code>, persona, objetivos, <code>spec.md</code> com critérios verificáveis, <code>plan.md</code>, <code>tasks.md</code>, todos coerentes entre si e anteriores ao código</td></tr>
+            <tr><td>Qualidade, testes e rastreabilidade</td><td>20%</td><td>Pydantic e quarentena, testes de unidade, testes de integração com VCR e Testcontainers, matriz completa, commits ligados a tarefas</td></tr>
+            <tr><td>Arquitetura e ATAM</td><td>15%</td><td>C4 em Mermaid, utility tree, cenários de seis partes, riscos, pontos de sensibilidade, trade-offs, ADRs</td></tr>
+            <tr><td>Operação no Railway e custo</td><td>10%</td><td>serviços publicados, segredos em variáveis, retry e idempotência, agendamento, evidências registradas, consumo de crédito acompanhado</td></tr>
+            <tr><td>Documentação e prompts</td><td>10%</td><td>README que leva um clone limpo até a gold, <code>docs/prompts.md</code> com o histórico real</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>11.1 Limitadores de nota</h3>
+        <p>Os limitadores tratam de falhas que impedem a verificação do restante. Quando um deles ocorre, as dimensões afetadas deixam de pontuar, qualquer que seja a qualidade do resto.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Situação</th><th>Efeito</th><th>Por quê</th></tr></thead>
+          <tbody>
+            <tr><td>Pipeline que não roda a partir do README, nem localmente</td><td>pipeline, qualidade e testes, e operação não pontuam (55% da nota)</td><td>sem execução, não há como verificar nada que dependa dela</td></tr>
+            <tr><td>Segredo versionado: senha, chave da OpenRouter ou URL com credencial em qualquer commit, inclusive apagado depois</td><td>operação no Railway não pontua até o segredo ser trocado e a troca registrada</td><td>o repositório é público; apagar o arquivo não retira o segredo do histórico, e só a troca da credencial encerra a exposição</td></tr>
+            <tr><td>Código sem especificação prévia: componente sem RF/RNF ou commit de código anterior ao requisito que o justifica</td><td>artefatos SDD não pontuam, e o componente não conta na dimensão de pipeline</td><td>o método da disciplina é especificar antes de implementar; especificação escrita depois descreve o código, sem orientá-lo</td></tr>
+            <tr><td>Grupo que não explica o projeto na mentoria</td><td>as dimensões cujo conteúdo o grupo não conseguiu explicar não pontuam</td><td>trabalho que o grupo não explica não pode ser atribuído ao grupo</td></tr>
+          </tbody>
+        </table></div>
+        <p>O último limitador vale para o grupo e não para uma pessoa isolada: o professor escolhe quem responde a cada pergunta, e o grupo pode completar a resposta. O que se espera é que qualquer integrante consiga percorrer o repositório e explicar uma decisão, mesmo que não tenha escrito aquela parte.</p>
+      </section>
+
+      <section class="content-block" id="s12">
+        <h2>12. A Aula 08: organização da manhã</h2>
+        <p>A Aula 08 é toda de mentoria. Não há conteúdo novo, porque a uma semana da entrega o tempo rende mais em conversa sobre o projeto que já existe do que em tema novo. O professor atende os grupos em rodízio; enquanto um grupo é atendido, os outros trabalham no próprio repositório, com a lista de pendências e o checklist da seção 13.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Horário</th><th>Bloco</th><th>O que sai do bloco</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 8h45</td><td>Abertura: ordem de atendimento, tempo por grupo, lembrete do checklist</td><td>cada grupo sabe o seu horário</td></tr>
+            <tr><td>8h45 &ndash; 10h00</td><td>Mentorias, primeira parte</td><td>pendências anotadas por grupo</td></tr>
+            <tr><td>10h00 &ndash; 10h20</td><td>Intervalo</td><td>&ndash;</td></tr>
+            <tr><td>10h20 &ndash; 11h40</td><td>Mentorias, segunda parte; depois, retornos curtos para quem pediu</td><td>pendências com responsável</td></tr>
+            <tr><td>11h40 &ndash; 12h10</td><td>Fechamento: autoauditoria, commit, conferência do formulário</td><td>relatório de autoauditoria versionado e plano até 23h59</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>12.1 Ordem de atendimento</h3>
+        <p>A ordem é sorteada na abertura e escrita no quadro. O tempo de cada atendimento é o tempo das duas partes de mentoria dividido pelo número de grupos presentes, anunciado no mesmo momento, para que nenhum grupo consuma o tempo dos seguintes. Há uma exceção ao sorteio: o grupo cujo pipeline não roda por um bloqueio técnico avisa na abertura e é atendido primeiro. Um bloqueio resolvido às 9h deixa a manhã para corrigir o resto; resolvido às 11h40, não deixa. Grupo ausente na sua vez passa para o fim da fila.</p>
+      </section>
+
+      <section class="content-block" id="s13">
+        <h2>13. Checklist de preparação para a mentoria</h2>
+        <p>O atendimento parte do estado real do repositório. O checklist abaixo deve estar conferido antes de 05/12, e os itens não cumpridos devem estar escritos, com o motivo, para que o tempo da mentoria vá para o que o grupo não consegue resolver sozinho.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>#</th><th>Item</th><th>Pronto quando</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Codespace aberto no repositório do grupo</td><td>a pasta <code>projeto_final/</code> está atualizada com o <code>main</code></td></tr>
+            <tr><td>2</td><td>Serviços locais no ar</td><td><code>docker compose up -d</code> sem erro e <code>docker compose ps</code> com tudo em execução</td></tr>
+            <tr><td>3</td><td>Pipeline executado uma vez na manhã</td><td>o comando do README levou dado novo até a gold</td></tr>
+            <tr><td>4</td><td>Testes passando</td><td><code>pytest</code> sem falha, com a saída à vista</td></tr>
+            <tr><td>5</td><td>Artefatos SDD abertos</td><td>persona, objetivos, <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code> em abas do editor</td></tr>
+            <tr><td>6</td><td>ATAM e ADRs</td><td>cada integrante sabe explicar pelo menos um trade-off</td></tr>
+            <tr><td>7</td><td>Matriz de rastreabilidade</td><td>uma linha por RF/RNF, nenhuma em <code>atendido</code> sem evidência</td></tr>
+            <tr><td>8</td><td>Evidências do Railway</td><td>registradas em <code>docs/evidencias/</code> antes do dia da aula</td></tr>
+            <tr><td>9</td><td>Busca de segredos</td><td>a busca da seção 16, passo 3, foi executada e não encontrou nada</td></tr>
+            <tr><td>10</td><td>Lista de dúvidas</td><td>escrita, com o RF, ADR ou arquivo a que cada dúvida se refere</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section class="content-block" id="s14">
+        <h2>14. Roteiro do atendimento</h2>
+        <p>O professor faz as mesmas três perguntas a todos os grupos e escolhe quem responde a cada uma. As perguntas não pedem apresentação: pedem que o grupo abra os arquivos e mostre. Não é preciso preparar slides: o tempo do atendimento é curto e vai para os arquivos e para a execução.</p>
+        <ol class="steps">
+          <li>Rastrear uma decisão. O professor aponta um trecho da persona ou um requisito do <code>spec.md</code>. O integrante percorre a cadeia abrindo os arquivos: a frase da persona, o objetivo de negócio, o RF ou RNF, a seção do <code>plan.md</code> ou o ADR, o componente em <code>src/</code> e o teste ou a evidência. Se algum elo falta, o grupo diz qual e anota.</li>
+          <li>Explicar um trade-off do ATAM. O professor escolhe um cenário ou um ADR. O integrante explica o que a decisão melhora, o que piora, qual é o ponto de sensibilidade e o que mudaria na decisão se a premissa mudasse (por exemplo, se a persona passasse a precisar do dado em minutos, ou se o crédito do Railway acabasse).</li>
+          <li>Rodar o pipeline. O grupo executa o comando do README no Codespace e mostra o objeto novo no <code>raw</code>, o Parquet da silver e a consulta gold. Depois roda <code>pytest</code> e mostra um teste de integração. O professor pode pedir que o grupo tente gravar duas vezes a mesma chave no <code>raw</code>.</li>
+          <li>Dúvidas do grupo, a partir da lista escrita.</li>
+          <li>Registro das pendências. O grupo anota no próprio repositório (por exemplo, em <code>docs/pendencias_aula08.md</code>) o que saiu do atendimento, com responsável. O que não couber até 23h59 vira linha <code>parcial</code> ou <code>não atendido</code> na matriz, com a razão.</li>
+        </ol>
+        <div class="note">
+          <strong>Quando o pipeline não roda na hora</strong>
+          <p>Se a falha for de ambiente (Codespace sem Docker ativo, porta ocupada, variável faltando no <code>.env</code>), o grupo corrige ali e roda de novo. Se for de código, o grupo mostra a última execução registrada em <code>docs/evidencias/</code> e o professor anota a falha como pendência; o limitador da seção 11.1 só se aplica se o pipeline continuar sem rodar na entrega.</p>
+        </div>
+      </section>
+
+      <section class="content-block" id="s15">
+        <h2>15. Prompts CREATE de abertura e de fechamento</h2>
+        <p>Os três prompts abaixo seguem o formato CREATE da disciplina e complementam os da Aula 01. O primeiro abre o projeto final e é usado na Aula 01, logo depois da escolha do domínio. Os outros dois são usados na semana da entrega e na própria Aula 08: um audita o repositório contra este enunciado, o outro monta a matriz de rastreabilidade a partir dos artefatos. Copie cada um inteiro, um por vez, numa sessão do OpenCode aberta na pasta <code>projeto_final/</code>, e registre-o em <code>docs/prompts.md</code>.</p>
+
+        <h3>15.1 Abertura do projeto final</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados sênior que organiza repositórios em
+Spec-Driven Development e trabalha em par com um grupo de MBA. Você
+prepara o terreno e não escreve código de pipeline nesta etapa.
+
+[R] Pedido
+Crie a estrutura do projeto final na pasta projeto_final/ e escreva
+projeto_final/AGENTS.md. O domínio do grupo é: &lt;DESCREVA O DOMÍNIO
+EM UMA FRASE&gt;. As fontes pretendidas são: &lt;FONTE 1 E TIPO&gt;,
+&lt;FONTE 2 E TIPO&gt;.
+Crie:
+- docs/00_persona.md, docs/01_objetivos_negocio.md, docs/atam.md,
+  docs/rastreabilidade.md, docs/prompts.md, docs/adr/ e docs/evidencias/,
+  com apenas o título e os cabeçalhos de seção;
+- specs/spec.md, specs/plan.md, specs/tasks.md, também só com cabeçalhos;
+- src/, tests/unidade/, tests/integracao/, tests/cassettes/;
+- .gitignore com .env, backup_raw/, __pycache__/ e .pytest_cache/;
+- .env.example só com nomes de variáveis (MINIO_ENDPOINT, MINIO_ROOT_USER,
+  MINIO_ROOT_PASSWORD e as que as fontes exigirem), sem valores reais;
+- AGENTS.md com: escopo (somente projeto_final/), comandos permitidos,
+  política de segredos, gates por etapa SDD e convenção de commits.
+
+[E] Exemplos
+Trecho esperado do AGENTS.md:
+  ## Segredos
+  - Credenciais vêm de variáveis de ambiente; nunca escreva valores em
+    arquivo versionado, prompt, log ou teste.
+  - .env existe só localmente e está no .gitignore.
+  ## Gates
+  - Antes de editar, mostre o plano da etapa e espere confirmação.
+  - Ao fim de cada etapa SDD, pare e liste os arquivos alterados.
+  ## Commits
+  - tipo(T-xx): descrição [RF-yy]
+
+[A] Ajustes
+- Não escreva persona, objetivos, requisitos nem código: só estrutura.
+- Não invente nomes de fontes, números ou SLAs que eu não informei.
+- Não rode git push nem crie serviços no Railway.
+- Se o .gitignore da raiz já cobrir algum item, diga isso em vez de
+  duplicar.
+- Mostre a árvore planejada antes de criar os arquivos.
+
+[T] Tipo de saída
+Arquivos Markdown e .gitignore/.env.example na estrutura acima. Ao fim,
+a árvore criada (saída de find projeto_final -type f | sort) e o
+conteúdo completo do AGENTS.md.
+
+[E] Extras
+Leia antes o README.md da raiz e as pastas aula_0x/ existentes para
+reaproveitar nomes de variáveis já usados. Se o domínio ou as fontes
+estiverem vagos, pergunte antes de criar qualquer arquivo. Pare ao
+final e aguarde a etapa de persona.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li>O <code>.env.example</code> tem apenas nomes de variáveis, sem nenhum valor real?</li>
+            <li><code>git check-ignore projeto_final/.env</code> devolve o caminho, confirmando que o <code>.env</code> será ignorado?</li>
+            <li>O <code>AGENTS.md</code> proíbe <code>git push</code> e escrita de segredos, e manda parar ao fim de cada etapa?</li>
+            <li>O agente deixou de escrever código de pipeline, como foi pedido?</li>
+          </ul>
+        </div>
+
+        <h3>15.2 Autoauditoria final contra o enunciado</h3>
+        <p>Este prompt pede uma auditoria e proíbe correções. A separação é deliberada: um agente que encontra a lacuna e a corrige na mesma sessão costuma preencher o que falta com conteúdo inventado (um teste que não verifica nada, uma evidência que não existe, um ADR escrito depois da decisão). O relatório volta para o grupo, que decide o que corrigir e em que ordem, cada correção com o seu próprio prompt.</p>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um auditor técnico de projetos de engenharia de dados. Você
+compara o repositório com o enunciado e relata o que encontrou. Você não
+corrige nada.
+
+[R] Pedido
+Audite a pasta projeto_final/ contra o enunciado do projeto final da
+disciplina e escreva o relatório em docs/auditoria_final.md. Verifique,
+um a um, os itens abaixo, e para cada um diga: cumprido, parcial ou
+ausente, com o arquivo e a linha que sustentam o julgamento.
+1. Artefatos SDD: AGENTS.md, docs/00_persona.md,
+   docs/01_objetivos_negocio.md, specs/spec.md (RF/RNF com
+   Dado/Quando/Então), specs/plan.md (C4 em Mermaid), specs/tasks.md
+   (cada T-xx com RF/RNF e teste), docs/atam.md (utility tree, cenários
+   de seis partes, riscos, pontos de sensibilidade, trade-offs),
+   docs/adr/, docs/rastreabilidade.md, docs/prompts.md.
+2. Fontes: pelo menos duas de tipos diferentes (API REST, scraping,
+   arquivo, streaming).
+3. Raw imutável no MinIO: o código confere a existência da chave antes de
+   gravar e recusa a sobrescrita; há teste que demonstra isso.
+4. Lakehouse: silver em Parquet tipado com coluna de origem; gold com
+   consulta que responde a uma pergunta da persona; reprocessamento sem
+   duplicata.
+5. Modelagem: ADR que justifica relacional e/ou dimensional pelas
+   perguntas da persona.
+6. Validação: modelo Pydantic por fonte; quarentena com motivo.
+7. Testes: unidade sem rede; integração com VCR para cada fonte HTTP e
+   Testcontainers para cada serviço de armazenamento usado.
+8. Railway: retry com espera crescente e idempotência na escrita remota;
+   segredos só em variáveis; evidências em docs/evidencias/.
+9. Streaming: ADR que adota ou descarta, com cenário de latência.
+10. Rastreabilidade: toda linha "atendido" da matriz tem evidência;
+    commits citam T-xx e RF/RNF (use git log --oneline).
+11. Ordem SDD: spec.md e tasks.md têm commits anteriores aos commits de
+    código que implementam seus itens (use git log --follow).
+12. Segredos: procure no histórico (git log -p) senhas, chaves sk-or-,
+    URLs com usuário e senha, e arquivos .env versionados.
+
+[E] Exemplos
+| # | Item | Estado | Evidência | Lacuna |
+|---|------|--------|-----------|--------|
+| 3 | Raw imutável | parcial | src/coleta/gravador_raw.py:41 usa put_object sem head_object | falta verificação de existência e teste de recusa |
+| 7 | Testes de integração | ausente | tests/integracao/ vazio | nenhum teste com Testcontainers para o MinIO |
+
+[A] Ajustes
+- Não edite nenhum arquivo além de docs/auditoria_final.md.
+- Não rode git commit, git push nem comandos que alterem serviços.
+- Não marque "cumprido" sem citar arquivo e linha ou saída de comando.
+- Se encontrar um segredo, não o copie para o relatório: informe só o
+  arquivo, o commit e o tipo de credencial.
+- Separe fato (o que você viu), lacuna (o que falta) e suposição (o que
+  você inferiu sem confirmar).
+- Pode rodar pytest e docker compose config para verificar; registre a
+  saída resumida.
+
+[T] Tipo de saída
+docs/auditoria_final.md com: a tabela dos 12 itens no formato do
+exemplo; uma lista das lacunas ordenadas pelo impacto na avaliação
+(primeiro as que acionam limitador de nota: pipeline que não roda,
+segredo versionado, código sem especificação prévia); e uma seção
+"Suposições" com o que você não conseguiu confirmar.
+
+[E] Extras
+Fontes de verdade: os arquivos de projeto_final/ e o histórico do git.
+Não use conhecimento externo sobre como o projeto "deveria" ser além dos
+12 itens. Se não conseguir rodar algum comando, diga qual e por quê.
+Pare ao final e não proponha correções em código.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li><code>git status</code> mostra apenas <code>docs/auditoria_final.md</code> como alterado?</li>
+            <li>Cada item marcado como cumprido cita arquivo e linha que vocês conseguem abrir e conferir?</li>
+            <li>Alguma lacuna aciona um limitador de nota da seção 11.1? Ela está no topo da lista?</li>
+            <li>O relatório copiou algum valor de segredo? Se copiou, apague o arquivo, troque a credencial e rode de novo.</li>
+          </ul>
+        </div>
+
+        <h3>15.3 Matriz de rastreabilidade a partir dos artefatos</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de qualidade que monta matrizes de rastreabilidade
+a partir de artefatos existentes, sem completar lacunas por conta
+própria.
+
+[R] Pedido
+Gere docs/rastreabilidade.md com uma linha para cada RF e RNF de
+specs/spec.md, na ordem do arquivo, com as colunas:
+Requisito | Objetivo de negócio | Decisão | Componente | Evidência | Estado | Razão.
+- Objetivo: o item de docs/01_objetivos_negocio.md que o requisito cita.
+- Decisão: a seção de specs/plan.md ou o ADR de docs/adr/ que o atende.
+- Componente: o caminho em src/ que o implementa (procure pelas tarefas
+  de specs/tasks.md ligadas ao requisito e pelos arquivos que elas
+  citam).
+- Evidência: o teste (caminho::nome) ou o arquivo em docs/evidencias/.
+- Estado: atendido, parcial ou não atendido.
+
+[E] Exemplos
+| RF-04 grava a página bruta no raw sem sobrescrever | OBJ-02 | ADR-002 | src/coleta/gravador_raw.py | tests/integracao/test_gravador_raw.py::test_recusa_sobrescrita | atendido | |
+| RNF-03 reconstrói silver e gold a partir do raw | OBJ-03 | ADR-003 | src/lakehouse/reprocessar.py | docs/evidencias/reprocessamento_2026-11-28.txt | parcial | sem teste automatizado; só execução registrada |
+
+[A] Ajustes
+- Preserve os IDs e o texto dos requisitos exatamente como em spec.md.
+- Não crie requisito, decisão, componente ou teste que não exista.
+- Coluna vazia vira "sem registro"; uma linha com "sem registro" em
+  Evidência nunca é "atendido".
+- Para confirmar que um teste existe, rode pytest --collect-only -q e
+  use apenas nomes que aparecem na coleta.
+- Não altere spec.md, plan.md, tasks.md, src/ nem tests/.
+
+[T] Tipo de saída
+docs/rastreabilidade.md em Markdown: a tabela completa; abaixo dela,
+três listas curtas: requisitos sem evidência, componentes de src/ que
+nenhum requisito cita, e testes que não citam requisito.
+
+[E] Extras
+Leia, nesta ordem: docs/00_persona.md, docs/01_objetivos_negocio.md,
+specs/spec.md, specs/plan.md, docs/adr/, specs/tasks.md, a saída de
+pytest --collect-only -q e docs/evidencias/. Se um requisito tiver mais
+de um componente ou teste, liste todos na mesma célula. Pergunte antes
+se spec.md tiver IDs repetidos. Pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li>O número de linhas da matriz é igual ao número de RF e RNF do <code>spec.md</code>?</li>
+            <li>Sorteiem três linhas em <code>atendido</code>: o teste citado existe, passa e verifica o critério de aceite do requisito, ou só executa o código?</li>
+            <li>A lista de componentes sem requisito está vazia? Se não está, o componente sai do código ou o requisito entra no <code>spec.md</code>, com registro em <code>docs/prompts.md</code>.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="content-block" id="s16">
+        <h2>16. Como entregar</h2>
+        <p>A entrega fecha em 05/12/2026, às 23h59, no mesmo dia da mentoria. O professor avalia o último commit do ramo <code>main</code> do repositório informado no formulário de grupo até esse horário. Não há apresentação além da mentoria.</p>
+        <ol class="steps">
+          <li>Feche as pendências da mentoria que couberem no prazo. O que não couber vira linha <code>parcial</code> ou <code>não atendido</code> na matriz, com a razão.</li>
+          <li>Rode a autoauditoria (seção 15.2) uma última vez e confira que nenhuma lacuna aciona limitador de nota.</li>
+          <li>Procure segredos no que está versionado e no histórico, dentro da pasta do repositório:
+            <pre><code>git ls-files | grep -E '(^|/)\.env$' &amp;&amp; echo "ATENCAO: .env versionado" || echo "nenhum .env no indice"
+git log -p --all | grep -nE 'sk-or-|PASSWORD=.+|postgresql://[^ ]+:[^ ]+@' | head -20</code></pre>
+            Cada linha encontrada precisa ser inspecionada; documentação que mostra um valor fictício de exemplo pode aparecer e não é problema. Se um segredo real aparecer, troque a credencial no serviço (<code>railway variable set</code> e novo deploy) e registre a troca. Apagar o arquivo não basta, porque o repositório é público e o histórico já pode ter sido clonado.</li>
+          <li>Clone o repositório numa pasta nova (ou num Codespace novo), siga o README do zero e confirme que o dado chega à gold e que <code>pytest</code> passa. Esse é o teste que o professor vai repetir.</li>
+          <li>Confira <code>git status</code>, faça o commit de fechamento e envie para o GitHub. Opcionalmente, marque o estado entregue com <code>git tag entrega-final</code> e envie a tag.</li>
+          <li>Abra o <a href="../../../../pages/entrega_grupo_data_collection.html">formulário de grupo</a> e confira o envio. Um integrante envia pelo grupo inteiro; o grupo tem de um a cinco integrantes; o repositório precisa ser público. Se o grupo já enviou desde a Aula 01 e nada mudou, não é preciso reenviar. Para corrigir integrantes ou link, envie de novo: vale o envio mais recente.</li>
+        </ol>
+      </section>
+
+      <section class="content-block" id="s17">
+        <h2>17. Orientação para a atividade prática em sala</h2>
+        <p>A manhã inteira é prática. Chegue com o Codespace aberto no repositório do grupo, os serviços locais no ar, o pipeline executado uma vez e o checklist da seção 13 conferido. Anote o horário do grupo na abertura.</p>
+        <p>Fora do atendimento, trabalhe no terminal do Codespace com o OpenCode. A ordem que mais rende é: rodar a autoauditoria (15.2) para ter a lista de lacunas por escrito; corrigir, um prompt por vez, as que acionam limitador de nota; gerar ou atualizar a matriz (15.3); registrar no <code>docs/prompts.md</code> cada prompt enviado. Lembre o limite diário dos modelos gratuitos da OpenRouter: com 50 requisições por dia, a manhã comporta poucas sessões longas, e vale mais escrever o prompt com cuidado do que reenviá-lo várias vezes.</p>
+        <p>No Railway, use a manhã para registrar as evidências que ainda faltam (seção 9) e conferir o crédito restante. Não crie serviço novo no dia da entrega: um serviço que ainda não rodou de forma agendada não tem evidência de operação para mostrar.</p>
+        <p>Antes de sair, faça um teste cruzado com outro grupo. Entreguem um ao outro a matriz e peçam que o outro grupo sorteie duas linhas. Para cada uma, mostrem o teste ou a evidência e rodem o teste. Se em alguma for preciso procurar, anotem a correção nas pendências e façam o commit antes das 12h10.</p>
+      </section>
+
+      <div class="actions">
+        <a class="button" href="../slides/slide_aula_08_mentoria_e_entrega_do_projeto_final.html">Ver slide da Aula 08 &rarr;</a>
+        <a class="button" href="../../../../pages/entrega_grupo_data_collection.html">Formulário de grupo &rarr;</a>
+        <a class="button" href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
+        <a class="button" href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      </div>
+
+    </article>
+  </main>
+</body>
+</html>

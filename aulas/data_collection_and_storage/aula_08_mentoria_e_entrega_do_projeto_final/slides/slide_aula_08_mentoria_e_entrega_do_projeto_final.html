@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 08 — Mentoria e Entrega do Projeto Final</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="08" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Mentoria e Entrega do Projeto Final</h1>
+          <p class="deck-meta">Aula 08 &nbsp;&bull;&nbsp; 05/12/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Atendimento por grupo e entrega da plataforma de coleta e armazenamento até 05/12/2026, 23h59.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda &middot; Mentoria</span>
+          <h2 class="deck-title">Como a manhã está organizada</h2>
+          <p class="deck-summary">Não há bloco teórico nem conteúdo novo. O professor atende os grupos em rodízio; enquanto um grupo é atendido, os outros trabalham no próprio repositório.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Horário</th><th>Bloco</th><th>O que sai do bloco</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 8h45</td><td>Abertura: sorteio da ordem e tempo por grupo</td><td>cada grupo sabe o seu horário</td></tr>
+            <tr><td>8h45 &ndash; 10h00</td><td>Mentorias, primeira parte</td><td>pendências anotadas</td></tr>
+            <tr><td>10h00 &ndash; 10h20</td><td>Intervalo</td><td>&ndash;</td></tr>
+            <tr><td>10h20 &ndash; 11h40</td><td>Mentorias, segunda parte, e retornos curtos</td><td>pendências com responsável</td></tr>
+            <tr><td>11h40 &ndash; 12h10</td><td>Fechamento: autoauditoria e commit</td><td>plano até 23h59 versionado</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - OBJETIVO DO PROJETO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Projeto final &middot; Objetivo</span>
+          <h2 class="deck-title">Uma plataforma de coleta para um domínio do grupo</h2>
+          <p class="deck-summary">Grupos de um a cinco integrantes constroem, em SDD e com prompts CREATE, uma plataforma de coleta e armazenamento para uma persona que toma uma decisão com aquele dado.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Resultado esperado</strong>
+          <p style="margin:8px 0 0;">Alguém de fora clona o repositório, cria o <code>.env</code>, sobe o <code>docker compose</code>, roda o comando do README e vê o dado sair das fontes, chegar ao <code>raw</code> e terminar numa consulta gold. Depois roda <code>pytest</code> e abre a matriz de rastreabilidade.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4 - REQUISITOS MÍNIMOS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Escopo &middot; Piso comum</span>
+          <h2 class="deck-title">Requisitos mínimos da plataforma</h2>
+          <p class="deck-summary">Cada item entra no <code>spec.md</code> reescrito para o domínio, como RF ou RNF com critério de aceite.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Bloco</th><th>Exigência</th><th>Aula</th></tr></thead>
+          <tbody>
+            <tr><td>Fontes</td><td>duas ou mais, de tipos diferentes (API, scraping, arquivo, streaming)</td><td>02, 03</td></tr>
+            <tr><td>Raw</td><td>bruto no MinIO, sem sobrescrita, com teste que prova a recusa</td><td>01 a 03</td></tr>
+            <tr><td>Lakehouse</td><td>bronze, silver em Parquet, gold no DuckDB; reprocessar sem duplicar</td><td>04</td></tr>
+            <tr><td>Modelagem</td><td>relacional e/ou dimensional, justificada em ADR</td><td>05</td></tr>
+            <tr><td>Validação e testes</td><td>Pydantic, quarentena, unidade, VCR e Testcontainers</td><td>07</td></tr>
+            <tr><td>Railway</td><td>MinIO e job agendado; retry e idempotência</td><td>01, 04</td></tr>
+            <tr><td>Streaming</td><td>opcional; adotar ou descartar em ADR com cenário de latência</td><td>06</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 5 - ARTEFATOS SDD -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">SDD &middot; Pasta projeto_final/</span>
+          <h2 class="deck-title">Artefatos SDD exigidos</h2>
+          <p class="deck-summary">A sequência é a da Aula 01. Cada artefato é escrito antes do código que ele orienta.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Etapa</th><th>Artefato</th></tr></thead>
+          <tbody>
+            <tr><td>Regras do agente</td><td><code>AGENTS.md</code></td></tr>
+            <tr><td>Persona e objetivos</td><td><code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code></td></tr>
+            <tr><td>Especificação, plano, tarefas</td><td><code>specs/spec.md</code>, <code>specs/plan.md</code> (C4 em Mermaid), <code>specs/tasks.md</code></td></tr>
+            <tr><td>Validação ATAM</td><td><code>docs/atam.md</code>, <code>docs/adr/</code>, <code>docs/rastreabilidade.md</code></td></tr>
+            <tr><td>Histórico</td><td><code>docs/prompts.md</code> com os prompts enviados, sem reescrita</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 6 - RASTREABILIDADE -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Rastreabilidade &middot; docs/rastreabilidade.md</span>
+          <h2 class="deck-title">Do requisito à evidência</h2>
+          <p class="deck-summary">Uma linha por RF e RNF do <code>spec.md</code>. Linha sem evidência não fica em <code>atendido</code>.</p>
+        </div>
+        <div class="method-flow" style="grid-template-columns: repeat(4, minmax(0, 1fr));">
+          <div class="method-step"><strong>Requisito</strong><span>RF-04 grava a página bruta sem sobrescrever</span></div>
+          <div class="method-step"><strong>Decisão</strong><span>ADR-002: chave com data e hora da coleta</span></div>
+          <div class="method-step"><strong>Componente</strong><span><code>src/coleta/gravador_raw.py</code></span></div>
+          <div class="method-step"><strong>Evidência</strong><span>teste de integração com Testcontainers</span></div>
+        </div>
+        <p class="deck-note">Commits no formato <code>feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code>.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 7 - AVALIAÇÃO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Avaliação &middot; Pesos</span>
+          <h2 class="deck-title">Composição da nota</h2>
+          <p class="deck-summary">O maior peso está no pipeline, objeto da disciplina; em seguida, no que mostra que ele foi especificado e verificado.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Dimensão</th><th>Peso</th></tr></thead>
+          <tbody>
+            <tr><td>Pipeline ponta a ponta</td><td>25%</td></tr>
+            <tr><td>Artefatos SDD</td><td>20%</td></tr>
+            <tr><td>Qualidade, testes e rastreabilidade</td><td>20%</td></tr>
+            <tr><td>Arquitetura e ATAM</td><td>15%</td></tr>
+            <tr><td>Operação no Railway e custo</td><td>10%</td></tr>
+            <tr><td>Documentação e prompts</td><td>10%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 8 - LIMITADORES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Avaliação &middot; Limitadores</span>
+          <h2 class="deck-title">O que impede a verificação do resto</h2>
+          <p class="deck-summary">Quando um limitador ocorre, as dimensões afetadas deixam de pontuar.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Situação</th><th>Dimensões que não pontuam</th></tr></thead>
+          <tbody>
+            <tr><td>Pipeline não roda a partir do README</td><td>pipeline, testes e operação (55%)</td></tr>
+            <tr><td>Segredo em qualquer commit</td><td>operação, até a credencial ser trocada</td></tr>
+            <tr><td>Código sem especificação prévia</td><td>artefatos SDD; o componente sai do pipeline</td></tr>
+            <tr><td>Grupo não explica o projeto na mentoria</td><td>as partes que não foram explicadas</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 9 - CHECKLIST -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Preparação &middot; Antes do atendimento</span>
+          <h2 class="deck-title">Checklist do grupo</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Ambiente</strong>
+            <ul>
+              <li>Codespace no <code>main</code> atualizado</li>
+              <li><code>docker compose up -d</code> sem erro</li>
+              <li>pipeline rodado uma vez hoje</li>
+              <li><code>pytest</code> passando, saída à vista</li>
+              <li>busca de segredos executada</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Artefatos</strong>
+            <ul>
+              <li>persona, objetivos, spec, plan, tasks abertos</li>
+              <li>cada integrante sabe explicar um trade-off</li>
+              <li>matriz sem <code>atendido</code> vazio</li>
+              <li>evidências do Railway já registradas</li>
+              <li>dúvidas escritas, com o RF ou ADR</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10 - ROTEIRO DO ATENDIMENTO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Atendimento &middot; Três perguntas para todos</span>
+          <h2 class="deck-title">O que o professor vai pedir</h2>
+          <p class="deck-summary">O professor escolhe quem responde. Nada de slides: o grupo abre os arquivos e executa.</p>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>1 &middot; Rastrear uma decisão</strong><span>da frase da persona ao objetivo, ao RF, ao ADR, ao componente e ao teste</span></div>
+          <div class="quality-gate"><strong>2 &middot; Explicar um trade-off</strong><span>o que a decisão melhora, o que piora e o que mudaria se a premissa mudasse</span></div>
+          <div class="quality-gate"><strong>3 &middot; Rodar o pipeline</strong><span>objeto novo no <code>raw</code>, Parquet na silver, consulta gold e <code>pytest</code></span></div>
+        </div>
+        <p class="deck-note">Ordem sorteada na abertura. Grupo com pipeline bloqueado avisa e é atendido primeiro.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 11 - CUSTOS E EVIDÊNCIAS -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Railway &middot; Custo e evidências</span>
+          <h2 class="deck-title">A avaliação não depende do ambiente no ar</h2>
+          <p class="deck-summary">O trial dá US$ 5 por até 30 dias; depois, plano Free com US$ 1/mês. Volumes de trial são apagados 30 dias após o fim do crédito.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Registre a listagem do bucket: <code>mc ls --recursive railway/raw</code></li>
+          <li>Copie o bucket para fora do repositório: <code>mc mirror railway/raw ./backup_raw</code></li>
+          <li>Salve consultas gold, trecho de <code>railway logs</code> e prints sem senhas em <code>docs/evidencias/</code></li>
+          <li>Garanta que o pipeline roda localmente com <code>docker compose</code></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- SLIDE 12 - AUTOAUDITORIA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; Prompts CREATE</span>
+          <h2 class="deck-title">Autoauditoria com o agente</h2>
+          <p class="deck-summary">Os prompts completos estão na seção 15 do material. Um prompt por vez, registrado em <code>docs/prompts.md</code>.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Autoauditoria final</strong>
+            <ul>
+              <li>compara o repositório com os 12 itens do enunciado</li>
+              <li>escreve só <code>docs/auditoria_final.md</code></li>
+              <li>lista lacunas; não corrige nada</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Matriz de rastreabilidade</strong>
+            <ul>
+              <li>uma linha por RF e RNF do <code>spec.md</code></li>
+              <li>usa só testes que o <code>pytest --collect-only</code> encontra</li>
+              <li>lista componentes sem requisito</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13 - COMO ENTREGAR -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entrega &middot; 05/12/2026, 23h59</span>
+          <h2 class="deck-title">Como entregar</h2>
+          <p class="deck-summary">Vale o último commit do <code>main</code> no repositório informado no formulário de grupo.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Pendências fechadas ou declaradas na matriz como <code>parcial</code> ou <code>não atendido</code></li>
+          <li>Autoauditoria sem lacuna que acione limitador; busca de segredos limpa</li>
+          <li>Clone limpo seguindo o README até a gold, com <code>pytest</code> passando</li>
+          <li>Commit de fechamento enviado; tag <code>entrega-final</code> opcional</li>
+          <li>Formulário conferido: repositório público, de um a cinco integrantes</li>
+        </ol>
+        <p class="deck-note"><a href="../../../../pages/entrega_grupo_data_collection.html">Abrir o formulário de grupo</a></p>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../../../../pages/entrega_grupo_data_collection.html" class="back-home">Formulário</a>
+      <a href="../material/material_aula_08_mentoria_e_entrega_do_projeto_final.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

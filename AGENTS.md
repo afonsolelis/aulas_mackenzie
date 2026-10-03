@@ -29,7 +29,8 @@ Static course site (HTML/CSS, no build pipeline, no test suite).
     └── data_collection_and_storage/
         └── aula_XX_nome_da_aula/
             ├── slides/slide_aula_XX_*.html
-            └── material/material_aula_XX_*.html
+            ├── material/material_aula_XX_*.html
+            └── laboratorio/README.md   # optional lab guide and support files
 ```
 
 Surfaces principais: Hub principal (`index.html`), homes das disciplinas em `pages/` e arquivos HTML de aulas em `aulas/`.
@@ -57,7 +58,10 @@ There is no automated test suite. Manual validation checklist:
 3. Check slide footer has: prev/next buttons, slide counter, index link, material link
 4. Confirm keyboard navigation: `→` / `Space` = next, `←` = prev, `F` = fullscreen
 5. Verify `data-year="2026"` and `deck-year` are present on covers
-6. Confirm lesson timing (`19h00–22h00`) and `AWS Student` practice are in slides and materials
+6. Confirm lesson timing and practice environment match the course in `specs/estrutura_curso.md`:
+   - Cloud Computing e SRE: `19h00–22h00`, `AWS Student Lab`
+   - Data Collection and Storage: Saturdays `8h30–12h10`, no AWS; GitHub Codespaces (or local) with Docker, OpenCode + OpenRouter (`openrouter/free`), Railway; Spec-Driven Development with CREATE prompts
+   - Data Visualization: Saturdays `8h30–12h10`, hosted Metabase plus the per-lesson exceptions in the spec
 7. Check visual consistency against `specs/design_system.md`
 
 ## Specs First Rule
@@ -79,7 +83,7 @@ Every slide file must include:
 Every material file must include:
 - `<p class="meta">` with lesson number, date, time range
 - Deep expansion of slide topics (longer than slide, reflective)
-- Step-by-step for labs (AWS Student Lab hands-on)
+- Step-by-step for labs in the course environment (AWS Student Lab in Cloud SRE; Codespaces + OpenCode + Railway in Data Collection and Storage)
 - `.material-nav` with link to slide and link to `index.html`
 - No written exercises section — ends with hands-on guidance
 

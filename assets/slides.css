@@ -234,7 +234,9 @@ a:focus   { outline: 2px solid var(--deck-accent); outline-offset: 2px; }
    -------------------------------------------------------------------------- */
 
 .deck-shell {
-  min-height: 640px;
+  /* 640px ideal; em telas baixas (1280x720) desconta margens (44px) e o
+     espaço do rodapé fixo (72px) para não gerar rolagem em slide vazio. */
+  min-height: min(640px, calc(100vh - 116px));
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -320,6 +322,10 @@ a:focus   { outline: 2px solid var(--deck-accent); outline-offset: 2px; }
   letter-spacing: -0.025em;
   max-width: 28ch;
 }
+
+/* Fora da capa, o título ocupa a largura útil do shell para caber em uma
+   linha na projeção (títulos curtos e descritivos, ver CLAUDE.md). */
+.deck-shell:not([data-aula-number]) .deck-title { max-width: 44ch; }
 
 .deck-year {
   margin: 0;
@@ -568,6 +574,10 @@ a:focus   { outline: 2px solid var(--deck-accent); outline-offset: 2px; }
   font-size: .78em;
   line-height: 1.45;
 }
+
+/* Com mais de cinco etapas o fluxo quebra em duas linhas: a seta da última
+   coluna apontaria para fora do shell. */
+.method-step:nth-child(5n)::after { content: none; }
 
 .method-step.is-current {
   border-color: var(--deck-accent);
@@ -850,6 +860,11 @@ pre code {
   }
 }
 
+@media (max-width: 600px) {
+  /* No celular a tabela rola dentro do slide em vez de ser cortada pelo shell. */
+  .deck-table { display: block; overflow-x: auto; }
+}
+
 @media (max-width: 480px) {
   html, body { font-size: 15px; }
 
@@ -910,6 +925,12 @@ pre code {
   overflow-x: auto;
   box-shadow: 0 10px 24px rgba(13, 17, 23, 0.18);
 }
+
+/* Variantes de bloco de código para comandos longos no slide.
+   is-compact reduz a fonte; is-wrap quebra linhas longas (URLs, prompts)
+   em vez de exigir rolagem horizontal durante a projeção. */
+pre.is-compact { font-size: 0.74em !important; }
+pre.is-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 
 /* Variante compacta de shell: mais conteúdo por slide sem quebrar a escala. */
 .deck-shell.is-dense .deck-title { font-size: 2.1em; }

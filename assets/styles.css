@@ -616,9 +616,12 @@ body.material .page,
     left: 12px;
     max-width: calc(100% - 24px);
     justify-content: center;
+    flex-wrap: wrap; /* com 3-4 links a barra não cabe em uma linha a 390px */
     font-size: 0.72em;
   }
   .material-nav a { padding: 6px 10px; }
+  /* reserva espaço para a barra fixa (até três linhas) no fim da página */
+  .page:has(.material-nav) { padding-bottom: 150px; }
 }
 
 /* --------------------------------------------------------------------------
@@ -663,6 +666,33 @@ body.material .page,
 }
 
 .content-block .note > :last-child { margin-bottom: 0; }
+
+/* Tabela larga: rola dentro do contêiner em vez de ser cortada pelo
+   overflow do .content-block ou de alargar a página no celular. */
+.content-block .table-scroll {
+  margin: 20px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.content-block .table-scroll > table { margin: 0; }
+
+/* Bloco de código com quebra de linha: prompts CREATE e textos longos
+   (ADR, especificação) que o aluno lê e copia por inteiro. */
+.content-block pre.is-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Caminhos e identificadores longos em código inline não estouram a coluna. */
+.content-block :not(pre) > code { overflow-wrap: break-word; }
+
+/* Caixa de diagrama renderizado (Mermaid ou SVG) no material. */
+.content-block .diagram {
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+  overflow-x: auto;
+}
+.content-block .diagram svg { display: block; max-width: 100%; height: auto; margin: 0 auto; }
 
 .method-flow {
   display: grid;

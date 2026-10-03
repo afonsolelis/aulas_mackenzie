@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 02 — Tipos de Storage e Coleta em Object Storage com MinIO</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
+      <a href="../laboratorio/README.md">Roteiro do laboratório</a>
+      <a href="../slides/slide_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 02 — Tipos de Storage e Coleta em Object Storage com MinIO</h1>
+      <p class="meta">Aula 02 &middot; 17/10/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p class="summary">A primeira hora compara os tipos de armazenamento (bloco, arquivo, objeto, bancos relacionais, chave-valor e documento, colunar) e explica como o object storage funciona por dentro. O restante da aula constrói ao vivo, em Spec-Driven Development, um coletor horário da Open-Meteo que grava o JSON bruto no bucket <code>raw</code> do MinIO, primeiro no MinIO local e depois no MinIO publicado no Railway na Aula 01.</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block" id="sumario">
+        <h2>Sumário</h2>
+        <ol>
+          <li><a href="#s1">Onde a Aula 01 nos deixou</a></li>
+          <li><a href="#s2">Coleta e armazenamento como decisão arquitetural</a></li>
+          <li><a href="#s3">Tipos de storage e seus trade-offs</a></li>
+          <li><a href="#s4">Object storage por dentro</a></li>
+          <li><a href="#s5">Desenho da camada raw: chaves, formatos, imutabilidade e idempotência</a></li>
+          <li><a href="#s6">A fonte da aula: API de previsão da Open-Meteo</a></li>
+          <li><a href="#s7">Preparação do ambiente</a></li>
+          <li><a href="#s8">O projeto da aula em SDD</a></li>
+          <li><a href="#s9">Os sete prompts CREATE</a></li>
+          <li><a href="#s10">Execução e verificação no MinIO local</a></li>
+          <li><a href="#s11">Execução contra o MinIO do Railway</a></li>
+          <li><a href="#s12">Exemplo resolvido: cenário, ADR e rastreabilidade</a></li>
+          <li><a href="#s13">Erros comuns</a></li>
+          <li><a href="#s14">Atividade em sala e entregável</a></li>
+        </ol>
+      </section>
+
+      <!-- 1 -->
+      <section class="content-block" id="s1">
+        <h2>1. Onde a Aula 01 nos deixou</h2>
+        <p>A Aula 01 definiu o método e o ambiente que esta aula usa sem repetir. O método é o Spec-Driven Development: antes de qualquer código, o grupo escreve persona, objetivos de negócio, especificação, plano e tarefas; só então implementa, tarefa a tarefa e com testes, e fecha com uma validação ATAM que confronta a arquitetura com cenários de qualidade. Todo pedido ao agente segue o formato CREATE, com as seções <code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code> e <code>[E] Extras</code>.</p>
+        <p>O ambiente também já existe: um Codespace aberto no repositório do grupo, o OpenCode conectado à OpenRouter com o modelo <code>openrouter/free</code> e um MinIO publicado no Railway, com volume em <code>/data</code> e domínio público para a porta 9000 (a API compatível com S3). Se algum desses itens faltar, volte ao <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">material da Aula 01</a> antes de continuar.</p>
+        <div class="note">
+          <strong>Resultado esperado ao fim da aula</strong>
+          <p>Uma pasta <code>aula_02_coleta_json/</code> no repositório do grupo com o esqueleto SDD preenchido, um coletor em Python com testes passando, objetos JSON gravados no bucket <code>raw</code> do MinIO do Railway com chaves particionadas e metadados de coleta, e um <code>docs/atam.md</code> com cenários e evidências.</p>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="content-block" id="s2">
+        <h2>2. Coleta e armazenamento como decisão arquitetural</h2>
+        <p>Um script que chama uma API e salva a resposta em disco parece uma tarefa pequena. A dificuldade aparece semanas depois, quando alguém pergunta o que a previsão dizia para Manaus às 10h de uma terça-feira, ou por que existem duas versões do mesmo dado, ou quanto o armazenamento vai custar no fim do semestre. As respostas dependem de decisões tomadas no primeiro dia: onde o dado fica, com que nome, em que formato, com que informações sobre sua origem e o que acontece quando o coletor roda duas vezes.</p>
+        <p>Essas decisões são arquiteturais no sentido usado na Aula 01: são caras de mudar depois, afetam atributos de qualidade (confiabilidade, rastreabilidade, custo, segurança) e precisam ser justificadas por requisitos. Trocar o formato de chave de um bucket com milhões de objetos exige reescrever todos eles. Gravar sem metadados de coleta torna impossível, depois, separar um dado correto de um dado coletado por uma versão defeituosa do coletor.</p>
+        <p>Por isso a aula começa pelos tipos de armazenamento. O object storage é a escolha da camada bruta nesta disciplina, mas essa escolha só fica defensável quando comparada com as alternativas e com os trabalhos que cada uma faz bem.</p>
+      </section>
+
+      <!-- 3 -->
+      <section class="content-block" id="s3">
+        <h2>3. Tipos de storage e seus trade-offs</h2>
+        <p>A comparação abaixo organiza os tipos pela unidade que o cliente lê e escreve. Essa unidade determina o protocolo, a forma de atualizar um pedaço do dado e o tipo de escala que o sistema suporta.</p>
+
+        <h3>3.1 Block storage</h3>
+        <p>O armazenamento em bloco expõe ao sistema operacional um dispositivo dividido em blocos de tamanho fixo, endereçados por número. O disco do notebook, um SSD NVMe e os volumes de nuvem anexados a uma máquina virtual são exemplos. O dispositivo não sabe o que é um arquivo: quem organiza os blocos em arquivos e diretórios é o sistema de arquivos instalado por cima (ext4, XFS, NTFS), ou o próprio banco de dados quando ele gerencia páginas diretamente.</p>
+        <p>A vantagem é a latência baixa e a atualização parcial: um banco de dados reescreve uma página de 8 KB sem tocar no resto do arquivo. A limitação é o acoplamento. Em geral um volume em bloco é montado por uma máquina por vez, e crescer significa redimensionar o volume e o sistema de arquivos. O volume que o Railway monta em <code>/data</code> no serviço do MinIO é armazenamento desse tipo: o MinIO grava ali e oferece objetos para fora.</p>
+
+        <h3>3.2 File storage: sistemas de arquivos locais e em rede</h3>
+        <p>O armazenamento em arquivo oferece a hierarquia de diretórios e arquivos que todo programador conhece, com operações POSIX como abrir, ler a partir de um deslocamento, acrescentar ao final, renomear e travar. Localmente, é o sistema de arquivos sobre um disco em bloco. Em rede, protocolos como NFS (comum em Linux) e SMB (comum em ambientes Windows) permitem que várias máquinas montem o mesmo diretório compartilhado.</p>
+        <p>O modelo é familiar e aceita atualização parcial, o que o torna adequado para pastas compartilhadas, diretórios de trabalho de ferramentas que esperam caminhos locais e aplicações legadas. Os custos aparecem na escala: manter a semântica de diretório (renomear uma pasta, listar, travar arquivos) entre muitos clientes exige coordenação, e a hierarquia vira gargalo quando milhões de arquivos ficam no mesmo diretório.</p>
+
+        <h3>3.3 Object storage</h3>
+        <p>O armazenamento de objetos guarda cada dado como um objeto inteiro dentro de um bucket, identificado por uma chave textual e acompanhado de metadados. O acesso é feito por HTTP, com operações como <code>PUT</code>, <code>GET</code>, <code>HEAD</code>, <code>DELETE</code> e listagem por prefixo. Não existe diretório de verdade: a barra em <code>open_meteo/data=2026-10-17/sao_paulo.json</code> é só um caractere da chave, que as ferramentas exibem como pasta. O objeto também não aceita atualização parcial: para mudar um byte, regrava-se o objeto inteiro.</p>
+        <p>Essas restrições permitem escalar a capacidade quase sem limite prático e a um custo por gigabyte menor que o de bloco e arquivo, já que o sistema não precisa coordenar travas nem hierarquia. A API do S3 virou o padrão de fato para object storage: MinIO, Ceph, Cloudflare R2 e outros implementam uma API compatível com S3, e bibliotecas como <code>boto3</code>, ferramentas como DuckDB e Spark e o cliente <code>mc</code> falam com qualquer um deles mudando apenas o endpoint. É por isso que o MinIO serve à disciplina: o código escrito contra ele roda contra outro provedor compatível sem reescrita.</p>
+
+        <h3>3.4 Bancos relacionais</h3>
+        <p>O banco relacional (PostgreSQL, MySQL, SQLite) organiza o dado em tabelas com esquema declarado, chaves e restrições, e oferece SQL e transações ACID. Ele faz bem o que o object storage não faz: atualizar uma linha, garantir que duas operações aconteçam juntas ou nenhuma aconteça, impedir que um pedido aponte para um cliente inexistente. Paga por isso com esquema rígido na escrita (o dado precisa caber na tabela antes de entrar) e com escala horizontal mais difícil. Para guardar a resposta bruta de uma API cujo formato pode mudar, o esquema rígido trabalha contra: um campo novo exige migração antes da coleta. O relacional volta na Aula 05, onde o problema é justamente modelar.</p>
+
+        <h3>3.5 Chave-valor e documento</h3>
+        <p>Bancos chave-valor (Redis, Valkey, etcd) devolvem um valor a partir de uma chave com latência muito baixa, e servem a cache, sessão, contadores e filas leves. Bancos de documento (MongoDB, Couchbase) guardam documentos JSON com esquema flexível e permitem consultar por campos internos. Ambos aceitam atualização de um registro e escalam particionando por chave. O limite é a consulta analítica ampla: agregar um campo sobre milhões de documentos não é o trabalho para o qual foram desenhados. Um banco de documento poderia receber o JSON da Open-Meteo, mas cobraria por um recurso (consulta por campo e atualização) que a camada bruta não usa.</p>
+
+        <h3>3.6 Colunar e analítico</h3>
+        <p>Armazenamentos colunares (ClickHouse, DuckDB, data warehouses, e formatos de arquivo como Parquet) guardam os valores de uma mesma coluna juntos. Uma consulta que soma uma coluna lê só aquela coluna e se beneficia de compressão alta, já que valores parecidos ficam vizinhos. O preço está na escrita: inserir linha a linha é caro, atualizar um registro isolado é caro, e o esquema precisa ser conhecido. Por isso esses sistemas costumam ler de uma camada bruta e não substituí-la. A Aula 04 transforma o JSON gravado hoje em Parquet e consulta com DuckDB; a Aula 06 usa ClickHouse para leituras de sensores.</p>
+
+        <h3>3.7 Tabela comparativa</h3>
+        <p>As colunas de latência e custo usam ordens de grandeza relativas entre os tipos, sem valores absolutos. Valores reais dependem de hardware, rede, provedor e configuração, e devem ser medidos ou consultados na página de preço do provedor antes de entrar em qualquer documento do grupo.</p>
+        <div class="table-scroll"><table>
+          <thead>
+            <tr><th>Critério</th><th>Bloco</th><th>Arquivo (local, NFS, SMB)</th><th>Objeto</th><th>Relacional</th><th>Chave-valor / documento</th><th>Colunar / analítico</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Unidade de acesso</td><td>bloco de tamanho fixo</td><td>arquivo em diretório</td><td>objeto inteiro, por chave</td><td>linha em tabela</td><td>valor ou documento, por chave</td><td>coluna (em blocos de linhas)</td></tr>
+            <tr><td>Protocolo típico</td><td>dispositivo local, iSCSI, NVMe</td><td>POSIX; NFS, SMB em rede</td><td>HTTP, API compatível com S3</td><td>protocolo do banco, SQL</td><td>protocolo do banco, API própria</td><td>SQL, HTTP, leitura de arquivo</td></tr>
+            <tr><td>Latência típica (relativa)</td><td>a mais baixa</td><td>baixa local; maior em rede</td><td>a mais alta por operação (cada acesso é uma requisição HTTP)</td><td>baixa para leitura por índice</td><td>muito baixa por chave</td><td>alta por linha; baixa por valor em varredura</td></tr>
+            <tr><td>Escalabilidade</td><td>vertical, um volume por máquina</td><td>limitada pela coordenação da hierarquia</td><td>horizontal, capacidade quase ilimitada</td><td>vertical; horizontal com esforço</td><td>horizontal por partição de chave</td><td>horizontal em leitura</td></tr>
+            <tr><td>Custo por GB (relativo)</td><td>alto</td><td>alto</td><td>baixo</td><td>alto (armazenamento e processamento juntos)</td><td>médio a alto</td><td>médio; compressão reduz volume</td></tr>
+            <tr><td>Modelo de consistência</td><td>o do sistema de arquivos ou banco por cima</td><td>POSIX local; varia em rede (cache de cliente)</td><td>depende do servidor; MinIO documenta leitura após escrita estrita</td><td>transações ACID</td><td>configurável; muitas vezes eventual entre réplicas</td><td>varia; cargas em lote</td></tr>
+            <tr><td>Atualização parcial</td><td>sim (bloco)</td><td>sim (deslocamento, append)</td><td>não; regrava o objeto</td><td>sim (linha)</td><td>sim (registro ou campo)</td><td>cara; prefere reescrever partes</td></tr>
+            <tr><td>Casos de uso</td><td>disco de VM, volume de banco, volume do MinIO</td><td>pastas compartilhadas, ferramentas legadas</td><td>camada raw, data lake, backups, mídia</td><td>sistemas transacionais, modelo relacional</td><td>cache, sessão, catálogo flexível</td><td>BI, agregações, séries temporais</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>3.8 Como escolher</h3>
+        <p>A tabela não aponta um vencedor; ela descreve trabalhos diferentes. Para escolher, cinco perguntas costumam bastar:</p>
+        <ol class="steps">
+          <li>Qual é a unidade natural do dado? Uma resposta inteira de API, uma linha de pedido ou um valor de cache.</li>
+          <li>O dado será atualizado em pedaços ou só gravado e lido? Dados brutos de coleta são gravados uma vez e lidos muitas.</li>
+          <li>Quem lê, com que padrão? Um analista agregando colunas, uma aplicação buscando por chave ou um job reprocessando tudo.</li>
+          <li>O formato pode mudar sem aviso? Se sim, esquema rígido na escrita obriga a parar a coleta para migrar.</li>
+          <li>Quanto vai crescer e quem paga? O custo por gigabyte e o custo por requisição pesam diferente conforme o volume.</li>
+        </ol>
+        <p>Para a resposta bruta de uma API pública coletada a cada hora, as respostas apontam para o object storage: unidade natural é o documento inteiro, não há atualização parcial, a leitura será em lote pelas próximas aulas, o formato pode mudar e o volume cresce continuamente.</p>
+      </section>
+
+      <!-- 4 -->
+      <section class="content-block" id="s4">
+        <h2>4. Object storage por dentro</h2>
+
+        <h3>4.1 Bucket, chave e objeto</h3>
+        <p>O bucket é o contêiner de nível mais alto: tem nome único no servidor e é onde se aplicam políticas de acesso, versionamento e ciclo de vida. Dentro dele, cada objeto é endereçado por uma chave, que é uma string. A listagem aceita um prefixo e um delimitador, e é isso que permite navegar como se houvesse pastas: listar com prefixo <code>open_meteo/data=2026-10-17/</code> devolve só os objetos daquele dia. A consequência prática é que o desenho da chave define quais leituras serão baratas. Ler um dia inteiro é uma listagem por prefixo; ler uma cidade em todos os dias, com a chave proposta nesta aula, exige listar todos os dias.</p>
+
+        <h3>4.2 Metadados</h3>
+        <p>Cada objeto carrega metadados do sistema (tamanho, data de modificação, ETag, tipo de conteúdo) e metadados definidos pelo usuário, enviados como cabeçalhos <code>x-amz-meta-*</code> na gravação. Os metadados de usuário são lidos com uma operação <code>HEAD</code>, sem baixar o conteúdo, o que os torna úteis para guardar a origem do dado. Duas restrições importam: os valores trafegam em cabeçalhos HTTP, então devem ficar em ASCII (escreva <code>sao_paulo</code>, não <code>São Paulo</code>), e o conjunto tem tamanho limitado, então guarde informação de procedência, não o dado.</p>
+
+        <h3>4.3 Imutabilidade do objeto</h3>
+        <p>Um objeto não é editado no lugar. Uma nova gravação na mesma chave substitui o objeto inteiro, ou cria uma nova versão quando o versionamento está ligado. Essa propriedade combina com a camada bruta: o que foi coletado fica como foi coletado, e qualquer correção é um objeto novo ou uma transformação em outra camada.</p>
+
+        <h3>4.4 Consistência</h3>
+        <p>Consistência responde à pergunta: depois que uma gravação foi confirmada, uma leitura logo em seguida vê o dado novo? A <a href="https://github.com/minio/minio/blob/master/docs/distributed/README.md" target="_blank" rel="noopener noreferrer">documentação do MinIO</a> declara consistência estrita de leitura após escrita e de listagem após escrita, tanto em modo distribuído quanto em modo de um nó, com uma condição: a garantia vale para sistemas de arquivos como XFS, ZFS e Btrfs, e a mesma página desaconselha ext4. O sistema de arquivos do volume do Railway não foi verificado para esta aula, o que torna a premissa uma hipótese a registrar no ATAM. Outros sistemas compatíveis com S3 podem oferecer garantias diferentes: a garantia pertence ao servidor, e a API compatível não a transfere. Para o coletor, isso significa que um <code>HEAD</code> logo após um <code>PUT</code> confirmado encontra o objeto, o que sustenta a verificação de existência usada na idempotência.</p>
+
+        <h3>4.5 API compatível com S3</h3>
+        <p>O cliente fala com o MinIO exatamente como falaria com outro serviço compatível, mudando o endpoint. Em Python, com <code>boto3</code>, isso se faz com <code>endpoint_url</code>. Dois detalhes evitam horas de depuração: use endereçamento por caminho (<code>Config(s3={"addressing_style": "path"})</code>), porque o domínio do Railway não resolve subdomínios por bucket; e informe uma região (o MinIO aceita <code>us-east-1</code> como padrão), porque a assinatura das requisições a exige.</p>
+
+        <h3>4.6 Versionamento</h3>
+        <p>Com o versionamento ligado no bucket, cada gravação na mesma chave cria uma versão nova e preserva as anteriores, e uma exclusão apenas marca o objeto como apagado. O benefício é recuperar dados sobrescritos por engano. O custo é armazenamento: cada versão ocupa espaço. Na preparação desta aula, o versionamento foi ligado num MinIO local com a mesma imagem usada pelo grupo (<code>mc version enable</code>) e duas gravações na mesma chave produziram duas versões listadas por <code>mc ls --versions</code>. Nesta aula, o versionamento funciona também como detector: se a contagem de versões cresce quando o coletor roda duas vezes na mesma hora, a idempotência falhou.</p>
+
+        <h3>4.7 Ciclo de vida</h3>
+        <p>Regras de ciclo de vida (lifecycle, ou ILM no MinIO) expiram objetos ou versões antigas automaticamente após um número de dias, por prefixo. Exemplo testado na preparação: <code>mc ilm rule add --noncurrent-expire-days 7 local/raw</code> apaga versões não correntes após sete dias. A regra transforma o crescimento do bucket numa decisão explícita, e não num efeito colateral descoberto quando o crédito do Railway acaba.</p>
+      </section>
+
+      <!-- 5 -->
+      <section class="content-block" id="s5">
+        <h2>5. Desenho da camada raw: chaves, formatos, imutabilidade e idempotência</h2>
+
+        <h3>5.1 Prefixos e particionamento no estilo Hive</h3>
+        <p>A convenção de particionamento popularizada pelo Hive escreve cada nível da chave como <code>nome=valor</code>. Assim, <code>open_meteo/data=2026-10-17/hora=12/sao_paulo.json</code> diz, só pela chave, que o objeto veio da Open-Meteo, foi coletado em 17/10/2026 às 12h e se refere a São Paulo. Ferramentas como DuckDB e Spark reconhecem esse padrão e transformam <code>data</code> e <code>hora</code> em colunas, o que a Aula 04 usará para ler só as partições de interesse. A chave adotada nesta aula é:</p>
+        <pre><code>bucket: raw
+chave:  open_meteo/data=AAAA-MM-DD/hora=HH/&lt;cidade&gt;.json
+exemplo: open_meteo/data=2026-10-17/hora=12/sao_paulo.json</code></pre>
+        <p>Três decisões estão embutidas nessa chave e devem aparecer no ADR do grupo. A partição é pelo momento da coleta, e não pelo horário previsto, porque cada resposta contém previsões para várias horas. O fuso da partição precisa ser fixado (a proposta da aula é UTC, que não sofre mudança de horário; o fuso local fica nos metadados). E o nome da cidade vira um identificador ASCII sem espaços, estável ao longo do tempo.</p>
+
+        <h3>5.2 Formatos brutos: JSON e JSON Lines</h3>
+        <p>JSON guarda um documento por arquivo e preserva a resposta exatamente como a API a enviou. JSON Lines (JSONL) guarda um documento JSON por linha, o que permite acrescentar registros e ler em fluxo, linha a linha. Para a resposta da Open-Meteo, um objeto JSON por cidade e por hora preserva o documento original e mantém a chave determinística. O JSON Lines aparece no manifesto de execução: um arquivo por execução, com uma linha por cidade registrando o resultado (gravado, já existia, erro) e eventuais alertas, como uma resposta cuja forma mudou. Uma mudança de schema na fonte não impede a gravação na raw, que guarda o que chegou; ela vira um alerta para quem transforma o dado depois.</p>
+
+        <h3>5.3 Imutabilidade da camada raw</h3>
+        <p>A camada raw guarda o que a fonte entregou, sem limpeza, renomeação de campos ou conversão de unidades. Se uma transformação estiver errada, a camada raw permite refazê-la; se a raw tiver sido transformada, o original se perdeu. Por isso o coletor grava os bytes recebidos e coloca as informações de procedência nos metadados do objeto, sem embrulhar a resposta num envelope que altere o documento.</p>
+
+        <h3>5.4 Idempotência na escrita</h3>
+        <p>Uma operação é idempotente quando executá-la duas vezes produz o mesmo estado que executá-la uma vez. Coletores são reexecutados por muitos motivos: agendador que dispara de novo, pessoa que roda à mão para testar, retry depois de erro de rede. Se cada execução gerasse uma chave nova (por exemplo, com o horário em segundos ou um UUID), cada repetição duplicaria dados. A chave determinística resolve: a mesma cidade, na mesma hora de coleta, sempre produz a mesma chave. A política proposta é "a primeira gravação da hora vale": antes de gravar, o coletor faz <code>HEAD</code> na chave; se o objeto existe, não grava e registra <code>ja_existia</code> no manifesto.</p>
+        <p>A lição do projeto ClickHouse no Railway, do professor, mostra por que isso importa: o proxy do Railway devolve 502 de forma esporádica. Com retry e chave determinística, repetir a gravação é seguro. Sem chave determinística, o retry de uma gravação que de fato chegou ao servidor, mas cuja confirmação se perdeu, cria um duplicado.</p>
+        <p>Fica um risco residual, que deve entrar no ATAM: duas execuções simultâneas podem fazer o <code>HEAD</code> ao mesmo tempo, não encontrar o objeto e gravar as duas. Com versionamento ligado, isso aparece como duas versões. Para um coletor horário com uma execução por vez, o risco é baixo; para um coletor com várias réplicas, exigiria trava ou gravação condicional.</p>
+
+        <h3>5.5 Metadados de coleta</h3>
+        <p>Cada objeto gravado leva metadados de procedência. A proposta mínima da aula:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Metadado (<code>x-amz-meta-*</code>)</th><th>Exemplo</th><th>Pergunta que responde</th></tr></thead>
+          <tbody>
+            <tr><td><code>fonte</code></td><td><code>open-meteo</code></td><td>de onde veio</td></tr>
+            <tr><td><code>coletado-em</code></td><td><code>2026-10-17T12:04:31Z</code></td><td>quando foi coletado, em UTC</td></tr>
+            <tr><td><code>versao-coletor</code></td><td><code>0.1.0</code></td><td>qual código coletou (para isolar coletas de uma versão defeituosa)</td></tr>
+            <tr><td><code>sha256</code></td><td>hash hexadecimal dos bytes gravados</td><td>o conteúdo foi alterado depois?</td></tr>
+            <tr><td><code>cidade</code>, <code>latitude-pedida</code>, <code>longitude-pedida</code></td><td><code>sao_paulo</code>, <code>-23.55</code>, <code>-46.63</code></td><td>o que foi pedido; a API devolve a coordenada da célula de grade, que difere da pedida</td></tr>
+          </tbody>
+        </table></div>
+        <p>O último item vem de uma observação feita na preparação da aula: ao pedir latitude <code>-23.55</code> e longitude <code>-46.63</code>, a resposta veio com <code>"latitude": -23.514938</code> e <code>"longitude": -46.610504</code>, a célula da grade do modelo. Sem guardar a coordenada pedida, não se reconstrói a requisição a partir do objeto.</p>
+      </section>
+
+      <!-- 6 -->
+      <section class="content-block" id="s6">
+        <h2>6. A fonte da aula: API de previsão da Open-Meteo</h2>
+        <p>A <a href="https://open-meteo.com/en/docs" target="_blank" rel="noopener noreferrer">Open-Meteo</a> oferece uma API de previsão do tempo sem chave de acesso para uso não comercial. O endpoint é <code>https://api.open-meteo.com/v1/forecast</code>. Os parâmetros usados na aula, conferidos na documentação e numa chamada real em 03/10/2026:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Parâmetro</th><th>Valor na aula</th><th>Observação</th></tr></thead>
+          <tbody>
+            <tr><td><code>latitude</code>, <code>longitude</code></td><td>coordenadas da capital</td><td>obrigatórios; aceitam várias coordenadas separadas por vírgula, caso em que a resposta vira uma lista</td></tr>
+            <tr><td><code>hourly</code></td><td><code>temperature_2m,relative_humidity_2m</code></td><td>variáveis horárias; há dezenas de outras, como <code>precipitation</code> e <code>wind_speed_10m</code></td></tr>
+            <tr><td><code>timezone</code></td><td><code>America/Sao_Paulo</code></td><td>padrão é GMT; <code>auto</code> resolve pelo local</td></tr>
+            <tr><td><code>forecast_days</code></td><td><code>1</code></td><td>de 0 a 16; padrão 7</td></tr>
+          </tbody>
+        </table></div>
+        <p>A resposta traz no nível superior <code>latitude</code>, <code>longitude</code>, <code>generationtime_ms</code>, <code>utc_offset_seconds</code>, <code>timezone</code>, <code>timezone_abbreviation</code>, <code>elevation</code>, <code>hourly_units</code> e <code>hourly</code>; este último contém a lista <code>time</code> e uma lista por variável pedida. Um parâmetro inválido devolve HTTP 400 com o corpo <code>{"error": true, "reason": "..."}</code>.</p>
+        <pre><code>curl -s "https://api.open-meteo.com/v1/forecast?latitude=-23.55&amp;longitude=-46.63&amp;hourly=temperature_2m,relative_humidity_2m&amp;timezone=America/Sao_Paulo&amp;forecast_days=1" | python -m json.tool | head -30
+
+curl -s -w "\nHTTP %{http_code}\n" "https://api.open-meteo.com/v1/forecast?latitude=-23.55&amp;longitude=-46.63&amp;hourly=temperatura"</code></pre>
+        <p>Na mesma verificação, a resposta para uma cidade com <code>forecast_days=1</code> e duas variáveis teve 989 bytes; com <code>forecast_days=7</code>, 4.877 bytes. São medidas de uma chamada, úteis para estimar ordem de grandeza do crescimento do bucket, e não um tamanho garantido.</p>
+        <p>Os <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener noreferrer">termos de uso</a> limitam o uso gratuito não comercial a menos de 10.000 chamadas por dia, 5.000 por hora e 600 por minuto, e exigem a aceitação da licença CC BY 4.0, que pede atribuição da fonte. Seis capitais coletadas a cada hora somam 144 chamadas por dia, bem abaixo do limite.</p>
+        <p>Por que guardar a resposta toda hora? Porque o endpoint devolve a previsão vigente no momento da chamada. Quem quiser saber, depois, o que a previsão dizia às 10h de um dia precisa ter gravado a resposta às 10h daquele dia. A camada raw é esse registro.</p>
+        <h3>6.1 Cidades da aula</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Identificador</th><th>Cidade</th><th>Latitude</th><th>Longitude</th></tr></thead>
+          <tbody>
+            <tr><td><code>sao_paulo</code></td><td>São Paulo</td><td>-23.55</td><td>-46.63</td></tr>
+            <tr><td><code>rio_de_janeiro</code></td><td>Rio de Janeiro</td><td>-22.91</td><td>-43.17</td></tr>
+            <tr><td><code>brasilia</code></td><td>Brasília</td><td>-15.78</td><td>-47.93</td></tr>
+            <tr><td><code>salvador</code></td><td>Salvador</td><td>-12.97</td><td>-38.50</td></tr>
+            <tr><td><code>manaus</code></td><td>Manaus</td><td>-3.12</td><td>-60.02</td></tr>
+            <tr><td><code>porto_alegre</code></td><td>Porto Alegre</td><td>-30.03</td><td>-51.23</td></tr>
+          </tbody>
+        </table></div>
+        <p>As coordenadas são aproximações do centro de cada capital, com duas casas decimais. Manaus fica num fuso diferente do de Brasília; com <code>timezone=America/Sao_Paulo</code>, todas as horas da resposta ficam no horário de Brasília. Essa é uma escolha a registrar, não um detalhe.</p>
+      </section>
+
+      <!-- 7 -->
+      <section class="content-block" id="s7">
+        <h2>7. Preparação do ambiente</h2>
+        <p>Os comandos completos estão no <a href="../laboratorio/README.md">roteiro do laboratório</a>. Esta seção explica o que cada etapa faz.</p>
+
+        <h3>7.1 Pasta da aula no repositório do grupo</h3>
+        <ol class="steps">
+          <li>Abra o Codespace do repositório do grupo e um terminal.</li>
+          <li>Crie a pasta e o esqueleto SDD, e baixe os arquivos de apoio da pasta <code>laboratorio/</code> desta aula:</li>
+        </ol>
+        <pre><code>cd /workspaces/&lt;repositorio-do-grupo&gt;
+mkdir -p aula_02_coleta_json/{docs/adr,specs,src,tests}
+cd aula_02_coleta_json
+
+BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/data_collection_and_storage/aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/laboratorio
+for f in docker-compose.yml .env.example requirements.txt AGENTS.md .gitignore; do
+  curl -fsSLO "$BASE/$f"
+done
+ls -la</code></pre>
+        <p>O <code>AGENTS.md</code> é o modelo de regras para o OpenCode: escopo, fontes de verdade, comandos permitidos, segredos e gates. Leia e ajuste antes do primeiro prompt. O <code>.gitignore</code> impede que <code>.env</code>, <code>.env.railway</code> e <code>.venv/</code> entrem no Git.</p>
+
+        <h3>7.2 MinIO local com docker compose</h3>
+        <p>O <code>docker-compose.yml</code> sobe o MinIO com a imagem <code>ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z</code>, a mesma do template de MinIO do Railway. A edição comunitária do MinIO entrou em modo de manutenção e deixou de ter imagens Docker oficiais publicadas; a imagem da coolLabs é construída a partir das releases oficiais. A tag fica fixa para que todos rodem a mesma versão. Um segundo serviço, <code>minio-init</code>, espera o MinIO ficar saudável e cria o bucket <code>raw</code>.</p>
+        <pre><code>cp .env.example .env
+SENHA=$(openssl rand -base64 24)
+sed -i "s|^MINIO_ROOT_PASSWORD=.*|MINIO_ROOT_PASSWORD=$SENHA|; s|^S3_SECRET_KEY=.*|S3_SECRET_KEY=$SENHA|" .env
+unset SENHA
+
+docker compose config -q &amp;&amp; echo "compose ok"
+docker compose up -d
+docker compose ps -a
+docker compose logs minio-init</code></pre>
+        <p>Gate: <code>minio</code> aparece como <code>healthy</code>, <code>minio-init</code> termina com <code>Exited (0)</code> e <code>git status</code> não lista <code>.env</code>.</p>
+        <p>A imagem do MinIO já traz o cliente <code>mc</code>, então não é preciso instalá-lo. Registre um alias dentro do contêiner e ligue o versionamento:</p>
+        <pre><code>docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
+docker compose exec minio mc ls local
+docker compose exec minio mc version enable local/raw
+docker compose exec minio mc version info local/raw</code></pre>
+
+        <h3>7.3 Ambiente Python</h3>
+        <pre><code>python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -c "import requests, boto3, pytest, responses; print('ok')"</code></pre>
+        <p>O <code>requirements.txt</code> sugere <code>requests</code> para HTTP, <code>boto3</code> para a API compatível com S3, <code>pytest</code> para testes e <code>responses</code> para simular a Open-Meteo nos testes unitários sem chamar a API real. O grupo pode trocar <code>requests</code> por <code>httpx</code> ou <code>boto3</code> pelo SDK <code>minio</code>, desde que registre a decisão no plano.</p>
+
+        <h3>7.4 OpenCode na pasta do projeto</h3>
+        <pre><code>opencode</code></pre>
+        <p>Abra o OpenCode dentro de <code>aula_02_coleta_json/</code> e confirme o modelo com <code>/models</code>. Os modelos gratuitos da OpenRouter aceitam 20 requisições por minuto e 50 por dia para contas que compraram menos de US$ 10 em créditos; cada prompt consome várias requisições. Trabalhe um prompt por vez e, diante de erro 429, espere e repita.</p>
+      </section>
+
+      <!-- 8 -->
+      <section class="content-block" id="s8">
+        <h2>8. O projeto da aula em SDD</h2>
+        <p>O cenário a seguir é fictício e serve para dar ao agente um problema concreto. Uma distribuidora de bebidas opera centros de distribuição em seis capitais. A equipe de planejamento quer, mais adiante, comparar a previsão de temperatura e umidade com as vendas de bebidas geladas e ajustar o estoque de cada centro. Para isso, precisa de um histórico do que a previsão dizia a cada hora, guardado sem alteração, que as próximas etapas (Aula 04) vão transformar e consultar.</p>
+        <p>O projeto desta aula entrega só a primeira peça: o coletor e a camada raw. A sequência de prompts segue a convenção da disciplina:</p>
+        <div class="method-flow">
+          <div class="method-step"><strong>Persona e objetivos</strong><span>Prompts 1 e 2: quem usa, que decisão toma, como medir sucesso.</span></div>
+          <div class="method-step"><strong>Especificação</strong><span>Prompt 3: RF e RNF com Dado/Quando/Então.</span></div>
+          <div class="method-step"><strong>Plano e tarefas</strong><span>Prompts 4 e 5: C4, módulos, tarefas ligadas a testes.</span></div>
+          <div class="method-step"><strong>Implementação</strong><span>Prompt 6: uma tarefa por vez, teste antes de seguir.</span></div>
+          <div class="method-step"><strong>ATAM</strong><span>Prompt 7: cenários, riscos, ADRs e evidências.</span></div>
+        </div>
+        <p>Todos os prompts carregam as mesmas regras: não inventar números nem SLAs (marcar "hipótese, validação pendente"), separar fato, lacuna e suposição, preservar os IDs de requisito, não pôr segredos em arquivo versionado, mostrar o plano antes de editar e parar ao fim da etapa. Copie cada prompt por inteiro. A revisão que vem depois de cada um é a parte que produz aprendizado: o agente erra, e o grupo precisa pegar o erro antes que ele contamine a etapa seguinte.</p>
+      </section>
+
+      <!-- 9 -->
+      <section class="content-block" id="s9">
+        <h2>9. Os sete prompts CREATE</h2>
+
+        <h3>Prompt 1. Persona</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um analista de requisitos de dados que entrevista usuários de negócio antes de qualquer decisão técnica. Você escreve em português, de forma objetiva, e separa o que foi informado do que está sendo suposto.
+
+[R] Pedido
+Crie o arquivo docs/00_persona.md descrevendo a(s) persona(s) que vão usar os dados do coletor de previsão do tempo desta pasta (aula_02_coleta_json). Contexto fornecido pelo professor (cenário fictício): uma distribuidora de bebidas opera centros de distribuição em seis capitais (São Paulo, Rio de Janeiro, Brasília, Salvador, Manaus e Porto Alegre). A equipe de planejamento quer guardar, a cada hora, a previsão de temperatura e umidade publicada para cada capital, para mais tarde comparar previsão com vendas de bebidas geladas e ajustar o estoque de cada centro. A fonte é a API pública da Open-Meteo. Nesta etapa não há vendas nem painel: só a coleta e o armazenamento bruto.
+
+[E] Exemplos
+Formato esperado de uma persona:
+## P-01 Analista de planejamento de estoque
+- Quem é: analista da equipe de planejamento, usa planilhas e SQL básico.
+- Decisão que toma: quanto reforçar o estoque de bebidas geladas em cada centro para a semana.
+- Dor atual: não sabe o que a previsão dizia no momento em que decidiu; não consegue avaliar se a decisão foi ruim ou se a previsão mudou.
+- Frequência de uso: semanal (hipótese, validação pendente).
+- O que precisa do dado: previsão horária por capital, com o horário em que foi coletada.
+- Fato / suposição: separar em lista.
+
+[A] Ajustes
+- Crie no máximo duas personas: uma usuária do dado (negócio) e uma mantenedora do coletor (engenharia de dados).
+- Não invente números (volumes, frequência, metas). Quando precisar de um valor, escreva "hipótese, validação pendente".
+- Não proponha tecnologia, arquitetura nem código nesta etapa.
+- Termine com uma seção "Fatos, lacunas e suposições" e uma seção "Perguntas para o cliente".
+
+[T] Tipo de saída
+Um único arquivo Markdown, docs/00_persona.md, com até 60 linhas. Mostre o conteúdo proposto antes de gravar.
+
+[E] Extras
+Leia AGENTS.md antes de começar e siga as regras dele. Se faltar informação essencial, pergunte antes de escrever. Pare ao final desta etapa e aguarde revisão; não avance para objetivos de negócio.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>A persona de negócio diz qual decisão toma e com que frequência? Algum número apareceu sem a marca de hipótese? A persona de engenharia descreve o que ela precisa para operar o coletor (saber se rodou, onde está o dado, o que falhou)? A seção de perguntas ao cliente tem pelo menos duas perguntas concretas?</p>
+        </div>
+
+        <h3>Prompt 2. Objetivos de negócio</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um gerente de produto de dados que transforma a dor de uma persona em objetivos mensuráveis, sem prometer o que não pode medir.
+
+[R] Pedido
+Leia docs/00_persona.md e crie docs/01_objetivos_negocio.md com os objetivos de negócio do coletor de previsão do tempo da Open-Meteo para as seis capitais, as métricas de sucesso, os drivers de negócio e as restrições.
+
+[E] Exemplos
+## OBJ-01 Histórico confiável da previsão
+- Descrição: manter, para cada capital e cada hora de coleta, a resposta da previsão exatamente como foi publicada.
+- Métrica de sucesso: proporção de horas com objeto gravado para as seis capitais, por dia.
+- Meta: hipótese, validação pendente (perguntar ao cliente qual falha é aceitável).
+- Persona atendida: P-01.
+
+[A] Ajustes
+- Inclua estas restrições, com origem "restrição fornecida pelo professor": (1) armazenamento em object storage MinIO com API compatível com S3, bucket raw; (2) execução local via docker compose e publicação no MinIO do Railway criado na Aula 01; (3) orçamento limitado ao crédito do plano de teste do Railway (US$ 5, até 30 dias) e depois ao plano Free (US$ 1/mês); (4) fonte Open-Meteo, uso não comercial, limite de menos de 10.000 chamadas por dia, 5.000 por hora e 600 por minuto, licença CC BY 4.0; (5) nenhum segredo em arquivo versionado.
+- Liste drivers de negócio que ajudem a priorizar atributos de qualidade (por exemplo: rastreabilidade da origem, não perder horas de coleta, custo previsível).
+- Não invente metas numéricas: toda meta sem fonte fica como "hipótese, validação pendente".
+- Não escreva requisitos técnicos nem arquitetura ainda.
+
+[T] Tipo de saída
+Arquivo Markdown docs/01_objetivos_negocio.md, com seções: Objetivos (OBJ-xx), Métricas de sucesso, Drivers de negócio, Restrições (com origem), Fora de escopo, Fatos/lacunas/suposições. Até 80 linhas.
+
+[E] Extras
+Preserve os IDs de persona (P-xx). Mostre o plano do arquivo antes de gravar. Pergunte se faltar informação. Pare ao final desta etapa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Cada objetivo aponta para uma persona? As cinco restrições aparecem com origem? Alguma meta virou número sem fonte? A seção "Fora de escopo" exclui explicitamente vendas, painel e transformação (que são de outras aulas)?</p>
+        </div>
+
+        <h3>Prompt 3. Especificação</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados sênior que escreve especificações verificáveis. Todo requisito seu tem critério de aceite que um teste automatizado ou um comando consegue confirmar.
+
+[R] Pedido
+Leia docs/00_persona.md e docs/01_objetivos_negocio.md e crie specs/spec.md com os requisitos funcionais (RF-xx) e não funcionais (RNF-xx) do coletor. Fatos técnicos a usar (verificados pelo professor):
+- Endpoint: https://api.open-meteo.com/v1/forecast, sem chave.
+- Parâmetros: latitude, longitude, hourly=temperature_2m,relative_humidity_2m, timezone=America/Sao_Paulo, forecast_days=1.
+- Parâmetro inválido devolve HTTP 400 com {"error": true, "reason": "..."}.
+- A resposta traz latitude e longitude da célula de grade, diferentes das pedidas.
+- Cidades e coordenadas: sao_paulo (-23.55, -46.63), rio_de_janeiro (-22.91, -43.17), brasilia (-15.78, -47.93), salvador (-12.97, -38.50), manaus (-3.12, -60.02), porto_alegre (-30.03, -51.23).
+- Bucket: raw. Chave: open_meteo/data=AAAA-MM-DD/hora=HH/&lt;cidade&gt;.json, com data e hora do momento da coleta em UTC.
+- Metadados do objeto: fonte, coletado-em (ISO 8601 UTC), versao-coletor, sha256 dos bytes gravados, cidade, latitude-pedida, longitude-pedida. Valores em ASCII.
+- Configuração por variáveis de ambiente: S3_ENDPOINT_URL, S3_ACCESS_KEY, S3_SECRET_KEY, BUCKET_RAW, S3_REGION, COLETOR_VERSAO, OPEN_METEO_URL, OPEN_METEO_TIMEZONE.
+- O MinIO do Railway fica atrás de um proxy que devolve 502 esporádico.
+
+Cubra no mínimo: coleta por cidade; gravação dos bytes recebidos sem alteração; chave determinística; idempotência (primeira gravação da hora vale: se a chave existe, não grava e registra ja_existia); metadados; manifesto de execução em JSON Lines em _manifestos/open_meteo/data=AAAA-MM-DD/hora=HH/execucao_&lt;AAAAMMDDTHHMMSSZ&gt;.jsonl, com uma linha por cidade (cidade, chave, status gravado|ja_existia|erro, alerta, mensagem); verificação mínima de forma da resposta (hourly.time presente e listas de hourly com o mesmo tamanho), que em caso de divergência grava o bruto mesmo assim e registra alerta_schema no manifesto; falha de uma cidade não impede as outras; código de saída diferente de zero se alguma cidade falhar; retry com espera crescente para timeout, 429 e 5xx da API e para 502/503/504 do MinIO; nenhuma repetição para HTTP 400; credenciais só por variável de ambiente; mesma execução contra MinIO local e do Railway mudando só variáveis.
+
+[E] Exemplos
+RF-03 Chave determinística
+Dado uma coleta de São Paulo iniciada em 17/10/2026 às 12:20 UTC,
+Quando o coletor calcula a chave do objeto,
+Então a chave é open_meteo/data=2026-10-17/hora=12/sao_paulo.json,
+E uma nova execução às 12:50 UTC do mesmo dia calcula a mesma chave.
+Verificação: teste unitário de função pura com horário fixo.
+
+RNF-02 Sem segredos versionados
+Dado o repositório do grupo,
+Quando se executa git diff --staged antes do commit,
+Então nenhum valor de S3_ACCESS_KEY ou S3_SECRET_KEY aparece.
+Verificação: comando de revisão listado no AGENTS.md.
+
+[A] Ajustes
+- Cada requisito tem ID estável, descrição de uma frase, critério Dado/Quando/Então e uma linha "Verificação" (teste unitário, teste de integração ou comando).
+- Não invente SLA, tempo de resposta, número de tentativas ou tempo de espera como fato. Proponha valores iniciais marcados "hipótese, validação pendente".
+- Não escolha bibliotecas nem descreva módulos: isso é do plano.
+- Liste em "Fora de escopo": transformação, Parquet, agendamento automático em produção e painel.
+
+[T] Tipo de saída
+Arquivo Markdown specs/spec.md com seções: Contexto, Requisitos funcionais, Requisitos não funcionais, Fora de escopo, Fatos/lacunas/suposições, Rastreabilidade (requisito para objetivo OBJ-xx). Use tabela na seção de rastreabilidade.
+
+[E] Extras
+Preserve os IDs P-xx e OBJ-xx. Mostre a lista de requisitos antes de gravar o arquivo. Pergunte se algum fato técnico parecer contraditório. Pare ao final desta etapa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Todo RF e RNF tem Dado/Quando/Então e uma linha de verificação executável? A chave usa UTC e o exemplo de 12:20 e 12:50 UTC aparece? Existe requisito para o caso "objeto já existe"? O retry exclui o HTTP 400? Algum número (tentativas, espera, timeout) aparece sem a marca de hipótese? Cada requisito aponta para um objetivo?</p>
+        </div>
+
+        <h3>Prompt 4. Plano e arquitetura</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um arquiteto de software de dados. Você justifica cada escolha técnica com um requisito e desenha a arquitetura no modelo C4 usando Mermaid.
+
+[R] Pedido
+Leia specs/spec.md e crie specs/plan.md com a arquitetura do coletor e as escolhas técnicas. Inclua:
+1. Diagrama C4 de contexto (Mermaid): pessoa da persona P-01, coletor, API Open-Meteo, MinIO (local e Railway).
+2. Diagrama C4 de contêineres e componentes (Mermaid): ponto de entrada python -m src.coletor; módulos separados para configuração, lista de cidades, cliente da Open-Meteo, construção de chave e metadados, gravação no object storage, manifesto.
+3. Diagrama de sequência (Mermaid) de uma execução: para cada cidade, GET na API, cálculo da chave, HEAD no MinIO, PUT com metadados se não existir, linha no manifesto; ao final, PUT do manifesto.
+4. Tabela de escolhas técnicas: escolha, alternativa considerada, requisito que justifica. Considere: requests ou httpx; boto3 ou SDK minio; uma requisição por cidade ou uma requisição com as seis coordenadas (a API aceita listas e devolve um array); UTC ou America/Sao_Paulo na partição.
+5. Configuração do cliente S3 para MinIO: endpoint_url vindo de S3_ENDPOINT_URL, endereçamento por caminho (addressing_style path), região de S3_REGION, retry do cliente.
+6. Estratégia de testes: unitários com a biblioteca responses para simular a API e um armazenamento falso em memória com a mesma interface do gravador; teste de integração marcado com @pytest.mark.integracao, executado só quando o MinIO local está no ar.
+
+[E] Exemplos
+| Escolha | Alternativa | Justificativa |
+|---|---|---|
+| Uma requisição por cidade | Uma requisição com as seis coordenadas | RF-xx (falha de uma cidade não impede as outras); custo: 6 chamadas por hora, 144 por dia, abaixo do limite da fonte |
+
+[A] Ajustes
+- Toda tecnologia citada aponta para um RF ou RNF; se não houver, escreva "sem requisito correspondente" e remova ou justifique.
+- Os nomes nos diagramas e no texto são os mesmos.
+- O gravador recebe o cliente de armazenamento por parâmetro (injeção de dependência), para que os testes usem o armazenamento falso.
+- Não escreva código de produção. Assinaturas de funções em pseudocódigo são aceitas.
+- Não invente valores de timeout ou tentativas; mantenha os do spec com a marca de hipótese.
+
+[T] Tipo de saída
+Arquivo Markdown specs/plan.md com blocos Mermaid, uma tabela de escolhas e uma seção "Riscos técnicos iniciais". Até 150 linhas.
+
+[E] Extras
+Leia AGENTS.md. Mostre o esboço do plano antes de gravar. Pergunte se algum requisito estiver ambíguo. Pare ao final desta etapa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Os nomes dos componentes no Mermaid batem com os do texto? A decisão "uma requisição por cidade" ou "uma para todas" tem justificativa ligada a requisito? O cliente S3 usa endereçamento por caminho? Alguma biblioteca entrou sem requisito? O diagrama de sequência mostra o <code>HEAD</code> antes do <code>PUT</code>?</p>
+        </div>
+
+        <h3>Prompt 5. Tarefas</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um tech lead que quebra um plano em tarefas pequenas, cada uma entregável em minutos e verificável por um teste.
+
+[R] Pedido
+Leia specs/spec.md e specs/plan.md e crie specs/tasks.md com a lista ordenada de tarefas de implementação do coletor.
+
+[E] Exemplos
+## T-03 Construir chave e metadados
+- Requisitos: RF-03, RF-05
+- Arquivos: src/chaves.py, tests/test_chaves.py
+- Teste que prova: test_chave_usa_data_e_hora_utc; test_metadados_em_ascii
+- Pronto quando: python -m pytest -q tests/test_chaves.py passa
+- Depende de: T-01
+
+[A] Ajustes
+- Cada tarefa cita pelo menos um RF ou RNF, os arquivos tocados e o nome do teste que a prova.
+- A primeira tarefa cria a estrutura (src/__init__.py, tests/, pytest.ini com o marcador integracao registrado) e um teste trivial que passa.
+- A idempotência tem tarefa própria, com teste usando o armazenamento falso: duas execuções na mesma hora resultam em uma gravação e um status ja_existia.
+- O retry tem tarefa própria, com teste em que a API simulada devolve 503 e depois 200, e outro em que devolve 400 e não há nova tentativa.
+- A última tarefa é o teste de integração contra o MinIO local.
+- No fim, uma tabela de cobertura: requisito, tarefa, teste. Requisito sem tarefa aparece como lacuna.
+
+[T] Tipo de saída
+Arquivo Markdown specs/tasks.md, com 6 a 10 tarefas e a tabela de cobertura.
+
+[E] Extras
+Preserve IDs RF, RNF e OBJ. Mostre a lista antes de gravar. Pare ao final desta etapa; não comece a implementar.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Todo requisito aparece em pelo menos uma tarefa? Cada tarefa tem um teste nomeado? Existe tarefa para idempotência e outra para retry? A ordem respeita as dependências (chave antes do gravador, gravador antes do coletor)?</p>
+        </div>
+
+        <h3>Prompt 6. Implementação tarefa a tarefa</h3>
+        <p>Este prompt é usado uma vez por tarefa. Troque <code>T-xx</code> pela tarefa da vez.</p>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados que pratica desenvolvimento orientado a testes em Python. Você escreve código pequeno, legível, com tipos e sem dependências fora do requirements.txt.
+
+[R] Pedido
+Implemente somente a tarefa T-xx de specs/tasks.md. Escreva primeiro o teste descrito na tarefa, rode python -m pytest -q e mostre a falha; depois implemente o mínimo para o teste passar e rode de novo.
+
+[E] Exemplos
+Teste esperado para a chave (T-03):
+def test_chave_usa_data_e_hora_utc():
+    momento = datetime(2026, 10, 17, 12, 20, tzinfo=timezone.utc)
+    assert montar_chave("sao_paulo", momento) == "open_meteo/data=2026-10-17/hora=12/sao_paulo.json"
+
+[A] Ajustes
+- Leia spec.md, plan.md e tasks.md antes de editar. Mostre o plano de alteração (arquivos e funções) e espere minha confirmação.
+- Toque apenas nos arquivos listados na tarefa.
+- Credenciais e endpoint vêm de variáveis de ambiente; nunca escreva valores reais em código ou teste. Nos testes, use valores falsos como "teste".
+- Os bytes gravados são exatamente os recebidos da API (response.content); o sha256 é calculado sobre esses bytes.
+- O cliente boto3 usa endpoint_url=S3_ENDPOINT_URL, region_name=S3_REGION e Config(s3={"addressing_style": "path"}).
+- Testes unitários não acessam rede: use a biblioteca responses e o armazenamento falso.
+- Não altere spec.md nem plan.md. Se a tarefa estiver errada, pare e explique.
+
+[T] Tipo de saída
+Arquivos de código e teste da tarefa, a saída de python -m pytest -q antes e depois, e um resumo de até cinco linhas com o que mudou.
+
+[E] Extras
+Se precisar de pacote fora do requirements.txt, peça autorização. Ao terminar, marque a tarefa como concluída em specs/tasks.md e pare. Não comece a próxima tarefa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>O teste falhou antes e passou depois? O diff toca só os arquivos da tarefa? Há credencial, URL do Railway ou número mágico no código? Os bytes gravados são os da resposta, sem <code>json.loads</code> seguido de <code>json.dumps</code> (que muda espaços e ordem)? Rode você mesmo <code>python -m pytest -q</code> antes de pedir a próxima tarefa.</p>
+        </div>
+
+        <h3>Prompt 7. Validação ATAM</h3>
+        <p>Use este prompt depois de rodar o coletor no MinIO local e no Railway (seções 10 e 11), porque a análise precisa de evidência medida.</p>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é uma equipe avaliadora ATAM independente, formada por um arquiteto de dados, um engenheiro de confiabilidade e uma pessoa de custos. Vocês desconfiam de afirmações sem evidência.
+
+[R] Pedido
+Leia docs/00_persona.md, docs/01_objetivos_negocio.md, specs/spec.md, specs/plan.md, specs/tasks.md e o código em src/. Crie docs/atam.md e os ADRs em docs/adr/. O docs/atam.md deve conter:
+1. Drivers de negócio e atributos de qualidade priorizados.
+2. Utility tree: atributo, refinamento, cenário, com importância e dificuldade (alta, média, baixa) justificadas.
+3. Cenários de seis partes (fonte do estímulo, estímulo, ambiente, artefato, resposta, medida da resposta), cobrindo no mínimo:
+   C-01 API da Open-Meteo fora do ar ou respondendo 5xx durante a coleta;
+   C-02 coletor executado duas vezes na mesma hora UTC;
+   C-03 MinIO do Railway devolvendo 502 no PUT;
+   C-04 crescimento do bucket ao longo de 30 dias comparado ao crédito do Railway;
+   C-05 mudança de schema da API (campo renomeado ou variável removida);
+   C-06 credencial do MinIO aparecendo no diff;
+   C-07 duas execuções simultâneas na mesma hora.
+4. Para cada cenário: decisão arquitetural relacionada, evidência existente (teste, comando, saída de mc), lacuna.
+5. Pontos de sensibilidade, pontos de trade-off, riscos, não-riscos e temas de risco.
+6. Matriz requisito, decisão, componente, evidência, com uma linha por RF e RNF.
+Crie ADR-001 sobre o formato da chave e a partição em UTC, e ADR-002 sobre a política de idempotência (primeira gravação da hora vale). Crie outros ADRs se encontrar decisões relevantes sem registro.
+
+[E] Exemplos
+C-02 Idempotência
+- Fonte: agendador ou pessoa do grupo.
+- Estímulo: o coletor é executado duas vezes dentro da mesma hora UTC.
+- Ambiente: operação normal, MinIO disponível, versionamento ligado no bucket raw.
+- Artefato: gravador e bucket raw.
+- Resposta: a segunda execução não cria objeto nem versão em open_meteo/ e registra ja_existia no manifesto para cada cidade.
+- Medida: contagem de objetos e de versões em open_meteo/data=D/hora=H igual antes e depois (saída de mc ls --recursive --versions colada como evidência).
+
+[A] Ajustes
+- Não invente valores. Para C-04, use o tamanho medido dos objetos (mc du) e o número de objetos por dia; preço do armazenamento do Railway só com fonte citada, senão "hipótese, validação pendente".
+- Diferencie risco confirmado (com evidência) de dúvida não investigada.
+- Exija para cada resposta de cenário uma evidência executável; se não houver, registre como lacuna e proponha o teste ou comando.
+- Não altere código, spec nem plano. Se encontrar contradição, registre como descoberta.
+
+[T] Tipo de saída
+docs/atam.md em Markdown com tabelas; docs/adr/ADR-001-chave-particionada-utc.md e docs/adr/ADR-002-idempotencia-primeira-gravacao.md, cada um com status, contexto, alternativas, decisão, consequências positivas e negativas, requisitos relacionados e condição de revisão.
+
+[E] Extras
+Peça que eu cole a saída dos comandos mc e pytest se ela não estiver no repositório. Mostre a utility tree antes de escrever o restante. Pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise para fechar</strong>
+          <p>Os sete cenários têm as seis partes e uma medida verificável? O C-04 usa tamanho medido, e não estimado de memória? Há pelo menos um trade-off nomeado (por exemplo, primeira gravação vale contra última gravação vale)? O risco de execuções simultâneas aparece como risco, e não como resolvido? A matriz tem linha para todo requisito, inclusive os sem evidência?</p>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section class="content-block" id="s10">
+        <h2>10. Execução e verificação no MinIO local</h2>
+        <p>Com as tarefas implementadas e os testes passando, rode o coletor contra o MinIO local. O carregamento do <code>.env</code> com <code>set -a</code> exporta todas as variáveis para o processo Python.</p>
+        <pre><code>set -a; source .env; set +a
+python -m pytest -q
+python -m src.coletor
+python -m src.coletor   # segunda vez na mesma hora</code></pre>
+        <p>Verifique o bucket com o <code>mc</code> dentro do contêiner. Quando a saída segue por um pipe (<code>| wc -l</code>, <code>| sha256sum</code>), use <code>exec -T</code>: sem terminal alocado, os bytes chegam ao comando seguinte sem conversão de fim de linha.</p>
+        <pre><code>docker compose exec minio mc ls --recursive local/raw/open_meteo/
+docker compose exec -T minio mc find local/raw/open_meteo --name "*.json" | wc -l
+docker compose exec -T minio mc ls --recursive --versions local/raw/open_meteo/ | wc -l
+docker compose exec minio mc ls --recursive local/raw/_manifestos/</code></pre>
+        <p>Inspecione um objeto, trocando data, hora e cidade pelos valores da sua execução:</p>
+        <pre><code>docker compose exec minio mc stat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json
+docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json | python -m json.tool | head -20
+docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json | sha256sum</code></pre>
+        <div class="note">
+          <strong>Gates locais</strong>
+          <ul>
+            <li><code>python -m pytest -q</code> sem falhas.</li>
+            <li>Número de objetos <code>.json</code> igual a seis vezes o número de horas coletadas.</li>
+            <li>A segunda execução na mesma hora não muda a contagem de objetos nem a de versões, e o manifesto dela mostra <code>ja_existia</code> para as seis cidades.</li>
+            <li><code>mc stat</code> mostra os metadados <code>X-Amz-Meta-Fonte</code>, <code>X-Amz-Meta-Coletado-Em</code>, <code>X-Amz-Meta-Versao-Coletor</code>, <code>X-Amz-Meta-Sha256</code> e os de cidade e coordenada.</li>
+            <li>O <code>sha256sum</code> do conteúdo é igual ao metadado de hash.</li>
+          </ul>
+        </div>
+        <p>Teste também a falha. Com o MinIO parado (<code>docker compose stop minio</code>), o coletor deve terminar com código diferente de zero, sem travar, depois de esgotar as tentativas definidas no spec. Confira com <code>echo $?</code> e suba de novo com <code>docker compose start minio</code>.</p>
+      </section>
+
+      <!-- 11 -->
+      <section class="content-block" id="s11">
+        <h2>11. Execução contra o MinIO do Railway</h2>
+        <p>O mesmo código roda contra o MinIO do Railway mudando só as variáveis de ambiente. Esse é o teste prático da escolha por uma API compatível com S3.</p>
+        <ol class="steps">
+          <li>Crie <code>.env.railway</code> a partir do <code>.env</code> e troque <code>S3_ENDPOINT_URL</code> pelo domínio público da porta 9000 (com <code>https://</code>), e <code>S3_ACCESS_KEY</code> e <code>S3_SECRET_KEY</code> pelas credenciais do MinIO do Railway. Confirme com <code>git status --short</code> que o arquivo não aparece.</li>
+          <li>Registre o alias <code>railway</code> no <code>mc</code> sem passar as chaves na linha de comando. O <code>mc</code> pede os valores de forma interativa, e eles não ficam no histórico do shell.</li>
+          <li>Garanta o bucket e o versionamento no Railway.</li>
+          <li>Rode o coletor duas vezes e verifique contagens e tamanho.</li>
+        </ol>
+        <pre><code>cp .env .env.railway
+# edite .env.railway com o endpoint e as credenciais do Railway
+git status --short
+
+docker compose exec minio mc alias set railway https://&lt;dominio-da-porta-9000&gt;
+docker compose exec minio mc mb --ignore-existing railway/raw
+docker compose exec minio mc version enable railway/raw
+
+set -a; source .env.railway; set +a
+python -m src.coletor
+python -m src.coletor
+
+docker compose exec minio mc ls --recursive railway/raw/open_meteo/
+docker compose exec -T minio mc find railway/raw/open_meteo --name "*.json" | wc -l
+docker compose exec -T minio mc ls --recursive --versions railway/raw/open_meteo/ | wc -l
+docker compose exec minio mc du railway/raw
+
+set -a; source .env; set +a   # volta ao ambiente local</code></pre>
+        <p>Se o proxy do Railway devolver 502, os logs do coletor devem mostrar novas tentativas com espera crescente, e as contagens não podem crescer além do esperado. Guarde essa saída: ela é evidência do cenário C-03 no ATAM.</p>
+        <p>O <code>mc du</code> dá o tamanho do bucket. Com seis objetos por hora, são 144 objetos por dia; multiplicado pelo tamanho medido de cada objeto, o grupo tem uma estimativa de crescimento para o cenário C-04. O preço do volume no Railway deve ser consultado na página de preços da plataforma no dia da análise e citado com data. Lembre ainda que volumes de contas em teste são apagados 30 dias após o fim dos créditos: planeje a exportação dos dados ao fim da disciplina.</p>
+      </section>
+
+      <!-- 12 -->
+      <section class="content-block" id="s12">
+        <h2>12. Exemplo resolvido: cenário, ADR e rastreabilidade</h2>
+        <p>Este exemplo mostra o nível de detalhe esperado no <code>docs/atam.md</code> para um cenário. Os valores medidos devem vir da execução do grupo.</p>
+
+        <h3>Cenário C-03: 502 do proxy do Railway no PUT</h3>
+        <div class="table-scroll"><table>
+          <tbody>
+            <tr><td>Fonte do estímulo</td><td>proxy de entrada do Railway</td></tr>
+            <tr><td>Estímulo</td><td>resposta 502 a um <code>PUT</code> de objeto</td></tr>
+            <tr><td>Ambiente</td><td>coleta normal contra o MinIO do Railway</td></tr>
+            <tr><td>Artefato</td><td>gravador do coletor e bucket <code>raw</code></td></tr>
+            <tr><td>Resposta</td><td>o cliente repete a gravação com espera crescente; ao repetir, grava na mesma chave; se as tentativas se esgotarem, registra <code>erro</code> no manifesto e segue para a próxima cidade</td></tr>
+            <tr><td>Medida</td><td>nenhuma versão extra em <code>open_meteo/</code> além de uma por cidade e hora; código de saída diferente de zero quando houver erro final</td></tr>
+          </tbody>
+        </table></div>
+        <p>Descobertas. Ponto de sensibilidade: o número de tentativas e a espera determinam se a coleta da hora termina dentro da própria hora. Trade-off: mais tentativas aumentam a chance de gravar, mas alongam a execução e consomem mais requisições. Risco: se o <code>PUT</code> chegou ao servidor e só a resposta se perdeu, a nova tentativa grava os mesmos bytes na mesma chave; com versionamento ligado, isso cria uma segunda versão idêntica. Não-risco: não há duplicação de chave, porque a chave é determinística.</p>
+
+        <h3>ADR-002 resumido: primeira gravação da hora vale</h3>
+        <ul>
+          <li>Status: aceito.</li>
+          <li>Contexto: o coletor pode rodar mais de uma vez na mesma hora; a camada raw deve ser imutável.</li>
+          <li>Alternativas: última gravação vale (sobrescrever); chave com horário em segundos (sem idempotência); gravação condicional no servidor (depende de suporte a verificar).</li>
+          <li>Decisão: <code>HEAD</code> antes do <code>PUT</code>; se existir, não grava e registra <code>ja_existia</code>.</li>
+          <li>Consequências: positiva, reexecução segura e contagem estável; negativa, a previsão mais nova dentro da hora é descartada; risco residual em execuções simultâneas.</li>
+          <li>Requisitos: RF de idempotência e RF de chave determinística do spec do grupo.</li>
+          <li>Revisão: se o coletor passar a rodar em mais de uma réplica.</li>
+        </ul>
+
+        <h3>Linha da matriz de rastreabilidade</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Requisito</th><th>Decisão</th><th>Componente</th><th>Evidência</th></tr></thead>
+          <tbody>
+            <tr><td>RF de idempotência</td><td>ADR-002</td><td>gravador</td><td>teste unitário com armazenamento falso; contagem de versões igual antes e depois da segunda execução (saída de <code>mc ls --versions</code>)</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="content-block" id="s13">
+        <h2>13. Erros comuns</h2>
+        <ul>
+          <li>Reserializar o JSON antes de gravar (<code>json.dumps(response.json())</code>). O conteúdo muda (espaços, ordem, escape) e o hash deixa de corresponder ao que a API enviou.</li>
+          <li>Usar o horário local na chave sem declarar o fuso. A partição fica ambígua se houver mudança de horário e não se alinha com o metadado em UTC.</li>
+          <li>Pôr acento nos metadados (<code>São Paulo</code>). Cabeçalhos HTTP esperam ASCII.</li>
+          <li>Esquecer o endereçamento por caminho no <code>boto3</code>. O cliente tenta resolver <code>raw.&lt;dominio&gt;</code> e falha com erro de DNS ou de certificado.</li>
+          <li>Repetir requisições que devolveram HTTP 400. O erro é do pedido; repetir só consome cota.</li>
+          <li>Testes unitários que chamam a API real ou o MinIO. Passam ou falham conforme a rede, e consomem cota.</li>
+          <li>Colar a senha do MinIO no prompt, no <code>mc alias set</code> com chaves na linha de comando ou num arquivo versionado. Se acontecer, troque a senha no Railway.</li>
+          <li>Pedir ao agente várias etapas num prompt só. Além de esgotar o limite diário da OpenRouter, o grupo perde o ponto de revisão entre as etapas.</li>
+        </ul>
+      </section>
+
+      <!-- 14 -->
+      <section class="content-block" id="s14">
+        <h2>14. Atividade em sala e entregável</h2>
+        <p>Depois da primeira hora conceitual, o professor constrói o projeto ao vivo, prompt a prompt, e cada grupo reproduz no próprio Codespace. O ritmo recomendado é seguir a demonstração até o prompt 5 junto com a turma e então implementar as tarefas no ritmo do grupo, com o professor circulando entre os grupos.</p>
+        <ol class="steps">
+          <li>Prepare a pasta <code>aula_02_coleta_json/</code>, suba o MinIO local e o ambiente Python (seção 7).</li>
+          <li>Execute os prompts 1 a 5 no OpenCode, um por vez, com a revisão de cada um. Faça commit ao fim de cada etapa revisada.</li>
+          <li>Implemente as tarefas com o prompt 6, uma por vez, rodando <code>python -m pytest -q</code> a cada uma.</li>
+          <li>Rode o coletor no MinIO local e passe pelos gates da seção 10.</li>
+          <li>Rode o coletor no MinIO do Railway (seção 11) e guarde as saídas de <code>mc ls</code>, <code>mc stat</code>, <code>mc du</code> e as contagens.</li>
+          <li>Execute o prompt 7 com essas evidências e revise o <code>docs/atam.md</code>.</li>
+          <li>Antes do commit final, confira que nenhum segredo está no diff.</li>
+        </ol>
+        <pre><code>git status --short
+git diff --staged -- . ':!.env.example' | grep -nE "SECRET_KEY=|PASSWORD=|ACCESS_KEY=" &amp;&amp; echo "PARE: possível segredo no diff"</code></pre>
+        <div class="note">
+          <strong>Entregável da Aula 02</strong>
+          <p>No repositório do grupo, a pasta <code>aula_02_coleta_json/</code> com:</p>
+          <ul>
+            <li><code>AGENTS.md</code>, <code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code>, <code>specs/spec.md</code>, <code>specs/plan.md</code>, <code>specs/tasks.md</code>;</li>
+            <li><code>src/</code> com o coletor e <code>tests/</code> com testes passando (<code>python -m pytest -q</code>);</li>
+            <li>objetos no bucket <code>raw</code> do MinIO do Railway, com chaves no formato <code>open_meteo/data=AAAA-MM-DD/hora=HH/&lt;cidade&gt;.json</code> e metadados de coleta;</li>
+            <li><code>docs/atam.md</code> com os cenários C-01 a C-07, a matriz de rastreabilidade e as saídas de <code>mc</code> como evidência, e os ADRs em <code>docs/adr/</code>.</li>
+          </ul>
+          <p>A Aula 03 grava outras fontes no mesmo MinIO, e a Aula 04 lê estes objetos para construir as camadas bronze, silver e gold. Mantenha o bucket e as credenciais do Railway.</p>
+        </div>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>

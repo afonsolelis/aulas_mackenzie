@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 02 — Tipos de Storage e Coleta em Object Storage com MinIO</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- 1. Capa -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="02" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Tipos de Storage e Coleta em Object Storage com MinIO</h1>
+          <p class="deck-meta">Aula 02 &nbsp;&bull;&nbsp; 17/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Bloco, arquivo, objeto e bancos comparados; depois, um coletor da Open-Meteo construído em SDD e gravando JSON bruto no MinIO.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Agenda -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Conceitos até 9h30, prática até 12h10</h2>
+          <p class="deck-summary">O professor constrói ao vivo; cada grupo reproduz no próprio Codespace com os prompts do material.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h30 &middot; Conceitos</h3>
+            <ul>
+              <li>Coleta e armazenamento como decisão arquitetural</li>
+              <li>Bloco, arquivo, objeto, relacional, chave-valor, colunar</li>
+              <li>Object storage por dentro</li>
+              <li>Chaves, formatos, imutabilidade e idempotência</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>9h30 &ndash; 12h10 &middot; Prática em SDD</h3>
+            <ul>
+              <li>MinIO local com docker compose</li>
+              <li>Sete prompts CREATE no OpenCode</li>
+              <li>Coletor com testes, rodando no local</li>
+              <li>Mesmo coletor no MinIO do Railway</li>
+              <li>ATAM com evidência medida</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Problema -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Construção do conteúdo &middot; Problema</span>
+          <h2 class="deck-title">O que a previsão dizia às 10h de terça?</h2>
+          <p class="deck-summary">A API de previsão devolve sempre a previsão vigente. Quem não gravou a resposta às 10h não consegue reconstruí-la depois.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Resultado observável da aula</strong>
+          <p style="margin:8px 0 0;">Seis capitais coletadas a cada hora, cada resposta gravada como JSON bruto no bucket <code>raw</code>, com chave previsível, metadados de origem e nenhuma duplicata quando o coletor roda de novo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Decisão arquitetural -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito</span>
+          <h2 class="deck-title">Cinco decisões tomadas no primeiro dia</h2>
+          <p class="deck-summary">As escolhas do primeiro dia são caras de mudar quando o bucket tiver milhões de objetos.</p>
+        </div>
+        <ol class="deck-steps">
+          <li><strong>Onde:</strong> qual tipo de armazenamento recebe o dado.</li>
+          <li><strong>Com que nome:</strong> a chave define quais leituras serão baratas.</li>
+          <li><strong>Em que formato:</strong> bytes da fonte ou dado já transformado.</li>
+          <li><strong>Com que procedência:</strong> quando, de onde, por qual versão do coletor.</li>
+          <li><strong>Se rodar duas vezes:</strong> duplica ou mantém o mesmo estado.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 5. Tabela de tipos -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Tipos de storage</span>
+          <h2 class="deck-title">Tipos de storage por unidade de acesso</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Tipo</th><th>Unidade</th><th>Protocolo</th><th>Atualização parcial</th><th>Uso típico</th></tr></thead>
+          <tbody>
+            <tr><td>Bloco</td><td>bloco fixo</td><td>dispositivo, iSCSI, NVMe</td><td>sim</td><td>disco de VM, volume do MinIO</td></tr>
+            <tr><td>Arquivo</td><td>arquivo em diretório</td><td>POSIX; NFS, SMB</td><td>sim</td><td>pastas compartilhadas</td></tr>
+            <tr><td>Objeto</td><td>objeto inteiro por chave</td><td>HTTP, API compatível com S3</td><td>não</td><td>camada raw, data lake</td></tr>
+            <tr><td>Relacional</td><td>linha</td><td>SQL</td><td>sim, com ACID</td><td>sistemas transacionais</td></tr>
+            <tr><td>Chave-valor / documento</td><td>valor ou documento</td><td>API do banco</td><td>sim</td><td>cache, catálogo flexível</td></tr>
+            <tr><td>Colunar</td><td>coluna</td><td>SQL, arquivo Parquet</td><td>cara</td><td>agregação, BI</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6. Trade-offs -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Trade-offs</span>
+          <h2 class="deck-title">Latência, escala e custo em ordem relativa</h2>
+          <p class="deck-summary">Sem números absolutos: valores reais dependem de hardware, rede e provedor, e precisam ser medidos ou citados.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Critério</th><th>Bloco</th><th>Arquivo</th><th>Objeto</th><th>Colunar</th></tr></thead>
+          <tbody>
+            <tr><td>Latência por operação</td><td>a mais baixa</td><td>baixa; maior em rede</td><td>a mais alta (HTTP)</td><td>alta por linha, baixa em varredura</td></tr>
+            <tr><td>Escala</td><td>um volume por máquina</td><td>limitada pela hierarquia</td><td>horizontal</td><td>horizontal em leitura</td></tr>
+            <tr><td>Custo por GB</td><td>alto</td><td>alto</td><td>baixo</td><td>médio, com compressão</td></tr>
+            <tr><td>Consistência</td><td>a do sistema por cima</td><td>POSIX; varia em rede</td><td>depende do servidor</td><td>varia; cargas em lote</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 7. Como escolher -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Escolha</span>
+          <h2 class="deck-title">Por que objeto para a resposta bruta da API</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Perguntas</strong>
+            <ul>
+              <li>Qual a unidade natural do dado?</li>
+              <li>Atualiza em pedaços ou só grava e lê?</li>
+              <li>Quem lê, com que padrão?</li>
+              <li>O formato pode mudar sem aviso?</li>
+              <li>Quanto cresce e quem paga?</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Respostas para a Open-Meteo</strong>
+            <ul>
+              <li>Um documento JSON por cidade e hora</li>
+              <li>Grava uma vez, lê muitas</li>
+              <li>Leitura em lote nas Aulas 04 e 05</li>
+              <li>Pode mudar; sem esquema na escrita</li>
+              <li>Cresce toda hora; custo por GB pesa</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Object storage por dentro -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Object storage por dentro</span>
+          <h2 class="deck-title">Bucket, chave, objeto e metadados</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Bucket</h3><p>Contêiner com nome único; recebe política de acesso, versionamento e ciclo de vida.</p></article>
+          <article class="deck-card"><h3>Chave</h3><p>Uma string. A barra é só um caractere; listar por prefixo simula pastas.</p></article>
+          <article class="deck-card"><h3>Objeto</h3><p>Imutável: mudar um byte significa regravar o objeto inteiro.</p></article>
+          <article class="deck-card"><h3>Metadados</h3><p>Cabeçalhos <code>x-amz-meta-*</code>, lidos com <code>HEAD</code>; valores em ASCII.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. Consistência, versão, ciclo de vida -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Object storage por dentro</span>
+          <h2 class="deck-title">Consistência, versionamento e ciclo de vida</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Consistência</h3><p>MinIO documenta leitura e listagem após escrita estritas (em XFS, ZFS, Btrfs). Um <code>HEAD</code> após <code>PUT</code> confirmado encontra o objeto.</p></article>
+          <article class="deck-card"><h3>Versionamento</h3><p>Cada gravação na mesma chave vira uma versão. Aqui, também detecta falha de idempotência.</p></article>
+          <article class="deck-card"><h3>Ciclo de vida</h3><p>Regras expiram objetos ou versões antigas por prefixo e por dias.</p></article>
+        </div>
+        <pre><code>mc version enable local/raw
+mc ls --recursive --versions local/raw/open_meteo/
+mc ilm rule add --noncurrent-expire-days 7 local/raw</code></pre>
+      </div>
+    </div>
+
+    <!-- 10. Desenho de chaves -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Camada raw</span>
+          <h2 class="deck-title">Chave particionada no estilo Hive</h2>
+          <p class="deck-summary">A chave diz a fonte, o dia e a hora da coleta e a cidade. DuckDB e Spark leem <code>data</code> e <code>hora</code> como colunas.</p>
+        </div>
+        <pre><code>bucket: raw
+open_meteo/data=2026-10-17/hora=12/sao_paulo.json
+open_meteo/data=2026-10-17/hora=12/manaus.json
+_manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</code></pre>
+        <div class="deck-callout">
+          <strong>Decisões embutidas</strong>
+          <p style="margin:8px 0 0;">Partição pelo momento da coleta, em UTC. Cidade como identificador ASCII estável. Manifesto em JSON Lines fora do prefixo de dados.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11. Raw imutável, idempotência, metadados -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Camada raw</span>
+          <h2 class="deck-title">Imutabilidade, idempotência e procedência</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Imutável</h3><p>Grava os bytes recebidos. Sem limpar, renomear ou reserializar.</p></article>
+          <article class="deck-card"><h3>Idempotente</h3><p><code>HEAD</code> antes do <code>PUT</code>. Se a chave existe, não grava e registra <code>ja_existia</code>.</p></article>
+          <article class="deck-card"><h3>Rastreável</h3><p><code>fonte</code>, <code>coletado-em</code>, <code>versao-coletor</code>, <code>sha256</code>, cidade e coordenada pedida.</p></article>
+        </div>
+        <div class="deck-callout">
+          <strong>Por que importa no Railway</strong>
+          <p style="margin:8px 0 0;">O proxy devolve 502 esporádico. Com chave determinística, repetir a gravação é seguro; com chave por horário em segundos, cada retry duplica.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12. A fonte -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">A fonte</span>
+          <h2 class="deck-title">API de previsão da Open-Meteo, sem chave</h2>
+          <p class="deck-summary">Uso não comercial: menos de 10.000 chamadas por dia e licença CC BY 4.0. Seis capitais por hora somam 144 chamadas por dia.</p>
+        </div>
+        <pre class="is-wrap"><code>curl -s "https://api.open-meteo.com/v1/forecast?latitude=-23.55&amp;longitude=-46.63&amp;hourly=temperature_2m,relative_humidity_2m&amp;timezone=America/Sao_Paulo&amp;forecast_days=1"
+
+# parâmetro inválido: HTTP 400 com {"error": true, "reason": "..."}
+# resposta traz a coordenada da grade: -23.514938, -46.610504</code></pre>
+      </div>
+    </div>
+
+    <!-- 13. Ambiente -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Etapa 0 &middot; Ambiente</span>
+          <h2 class="deck-title">MinIO local e pasta do projeto</h2>
+          <p class="deck-summary">Codespace, OpenCode e MinIO do Railway vêm da Aula 01. Aqui entra o MinIO local para desenvolver.</p>
+        </div>
+        <pre class="is-compact"><code>mkdir -p aula_02_coleta_json/{docs/adr,specs,src,tests} &amp;&amp; cd aula_02_coleta_json
+# baixe docker-compose.yml, .env.example, requirements.txt, AGENTS.md, .gitignore (roteiro)
+cp .env.example .env            # troque a senha: openssl rand -base64 24
+docker compose up -d &amp;&amp; docker compose ps -a
+docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -r requirements.txt</code></pre>
+      </div>
+    </div>
+
+    <!-- 14. Fluxo SDD -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Demonstração em SDD</span>
+          <h2 class="deck-title">Sete prompts CREATE com revisão</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step"><strong>1&ndash;2</strong><span>Persona e objetivos de negócio</span></div>
+          <div class="method-step"><strong>3</strong><span>Spec: RF e RNF com Dado/Quando/Então</span></div>
+          <div class="method-step"><strong>4&ndash;5</strong><span>Plano C4 e tarefas com teste</span></div>
+          <div class="method-step"><strong>6</strong><span>Implementação, uma tarefa por vez</span></div>
+          <div class="method-step"><strong>7</strong><span>ATAM com evidência medida</span></div>
+        </div>
+        <p class="deck-note">Um prompt por vez: <code>openrouter/free</code> aceita 20 requisições por minuto e 50 por dia em contas com menos de US$ 10 comprados.</p>
+      </div>
+    </div>
+
+    <!-- 15. Prompts 1 e 2 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompts 1 e 2</span>
+          <h2 class="deck-title">Persona e objetivos antes de qualquer código</h2>
+          <p class="deck-summary">Cenário fictício: distribuidora de bebidas com centros em seis capitais quer comparar previsão e vendas de bebidas geladas.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>docs/00_persona.md</strong>
+            <ul>
+              <li>Decisão que a persona toma</li>
+              <li>Dor e frequência de uso</li>
+              <li>Fatos, lacunas, suposições</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>docs/01_objetivos_negocio.md</strong>
+            <ul>
+              <li>OBJ-xx ligados a persona</li>
+              <li>Metas sem número inventado</li>
+              <li>Restrições com origem</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 16. Prompt 3 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompt 3 &middot; specs/spec.md</span>
+          <h2 class="deck-title">Requisito com critério que um teste confirma</h2>
+        </div>
+        <pre><code>RF-03 Chave determinística
+Dado uma coleta de São Paulo iniciada em 17/10/2026 às 12:20 UTC,
+Quando o coletor calcula a chave do objeto,
+Então a chave é open_meteo/data=2026-10-17/hora=12/sao_paulo.json,
+E uma nova execução às 12:50 UTC do mesmo dia calcula a mesma chave.
+Verificação: teste unitário de função pura com horário fixo.</code></pre>
+        <p class="deck-note">Revise: todo RF tem verificação? O retry exclui HTTP 400? Tentativas e esperas estão marcadas como hipótese?</p>
+      </div>
+    </div>
+
+    <!-- 17. Prompts 4 e 5 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompts 4 e 5 &middot; plan.md e tasks.md</span>
+          <h2 class="deck-title">Plano e tarefas ligados a requisitos</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Escolha</th><th>Alternativa</th><th>Justificativa</th></tr></thead>
+          <tbody>
+            <tr><td>Uma requisição por cidade</td><td>Seis coordenadas numa requisição</td><td>falha de uma cidade não derruba as outras</td></tr>
+            <tr><td>Partição em UTC</td><td>America/Sao_Paulo</td><td>sem ambiguidade de fuso; local fica nos metadados</td></tr>
+            <tr><td><code>boto3</code> com path style</td><td>SDK <code>minio</code></td><td>mesma API para local e Railway</td></tr>
+            <tr><td>Armazenamento falso nos testes</td><td>MinIO real em todo teste</td><td>teste unitário sem rede</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 18. Prompt 6 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prompt 6 &middot; Implementação</span>
+          <h2 class="deck-title">Implementação tarefa a tarefa com teste</h2>
+        </div>
+        <ol class="deck-steps">
+          <li><strong>Plano:</strong> o agente mostra arquivos e funções; o grupo confirma.</li>
+          <li><strong>Teste primeiro:</strong> <code>python -m pytest -q</code> falha.</li>
+          <li><strong>Mínimo para passar:</strong> e roda de novo.</li>
+          <li><strong>Diff:</strong> só arquivos da tarefa, sem segredo, sem reserializar o JSON.</li>
+          <li><strong>Para:</strong> marca a tarefa em <code>tasks.md</code> e espera.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 19. Gates locais -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Verificação local</span>
+          <h2 class="deck-title">Rodar duas vezes e contar objetos</h2>
+        </div>
+        <pre class="is-compact"><code>set -a; source .env; set +a
+python -m pytest -q
+python -m src.coletor &amp;&amp; python -m src.coletor
+docker compose exec -T minio mc find local/raw/open_meteo --name "*.json" | wc -l
+docker compose exec -T minio mc ls --recursive --versions local/raw/open_meteo/ | wc -l
+docker compose exec minio mc stat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json
+docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json | sha256sum</code></pre>
+        <p class="deck-note">Contagens iguais antes e depois da segunda execução. Hash do conteúdo igual ao metadado <code>sha256</code>.</p>
+      </div>
+    </div>
+
+    <!-- 20. Railway -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">MinIO do Railway</span>
+          <h2 class="deck-title">Mesmo coletor apontado para o Railway</h2>
+          <p class="deck-summary"><code>.env.railway</code> fora do Git; o <code>mc</code> pede as chaves de forma interativa.</p>
+        </div>
+        <pre><code>docker compose exec minio mc alias set railway https://&lt;dominio-da-porta-9000&gt;
+docker compose exec minio mc mb --ignore-existing railway/raw
+docker compose exec minio mc version enable railway/raw
+set -a; source .env.railway; set +a
+python -m src.coletor &amp;&amp; python -m src.coletor
+docker compose exec -T minio mc find railway/raw/open_meteo --name "*.json" | wc -l
+docker compose exec minio mc du railway/raw</code></pre>
+      </div>
+    </div>
+
+    <!-- 21. Prompt 7 ATAM -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompt 7 &middot; docs/atam.md</span>
+          <h2 class="deck-title">Cenários de qualidade com evidência</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Cenário</th><th>Resposta esperada</th><th>Evidência</th></tr></thead>
+          <tbody>
+            <tr><td>C-01 API fora do ar</td><td>retry; erro no manifesto; outras cidades seguem</td><td>teste com 503 simulado</td></tr>
+            <tr><td>C-02 duas execuções na mesma hora</td><td>nenhum objeto ou versão nova</td><td><code>mc ls --versions</code></td></tr>
+            <tr><td>C-03 502 do Railway</td><td>retry na mesma chave</td><td>log do coletor</td></tr>
+            <tr><td>C-04 bucket contra crédito</td><td>crescimento estimado com tamanho medido</td><td><code>mc du</code></td></tr>
+            <tr><td>C-05 schema da API muda</td><td>grava o bruto; alerta no manifesto</td><td>teste com payload alterado</td></tr>
+            <tr><td>C-07 execuções simultâneas</td><td>risco residual registrado</td><td>ADR-002</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 22. Gates -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Gates</span>
+          <h2 class="deck-title">O que precisa estar verde antes do commit</h2>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Testes</strong><span><code>python -m pytest -q</code> sem falhas, sem rede nos unitários.</span></div>
+          <div class="quality-gate"><strong>Idempotência</strong><span>Segunda execução na mesma hora não muda objetos nem versões.</span></div>
+          <div class="quality-gate"><strong>Procedência</strong><span><code>mc stat</code> mostra os metadados; hash confere.</span></div>
+          <div class="quality-gate"><strong>Railway</strong><span>Objetos no bucket <code>raw</code> remoto, com contagem esperada.</span></div>
+          <div class="quality-gate"><strong>Segredos</strong><span><code>.env</code> e <code>.env.railway</code> fora do diff.</span></div>
+          <div class="quality-gate"><strong>ATAM</strong><span>Cenários de seis partes com saída de <code>mc</code> colada.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 23. Entregável -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entregável</span>
+          <h2 class="deck-title">Pasta aula_02_coleta_json no repositório do grupo</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Documentos</strong>
+            <ul>
+              <li><code>AGENTS.md</code></li>
+              <li><code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code></li>
+              <li><code>specs/spec.md</code>, <code>plan.md</code>, <code>tasks.md</code></li>
+              <li><code>docs/atam.md</code> e <code>docs/adr/</code></li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Execução</strong>
+            <ul>
+              <li><code>src/</code> e <code>tests/</code> passando</li>
+              <li>Objetos no bucket <code>raw</code> do Railway</li>
+              <li>Chaves particionadas e metadados</li>
+              <li>Bucket mantido para as Aulas 03 e 04</li>
+            </ul>
+          </div>
+        </div>
+        <p class="deck-note">Prompts completos, comandos e exemplo resolvido: <a href="../material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">material da aula</a> e <a href="../laboratorio/README.md">roteiro do laboratório</a>.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[index].classList.add("active");
+      currentSlide = index;
+      document.getElementById("current-slide").textContent = currentSlide + 1;
+      document.getElementById("prev-btn").disabled = currentSlide === 0;
+      document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft") previousSlide();
+      if (event.key.toLowerCase() === "f") toggleFullScreen();
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>

@@ -67,7 +67,7 @@ Use the appropriate sub-agent when creating or reviewing slides, materials, or v
 - Must mirror the same topics as the corresponding slide
 - Must deepen each topic with longer, descriptive, conceptual text
 - Must include step-by-step instructions for labs/practice sections
-- Must end with guidance for the in-class hands-on activity (Codespace, AI tools, AWS Student Lab). Course is 100% practical — no written exercises section.
+- Must end with guidance for the in-class hands-on activity in that discipline's environment (Cloud SRE: AWS Student Lab; Data Collection: Codespaces + Docker, OpenCode/OpenRouter, Railway, built in SDD with CREATE prompts; Data Visualization: per `specs/estrutura_curso.md`). Course is 100% practical — no written exercises section.
 - Must include explicit link to the corresponding slide
 - Must include explicit link back to `index.html`
 

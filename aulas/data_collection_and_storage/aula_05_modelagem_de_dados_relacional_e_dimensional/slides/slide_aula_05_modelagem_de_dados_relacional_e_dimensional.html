@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 05 — Modelagem de Dados Relacional e Dimensional</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- 1 · CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="05" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Modelagem de Dados Relacional e Dimensional</h1>
+          <p class="deck-meta">Aula 05 &nbsp;&bull;&nbsp; 07/11/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">O silver de livros e PTAX vira um Postgres normalizado no Railway e um esquema estrela na gold do MinIO.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 · AGENDA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Conceitos até 9h30, prática até 12h10</h2>
+          <p class="deck-summary">Conceitos curtos no início; depois o professor constrói as duas trilhas ao vivo em SDD e os grupos reproduzem com os prompts do material.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h30 &middot; Conceitos</h3>
+            <ul>
+              <li>Entidades, chaves e normalização até a 3FN</li>
+              <li>Integridade, constraints e índices (OLTP)</li>
+              <li>Kimball: processo, grão, dimensões, fatos</li>
+              <li>Estrela, SCD tipo 1 e tipo 2</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>9h30 &ndash; 12h10 &middot; Prática em SDD</h3>
+            <ul>
+              <li>Postgres local e no Railway, DDL versionado</li>
+              <li>Sete prompts CREATE, um por vez</li>
+              <li>Carga relacional e gold dimensional no MinIO</li>
+              <li>Gates, ATAM e custo</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 · PONTO DE PARTIDA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Ponto de partida &middot; Aula 04</span>
+          <h2 class="deck-title">O que o silver da Aula 04 não resolve</h2>
+          <p class="deck-summary">Livros de books.toscrape.com e PTAX da libra estão tipados em Parquet no MinIO. Duas perguntas ainda ficam sem dono.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Operacional</strong>
+            <p>Qual o preço atual do livro de UPC <code>a897fe39b1053632</code>? Quem garante que só existe um livro com esse UPC e que toda observação aponta para um livro real?</p>
+          </div>
+          <div class="deck-panel">
+            <strong>Analítica</strong>
+            <p>Qual o preço médio em reais por categoria e mês? Que cotação vale no sábado? Um livro reclassificado em novembro conta em qual categoria em outubro?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 · OLTP x OLAP -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dois trabalhos</span>
+          <h2 class="deck-title">OLTP e OLAP pedem modelos diferentes</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Critério</th><th>Relacional (OLTP)</th><th>Dimensional (OLAP)</th></tr></thead>
+          <tbody>
+            <tr><td>Operação</td><td>inserir, atualizar, buscar por chave</td><td>agregar por período e grupo</td></tr>
+            <tr><td>Linhas por operação</td><td>poucas</td><td>muitas, poucas colunas</td></tr>
+            <tr><td>Redundância</td><td>evitada (normalização)</td><td>aceita nas dimensões</td></tr>
+            <tr><td>Histórico</td><td>estado atual</td><td>estado de cada dia (SCD, snapshot)</td></tr>
+            <tr><td>Motor na aula</td><td>PostgreSQL 16 no Railway</td><td>DuckDB + Parquet no MinIO</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5 · ENTIDADES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Relacional &middot; Conceitual</span>
+          <h2 class="deck-title">Entidades e cardinalidade do domínio</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Relacionamento</th><th>Cardinalidade</th><th>Leitura</th></tr></thead>
+          <tbody>
+            <tr><td>categoria &ndash; livro</td><td>1 : N</td><td>um livro tem exatamente uma categoria</td></tr>
+            <tr><td>livro &ndash; observacao_preco</td><td>1 : N</td><td>uma observação por livro por dia</td></tr>
+            <tr><td>livro &ndash; livro_url</td><td>1 : N</td><td>a URL pode mudar ao longo do tempo</td></tr>
+            <tr><td>moeda &ndash; cotacao</td><td>1 : N</td><td>vários boletins PTAX por dia</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Conceitual: o que existe no negócio. Lógico: tabelas e chaves. Físico: tipos, índices e constraints no Postgres.</p>
+      </div>
+    </div>
+
+    <!-- 6 · CHAVES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Relacional &middot; Chaves</span>
+          <h2 class="deck-title">O que identifica um livro</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Candidato</th><th>Fragilidade</th><th>Papel no modelo</th></tr></thead>
+          <tbody>
+            <tr><td>URL</td><td>muda com o slug ou a estrutura do site</td><td>atributo, histórico em <code>livro_url</code></td></tr>
+            <tr><td>Título</td><td>não é único, pode ser corrigido</td><td>atributo</td></tr>
+            <tr><td>UPC</td><td>só existe na página de detalhe</td><td>chave natural, <code>UNIQUE</code></td></tr>
+            <tr><td><code>livro_id</code></td><td>sem significado fora do banco</td><td>chave primária substituta</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 7 · NORMALIZAÇÃO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Relacional &middot; Normalização</span>
+          <h2 class="deck-title">Da linha plana do scraper à 3FN</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Forma</th><th>Violação na linha plana</th><th>Correção</th></tr></thead>
+          <tbody>
+            <tr><td>1FN</td><td><code>disponibilidade</code> = "In stock (22 available)"; trilha como lista</td><td><code>em_estoque</code> + <code>qtd_estoque</code>; trilha removida</td></tr>
+            <tr><td>2FN</td><td>chave (upc, data_coleta); <code>titulo</code> depende só de upc</td><td>tabela <code>livro</code></td></tr>
+            <tr><td>3FN</td><td><code>categoria_nome</code> via <code>categoria_id</code>; cotação depende da data</td><td><code>categoria</code>, <code>cotacao</code>; BRL numa view</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Objetivo: cada fato gravado num único lugar, para que reclassificar um livro mude uma linha e não centenas.</p>
+      </div>
+    </div>
+
+    <!-- 8 · ER -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Relacional &middot; Lógico</span>
+          <h2 class="deck-title">Diagrama ER em Mermaid</h2>
+        </div>
+        <pre class="deck-schema">erDiagram
+    CATEGORIA ||--o{ LIVRO : classifica
+    LIVRO ||--o{ LIVRO_URL : "publicado em"
+    LIVRO ||--o{ OBSERVACAO_PRECO : "observado em"
+    MOEDA ||--o{ COTACAO : "cotada em"
+    OBSERVACAO_PRECO {
+        bigint livro_id PK, FK
+        date data_coleta PK
+        numeric preco_gbp
+        text arquivo_origem
+    }</pre>
+        <p class="deck-note">Diagrama completo no material, seção 8. Vai para <code>specs/plan.md</code> com os mesmos nomes do DDL.</p>
+      </div>
+    </div>
+
+    <!-- 9 · CONSTRAINTS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Relacional &middot; Físico</span>
+          <h2 class="deck-title">Constraints e índices no DDL</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Regra</th><th>No DDL</th><th>Impede</th></tr></thead>
+          <tbody>
+            <tr><td>PK</td><td><code>(livro_id, data_coleta)</code></td><td>duas observações do livro no mesmo dia</td></tr>
+            <tr><td>FK</td><td><code>fk_observacao_livro</code>, <code>ON DELETE RESTRICT</code></td><td>observação de livro inexistente</td></tr>
+            <tr><td>UNIQUE</td><td><code>uq_livro_upc</code></td><td>o mesmo livro cadastrado duas vezes</td></tr>
+            <tr><td>CHECK</td><td><code>preco_gbp &gt;= 0</code>, <code>avaliacao BETWEEN 1 AND 5</code></td><td>valor fora do domínio</td></tr>
+            <tr><td>Índice</td><td><code>ix_livro_categoria</code>, <code>ix_observacao_data</code></td><td>FK e período sem índice (o Postgres não cria sozinho)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 10 · KIMBALL -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dimensional &middot; Kimball</span>
+          <h2 class="deck-title">Os quatro passos de Kimball</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step"><strong>Processo</strong><span>Acompanhamento diário de preços de livros.</span></div>
+          <div class="method-step is-current"><strong>Grão</strong><span>Um livro por dia de coleta.</span></div>
+          <div class="method-step"><strong>Dimensões</strong><span>Data, livro, categoria, moeda, data da cotação.</span></div>
+          <div class="method-step"><strong>Fatos</strong><span>Preço GBP, cotação, preço BRL, estoque, observações.</span></div>
+        </div>
+        <div class="deck-callout">
+          <strong>Grão antes das colunas</strong>
+          <p style="margin:8px 0 0;">Misturar níveis de detalhe na mesma fato (diário com média semanal, duas coletas do dia) é o erro mais caro do modelo dimensional.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11 · FATOS E MEDIDAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dimensional &middot; Fatos e medidas</span>
+          <h2 class="deck-title">Tipos de fato e o que pode ser somado</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Tipos de fato</strong>
+            <ul>
+              <li>Transacional: cada leitura do scraper</li>
+              <li>Snapshot periódico: <code>fato_preco_diario</code></li>
+              <li>Snapshot acumulado: marcos do livro (primeira queda, falta de estoque)</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Medidas</strong>
+            <ul>
+              <li>Aditiva: <code>qtd_observacoes</code></li>
+              <li>Semiaditiva: <code>qtd_estoque</code> (soma no dia, não entre dias)</li>
+              <li>Não aditiva: <code>preco_gbp</code>, <code>preco_brl</code>, <code>cotacao_venda</code></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12 · DIM DATA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dimensional &middot; Calendário</span>
+          <h2 class="deck-title">Dimensão de data com dois papéis</h2>
+          <p class="deck-summary">A PTAX não sai em sábado, domingo e feriado. A carga usa a última cotação de fechamento até a data da coleta e guarda qual foi.</p>
+        </div>
+        <pre class="deck-schema">-- dim_data gerada com generate_series; data_sk = AAAAMMDD
+FROM stg_livro_dia_unico s
+JOIN gold.dim_livro d ON d.upc = s.upc
+ AND s.data_coleta BETWEEN d.valido_de AND d.valido_ate
+ASOF LEFT JOIN cot ON s.data_coleta &gt;= cot.data_cotacao
+-- fato: data_coleta_sk e data_cotacao_sk apontam para dim_data</pre>
+      </div>
+    </div>
+
+    <!-- 13 · ESTRELA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dimensional &middot; Esquema</span>
+          <h2 class="deck-title">Estrela e floco de neve</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Estrela (escolha da aula)</strong>
+            <p>Cada dimensão liga direto na fato. <code>dim_livro</code> guarda <code>categoria_nome</code> como texto. Uma junção por contexto.</p>
+          </div>
+          <div class="deck-panel">
+            <strong>Floco de neve</strong>
+            <p><code>dim_livro</code> aponta para <code>dim_categoria</code>. Nome único por categoria, uma junção a mais em toda consulta. Com mil livros, a economia de espaço não pesa.</p>
+          </div>
+        </div>
+        <p class="deck-note">Fatos: <code>fato_preco_diario</code> e <code>fato_cotacao_diaria</code>. Dimensões: <code>dim_data</code>, <code>dim_livro</code>, <code>dim_categoria</code>, <code>dim_moeda</code>.</p>
+      </div>
+    </div>
+
+    <!-- 14 · SCD -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dimensional &middot; SCD</span>
+          <h2 class="deck-title">Livro muda de Fiction para Mystery</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>livro_sk</th><th>upc</th><th>categoria</th><th>valido_de</th><th>valido_ate</th><th>atual</th></tr></thead>
+          <tbody>
+            <tr><td>919</td><td>eccbc87e…</td><td>Fiction</td><td>2026-10-26</td><td>2026-11-02</td><td>false</td></tr>
+            <tr><td>1001</td><td>eccbc87e…</td><td>Mystery</td><td>2026-11-03</td><td>9999-12-31</td><td>true</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-columns">
+          <div class="deck-panel"><strong>Tipo 2: titulo, categoria</strong><p>Nova versão; fatos de outubro continuam em Fiction.</p></div>
+          <div class="deck-panel"><strong>Tipo 1: avaliacao, url</strong><p>Sobrescreve todas as versões; sem histórico.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 15 · DEGENERADA E CONFORMADA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Dimensional &middot; Mais dois conceitos</span>
+          <h2 class="deck-title">Dimensões degeneradas e conformadas</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Degenerada</h3>
+            <p><code>execucao_id</code> mora na fato sem tabela própria. Serve para achar tudo o que uma execução do pipeline gravou.</p>
+          </article>
+          <article class="deck-card">
+            <h3>Conformada</h3>
+            <p><code>dim_data</code> e <code>dim_moeda</code> servem às duas fatos. Preço e câmbio se comparam pelo mesmo <code>ano_mes</code>. O clima da Aula 02 deve reutilizar a mesma <code>dim_data</code>.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 16 · MESMA PERGUNTA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Comparação</span>
+          <h2 class="deck-title">Preço médio em BRL por categoria e mês</h2>
+        </div>
+        <div class="deck-columns">
+          <pre class="deck-schema">-- Postgres (3FN)
+FROM observacao_preco o
+JOIN livro l ...
+JOIN categoria c ...
+LEFT JOIN LATERAL (
+  SELECT cotacao_venda FROM cotacao
+  WHERE tipo_boletim ILIKE 'Fechamento%'
+    AND data_cotacao &lt;= o.data_coleta
+  ORDER BY data_hora_cotacao DESC
+  LIMIT 1) ct ON true</pre>
+          <pre class="deck-schema">-- DuckDB (estrela)
+FROM gold.fato_preco_diario f
+JOIN gold.dim_data d ...
+JOIN gold.dim_categoria c ...
+JOIN gold.dim_livro l ...
+-- preco_brl já resolvido
+-- categoria do dia da coleta</pre>
+        </div>
+        <p class="deck-note">Mesmo resultado se nenhum livro mudou de categoria. Se mudou, o relacional usa a categoria atual e a estrela, a do dia.</p>
+      </div>
+    </div>
+
+    <!-- 17 · ROTEIRO DA PRÁTICA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prática &middot; Roteiro</span>
+          <h2 class="deck-title">Duas trilhas sobre o mesmo silver</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step is-current"><strong>Preparar</strong><span>Pasta <code>aula_05_modelagem/</code>, compose, .env.</span></div>
+          <div class="method-step"><strong>Railway</strong><span>Postgres, Public Access, DDL aplicado.</span></div>
+          <div class="method-step"><strong>Prompts 1&ndash;5</strong><span>Persona até tasks.</span></div>
+          <div class="method-step"><strong>Prompt 6</strong><span>Carga relacional e gold dimensional.</span></div>
+          <div class="method-step"><strong>Prompt 7</strong><span>ATAM, ADRs, matriz.</span></div>
+        </div>
+        <pre class="deck-schema">mkdir -p aula_05_modelagem/{docs/adr,docs/evidencias,specs,src,tests,sql}
+cp .env.example .env &amp;&amp; docker compose up -d --wait
+docker compose exec -T postgres psql -U livraria -d livraria \
+  -v ON_ERROR_STOP=1 -f /sql/relacional/001_schema.sql   # rode duas vezes</pre>
+      </div>
+    </div>
+
+    <!-- 18 · POSTGRES NO RAILWAY -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prática &middot; Railway</span>
+          <h2 class="deck-title">Postgres no mesmo projeto do MinIO</h2>
+        </div>
+        <pre class="deck-schema">railway link
+railway add --database postgres
+railway service                                   # confira o nome
+railway variable list --service Postgres --kv | cut -d= -f1
+# Painel: Postgres &gt; Settings &gt; Networking &gt; Public Access
+#   cria TCP Proxy e DATABASE_PUBLIC_URL (egress cobrado)
+docker run --rm -i postgres:16 psql "$DATABASE_PUBLIC_URL" \
+  -v ON_ERROR_STOP=1 &lt; sql/relacional/001_schema.sql</pre>
+        <p class="deck-note"><code>DATABASE_URL</code> serve a serviços do próprio projeto. Do Codespace, use <code>DATABASE_PUBLIC_URL</code>, sem imprimi-la.</p>
+      </div>
+    </div>
+
+    <!-- 19 · PROMPTS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prática &middot; SDD com CREATE</span>
+          <h2 class="deck-title">Sete prompts, um por vez</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>#</th><th>Etapa</th><th>Arquivo</th><th>Revise antes de seguir</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Persona</td><td><code>docs/00_persona.md</code></td><td>uma pergunta por chave, outra por agregação</td></tr>
+            <tr><td>2</td><td>Objetivos</td><td><code>docs/01_objetivos_negocio.md</code></td><td>métricas verificáveis, limites do trial</td></tr>
+            <tr><td>3</td><td>Spec</td><td><code>specs/spec.md</code></td><td>grão por extenso; fim de semana da PTAX</td></tr>
+            <tr><td>4</td><td>Plano</td><td><code>specs/plan.md</code></td><td>Mermaid com os nomes do DDL</td></tr>
+            <tr><td>5</td><td>Tarefas</td><td><code>specs/tasks.md</code></td><td>toda tarefa com teste</td></tr>
+            <tr><td>6</td><td>Implementação</td><td><code>src/</code>, <code>tests/</code></td><td>reexecução testada nas duas trilhas</td></tr>
+            <tr><td>7</td><td>ATAM</td><td><code>docs/atam.md</code>, <code>docs/adr/</code></td><td>seis partes por cenário</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Prompts completos no material, seção 19. Modelos gratuitos: 20 requisições por minuto.</p>
+      </div>
+    </div>
+
+    <!-- 20 · PROMPT 6 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompt 6 &middot; Sequência da carga</span>
+          <h2 class="deck-title">Arquivos SQL que o carregador executa</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Relacional (Postgres)</strong>
+            <ol>
+              <li><code>001_schema.sql</code></li>
+              <li>DuckDB preenche <code>stg_livro_dia</code> via extensão postgres</li>
+              <li><code>002_staging_e_carga.sql</code> com <code>ON CONFLICT</code></li>
+              <li><code>003_consultas.sql</code></li>
+            </ol>
+          </div>
+          <div class="deck-panel">
+            <strong>Dimensional (DuckDB + MinIO)</strong>
+            <ol>
+              <li><code>001</code> schema, <code>002</code> staging do silver</li>
+              <li><code>003</code> restaura a gold do MinIO</li>
+              <li><code>004</code> SCD2, <code>005</code> fatos do dia</li>
+              <li><code>006</code> publica, <code>007</code> testes</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 21 · GATES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Gates de aceite</span>
+          <h2 class="deck-title">Gates de aceite da prática</h2>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>DDL idempotente</strong><span>Aplicado duas vezes sem erro, local e no Railway.</span></div>
+          <div class="quality-gate"><strong>Integridade</strong><span>INSERT com livro inexistente recusado pela FK.</span></div>
+          <div class="quality-gate"><strong>Reconciliação</strong><span>Silver = carregadas + rejeitadas com motivo.</span></div>
+          <div class="quality-gate"><strong>Reexecução</strong><span>Mesmo dia duas vezes, contagens iguais.</span></div>
+          <div class="quality-gate"><strong>Grão e SCD2</strong><span>Testes T1 a T5 retornam zero.</span></div>
+          <div class="quality-gate"><strong>Gold publicada</strong><span><code>mc ls</code> lista seis Parquet.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 22 · ATAM -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prompt 7 &middot; ATAM</span>
+          <h2 class="deck-title">Seis cenários para pressionar o modelo</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Cenário</th><th>Resposta esperada</th><th>Medida</th></tr></thead>
+          <tbody>
+            <tr><td>CEN-01 categoria muda</td><td>nova versão SCD2</td><td>T3, T4 = 0</td></tr>
+            <tr><td>CEN-02 URL muda</td><td>UPC mantém identidade</td><td>sem livro duplicado</td></tr>
+            <tr><td>CEN-03 grão misturado</td><td>PK da fato recusa</td><td>T1 = 0</td></tr>
+            <tr><td>CEN-04 reexecução após 502</td><td>ON CONFLICT; DELETE + INSERT</td><td>contagens iguais</td></tr>
+            <tr><td>CEN-05 Q2 lenta no Postgres</td><td>Q2 vai para a estrela</td><td>tempo medido nos dois</td></tr>
+            <tr><td>CEN-06 crédito do Railway</td><td>Public Access só na carga; dump</td><td>consumo no painel</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 23 · CUSTO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Railway &middot; Custo</span>
+          <h2 class="deck-title">Crédito do trial com três serviços</h2>
+          <p class="deck-summary">Trial com crédito único de US$ 5 por até 30 dias, 1 GB de RAM e até 5 serviços por projeto. MinIO, job da Aula 04 e Postgres consomem ao mesmo tempo.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Registre o consumo do painel em <code>docs/evidencias/custo_railway.md</code>.</li>
+          <li>Desligue o Public Access quando não houver carga.</li>
+          <li>Antes de remover o Postgres: <code>pg_dump --schema=livraria</code>.</li>
+          <li>Volumes do trial são apagados 30 dias após o fim dos créditos.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 24 · ENTREGÁVEL -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Entregável</span>
+          <h2 class="deck-title">Pasta aula_05_modelagem do grupo</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>Especificação</h3>
+            <ul>
+              <li>Esqueleto SDD completo</li>
+              <li>ER e estrela em Mermaid no <code>plan.md</code></li>
+              <li><code>atam.md</code> com seis cenários e três ADRs</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>Evidência</h3>
+            <ul>
+              <li>DDLs versionados em <code>sql/</code></li>
+              <li>Postgres no Railway carregado</li>
+              <li>Gold dimensional no MinIO e testes verdes</li>
+            </ul>
+          </article>
+        </div>
+        <div class="deck-callout">
+          <strong>Antes de sair</strong>
+          <p style="margin:8px 0 0;">Peça ao OpenCode a lista de RF e RNF com a evidência de cada um, sem editar nada. O que ficar sem evidência entra no <code>atam.md</code> como risco aceito.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_05_modelagem_de_dados_relacional_e_dimensional.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[index].classList.add("active");
+      currentSlide = index;
+      document.getElementById("current-slide").textContent = currentSlide + 1;
+      document.getElementById("prev-btn").disabled = currentSlide === 0;
+      document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft") previousSlide();
+      if (event.key.toLowerCase() === "f") toggleFullScreen();
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>

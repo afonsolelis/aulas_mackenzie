@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 03 — APIs REST, Web Scraping e Ingestão no MinIO</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
+      <a href="../laboratorio/README.md">Roteiro do laboratório</a>
+      <a href="../slides/slide_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 03 — APIs REST, Web Scraping e Ingestão no MinIO</h1>
+      <p class="meta">Aula 03 &middot; 24/10/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p>Coleta de dados de fontes externas por dois caminhos: uma API pública (PTAX do Banco Central) e o scraping de um site de treino (books.toscrape.com). A primeira hora trata do que pode dar errado em cada caminho e de como um coletor se comporta diante disso. O restante da aula constrói ao vivo, em Spec-Driven Development, um monitor de preços de livros que grava o HTML bruto e o JSON da API diretamente no MinIO e, em etapa separada, extrai registros estruturados em JSON Lines.</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block" id="sumario">
+        <h2>Sumário</h2>
+        <ol>
+          <li><a href="#s1">O problema da aula: um monitor de preços de livros</a></li>
+          <li><a href="#s2">Retomada: SDD, CREATE e chaves no MinIO</a></li>
+          <li><a href="#s3">APIs REST: o que o contrato promete</a></li>
+          <li><a href="#s4">Falhas de rede: timeout, 429, retry, backoff e idempotência</a></li>
+          <li><a href="#s5">A API PTAX do Banco Central: contrato e realidade</a></li>
+          <li><a href="#s6">Web scraping: HTML, seletores e paginação</a></li>
+          <li><a href="#s7">Coleta educada: robots.txt, termos de uso, LGPD e cadência</a></li>
+          <li><a href="#s8">Por que guardar o HTML bruto antes de extrair</a></li>
+          <li><a href="#s9">API, scraping ou nenhum dos dois</a></li>
+          <li><a href="#s10">Arquitetura do monitor e desenho das chaves</a></li>
+          <li><a href="#s11">Preparação do ambiente</a></li>
+          <li><a href="#s12">Prática guiada em SDD: os sete prompts CREATE</a></li>
+          <li><a href="#s13">Verificação local</a></li>
+          <li><a href="#s14">Publicação no MinIO do Railway</a></li>
+          <li><a href="#s15">O que a IA costuma errar nesta aula</a></li>
+          <li><a href="#s16">Atividade em sala e entregável</a></li>
+          <li><a href="#s17">Referências</a></li>
+        </ol>
+      </section>
+
+      <section class="content-block" id="s1">
+        <h2>1. O problema da aula: um monitor de preços de livros</h2>
+        <p>Uma livraria que importa títulos do Reino Unido precisa saber, todos os dias, quanto cada livro custaria em reais. O preço está em libras, num site que não oferece API, e a cotação está numa API pública do Banco Central. As duas fontes têm naturezas diferentes: o site devolve HTML pensado para leitura humana, e a API devolve JSON pensado para programas. O monitor precisa juntar as duas, guardar o que recebeu e produzir uma tabela que alguém consiga consultar.</p>
+        <p>Usamos duas fontes reais. O site <a href="https://books.toscrape.com" target="_blank" rel="noopener noreferrer">books.toscrape.com</a> foi criado para treino de scraping; o próprio site avisa que os preços e as avaliações foram atribuídos aleatoriamente e não têm significado real. Por isso ele serve bem à aula: a estrutura é a de uma loja de verdade, sem que o exercício afete um negócio. A cotação vem do serviço PTAX do Banco Central, publicado no portal Olinda, que não exige chave e é a referência oficial de câmbio no Brasil.</p>
+        <p>Ao fim da aula, cada grupo terá no MinIO (local e no Railway) dois grupos de objetos. O primeiro é a camada bruta: as páginas HTML de categoria e de detalhe de cada livro exatamente como o site as entregou e a resposta JSON da PTAX exatamente como a API a entregou. O segundo é a primeira extração estruturada: um arquivo JSON Lines com um registro por livro, identificado pelo UPC, e outro com um registro por boletim PTAX. A Aula 04 lê a camada bruta como bronze e faz a conversão de libras para reais; a Aula 05 usa o UPC como chave natural do livro na modelagem.</p>
+        <div class="note">
+          <strong>Resultado observável</strong>
+          <p>Uma execução completa grava, para a data da coleta, as páginas de categoria e de detalhe em <code>raw/books_toscrape/</code>, a resposta PTAX em <code>raw/ptax/</code>, um manifesto em <code>raw/manifestos/</code>, o arquivo <code>bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl</code> com 1.000 linhas (o total de livros que o catálogo exibia em 03/10/2026) e o arquivo <code>bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl</code>.</p>
+        </div>
+      </section>
+
+      <section class="content-block" id="s2">
+        <h2>2. Retomada: SDD, CREATE e chaves no MinIO</h2>
+        <p>Esta aula reaproveita duas bases. Da <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> vêm o método e o ambiente: Spec-Driven Development com a sequência persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM; prompts no formato CREATE; OpenCode no terminal com a OpenRouter e o modelo <code>openrouter/free</code>; e o MinIO publicado no Railway. Da <a href="../../aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Aula 02</a> vêm a diferença entre block, file e object storage e o desenho de chaves particionadas no bucket <code>raw</code>.</p>
+        <p>O esqueleto SDD é o mesmo de todas as aulas. A pasta desta aula no repositório do grupo se chama <code>aula_03_api_scraping/</code>:</p>
+        <pre><code>aula_03_api_scraping/
+├── AGENTS.md
+├── docs/
+│   ├── 00_persona.md
+│   ├── 01_objetivos_negocio.md
+│   ├── atam.md
+│   └── adr/ADR-001-*.md
+├── specs/
+│   ├── spec.md
+│   ├── plan.md
+│   └── tasks.md
+├── src/
+└── tests/</code></pre>
+        <p>O formato CREATE organiza cada prompt em seis seções: <code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code> e <code>[E] Extras</code>. Todos os prompts carregam as mesmas regras: não inventar números nem SLAs (o que não tiver origem fica marcado como "hipótese — validação pendente"), separar fato, lacuna e suposição, preservar os IDs RF e RNF, não colocar segredos em arquivo versionado, mostrar o plano antes de editar e parar ao fim da etapa.</p>
+        <p>Da Aula 02 interessa principalmente uma ideia: no object storage o que parece pasta é só um prefixo da chave. Quem desenha a chave decide como o dado será encontrado, sobrescrito e lido depois. Nesta aula a chave também decide se uma reexecução duplica dados ou substitui o que já existia, como se verá na seção 10.</p>
+      </section>
+
+      <section class="content-block" id="s3">
+        <h2>3. APIs REST: o que o contrato promete</h2>
+        <p>Uma API REST expõe recursos identificados por URLs e manipulados por métodos HTTP. O recurso é o substantivo (uma cotação, um livro, um pedido) e o método é o verbo. O cliente envia uma requisição com método, URL, cabeçalhos e, às vezes, corpo; o servidor devolve um código de status, cabeçalhos e um corpo, que em APIs de dados quase sempre é JSON.</p>
+
+        <h3>3.1 Métodos e o que eles garantem</h3>
+        <p>A especificação do HTTP (RFC 9110) define propriedades para cada método. Duas importam muito para coleta. Um método seguro não altera o estado do servidor; um método idempotente produz o mesmo efeito se for repetido. O coletor desta aula usa apenas <code>GET</code>, que é seguro e idempotente, e por isso pode ser repetido depois de uma falha sem risco para a fonte.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Método</th><th>Uso típico</th><th>Seguro</th><th>Idempotente</th></tr></thead>
+          <tbody>
+            <tr><td><code>GET</code></td><td>ler um recurso ou uma coleção</td><td>sim</td><td>sim</td></tr>
+            <tr><td><code>POST</code></td><td>criar recurso ou disparar processamento</td><td>não</td><td>não</td></tr>
+            <tr><td><code>PUT</code></td><td>substituir o recurso inteiro numa URL conhecida</td><td>não</td><td>sim</td></tr>
+            <tr><td><code>PATCH</code></td><td>alterar parte do recurso</td><td>não</td><td>não garantido</td></tr>
+            <tr><td><code>DELETE</code></td><td>remover o recurso</td><td>não</td><td>sim</td></tr>
+          </tbody>
+        </table></div>
+        <p>A mesma propriedade aparece do lado do armazenamento. Um <code>PutObject</code> no MinIO com a mesma chave e os mesmos bytes é idempotente: repetir a gravação deixa o bucket no mesmo estado. Essa coincidência é a base da estratégia de retry contra o 502 do Railway.</p>
+
+        <h3>3.2 Códigos de status que o coletor precisa tratar</h3>
+        <p>O código de status é a primeira informação que o coletor lê. A família diz quem errou: 2xx indica sucesso, 3xx indica redirecionamento ou cache, 4xx indica erro do cliente e 5xx indica erro do servidor. A decisão de repetir a requisição depende dessa leitura.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Código</th><th>Significado</th><th>Ação do coletor</th></tr></thead>
+          <tbody>
+            <tr><td><code>200</code></td><td>sucesso com corpo</td><td>gravar o corpo bruto; ainda assim validar se o conteúdo faz sentido</td></tr>
+            <tr><td><code>304</code></td><td>não modificado (resposta a <code>If-None-Match</code>)</td><td>não baixar de novo; registrar no manifesto que o conteúdo não mudou</td></tr>
+            <tr><td><code>400</code>, <code>401</code>, <code>403</code>, <code>404</code></td><td>requisição inválida, sem autenticação, proibida ou recurso inexistente</td><td>não repetir; registrar e interromper aquela URL</td></tr>
+            <tr><td><code>408</code>, <code>429</code></td><td>tempo esgotado no servidor; limite de requisições excedido</td><td>repetir com espera; no 429, respeitar <code>Retry-After</code></td></tr>
+            <tr><td><code>500</code>, <code>502</code>, <code>503</code>, <code>504</code></td><td>falha do servidor, do proxy ou do gateway</td><td>repetir com backoff, com limite de tentativas</td></tr>
+          </tbody>
+        </table></div>
+        <p>A tabela é uma regra geral. A seção 5 mostra que a API PTAX devolve <code>500</code> para uma data em formato inválido, situação em que repetir não resolve nada. Por isso o limite de tentativas é obrigatório: sem ele, um erro do cliente disfarçado de erro do servidor vira um laço infinito.</p>
+
+        <h3>3.3 Paginação por offset e por cursor</h3>
+        <p>Coleções grandes são entregues em páginas. Na paginação por offset, o cliente pede "pule N registros e traga M", como nos parâmetros OData <code>$skip</code> e <code>$top</code>, que a PTAX aceita. É simples e permite saltar para qualquer página, mas se a coleção muda durante a leitura um registro pode ser lido duas vezes ou pulado, já que as posições se deslocam. Na paginação por cursor, o servidor devolve um marcador opaco ou um link para a próxima página, e o cliente apenas o segue. A leitura fica estável mesmo com inserções, ao custo de não permitir saltos. O link <code>next</code> do books.toscrape.com funciona como um cursor: o coletor segue o link até ele deixar de existir, em vez de calcular o número de páginas.</p>
+
+        <h3>3.4 Autenticação por chave</h3>
+        <p>Muitas APIs exigem uma chave enviada em cabeçalho, por exemplo <code>Authorization: Bearer &lt;chave&gt;</code> ou <code>X-API-Key: &lt;chave&gt;</code>. A PTAX não exige chave, mas o coletor deve nascer preparado para fontes que exigem, lendo a chave de variável de ambiente e nunca de arquivo versionado. A mesma regra vale para as credenciais do MinIO e para a chave da OpenRouter. Chave em URL também é problema, porque URLs aparecem em logs, no manifesto e nos metadados do objeto.</p>
+
+        <h3>3.5 Cache condicional com ETag e If-None-Match</h3>
+        <p>Alguns servidores devolvem o cabeçalho <code>ETag</code>, um identificador da versão do conteúdo. Na requisição seguinte, o cliente envia <code>If-None-Match</code> com esse valor; se nada mudou, o servidor responde <code>304 Not Modified</code> sem corpo. Em 03/10/2026, o books.toscrape.com devolveu <code>ETag</code> na página inicial e respondeu <code>304</code> quando a requisição repetiu o valor. A PTAX, na mesma data, não devolveu <code>ETag</code> e respondeu com <code>pragma: no-cache</code>. O coletor, portanto, só pode usar cache condicional onde o servidor o oferece, e precisa funcionar sem ele.</p>
+        <pre><code>curl -sI https://books.toscrape.com/ | grep -i etag
+# etag: "63e40de8-c85e"
+curl -s -o /dev/null -w "%{http_code}\n" \
+  -H 'If-None-Match: "63e40de8-c85e"' https://books.toscrape.com/
+# 304</code></pre>
+        <p>O valor do ETag depende da versão publicada da página. Rode o primeiro comando e use o valor que ele devolver.</p>
+      </section>
+
+      <section class="content-block" id="s4">
+        <h2>4. Falhas de rede: timeout, 429, retry, backoff e idempotência</h2>
+        <p>Uma coleta HTTP falha de poucas maneiras, e todas acontecem em produção com alguma frequência: a conexão não abre, a resposta não chega, o servidor recusa por excesso de requisições ou um intermediário (proxy, balanceador) devolve erro. Cada forma pede uma resposta diferente.</p>
+
+        <h3>4.1 Timeouts</h3>
+        <p>Sem timeout, uma requisição pode esperar indefinidamente, e a biblioteca <code>requests</code> não define timeout por padrão. O timeout tem duas partes: o tempo para abrir a conexão e o tempo entre bytes da resposta. Em <code>requests</code>, a tupla <code>timeout=(5, 20)</code> declara 5 segundos para conectar e 20 para ler. Os valores do <code>.env.example</code> da aula são ponto de partida e devem ser tratados no <code>spec.md</code> como hipótese até serem medidos.</p>
+
+        <h3>4.2 Rate limit, 429 e Retry-After</h3>
+        <p>Servidores limitam quantas requisições um cliente pode fazer num intervalo. Ao ultrapassar o limite, a resposta é <code>429 Too Many Requests</code> (RFC 6585), que pode trazer o cabeçalho <code>Retry-After</code> com o número de segundos a esperar ou uma data HTTP. Quando o cabeçalho existe, ele prevalece sobre qualquer cálculo próprio do cliente. A OpenRouter, usada pelo agente, aplica esse mesmo mecanismo nos modelos gratuitos (20 requisições por minuto), e o aluno vai encontrá-lo do lado do agente antes de encontrá-lo do lado do coletor.</p>
+
+        <h3>4.3 Retry com backoff exponencial e jitter</h3>
+        <p>Repetir imediatamente depois de uma falha costuma piorar a situação: se o servidor caiu por sobrecarga, cem clientes repetindo ao mesmo tempo mantêm a sobrecarga. O backoff exponencial aumenta a espera a cada tentativa, e o jitter sorteia parte dessa espera para que clientes diferentes não repitam no mesmo instante. Uma forma comum é o "full jitter":</p>
+        <pre><code>espera(tentativa) = aleatorio(0, min(teto, base * 2 ** tentativa))
+
+# base = 1 s, teto = 30 s
+# tentativa 0: entre 0 e 1 s
+# tentativa 1: entre 0 e 2 s
+# tentativa 2: entre 0 e 4 s
+# tentativa 3: entre 0 e 8 s
+# se houver Retry-After, espere o valor informado</code></pre>
+        <p>Três regras completam o retry. Só se repete o que é transitório (timeout, erro de conexão, 408, 429 e 5xx). Há um limite de tentativas, depois do qual a falha é registrada no manifesto. E só se repete automaticamente uma operação idempotente. Em Python há duas implementações prontas que o agente pode propor no plano: a classe <code>Retry</code> do <code>urllib3</code>, montada num <code>HTTPAdapter</code> do <code>requests</code>, e a configuração de retries do <code>botocore</code> para o cliente do MinIO, cujo modo <code>standard</code> repete erros transitórios do servidor.</p>
+
+        <h3>4.4 Idempotência na escrita</h3>
+        <p>A leitura com <code>GET</code> é idempotente por definição. A escrita depende do desenho. Se cada gravação gerar uma chave nova (por exemplo, com um UUID ou o horário em milissegundos), repetir uma gravação que de fato chegou ao MinIO, mas cuja resposta se perdeu, cria uma cópia. Se a chave for determinística, derivada da fonte e da data da coleta, a repetição sobrescreve o mesmo objeto com os mesmos bytes e o resultado final é igual. É o caso que o professor encontrou no projeto com ClickHouse no Railway: o proxy devolve 502 esporádico, e reenviar às cegas uma inserção não idempotente duplica linhas. No object storage, a chave determinística resolve o problema na origem.</p>
+      </section>
+
+      <section class="content-block" id="s5">
+        <h2>5. A API PTAX do Banco Central: contrato e realidade</h2>
+        <p>A PTAX é a taxa de câmbio de referência calculada pelo Banco Central a partir de consultas a dealers ao longo do dia. O serviço é publicado no portal Olinda como OData e está catalogado no <a href="https://dadosabertos.bcb.gov.br/dataset/taxas-de-cambio-todos-os-boletins-diarios" target="_blank" rel="noopener noreferrer">portal de dados abertos do BCB</a>. A raiz do serviço lista os recursos disponíveis:</p>
+        <pre><code>https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/</code></pre>
+        <p>Entre eles estão <code>Moedas</code>, <code>CotacaoMoedaDia</code>, <code>CotacaoMoedaPeriodo</code>, <code>CotacaoDolarDia</code> e <code>CotacaoDolarPeriodo</code>. A libra esterlina aparece em <code>Moedas</code> com o símbolo <code>GBP</code>. As consultas abaixo foram executadas em 03/10/2026.</p>
+
+        <h3>5.1 Cotação de um dia</h3>
+        <pre><code>B="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata"
+curl -s "$B/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='GBP'&amp;@dataCotacao='10-02-2026'&amp;\$format=json"</code></pre>
+        <p>A data vai no formato <code>MM-DD-AAAA</code>. A resposta traz uma lista <code>value</code> com um registro por boletim do dia, cada um com <code>paridadeCompra</code>, <code>paridadeVenda</code>, <code>cotacaoCompra</code>, <code>cotacaoVenda</code>, <code>dataHoraCotacao</code> e <code>tipoBoletim</code>. Para 02/10/2026 vieram cinco boletins: um de abertura, três intermediários e o de fechamento, este com <code>cotacaoVenda</code> 6,91210.</p>
+
+        <h3>5.2 Cotação de um período</h3>
+        <pre><code>curl -s "$B/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda='GBP'&amp;@dataInicial='09-28-2026'&amp;@dataFinalCotacao='10-03-2026'&amp;\$format=json"</code></pre>
+        <p>O recurso de período aceita os parâmetros OData <code>$select</code>, <code>$filter</code>, <code>$orderby</code>, <code>$top</code> e <code>$skip</code>. O monitor usa uma janela de alguns dias terminando na data da coleta, e a extração grava todos os boletins da janela. Assim a coleta de um sábado contém o fechamento de sexta-feira, e a escolha do boletim usado na conversão fica para a Aula 04.</p>
+
+        <h3>5.3 O que a documentação não conta</h3>
+        <p>O contrato de uma API é o que ela declara; a realidade é o que ela faz. Quatro comportamentos observados em 03/10/2026 mudam o desenho do coletor:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Situação</th><th>Resposta observada</th><th>Consequência para o coletor</th></tr></thead>
+          <tbody>
+            <tr><td>sábado, 03/10/2026, em <code>CotacaoMoedaDia</code></td><td><code>200</code> com <code>"value": []</code></td><td>lista vazia não é erro de rede; usar janela de período e registrar a data efetiva da cotação</td></tr>
+            <tr><td>data em ISO (<code>2026-10-02</code>)</td><td><code>200</code> com <code>"value": []</code></td><td>erro de formato passa em silêncio; validar o formato antes de chamar e tratar lista vazia em dia útil como alerta</td></tr>
+            <tr><td>data em <code>DD-MM-AAAA</code> (<code>24-10-2026</code>)</td><td><code>500</code>, corpo <code>/*{"codigo":500,"mensagem":"Erro desconhecido"}*/</code></td><td>500 causado pelo cliente; o retry esgota as tentativas sem sucesso; o corpo não é JSON válido</td></tr>
+            <tr><td>rótulo do fechamento</td><td><code>"Fechamento PTAX"</code> em <code>CotacaoMoedaDia</code>; <code>"Fechamento"</code> em <code>CotacaoMoedaPeriodo</code></td><td>o filtro do boletim depende do recurso consultado; o extrator não pode comparar com um texto fixo sem teste</td></tr>
+          </tbody>
+        </table></div>
+        <p>Nenhum desses comportamentos é exótico. Eles mostram por que o coletor grava a resposta inteira antes de interpretar: se o filtro estiver errado, a resposta bruta permite corrigir e reprocessar sem chamar a API de novo. Também mostram por que o <code>spec.md</code> precisa de critérios de aceite para o caso vazio. A documentação interativa do serviço está em <a href="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/aplicacao" target="_blank" rel="noopener noreferrer">olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/aplicacao</a>.</p>
+        <p>Não encontramos limite de requisições documentado para a PTAX. O monitor faz uma chamada por execução, de modo que o limite não é um risco relevante aqui; ainda assim, o 429 continua tratado pela regra geral.</p>
+      </section>
+
+      <section class="content-block" id="s6">
+        <h2>6. Web scraping: HTML, seletores e paginação</h2>
+        <p>Scraping é extrair dados de páginas feitas para pessoas. O servidor não oferece um contrato para programas; oferece um documento HTML cuja estrutura pode mudar a qualquer momento, sem aviso e sem versão. Tudo o que o coletor sabe sobre a fonte vem da inspeção da página.</p>
+
+        <h3>6.1 HTML, DOM e seletores CSS</h3>
+        <p>O navegador transforma o HTML numa árvore de elementos, o DOM. Um seletor CSS é uma expressão que localiza elementos nessa árvore pela tag, pela classe, pelo atributo ou pela posição. A ferramenta de inspeção do navegador (botão direito, Inspecionar) mostra a árvore e permite testar seletores no console com <code>document.querySelectorAll("article.product_pod")</code>. Os seletores abaixo foram verificados em 03/10/2026 com BeautifulSoup numa página de categoria do books.toscrape.com:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Campo</th><th>Seletor</th><th>Valor de exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>cartão do livro</td><td><code>article.product_pod</code></td><td>20 por página</td></tr>
+            <tr><td>título completo</td><td>atributo <code>title</code> de <code>h3 &gt; a</code></td><td><code>Sharp Objects</code> (o texto visível pode vir truncado com "...")</td></tr>
+            <tr><td>link do livro</td><td>atributo <code>href</code> de <code>h3 &gt; a</code></td><td><code>../../../sharp-objects_997/index.html</code> (relativo)</td></tr>
+            <tr><td>preço</td><td><code>p.price_color</code></td><td><code>£47.82</code></td></tr>
+            <tr><td>disponibilidade</td><td><code>p.instock.availability</code></td><td><code>In stock</code></td></tr>
+            <tr><td>avaliação</td><td>segunda classe de <code>p.star-rating</code></td><td><code>Four</code> (de <code>One</code> a <code>Five</code>)</td></tr>
+            <tr><td>nome da categoria</td><td><code>div.page-header h1</code></td><td><code>Mystery</code></td></tr>
+            <tr><td>total de resultados</td><td>primeiro <code>strong</code> de <code>form.form-horizontal</code></td><td><code>32</code></td></tr>
+            <tr><td>próxima página</td><td>atributo <code>href</code> de <code>li.next &gt; a</code></td><td><code>page-2.html</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>A página de categoria não traz o UPC nem a quantidade em estoque. Esses campos estão na página de detalhe de cada livro, cujos seletores também foram verificados em 03/10/2026:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Campo</th><th>Seletor na página de detalhe</th><th>Valor de exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>UPC</td><td><code>td</code> da linha cujo <code>th</code> é <code>UPC</code> em <code>table.table-striped</code></td><td><code>e00eb4fd7b871a48</code></td></tr>
+            <tr><td>título</td><td><code>div.product_main h1</code></td><td><code>Sharp Objects</code></td></tr>
+            <tr><td>preço</td><td><code>div.product_main p.price_color</code></td><td><code>£47.82</code></td></tr>
+            <tr><td>estoque</td><td><code>div.product_main p.availability</code></td><td><code>In stock (20 available)</code></td></tr>
+            <tr><td>avaliação</td><td>segunda classe de <code>div.product_main p.star-rating</code></td><td><code>Four</code></td></tr>
+            <tr><td>categoria</td><td>terceiro link de <code>ul.breadcrumb</code></td><td><code>Mystery</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>A quantidade em estoque vem dentro de um texto (<code>In stock (20 available)</code>) e precisa ser extraída como número inteiro, com teste para o caso em que o parêntese não aparece. A tabela de detalhe tem outras linhas (<code>Product Type</code>, preços com e sem imposto, <code>Number of reviews</code>), que ficam no HTML bruto para uso futuro.</p>
+        <p>Dois detalhes desta tabela costumam gerar erro. O título visível é truncado, por isso o valor confiável está no atributo <code>title</code>. E os links são relativos à página atual, por isso precisam ser resolvidos com <code>urllib.parse.urljoin</code> a partir da URL da página que os contém.</p>
+
+        <h3>6.2 requests e BeautifulSoup</h3>
+        <p>A combinação mais comum em Python é <code>requests</code> para baixar e <code>BeautifulSoup</code> para interpretar. O BeautifulSoup aceita seletores CSS pelos métodos <code>select</code> e <code>select_one</code>. Alternativas como <code>selectolax</code> (mais rápida) e <code>parsel</code> (seletores CSS e XPath, a mesma base do Scrapy) resolvem o mesmo problema; a escolha entra no <code>plan.md</code> com justificativa ligada a requisito, e para 80 páginas a velocidade do parser não é um driver.</p>
+        <pre><code>import requests
+from bs4 import BeautifulSoup
+
+url = "https://books.toscrape.com/catalogue/category/books/mystery_3/index.html"
+r = requests.get(url, timeout=(5, 20), headers={"User-Agent": "..."})
+soup = BeautifulSoup(r.content, "html.parser")   # bytes, não r.text
+for card in soup.select("article.product_pod"):
+    print(card.select_one("h3 &gt; a")["title"],
+          card.select_one("p.price_color").get_text(strip=True))</code></pre>
+        <p>O trecho serve para inspeção na aula; o código do monitor nasce dos prompts. Ele mostra uma armadilha real desta fonte. O servidor responde <code>Content-Type: text/html</code>, sem declarar o charset no cabeçalho. Nesse caso o <code>requests</code> assume ISO-8859-1, e <code>r.text</code> transforma <code>£51.77</code> em <code>Â£51.77</code>, o que quebra a conversão do preço. Passar os bytes (<code>r.content</code>) ao BeautifulSoup resolve, porque ele lê o <code>&lt;meta charset="UTF-8"&gt;</code> do próprio documento. O mesmo vale para a gravação no MinIO: o coletor grava os bytes recebidos, sem decodificar e recodificar.</p>
+
+        <h3>6.3 Paginação e escopo da coleta</h3>
+        <p>Em 03/10/2026 o catálogo exibia 1.000 livros em 50 páginas de 20, e a lateral listava 50 categorias. As 50 categorias somavam 80 páginas e cobriam os 1.000 livros. O monitor coleta a página inicial (para descobrir as categorias), as páginas de cada categoria, seguindo o link <code>next</code> até ele desaparecer, e a página de detalhe de cada livro listado, que é onde estão o UPC e a quantidade em estoque. A escolha custa cerca de 1.000 requisições a mais por execução, e a justificativa é de modelagem: a Aula 05 usa o UPC como chave natural do livro, e sem ele o título, que pode se repetir, seria a única identificação disponível. A página 51 do catálogo geral devolve <code>404</code>, o que confirma que o fim da paginação aparece pela ausência do link e não por um número fixo. Uma das categorias se chama <code>Default</code> e tinha 152 livros; ela é uma categoria do site como as outras.</p>
+        <p>Esses números servem como critério de aceite (a extração deve encontrar o total que a página declara), não como constante no código. Se o site mudar, o coletor segue os links e o teste acusa a diferença.</p>
+      </section>
+
+      <section class="content-block" id="s7">
+        <h2>7. Coleta educada: robots.txt, termos de uso, LGPD e cadência</h2>
+        <p>O fato de uma página ser pública não autoriza qualquer forma de coleta. Quatro verificações antecedem o primeiro script.</p>
+        <p>A primeira é o <code>robots.txt</code>, padronizado na RFC 9309. Ele declara quais caminhos os robôs não devem visitar e às vezes pede um intervalo entre requisições. Não é um mecanismo de segurança nem uma autorização jurídica, mas é a manifestação explícita da vontade do dono do site, e ignorá-lo é má prática. Em 03/10/2026, <code>https://books.toscrape.com/robots.txt</code> devolveu <code>404</code>, ou seja, o site não declara restrições. Mesmo assim o coletor deve consultar o arquivo em cada execução e registrar o resultado no manifesto, porque a ausência hoje não garante ausência amanhã.</p>
+        <p>A segunda são os termos de uso. Sites comerciais costumam proibir coleta automatizada em contrato, e essa proibição vale mesmo sem <code>robots.txt</code>. O books.toscrape.com existe para treino e declara isso na página; um site real exigiria leitura dos termos e, em muitos casos, autorização.</p>
+        <p>A terceira é a LGPD (Lei 13.709/2018). Dado pessoal publicado continua sendo dado pessoal, e coletá-lo exige finalidade, base legal e minimização. O catálogo desta aula não contém dados pessoais. Um projeto que raspe avaliações com nome de clientes, perfis ou contatos entra em outra categoria de risco e precisa registrar essa análise no <code>atam.md</code>.</p>
+        <p>A quarta é o comportamento do coletor. Ele se identifica com um <code>User-Agent</code> que informa o projeto e um contato (o repositório do grupo, por exemplo), em vez de se passar por navegador. Ele espera entre requisições ao mesmo site; o <code>.env.example</code> sugere 1 segundo, valor que entra no <code>spec.md</code> como hipótese, já que o site não declara limite. Ele não paraleliza requisições contra o mesmo domínio, usa cache condicional quando o servidor oferece e baixa só o que precisa. A coleta completa faz cerca de 1.081 requisições (página inicial, 80 páginas de categoria e 1.000 páginas de detalhe). Com 1 segundo entre elas, só a espera soma perto de 18 minutos, e o tempo de resposta se acrescenta a isso; em 03/10/2026 duas páginas de detalhe responderam em 0,6 s e 1,1 s. É um custo aceitável para uma coleta diária e muito menor que o risco de sobrecarregar a fonte ou ser bloqueado. Para desenvolvimento, a variável <code>SCRAPER_CATEGORIAS</code> do <code>.env.example</code> restringe a coleta a poucas categorias, e a coleta completa roda uma vez, ao final. Em reexecuções no mesmo dia, o <code>If-None-Match</code> com o ETag guardado nos metadados permite receber <code>304</code> sem baixar o corpo de novo.</p>
+      </section>
+
+      <section class="content-block" id="s8">
+        <h2>8. Por que guardar o HTML bruto antes de extrair</h2>
+        <p>O coletor registra o que a fonte entregou, e o extrator interpreta esse registro. Quando os dois papéis ficam no mesmo passo e só o resultado interpretado é guardado, qualquer erro de interpretação vira perda de dado. Três situações comuns mostram o custo.</p>
+        <ol class="steps">
+          <li>O seletor estava errado. Um campo saiu vazio em todas as linhas durante uma semana. Com o HTML guardado, corrige-se o seletor e reprocessa-se a semana. Sem ele, a semana está perdida, porque a página daquela data não existe mais.</li>
+          <li>Surge uma pergunta nova. Alguém quer a avaliação em estrelas, que o extrator original ignorava. Com o HTML guardado, extrai-se o campo novo para todo o histórico.</li>
+          <li>O site mudou. A página nova quebra o seletor. Com o HTML guardado, compara-se a versão antiga com a nova e descobre-se exatamente o que mudou.</li>
+        </ol>
+        <p>Guardar o bruto custa espaço. Em 03/10/2026 a página inicial tinha cerca de 50 KiB e as páginas de detalhe verificadas tinham entre 9 e 15 KiB. As 81 páginas de listagem somam perto de 4 MiB e as 1.000 de detalhe algo entre 9 e 15 MiB, menos de 20 MiB por dia, volume irrelevante para o MinIO. Esse é o mesmo raciocínio de camada bronze que a Aula 04 vai formalizar: a primeira gravação preserva o que a fonte entregou, com metadados suficientes para saber de onde veio, quando e com qual conteúdo.</p>
+        <h3>8.1 Fragilidade dos seletores</h3>
+        <p>Seletores quebram quando o site muda classes, reorganiza a árvore ou passa a montar a página com JavaScript. Três práticas reduzem o dano. Preferir seletores ancorados em semântica estável (<code>article.product_pod</code>) a caminhos posicionais longos (<code>div &gt; div:nth-child(3) &gt; ol &gt; li</code>). Validar a extração contra o que a própria página declara, como o total de resultados no topo da listagem. E falhar de forma visível: uma página que devolve zero livros quando declarava 20 deve interromper a extração com erro, nunca gravar um JSON Lines vazio como se fosse resultado válido.</p>
+      </section>
+
+      <section class="content-block" id="s9">
+        <h2>9. API, scraping ou nenhum dos dois</h2>
+        <p>Na escolha da fonte, o scraping fica por último. A ordem de preferência segue a estabilidade do contrato que cada caminho oferece.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Situação</th><th>Escolha</th><th>Motivo</th></tr></thead>
+          <tbody>
+            <tr><td>Existe API documentada que entrega o dado</td><td>API</td><td>contrato versionado, formato estável, limites declarados</td></tr>
+            <tr><td>Existe exportação oficial (CSV, dump, portal de dados abertos)</td><td>download do arquivo</td><td>menos requisições e menos interpretação</td></tr>
+            <tr><td>Não há API nem exportação, o site permite e não há dado pessoal</td><td>scraping educado</td><td>única fonte disponível, com custo de manutenção assumido</td></tr>
+            <tr><td>Os termos proíbem coleta ou há login, paywall ou CAPTCHA</td><td>nenhum dos dois</td><td>negociar acesso, comprar o dado ou mudar a pergunta</td></tr>
+            <tr><td>Há dados pessoais sem base legal clara</td><td>nenhum dos dois</td><td>o risco jurídico supera o valor do dado</td></tr>
+            <tr><td>O dado já está no banco de quem pergunta</td><td>nenhum dos dois</td><td>ler a fonte interna, sem coletar de fora</td></tr>
+          </tbody>
+        </table></div>
+        <p>No monitor, a cotação tem API oficial e o catálogo não tem. As duas escolhas desta aula seguem a tabela.</p>
+      </section>
+
+      <section class="content-block" id="s10">
+        <h2>10. Arquitetura do monitor e desenho das chaves</h2>
+        <p>O monitor tem cinco passos, que o <code>plan.md</code> vai detalhar em componentes:</p>
+        <div class="method-flow">
+          <div class="method-step"><strong>Descobrir</strong><span>lê robots.txt e a página inicial; lista as categorias.</span></div>
+          <div class="method-step"><strong>Coletar páginas</strong><span>baixa categorias e o detalhe de cada livro, com cadência, e grava o HTML bruto.</span></div>
+          <div class="method-step"><strong>Coletar PTAX</strong><span>consulta a janela de cotações GBP e grava o JSON bruto.</span></div>
+          <div class="method-step"><strong>Manifestar</strong><span>registra URLs, status, hashes e falhas da execução.</span></div>
+          <div class="method-step"><strong>Extrair</strong><span>lê o bruto do MinIO e grava o JSON Lines em bronze.</span></div>
+        </div>
+
+        <h3>10.1 Chaves no MinIO</h3>
+        <p>Na disciplina, o bucket <code>raw</code> guarda os bytes como chegaram da fonte (HTML e JSON) e o bucket <code>bronze</code> guarda os registros extraídos em JSON Lines, ainda sem tipagem forte; silver e gold vêm na Aula 04. A partição <code>data=</code> usa a data da coleta no fuso <code>America/Sao_Paulo</code>, decisão que o <code>spec.md</code> precisa registrar porque uma execução depois das 21h em UTC cairia no dia seguinte.</p>
+        <pre><code>raw/books_toscrape/data=2026-10-24/robots.txt.json
+raw/books_toscrape/data=2026-10-24/categoria=_inicio/pagina=001.html
+raw/books_toscrape/data=2026-10-24/categoria=mystery_3/pagina=001.html
+raw/books_toscrape/data=2026-10-24/categoria=mystery_3/pagina=002.html
+raw/books_toscrape/data=2026-10-24/livro=sharp-objects_997/detalhe.html
+raw/ptax/moeda=GBP/data=2026-10-24/cotacao_moeda_periodo.json
+raw/manifestos/data=2026-10-24/execucao=20261024T093012-0300.json
+bronze/books_toscrape/data=2026-10-24/livros.jsonl
+bronze/ptax/moeda=GBP/data=2026-10-24/cotacoes.jsonl</code></pre>
+        <p>As chaves de páginas e da PTAX são determinísticas: dependem só da fonte, da data e da posição da página. Reexecutar no mesmo dia sobrescreve os mesmos objetos, de modo que o snapshot do dia é sempre o da última execução bem-sucedida e nada se duplica. O manifesto é a exceção deliberada: cada execução grava o seu, com identificador próprio, para que o histórico de tentativas não se perca. O trade-off é explícito. Perde-se a versão intermediária de uma página que mudou entre duas execuções do mesmo dia; para um monitor diário, esse é o grão desejado. O versionamento de bucket do MinIO seria a alternativa se o grão precisasse ser menor, e entra no ADR como opção considerada.</p>
+
+        <h3>10.2 Metadados do objeto</h3>
+        <p>Cada objeto bruto leva metadados de usuário (<code>x-amz-meta-*</code>), gravados pelo parâmetro <code>Metadata</code> do <code>put_object</code>: URL de origem, data e hora da coleta em UTC, status HTTP, SHA-256 do corpo, identificador da execução e, quando houver, o <code>ETag</code> devolvido pela fonte. O <code>ContentType</code> do objeto também é definido (<code>text/html; charset=utf-8</code> ou <code>application/json</code>). Dois fatos verificados com o MinIO da aula em 03/10/2026: o <code>boto3</code> recusa metadados com caracteres fora do ASCII (um valor como <code>preço</code> gera <code>ParamValidationError</code>), e o comando <code>mc stat</code> da imagem usada não exibiu os metadados de usuário, que aparecem com <code>head_object</code> do <code>boto3</code>. Por isso a verificação da seção 13 usa Python.</p>
+
+        <h3>10.3 Coleta e extração em etapas separadas</h3>
+        <p>O monitor poderia extrair o JSON Lines na mesma execução, a partir dos bytes que acabou de baixar. A aula recomenda etapas separadas, com a extração lendo do MinIO, por quatro motivos que o <code>plan.md</code> e o ADR-001 devem registrar:</p>
+        <ul>
+          <li>reprocessamento: corrigir um seletor e extrair de novo qualquer data, sem chamar a fonte;</li>
+          <li>modos de falha diferentes: a coleta falha por rede e a extração falha por mudança de HTML, e cada falha deve ser tratada e reexecutada sozinha;</li>
+          <li>prova de que o bruto basta: se a extração só lê o MinIO, fica demonstrado que o bucket <code>raw</code> contém tudo o que é necessário;</li>
+          <li>teste sem rede: o extrator é testado com páginas gravadas, sem depender do site.</li>
+        </ul>
+        <p>O custo é uma leitura extra do MinIO, menos de 20 MiB por dia. Um único comando pode chamar as duas etapas em sequência, desde que a extração continue lendo do bucket e possa rodar sozinha.</p>
+
+        <h3>10.4 Os registros extraídos</h3>
+        <p>Os campos foram combinados com as Aulas 04 e 05, que leem estes arquivos. Cada linha do <code>livros.jsonl</code> é um objeto JSON com: <code>upc</code> (chave natural, da página de detalhe), <code>url</code> (absoluta, da página de detalhe), <code>titulo</code>, <code>categoria</code>, <code>avaliacao</code> (inteiro de 1 a 5), <code>preco_gbp</code> (número), <code>em_estoque</code> (booleano), <code>qtd_estoque</code> (inteiro) e <code>coletado_em</code> (data e hora da coleta da página de detalhe, em ISO 8601). O grupo pode acrescentar <code>chave_origem</code>, com a chave do HTML de onde a linha saiu, para rastreabilidade.</p>
+        <p>Cada linha do <code>cotacoes.jsonl</code> corresponde a um boletim da resposta PTAX, com os nomes da própria API: <code>moeda</code> (acrescentado pelo extrator, já que a resposta não o repete), <code>dataHoraCotacao</code>, <code>tipoBoletim</code>, <code>cotacaoCompra</code> e <code>cotacaoVenda</code>. A conversão de <code>preco_gbp</code> para reais, com a escolha do boletim de fechamento e o tratamento de fim de semana, é feita na Aula 04 sobre esses dois arquivos.</p>
+
+        <h3>10.5 O 502 do Railway</h3>
+        <p>O MinIO publicado no Railway fica atrás de um proxy que pode devolver 502 de forma esporádica. Como as chaves são determinísticas e o corpo é o mesmo, o <code>put_object</code> pode ser repetido com backoff sem risco de duplicação. A configuração de retries do cliente <code>boto3</code> resolve a maior parte dos casos; o manifesto registra o número de tentativas de cada gravação para que o grupo saiba se o problema está crescendo.</p>
+      </section>
+
+      <section class="content-block" id="s11">
+        <h2>11. Preparação do ambiente</h2>
+        <p>O roteiro completo, com os comandos de verificação, está em <a href="../laboratorio/README.md"><code>laboratorio/README.md</code></a>. Os passos abaixo assumem o Codespace do repositório do grupo, o OpenCode configurado na Aula 01 e o MinIO no Railway já publicado.</p>
+        <ol class="steps">
+          <li>Abra o Codespace do repositório do grupo e, na raiz, crie a pasta da aula: <code>mkdir -p aula_03_api_scraping/{docs/adr,specs,src,tests}</code>.</li>
+          <li>Copie para essa pasta os arquivos de apoio de <code>laboratorio/</code> deste repositório: <code>docker-compose.yml</code>, <code>.env.example</code>, <code>requirements.txt</code> e <code>AGENTS.md</code>. Você pode baixá-los pelo GitHub ou clonar <code>afonsolelis/aulas_mackenzie</code> numa pasta temporária. Depois entre na pasta: <code>cd aula_03_api_scraping</code>.</li>
+          <li>Impeça que segredos e artefatos locais sejam versionados e crie o <code>.env</code> a partir do modelo: <code>printf '.env\n.env.*\n!.env.example\n.venv/\n__pycache__/\n' &gt;&gt; .gitignore</code> e <code>cp .env.example .env</code>. Confira com <code>git check-ignore .env</code>, que deve imprimir <code>.env</code>.</li>
+          <li>Gere uma senha forte para o MinIO local com <code>openssl rand -base64 24</code> e preencha <code>MINIO_ROOT_PASSWORD</code> e <code>S3_SECRET_KEY</code> com o mesmo valor. Ajuste o <code>USER_AGENT</code> com o endereço do repositório do grupo.</li>
+          <li>Suba o MinIO local e espere o estado <code>healthy</code>: <code>docker compose up -d --wait</code> e <code>docker compose ps</code>.</li>
+          <li>Crie os buckets usando as credenciais que já estão dentro do contêiner, sem digitar a senha: <code>docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" &amp;&amp; mc mb --ignore-existing local/raw local/bronze'</code>.</li>
+          <li>Crie o ambiente Python: <code>python3 -m venv .venv</code>, <code>source .venv/bin/activate</code> e <code>pip install -r requirements.txt</code>.</li>
+          <li>Confirme o acesso às fontes antes de escrever qualquer prompt: <code>curl -sI https://books.toscrape.com/ | head -5</code> e a consulta da seção 5.1.</li>
+          <li>Abra o agente na pasta da aula com <code>opencode</code> e confirme o modelo com <code>/models</code>. Trabalhe um prompt por vez: no plano gratuito da OpenRouter o limite é de 20 requisições por minuto e 50 por dia para contas com menos de US$ 10 em créditos comprados, e cada prompt consome várias requisições. Se aparecer 429, espere e repita.</li>
+        </ol>
+        <div class="note">
+          <strong>Segredos</strong>
+          <p>A chave da OpenRouter fica no campo seguro do <code>/connect</code>. As credenciais do MinIO ficam no <code>.env</code>, que não é versionado. Nenhuma delas entra em prompt, captura de tela, metadado de objeto ou manifesto. Se uma credencial aparecer num diff, pare, remova-a e gere outra.</p>
+        </div>
+      </section>
+
+      <section class="content-block" id="s12">
+        <h2>12. Prática guiada em SDD: os sete prompts CREATE</h2>
+        <p>Os prompts abaixo são independentes e devem ser copiados por inteiro, um de cada vez, com o OpenCode aberto em <code>aula_03_api_scraping/</code>. Cada prompt termina pedindo que o agente pare. Entre um prompt e outro está o quadro "Revise antes de seguir": a revisão é o momento em que o grupo decide se o artefato está correto, e o agente não tem autoridade para pular essa etapa. Os fatos que aparecem nos prompts foram verificados em 03/10/2026; o próprio prompt pede que o agente os confirme antes de usá-los.</p>
+
+        <h3>12.1 Prompt 1 &middot; Persona</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é analista de produto de dados sênior. Trabalha na pasta
+aula_03_api_scraping/ do repositório do grupo, que segue Spec-Driven
+Development. Nesta etapa você só descobre e descreve pessoas; não projeta
+nem programa.
+
+[R] Pedido
+Escreva docs/00_persona.md com as personas que vão usar um monitor de
+preços de livros. O monitor roda uma vez por dia, coleta por scraping os
+preços em libras do catálogo https://books.toscrape.com, coleta pela API
+PTAX do Banco Central a cotação GBP para BRL e grava os dados brutos no
+MinIO, além de arquivos JSON Lines com um registro por livro (identificado
+pelo UPC) e um registro por boletim de cotação. A conversão para reais é
+feita numa etapa posterior, na Aula 04. Para cada persona, descreva: papel; decisão que toma
+com o dado; pergunta típica que faz ao dado; frequência de uso; dor atual;
+consequência de um dado errado ou atrasado; nível técnico.
+
+[E] Exemplos
+## P1 · Analista de compras de uma livraria importadora
+- Decisão: quais títulos repor e com qual preço de venda em reais.
+- Pergunta típica: quais livros de Mystery em estoque custam menos de
+  R$ 150 pela PTAX de fechamento mais recente?
+- Frequência: diária, antes das 10h (hipótese — validação pendente).
+- Dor atual: copia preços à mão e usa câmbio de site de notícias sem data.
+- Se o dado falhar: reprecifica com câmbio antigo e perde margem.
+- Nível técnico: usa planilha e SQL básico.
+
+[A] Ajustes
+- No máximo três personas, incluindo uma persona técnica que opera o
+  pipeline (quem é acionado quando a coleta falha).
+- O site books.toscrape.com avisa que preços e avaliações são aleatórios.
+  Declare no início do arquivo que o domínio é um exercício didático.
+- Não invente números, SLAs, volumes ou horários. Todo valor sem origem
+  neste prompt fica marcado como "hipótese — validação pendente".
+- Separe fato, lacuna e suposição.
+- Não crie código, não crie outros arquivos e não altere arquivos
+  existentes além de docs/00_persona.md.
+
+[T] Tipo de saída
+Um arquivo Markdown de até 80 linhas: uma seção por persona no formato do
+exemplo, seguida das seções "Fatos, lacunas e suposições" (tabela com
+três colunas) e "Perguntas para o cliente" (lista numerada).
+
+[E] Extras
+Leia AGENTS.md antes de começar. A fonte de verdade é este prompt e o
+AGENTS.md. Mostre o plano antes de editar e espere minha confirmação.
+Se faltar informação, pergunte. Ao terminar, resuma o que escreveu em
+cinco linhas e pare.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Existe uma persona que opera o pipeline e outra que consome o dado? Cada persona tem uma decisão concreta, e não apenas um interesse genérico? Algum horário, volume ou percentual apareceu sem a marcação de hipótese? O aviso de que os preços do site são aleatórios está no arquivo? A seção de lacunas está vazia? Se estiver, desconfie.</p>
+        </div>
+
+        <h3>12.2 Prompt 2 &middot; Objetivos de negócio</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é gerente de produto de dados. Conhece as personas de
+docs/00_persona.md e transforma as dores delas em objetivos verificáveis.
+
+[R] Pedido
+Escreva docs/01_objetivos_negocio.md com: objetivos de negócio (OBJ-01,
+OBJ-02...), cada um ligado a uma persona; métrica de sucesso de cada
+objetivo, com forma de medir; drivers de negócio; restrições; fora de
+escopo.
+
+[E] Exemplos
+## OBJ-01 · Snapshot diário completo do catálogo
+- Persona: P1.
+- Métrica: número de livros extraídos no dia igual ao total que o site
+  declara na página inicial (em 03/10/2026 eram 1.000 livros).
+- Como medir: comparar a contagem de linhas de livros.jsonl com o número
+  "N results" gravado no manifesto da execução.
+- Origem: dor de P1 em docs/00_persona.md.
+
+[A] Ajustes
+- Restrições obrigatórias, com origem "restrição da disciplina":
+  sem custo de API; desenvolvimento no Codespace com Docker; MinIO local
+  via docker compose e MinIO no Railway (plano trial, 1 GB de RAM);
+  coleta educada (User-Agent identificável, intervalo entre requisições,
+  sem paralelismo contra o mesmo site, robots.txt consultado);
+  nenhum segredo em arquivo versionado.
+- Fora de escopo nesta aula: Parquet, DuckDB, camadas silver/gold e a
+  conversão de preços para reais (Aula 04); agendamento contínuo em produção; painéis; dados pessoais.
+- Não invente números. O total de 1.000 livros é um fato observado em
+  03/10/2026, não uma constante; trate-o como valor a confirmar.
+- Preserve os IDs P1, P2, P3 de docs/00_persona.md.
+
+[T] Tipo de saída
+Um arquivo Markdown de até 90 linhas, com seções Objetivos, Drivers de
+negócio, Restrições (tabela restrição | origem), Fora de escopo e
+Hipóteses a validar.
+
+[E] Extras
+Leia AGENTS.md e docs/00_persona.md. Se uma dor de persona não virar
+objetivo, explique por quê. Mostre o plano antes de editar, pergunte se
+faltar informação e pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Cada objetivo tem uma métrica que pode ser medida com um comando ou uma consulta? Os objetivos apontam para personas existentes? As restrições têm origem declarada? O fora de escopo impede que a Aula 04 seja antecipada? Algum número virou meta sem justificativa?</p>
+        </div>
+
+        <h3>12.3 Prompt 3 &middot; Especificação</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é engenheiro de dados responsável pela especificação. Escreve
+requisitos testáveis; não escolhe bibliotecas nem desenha componentes.
+
+[R] Pedido
+Escreva specs/spec.md com requisitos funcionais (RF-01...) e não
+funcionais (RNF-01...) do monitor de preços de livros. Cada requisito
+tem: descrição, origem (OBJ-xx, P-x ou restrição) e pelo menos um
+critério de aceite no formato Dado / Quando / Então.
+A especificação deve cobrir, no mínimo:
+- descoberta das categorias a partir da página inicial;
+- coleta de todas as páginas de cada categoria seguindo o link "next";
+- visita à página de detalhe de cada livro listado, com o HTML bruto
+  gravado, porque UPC e quantidade em estoque só aparecem ali;
+- possibilidade de restringir a coleta a algumas categorias
+  (SCRAPER_CATEGORIAS) durante o desenvolvimento;
+- gravação do HTML bruto no bucket raw, com chave determinística e
+  metadados de origem;
+- consulta de robots.txt em cada execução e registro do resultado;
+- coleta da PTAX GBP numa janela de dias e gravação do JSON bruto;
+- caso sem cotação na data (fim de semana, feriado);
+- manifesto por execução (URLs, status, hash, tentativas, falhas);
+- extração, lendo apenas do MinIO, para bronze/books_toscrape/
+  data=AAAA-MM-DD/livros.jsonl com os campos upc, url, titulo, categoria,
+  avaliacao, preco_gbp, em_estoque, qtd_estoque, coletado_em, e para
+  bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl com os campos
+  moeda, dataHoraCotacao, tipoBoletim, cotacaoCompra, cotacaoVenda;
+- reexecução no mesmo dia sem duplicar objetos;
+- falhas de rede: timeout, 429 com Retry-After, 5xx, 502 do proxy;
+- cadência, User-Agent e ausência de paralelismo contra o mesmo site;
+- segredos fora de arquivos versionados;
+- codificação: preço com o símbolo de libra lido corretamente.
+
+Fatos verificados em 03/10/2026 (confirme antes de usar):
+- books.toscrape.com: 50 categorias; 1.000 livros; 20 por página;
+  cartão article.product_pod; título no atributo title de h3 > a;
+  preço em p.price_color; disponibilidade em p.instock.availability;
+  avaliação na segunda classe de p.star-rating (One a Five);
+  próxima página em li.next > a; robots.txt devolve 404;
+  página de detalhe: UPC na tabela table.table-striped (linha com th
+  "UPC"), estoque em div.product_main p.availability no formato
+  "In stock (20 available)", categoria no terceiro link de ul.breadcrumb;
+  Content-Type sem charset, então requests decodifica como ISO-8859-1.
+- PTAX: base https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata;
+  recurso CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,
+  dataFinalCotacao=@dataFinalCotacao) com @moeda='GBP', datas no formato
+  'MM-DD-AAAA' e $format=json; sábado devolve 200 com value vazio;
+  data em ISO devolve 200 com value vazio; data em DD-MM-AAAA devolve
+  500; o fechamento se chama "Fechamento" neste recurso.
+
+[E] Exemplos
+### RF-05 · Gravar a resposta PTAX bruta
+Origem: OBJ-02.
+Descrição: o coletor grava o corpo da resposta da PTAX sem alteração em
+raw/ptax/moeda=GBP/data=AAAA-MM-DD/cotacao_moeda_periodo.json.
+Critério de aceite:
+- Dado que a API respondeu 200 com ao menos um boletim de fechamento,
+  quando a coleta da data D terminar,
+  então existe um objeto nessa chave cujo SHA-256 é igual ao do corpo
+  recebido e cujos metadados contêm fonte-url, coletado-em e sha256.
+
+[A] Ajustes
+- Requisitos verificáveis: nada de "rápido", "confiável" ou "robusto"
+  sem medida. Valores sem origem (timeouts, intervalo, tentativas) ficam
+  marcados como "hipótese — validação pendente".
+- Não fixe 1.000 livros ou 80 páginas no requisito: o critério compara a
+  extração com o total que a própria página declara.
+- A data da partição é a data da coleta em America/Sao_Paulo.
+- Preserve os IDs de docs/01_objetivos_negocio.md.
+- Não escreva código nem plano.
+
+[T] Tipo de saída
+specs/spec.md em Markdown: seção de contexto (5 linhas), lista de RF,
+lista de RNF, tabela de rastreabilidade (requisito | origem) e seção
+"Fatos, lacunas e suposições".
+
+[E] Extras
+Leia AGENTS.md, docs/00_persona.md e docs/01_objetivos_negocio.md.
+Mostre o índice dos requisitos antes de escrever o arquivo inteiro.
+Pergunte se houver conflito entre os documentos. Pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Todo RF e todo RNF tem pelo menos um critério Dado/Quando/Então que pode virar teste? Existe critério para a PTAX vazia e para a data em formato errado? A reexecução no mesmo dia tem critério que prove a ausência de duplicação? Algum requisito fixou 1.000 livros ou 80 páginas como constante? Os valores de timeout, intervalo e tentativas estão marcados como hipótese?</p>
+        </div>
+
+        <h3>12.4 Prompt 4 &middot; Plano e arquitetura</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é arquiteto de software de dados. Toda escolha técnica que você
+fizer precisa apontar para um RF ou RNF de specs/spec.md.
+
+[R] Pedido
+Escreva specs/plan.md com:
+1. Diagrama C4 de contexto e de contêineres em Mermaid: books.toscrape.com,
+   API PTAX, coletor, extrator, MinIO local e MinIO no Railway.
+2. Componentes de código e responsabilidade de cada um: configuração
+   (.env), cliente HTTP (timeout, retry, backoff com jitter, Retry-After,
+   User-Agent, cadência), coletor de páginas (categorias e detalhes),
+   coletor PTAX, gravador no
+   MinIO (chave, metadados, retries do boto3), manifesto, extrator.
+3. Layout de chaves nos buckets raw e bronze, com exemplos.
+4. Lista dos metadados de cada objeto (somente ASCII).
+5. Decisão: coleta e extração na mesma execução ou em etapas separadas.
+   Compare as duas opções e recomende uma, ligando a decisão a requisitos.
+6. Diagrama de sequência em Mermaid de uma execução completa, incluindo
+   uma falha 502 ao gravar no MinIO e o retry.
+7. Bibliotecas, cada uma com o requisito que a justifica.
+8. Comandos para executar cada etapa localmente.
+
+[E] Exemplos
+| Decisão | Opção escolhida | Alternativa | Requisito | Trade-off |
+|---|---|---|---|---|
+| Chave das páginas | determinística por data, categoria e página | chave com timestamp | RF-07 | perde versão intermediária do mesmo dia |
+
+[A] Ajustes
+- Nenhuma tecnologia sem requisito correspondente. Se aparecer, marque
+  "sem requisito correspondente" e explique.
+- Use requests, beautifulsoup4, boto3 e python-dotenv, que estão no
+  requirements.txt. Outra biblioteca só com justificativa.
+- O parser recebe bytes (response.content), não response.text.
+- Os nomes do Mermaid devem ser iguais aos nomes do texto.
+- Não escreva código de produção. Assinaturas de função são permitidas.
+- Liste as decisões candidatas a ADR, sem escrever os ADRs ainda.
+
+[T] Tipo de saída
+specs/plan.md em Markdown, com blocos ```mermaid, tabela de decisões e
+tabela RF/RNF | componente.
+
+[E] Extras
+Leia AGENTS.md, specs/spec.md, docker-compose.yml, .env.example e
+requirements.txt. Mostre a lista de seções antes de escrever. Pergunte
+se um requisito estiver ambíguo. Pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Todo RF e RNF aparece em pelo menos um componente? A decisão sobre coleta e extração compara duas opções e cita requisitos? O diagrama de sequência mostra o 502 e o retry? As chaves batem com as de <code>spec.md</code>? Entrou alguma biblioteca ou serviço sem requisito, como fila, banco ou agendador?</p>
+        </div>
+
+        <h3>12.5 Prompt 5 &middot; Tarefas</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é líder técnico e quebra o plano em tarefas pequenas que uma pessoa
+termina em até 30 minutos com o agente.
+
+[R] Pedido
+Escreva specs/tasks.md com tarefas T-01, T-02... em ordem de execução.
+Cada tarefa tem: objetivo; arquivos que cria ou altera; requisitos que
+atende (RF/RNF); teste que prova a conclusão (nome do teste e o que ele
+verifica); comando para rodar o teste; dependências.
+
+[E] Exemplos
+### T-04 · Extrair um livro da página de detalhe
+- Arquivos: src/extrator.py, tests/test_extrator.py,
+  tests/fixtures/detalhe_sharp_objects.html
+- Requisitos: RF-08, RNF-07
+- Teste: test_extrai_detalhe_com_upc_e_estoque: lê a fixture e espera
+  upc "e00eb4fd7b871a48", preco_gbp 47.82, categoria "Mystery",
+  avaliacao 4, em_estoque true e qtd_estoque 20.
+- Comando: pytest tests/test_extrator.py -q
+- Depende de: T-01
+
+[A] Ajustes
+- Testes de extração usam fixtures HTML gravadas em tests/fixtures/,
+  sem acesso à rede.
+- Testes de gravação usam o MinIO local do docker compose e um bucket
+  de teste, nunca o MinIO do Railway.
+- Inclua uma tarefa para cada falha tratada: timeout, 429 com
+  Retry-After, 5xx, PTAX vazia, reexecução no mesmo dia.
+- Inclua uma tarefa final de execução completa local e outra contra o
+  MinIO do Railway, com o comando de verificação de cada uma.
+- Toda tarefa aponta para pelo menos um requisito; todo requisito
+  aparece em pelo menos uma tarefa.
+
+[T] Tipo de saída
+specs/tasks.md em Markdown, seguido de uma tabela requisito | tarefas.
+
+[E] Extras
+Leia specs/spec.md e specs/plan.md. Se o plano não permitir testar um
+requisito, aponte a lacuna em vez de inventar o teste. Pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Alguma tarefa passa de 30 minutos ou mexe em muitos arquivos? Os testes de extração dispensam a rede? Existe tarefa para cada falha listada na spec? A tabela requisito por tarefa não tem linha vazia? A tarefa contra o Railway vem depois da execução local verificada?</p>
+        </div>
+
+        <h3>12.6 Prompt 6 &middot; Implementação tarefa a tarefa</h3>
+        <p>Este prompt é usado várias vezes, uma por tarefa, trocando apenas o identificador. Na aula, o professor implementa ao vivo as tarefas de cliente HTTP, coleta de páginas, gravação no MinIO e extração; o grupo completa as demais.</p>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é engenheiro de dados Python. Implementa uma única tarefa de
+specs/tasks.md por vez, começando pelo teste.
+
+[R] Pedido
+Implemente a tarefa T-__ de specs/tasks.md.
+1. Mostre o plano: arquivos, funções e o teste que vai escrever.
+2. Escreva o teste primeiro e rode-o para vê-lo falhar.
+3. Implemente o mínimo para o teste passar.
+4. Rode pytest -q e mostre a saída.
+5. Atualize specs/tasks.md marcando a tarefa como concluída e anotando
+   o comando de verificação usado.
+
+[E] Exemplos
+Para T-02 (cliente HTTP), um teste aceitável:
+def test_respeita_retry_after_em_429(monkeypatch):
+    # servidor simulado responde 429 com Retry-After: 2 e depois 200
+    # o cliente espera 2 s (sleep simulado) e devolve o corpo do 200
+    ...
+
+[A] Ajustes
+- Implemente somente T-__. Se precisar de algo de outra tarefa, pare e
+  avise.
+- Leia configuração do .env com python-dotenv. Conexão com o MinIO pelas
+  variáveis S3_ENDPOINT_URL, S3_ACCESS_KEY, S3_SECRET_KEY e S3_REGION;
+  buckets por BUCKET_RAW e BUCKET_BRONZE. Nenhum valor de segredo no
+  código, nos testes, nos logs ou nos metadados.
+- Requisições ao books.toscrape.com: User-Agent do .env, intervalo de
+  SCRAPER_INTERVALO_SEGUNDOS, sem threads nem async contra o site.
+- Passe bytes ao BeautifulSoup e grave bytes no MinIO.
+- Timeout explícito em toda requisição. Retry só para timeout, erro de
+  conexão, 408, 429 e 5xx, com limite de HTTP_MAX_TENTATIVAS.
+- Testes unitários não acessam a rede. Testes de gravação usam o MinIO
+  local.
+- Não rode a coleta completa contra o site durante os testes.
+
+[T] Tipo de saída
+Código em src/ e tests/, a saída do pytest e um resumo de até dez linhas
+com arquivos alterados e requisitos atendidos.
+
+[E] Extras
+Leia AGENTS.md, specs/spec.md, specs/plan.md e specs/tasks.md. Execute
+apenas comandos permitidos no AGENTS.md. Pare ao final da tarefa e
+espere minha revisão do diff.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>O teste falhou antes da implementação? O diff mexe só nos arquivos da tarefa? Existe algum <code>requests.get</code> sem <code>timeout</code>? Algum teste unitário acessa a rede? Alguma credencial ou URL do Railway aparece no código? O retry tem limite e trata o 500 da PTAX por data inválida sem laço infinito?</p>
+        </div>
+        <p>Depois das tarefas de coleta e extração, rode a coleta uma vez contra as fontes reais e confira os objetos com os comandos da seção 13 antes de seguir para o Railway.</p>
+
+        <h3>12.7 Prompt 7 &middot; Validação ATAM</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é facilitador de uma avaliação ATAM (Architecture Tradeoff Analysis
+Method). Seu papel é encontrar riscos, não elogiar a arquitetura.
+
+[R] Pedido
+1. Escreva docs/atam.md com: drivers de negócio; utility tree com
+   atributos de qualidade (confiabilidade, operabilidade, conformidade
+   de coleta, reprocessabilidade, segurança), cada folha com prioridade
+   (alta, média, baixa) de importância e de dificuldade; cenários de
+   qualidade com as seis partes; riscos, não riscos, pontos de
+   sensibilidade e trade-offs; matriz requisito | decisão | componente |
+   evidência.
+2. Escreva docs/adr/ADR-001-coleta-e-extracao-separadas.md (contexto,
+   decisão, alternativas, consequências) e um ADR para cada outra
+   decisão candidata listada em specs/plan.md.
+Os cenários devem incluir, no mínimo:
+- o site muda o HTML e o seletor do preço deixa de existir;
+- a PTAX não tem cotação na data (fim de semana ou feriado);
+- a fonte responde 429 ou a requisição estoura o timeout;
+- a coleta é reexecutada no mesmo dia;
+- uma configuração deixa o scraping agressivo demais (intervalo zero ou
+  paralelismo);
+- o custo de cerca de 1.000 requisições de detalhe por execução, com
+  cadência educada (tempo total da coleta e carga sobre a fonte);
+- o proxy do Railway devolve 502 ao gravar no MinIO.
+
+[E] Exemplos
+| Parte | Cenário C3 · 502 ao gravar no MinIO do Railway |
+|---|---|
+| Fonte do estímulo | proxy do Railway |
+| Estímulo | PutObject recebe 502 em 1 de cada 50 gravações (hipótese) |
+| Artefato | gravador no MinIO |
+| Ambiente | execução diária, MinIO no Railway |
+| Resposta | repete com backoff e jitter; mesma chave, mesmos bytes |
+| Medida da resposta | 0 objetos duplicados; manifesto registra tentativas; execução conclui em até N tentativas por objeto |
+
+[A] Ajustes
+- Todo cenário tem as seis partes e uma medida verificável.
+- Cada medida aponta a evidência: teste em tests/, objeto no MinIO,
+  campo do manifesto ou comando. Sem evidência, escreva "evidência
+  pendente".
+- Pelo menos um trade-off nomeado com as duas qualidades em conflito.
+- Não altere spec, plan nem código; registre divergências como risco.
+- Não invente números: taxas de falha e limites são hipóteses marcadas.
+
+[T] Tipo de saída
+docs/atam.md e os arquivos em docs/adr/, em Markdown, com tabelas.
+
+[E] Extras
+Leia todos os arquivos de docs/, specs/, src/ e tests/, e o manifesto da
+última execução no MinIO local, se existir. Analise primeiro os cenários
+de importância e dificuldade altas. Pare ao final e liste as três ações
+mais urgentes.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Os sete cenários pedidos estão presentes, cada um com as seis partes? Cada medida tem evidência real ou está marcada como pendente? Existe ao menos um trade-off nomeado, como reprocessabilidade contra custo de armazenamento ou cadência educada contra tempo de coleta? A matriz requisito, decisão, componente e evidência cobre todos os RF? O ADR-001 compara as duas opções da seção 10.3?</p>
+        </div>
+
+        <h3>12.8 Cenários ATAM de referência</h3>
+        <p>A tabela resume a resposta esperada para cada cenário. Ela serve para conferir o <code>atam.md</code> do grupo, não para ser copiada.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Cenário</th><th>Resposta esperada</th><th>Evidência</th></tr></thead>
+          <tbody>
+            <tr><td>Site muda o HTML</td><td>extração falha com erro quando a contagem difere do total declarado; o HTML bruto do dia fica preservado para corrigir e reprocessar</td><td>teste com fixture alterada; objeto em <code>raw</code></td></tr>
+            <tr><td>PTAX sem cotação na data</td><td>janela de dias garante o último fechamento no bruto e no <code>cotacoes.jsonl</code>; <code>dataHoraCotacao</code> mostra a defasagem; janela inteira vazia gera falha registrada</td><td>teste com resposta vazia; campo no JSON Lines</td></tr>
+            <tr><td>429 ou timeout</td><td>espera <code>Retry-After</code> ou backoff com jitter; desiste após o limite e registra no manifesto</td><td>teste do cliente HTTP; manifesto</td></tr>
+            <tr><td>Reexecução no mesmo dia</td><td>mesmas chaves sobrescritas; novo manifesto; contagem de objetos igual</td><td><code>mc ls</code> antes e depois</td></tr>
+            <tr><td>Custo das 1.000 páginas de detalhe</td><td>cadência mantida; duração medida e registrada; <code>SCRAPER_CATEGORIAS</code> no desenvolvimento; <code>If-None-Match</code> nas reexecuções</td><td>duração e contagem de 304 no manifesto</td></tr>
+            <tr><td>Scraping agressivo demais</td><td>configuração rejeita intervalo abaixo do mínimo; nenhuma requisição paralela ao mesmo domínio</td><td>teste de configuração; duração da coleta no manifesto</td></tr>
+            <tr><td>502 do Railway</td><td>retry do <code>put_object</code> com a mesma chave; zero duplicação</td><td>teste com cliente simulado; tentativas no manifesto</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section class="content-block" id="s13">
+        <h2>13. Verificação local</h2>
+        <p>Depois de uma execução completa, os comandos abaixo provam que o resultado existe e está correto. Substitua <code>AAAA-MM-DD</code> pela data da coleta.</p>
+        <ol class="steps">
+          <li>Liste as páginas brutas e conte os objetos: <code>docker compose exec minio mc ls --recursive local/raw/books_toscrape/data=AAAA-MM-DD/</code> e, para contar, acrescente <code>| wc -l</code>. O número deve ser a soma das páginas de categoria, das páginas de detalhe, da página inicial e do registro do <code>robots.txt</code>. Para contar só os detalhes, use <code>mc find local/raw/books_toscrape/data=AAAA-MM-DD/ --name detalhe.html | wc -l</code>.</li>
+          <li>Confira a resposta PTAX: <code>docker compose exec minio mc cat local/raw/ptax/moeda=GBP/data=AAAA-MM-DD/cotacao_moeda_periodo.json</code>. A lista <code>value</code> deve ter ao menos um boletim com <code>tipoBoletim</code> igual a <code>Fechamento</code>.</li>
+          <li>Conte as linhas do JSON Lines: <code>docker compose exec minio mc cat local/bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl | wc -l</code>. O valor deve ser igual ao total que a página inicial declara e ao número de páginas de detalhe.</li>
+          <li>Confira as cotações extraídas: <code>docker compose exec minio mc cat local/bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl</code>. Deve haver uma linha por boletim da resposta bruta.</li>
+          <li>Leia os metadados de um objeto com o <code>boto3</code>, porque o <code>mc stat</code> não os exibiu:</li>
+        </ol>
+        <pre><code>python - &lt;&lt;'EOF'
+import os, boto3
+from dotenv import load_dotenv
+load_dotenv()
+s3 = boto3.client("s3", endpoint_url=os.environ["S3_ENDPOINT_URL"],
+                  aws_access_key_id=os.environ["S3_ACCESS_KEY"],
+                  aws_secret_access_key=os.environ["S3_SECRET_KEY"],
+                  region_name=os.environ["S3_REGION"])
+k = "books_toscrape/data=AAAA-MM-DD/categoria=mystery_3/pagina=001.html"
+h = s3.head_object(Bucket="raw", Key=k)
+print(h["ContentType"], h["Metadata"])
+EOF</code></pre>
+        <p>Em seguida, confira a idempotência, os segredos e os testes:</p>
+        <ol class="steps">
+          <li>Reexecute a coleta no mesmo dia e repita a contagem do passo 1. O número de objetos de páginas deve ser o mesmo, e <code>raw/manifestos/data=AAAA-MM-DD/</code> deve ganhar um manifesto novo.</li>
+          <li>Verifique que nenhum segredo entrou no repositório: <code>git status --short</code> não pode listar <code>.env</code>, e <code>git grep -n "S3_SECRET_KEY="</code> só pode encontrar o <code>.env.example</code>.</li>
+          <li>Rode a suíte: <code>pytest -q</code>.</li>
+        </ol>
+      </section>
+
+      <section class="content-block" id="s14">
+        <h2>14. Publicação no MinIO do Railway</h2>
+        <p>O MinIO publicado na Aula 01 recebe a mesma coleta. Nada no código muda: só as variáveis de ambiente. O domínio público da API S3 é o que foi gerado com <code>railway domain --port 9000</code>.</p>
+        <ol class="steps">
+          <li>Copie o domínio da API S3 do seu serviço MinIO no Railway (no painel do projeto ou com <code>railway domain</code> na pasta vinculada ao projeto).</li>
+          <li>Crie um segundo arquivo de ambiente, também fora do Git: <code>cp .env .env.railway</code> e confirme com <code>git check-ignore .env.railway</code>.</li>
+          <li>Em <code>.env.railway</code>, troque <code>S3_ENDPOINT_URL</code> pela URL <code>https://</code> do domínio e <code>S3_ACCESS_KEY</code> e <code>S3_SECRET_KEY</code> pelos valores de <code>MINIO_ROOT_USER</code> e <code>MINIO_ROOT_PASSWORD</code> do serviço, os mesmos que a Aula 01 guardou como <code>MINIO_RAILWAY_USER</code> e <code>MINIO_RAILWAY_PASSWORD</code>. Para consultá-los, selecione o serviço com <code>railway service</code> e rode <code>railway variable list</code>.</li>
+          <li>Os buckets <code>raw</code> e <code>bronze</code> já foram criados no Railway na Aula 01. Para conferir com o <code>mc</code> do contêiner local, que pede as chaves de forma interativa, rode <code>docker compose exec minio mc alias set railway https://&lt;dominio&gt;</code> e, depois, <code>docker compose exec minio mc mb --ignore-existing railway/raw railway/bronze</code>, que não altera buckets existentes. O alias fica guardado no contêiner até ele ser recriado.</li>
+          <li>Rode a coleta e a extração apontando para o arquivo do Railway, com o comando definido no <code>plan.md</code> (por exemplo, carregando <code>.env.railway</code> no lugar de <code>.env</code>).</li>
+          <li>Verifique: <code>docker compose exec minio mc ls --recursive railway/raw/books_toscrape/ | wc -l</code> e <code>docker compose exec minio mc cat railway/bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl | wc -l</code>.</li>
+          <li>Abra o manifesto da execução e procure gravações com mais de uma tentativa. Se houver, é o 502 do proxy em ação, e o retry funcionou.</li>
+        </ol>
+        <div class="note">
+          <strong>Crédito do trial</strong>
+          <p>A coleta diária grava poucos MiB e não pesa no crédito. Mesmo assim, os volumes de contas trial são apagados 30 dias após o fim dos créditos. Ao fim da disciplina, exporte o bucket com <code>mc mirror</code> para uma pasta local.</p>
+        </div>
+      </section>
+
+      <section class="content-block" id="s15">
+        <h2>15. O que a IA costuma errar nesta aula</h2>
+        <p>Os erros abaixo aparecem com frequência quando o agente escreve coletores. A revisão do diff serve para encontrá-los antes da execução.</p>
+        <ol class="steps">
+          <li>Requisição sem <code>timeout</code>. O código funciona em teste e trava em produção.</li>
+          <li>Uso de <code>response.text</code> no HTML do books.toscrape.com, com preços que viram <code>Â£51.77</code> e uma conversão para número que falha ou, pior, é silenciada por um <code>try</code> genérico.</li>
+          <li>Retry sem limite ou retry de 4xx. O 500 da PTAX para data inválida mostra que nem todo 5xx é transitório.</li>
+          <li>Paralelismo "para acelerar" a coleta, com <code>ThreadPoolExecutor</code> ou <code>asyncio</code> contra o mesmo site.</li>
+          <li>Chave com timestamp ou UUID, que duplica objetos a cada reexecução.</li>
+          <li>Extração direta da resposta HTTP, sem gravar o bruto, ou extrator que chama a rede em vez de ler do MinIO.</li>
+          <li>Constantes mágicas: 50 páginas, 1.000 livros ou a lista de categorias digitada no código.</li>
+          <li>UPC ou quantidade em estoque lidos da página de categoria, onde não existem, ou <code>qtd_estoque</code> gravado como texto <code>"In stock (20 available)"</code>.</li>
+          <li>Filtro de boletim com o texto <code>"Fechamento PTAX"</code> aplicado à resposta de <code>CotacaoMoedaPeriodo</code>, que usa <code>"Fechamento"</code>.</li>
+          <li>Data da PTAX montada em ISO, que devolve lista vazia sem erro.</li>
+          <li>Metadados com acento ou com a URL contendo credenciais.</li>
+        </ol>
+      </section>
+
+      <section class="content-block" id="s16">
+        <h2>16. Atividade em sala e entregável</h2>
+        <p>A atividade acontece no Codespace do repositório do grupo, com o OpenCode e o MinIO local, e termina com os objetos no MinIO do Railway. O professor conduz os prompts 1 a 5 e as primeiras tarefas do prompt 6 ao vivo; os grupos acompanham no próprio repositório e completam as tarefas restantes e o prompt 7.</p>
+        <ol class="steps">
+          <li>9h30: preparação do ambiente (seção 11) com MinIO local saudável e buckets criados.</li>
+          <li>Prompts 1 e 2, com revisão em grupo de cada artefato antes de seguir.</li>
+          <li>Prompts 3, 4 e 5. Atenção especial ao critério da PTAX vazia, à decisão sobre coleta e extração e à tabela requisito por tarefa.</li>
+          <li>Prompt 6 para as tarefas de cliente HTTP, coleta de páginas de categoria e de detalhe, coleta PTAX, gravação no MinIO, manifesto e extração, uma por vez, com o diff revisado antes de cada aceite.</li>
+          <li>Execução completa local e verificação da seção 13.</li>
+          <li>Execução contra o MinIO do Railway e verificação da seção 14.</li>
+          <li>Prompt 7 com os sete cenários e o ADR-001.</li>
+          <li>Commit e push no repositório do grupo, conferindo antes que o <code>.env</code> não está no commit.</li>
+        </ol>
+        <div class="note">
+          <strong>Entregável</strong>
+          <p>Pasta <code>aula_03_api_scraping/</code> no repositório do grupo (o mesmo informado no <a href="../../../../pages/entrega_grupo_data_collection.html">formulário de grupo</a>), contendo: <code>AGENTS.md</code>; <code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code>, <code>docs/atam.md</code> e <code>docs/adr/ADR-001-coleta-e-extracao-separadas.md</code>; <code>specs/spec.md</code>, <code>specs/plan.md</code> e <code>specs/tasks.md</code>; coletores e extrator em <code>src/</code> rodando; testes em <code>tests/</code> passando; e, no MinIO do Railway, os objetos de pelo menos uma data de coleta em <code>raw/books_toscrape/</code>, <code>raw/ptax/</code>, <code>raw/manifestos/</code>, <code>bronze/books_toscrape/</code> e <code>bronze/ptax/</code>. O <code>atam.md</code> precisa citar a chave do manifesto da execução no Railway como evidência.</p>
+        </div>
+        <p>A Aula 04 lê esses objetos para montar as camadas bronze, silver e gold com DuckDB; por isso a coleta no Railway precisa estar completa até lá.</p>
+      </section>
+
+      <section class="content-block" id="s17">
+        <h2>17. Referências</h2>
+        <ul>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc9110" target="_blank" rel="noopener noreferrer">RFC 9110: HTTP Semantics</a> (métodos, idempotência, códigos de status, ETag, Retry-After).</li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc6585" target="_blank" rel="noopener noreferrer">RFC 6585: Additional HTTP Status Codes</a> (429 Too Many Requests).</li>
+          <li><a href="https://www.rfc-editor.org/rfc/rfc9309" target="_blank" rel="noopener noreferrer">RFC 9309: Robots Exclusion Protocol</a>.</li>
+          <li><a href="https://dadosabertos.bcb.gov.br/dataset/taxas-de-cambio-todos-os-boletins-diarios" target="_blank" rel="noopener noreferrer">Banco Central do Brasil: taxas de câmbio, todos os boletins diários</a>.</li>
+          <li><a href="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/aplicacao" target="_blank" rel="noopener noreferrer">Documentação interativa do serviço PTAX no Olinda</a>.</li>
+          <li><a href="https://books.toscrape.com" target="_blank" rel="noopener noreferrer">books.toscrape.com</a> e <a href="https://toscrape.com" target="_blank" rel="noopener noreferrer">toscrape.com</a>.</li>
+          <li><a href="https://docs.python-requests.org/en/latest/user/quickstart/" target="_blank" rel="noopener noreferrer">Requests: guia rápido</a> (timeouts, codificação da resposta).</li>
+          <li><a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/" target="_blank" rel="noopener noreferrer">Documentação do Beautiful Soup</a> (seletores CSS com <code>select</code>).</li>
+          <li><a href="https://boto3.amazonaws.com/v1/documentation/api/latest/guide/retries.html" target="_blank" rel="noopener noreferrer">boto3: configuração de retries</a>.</li>
+          <li><a href="https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm" target="_blank" rel="noopener noreferrer">Lei 13.709/2018 (LGPD)</a>.</li>
+        </ul>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>

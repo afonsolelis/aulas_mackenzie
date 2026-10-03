@@ -20,9 +20,18 @@
         <span class="kicker">MBA Engenharia de Dados &middot; Código ENLS54627 &middot; 32 horas</span>
         <h1>Data Collection and Storage</h1>
         <p>
-          Repositório oficial da disciplina (Online Ao Vivo). Centralização de slides e materiais para as 8 aulas de coleta, ingestão batch/streaming, modelagem NoSQL/RDBMS e armazenamento em nuvem com AWS.
+          Repositório da disciplina (Online Ao Vivo), com slides, materiais e roteiros de laboratório das 8 aulas. O percurso vai da coleta ao dado validado: tipos de storage, object storage com MinIO, APIs REST e web scraping, lakehouse com Parquet e DuckDB, modelagem relacional e dimensional, streaming com RabbitMQ e ClickHouse e testes integrados.
         </p>
-        <p class="meta">10/10/2026 &rarr; 05/12/2026 &middot; Sábados &middot; 8h30 &ndash; 12h10</p>
+        <p class="meta">10/10/2026 a 05/12/2026 &middot; Sábados &middot; 8h30 &ndash; 12h10 &middot; Sem aula em 21/11/2026</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Como a disciplina funciona</h2>
+        <p>Cada aula é uma demonstração prática completa. O professor constrói o projeto ao vivo e cada grupo reproduz o mesmo caminho no próprio repositório. O slide projeta o roteiro da aula, com contexto, passos, comandos e verificações; o material é o tutorial completo, com todos os prompts prontos para copiar. A parte conceitual ocupa a primeira hora, e das 9h30 às 12h10 a aula segue em prática guiada. A Aula 08 é reservada à mentoria e à entrega do projeto final.</p>
+        <h2>Método de trabalho</h2>
+        <p>Todas as aulas são construídas em Spec-Driven Development. Antes de qualquer código, o agente registra a persona, os objetivos de negócio, a especificação com requisitos verificáveis, o plano de arquitetura e a lista de tarefas; só então implementa, tarefa por tarefa, e a aula termina com a validação ATAM das decisões. Cada prompt segue o formato CREATE (personagem, pedido, exemplos, ajustes, tipo de saída e extras), e a Aula 01 apresenta esse método antes de ele ser usado nas demais.</p>
+        <h2>Ambiente</h2>
+        <p>A disciplina não usa AWS. O trabalho acontece no GitHub Codespaces, ou na máquina do aluno, com Docker para rodar os serviços localmente. O agente de código é o OpenCode no terminal, com chave da OpenRouter e o modelo gratuito <code>openrouter/free</code>. O que precisa ficar publicado (MinIO, Postgres, RabbitMQ e ClickHouse) vai para o Railway. Chaves e senhas ficam fora do repositório: nada de segredo em prompt, commit ou captura de tela.</p>
       </section>
 
       <h3 class="section-heading">Cronograma &middot; 8 aulas</h3>
@@ -31,10 +40,11 @@
           <span class="card-num">01</span>
           <h2>Aula 01</h2>
           <p><strong>10/10/2026</strong></p>
-          <p>Introdução à Coleta e Armazenamento de Dados na Nuvem.</p>
+          <p>Arquitetura de Software de Dados e Spec-Driven Development. Persona, objetivos de negócio, especificação, plano, tarefas e validação ATAM. Setup do Codespace, do OpenCode com a OpenRouter, da conta no Railway e do MinIO próprio publicado pelo terminal.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_collection_and_storage/aula_01_introducao_a_coleta_e_armazenamento_de_dados/slides/slide_aula_01_introducao_a_coleta_e_armazenamento_de_dados.html">Slide</a>
-            <a class="button" href="../aulas/data_collection_and_storage/aula_01_introducao_a_coleta_e_armazenamento_de_dados/material/material_aula_01_introducao_a_coleta_e_armazenamento_de_dados.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/slides/slide_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Slide</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/laboratorio/README.md">Laboratório</a>
           </div>
         </article>
 
@@ -42,10 +52,11 @@
           <span class="card-num">02</span>
           <h2>Aula 02</h2>
           <p><strong>17/10/2026</strong></p>
-          <p>Ingestão de Dados com APIs REST e Web Scraping Escalável.</p>
+          <p>Tipos de Storage e Coleta em Object Storage com MinIO. Armazenamento em bloco, arquivo, objeto e banco, com os trade-offs de cada um. Coleta horária de clima pela Open-Meteo gravada como JSON bruto no MinIO.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_collection_and_storage/aula_02_ingestao_de_dados_com_apis_rest_e_web_scraping/slides/slide_aula_02_ingestao_de_dados_com_apis_rest_e_web_scraping.html">Slide</a>
-            <a class="button" href="../aulas/data_collection_and_storage/aula_02_ingestao_de_dados_com_apis_rest_e_web_scraping/material/material_aula_02_ingestao_de_dados_com_apis_rest_e_web_scraping.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/slides/slide_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Slide</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/laboratorio/README.md">Laboratório</a>
           </div>
         </article>
 
@@ -53,10 +64,11 @@
           <span class="card-num">03</span>
           <h2>Aula 03</h2>
           <p><strong>24/10/2026</strong></p>
-          <p>Coleta e Armazenamento de Dados Não Estruturados e Semi-estruturados.</p>
+          <p>APIs REST, Web Scraping e Ingestão no MinIO. Monitor de preços de livros com scraping de books.toscrape.com e cotação GBP para BRL pela API PTAX do Banco Central, ambos gravados direto no MinIO.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_collection_and_storage/aula_03_coleta_e_armazenamento_de_dados_nao_estruturados/slides/slide_aula_03_coleta_e_armazenamento_de_dados_nao_estruturados.html">Slide</a>
-            <a class="button" href="../aulas/data_collection_and_storage/aula_03_coleta_e_armazenamento_de_dados_nao_estruturados/material/material_aula_03_coleta_e_armazenamento_de_dados_nao_estruturados.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_03_apis_rest_web_scraping_e_ingestao_no_minio/slides/slide_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Slide</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_03_apis_rest_web_scraping_e_ingestao_no_minio/laboratorio/README.md">Laboratório</a>
           </div>
         </article>
 
@@ -64,10 +76,11 @@
           <span class="card-num">04</span>
           <h2>Aula 04</h2>
           <p><strong>31/10/2026</strong></p>
-          <p>Bancos de Dados Relacionais e Captura de Mudanças (CDC).</p>
+          <p>Dados Semiestruturados, Parquet, DuckDB e Lakehouse. Camadas bronze, silver e gold sobre o que as Aulas 02 e 03 gravaram, com schema on read no MinIO e job publicado no Railway.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_collection_and_storage/aula_04_bancos_de_dados_relacionais_e_captura_de_mudancas/slides/slide_aula_04_bancos_de_dados_relacionais_e_captura_de_mudancas.html">Slide</a>
-            <a class="button" href="../aulas/data_collection_and_storage/aula_04_bancos_de_dados_relacionais_e_captura_de_mudancas/material/material_aula_04_bancos_de_dados_relacionais_e_captura_de_mudancas.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/slides/slide_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Slide</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/laboratorio/README.md">Laboratório</a>
           </div>
         </article>
 
@@ -75,10 +88,11 @@
           <span class="card-num">05</span>
           <h2>Aula 05</h2>
           <p><strong>07/11/2026</strong></p>
-          <p>Armazenamento NoSQL e Chave-Valor de Alta Vazão (DynamoDB).</p>
+          <p>Modelagem de Dados Relacional e Dimensional. Modelo relacional no Postgres do Railway e esquema estrela na camada gold, sobre o domínio de livros e preços.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_collection_and_storage/aula_05_armazenamento_nosql_e_chave_valor_dynamodb/slides/slide_aula_05_armazenamento_nosql_e_chave_valor_dynamodb.html">Slide</a>
-            <a class="button" href="../aulas/data_collection_and_storage/aula_05_armazenamento_nosql_e_chave_valor_dynamodb/material/material_aula_05_armazenamento_nosql_e_chave_valor_dynamodb.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_05_modelagem_de_dados_relacional_e_dimensional/slides/slide_aula_05_modelagem_de_dados_relacional_e_dimensional.html">Slide</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_05_modelagem_de_dados_relacional_e_dimensional/material/material_aula_05_modelagem_de_dados_relacional_e_dimensional.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_05_modelagem_de_dados_relacional_e_dimensional/laboratorio/README.md">Laboratório</a>
           </div>
         </article>
 
@@ -86,10 +100,11 @@
           <span class="card-num">06</span>
           <h2>Aula 06</h2>
           <p><strong>14/11/2026</strong></p>
-          <p>Ingestão em Tempo Real e Streaming de Eventos (Kinesis/Kafka).</p>
+          <p>Streaming com RabbitMQ e ClickHouse. Mini projeto de IoT com sensores simulados, fila no RabbitMQ, transformador em Python e armazenamento no ClickHouse.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_collection_and_storage/aula_06_ingestao_em_tempo_real_e_streaming_kinesis_kafka/slides/slide_aula_06_ingestao_em_tempo_real_e_streaming_kinesis_kafka.html">Slide</a>
-            <a class="button" href="../aulas/data_collection_and_storage/aula_06_ingestao_em_tempo_real_e_streaming_kinesis_kafka/material/material_aula_06_ingestao_em_tempo_real_e_streaming_kinesis_kafka.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_06_streaming_com_rabbitmq_e_clickhouse/slides/slide_aula_06_streaming_com_rabbitmq_e_clickhouse.html">Slide</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_06_streaming_com_rabbitmq_e_clickhouse/material/material_aula_06_streaming_com_rabbitmq_e_clickhouse.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_06_streaming_com_rabbitmq_e_clickhouse/laboratorio/README.md">Laboratório</a>
           </div>
         </article>
 
@@ -97,10 +112,11 @@
           <span class="card-num">07</span>
           <h2>Aula 07</h2>
           <p><strong>28/11/2026</strong></p>
-          <p>Qualidade de Dados, Contratos e Validação de Ingestão.</p>
+          <p>Validação com Pydantic e Testes Integrados. Contratos de dados nos pipelines das Aulas 03 e 06, gravação de respostas HTTP com VCR e serviços reais em teste com Testcontainers.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_collection_and_storage/aula_07_qualidade_de_dados_contratos_e_validacao/slides/slide_aula_07_qualidade_de_dados_contratos_e_validacao.html">Slide</a>
-            <a class="button" href="../aulas/data_collection_and_storage/aula_07_qualidade_de_dados_contratos_e_validacao/material/material_aula_07_qualidade_de_dados_contratos_e_validacao.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_07_validacao_com_pydantic_e_testes_integrados/slides/slide_aula_07_validacao_com_pydantic_e_testes_integrados.html">Slide</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_07_validacao_com_pydantic_e_testes_integrados/material/material_aula_07_validacao_com_pydantic_e_testes_integrados.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_07_validacao_com_pydantic_e_testes_integrados/laboratorio/README.md">Laboratório</a>
           </div>
         </article>
 
@@ -108,10 +124,10 @@
           <span class="card-num">08</span>
           <h2>Aula 08</h2>
           <p><strong>05/12/2026</strong></p>
-          <p>Arquitetura Integrada de Coleta, Storage e Projeto Final.</p>
+          <p>Mentoria e Entrega do Projeto Final. Sem conteúdo novo: atendimento aos grupos e entrega do projeto integrado construído em SDD.</p>
           <div class="actions">
-            <a class="button" href="../aulas/data_collection_and_storage/aula_08_arquitetura_integrada_e_projeto_final/slides/slide_aula_08_arquitetura_integrada_e_projeto_final.html">Slide</a>
-            <a class="button" href="../aulas/data_collection_and_storage/aula_08_arquitetura_integrada_e_projeto_final/material/material_aula_08_arquitetura_integrada_e_projeto_final.html">Material</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/slides/slide_aula_08_mentoria_e_entrega_do_projeto_final.html">Slide</a>
+            <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/material/material_aula_08_mentoria_e_entrega_do_projeto_final.html">Material</a>
           </div>
         </article>
 

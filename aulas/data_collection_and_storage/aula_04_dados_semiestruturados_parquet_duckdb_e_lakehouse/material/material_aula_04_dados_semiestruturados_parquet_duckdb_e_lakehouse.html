@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 04 — Dados Semiestruturados, Parquet, DuckDB e Lakehouse</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
+      <a href="../laboratorio/README.md">Roteiro do laboratório</a>
+      <a href="../slides/slide_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 04 — Dados Semiestruturados, Parquet, DuckDB e Lakehouse</h1>
+      <p class="meta">Aula 04 &middot; 31/10/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p class="summary">A primeira hora organiza os conceitos que a prática vai exigir: graus de estrutura dos dados, schema on write e schema on read, os formatos CSV, JSON, JSON Lines e Parquet, as diferenças entre data lake, data warehouse e lakehouse, e a arquitetura medalhão. O restante da aula constrói ao vivo, em Spec-Driven Development, um lakehouse sobre os buckets <code>raw</code> e <code>bronze</code> que as Aulas 02 e 03 alimentaram: o DuckDB lê o JSON e o JSON Lines direto do MinIO, grava Parquet tipado na camada silver e tabelas de consumo na gold. O job roda primeiro no Codespace e depois no Railway, como serviço com cron.</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block" id="sumario">
+        <h2>Sumário</h2>
+        <ol>
+          <li><a href="#s1">Onde as Aulas 02 e 03 nos deixaram</a></li>
+          <li><a href="#s2">Estruturado, semiestruturado e não estruturado</a></li>
+          <li><a href="#s3">Schema on write e schema on read</a></li>
+          <li><a href="#s4">Formatos de arquivo: CSV, JSON, JSON Lines e Parquet</a></li>
+          <li><a href="#s5">Data lake, data warehouse e lakehouse</a></li>
+          <li><a href="#s6">Arquitetura medalhão aplicada aos buckets do grupo</a></li>
+          <li><a href="#s7">DuckDB como motor in-process sobre o MinIO</a></li>
+          <li><a href="#s8">Decisões de desenho que a demonstração expõe</a></li>
+          <li><a href="#s9">Preparação do ambiente</a></li>
+          <li><a href="#s10">O projeto da aula em SDD</a></li>
+          <li><a href="#s11">Os sete prompts CREATE</a></li>
+          <li><a href="#s12">Execução local e medição</a></li>
+          <li><a href="#s13">Deploy do job no Railway com cron</a></li>
+          <li><a href="#s14">Exemplo resolvido: cenário, ADR e rastreabilidade</a></li>
+          <li><a href="#s15">Erros comuns</a></li>
+          <li><a href="#s16">Atividade em sala e entregável</a></li>
+        </ol>
+      </section>
+
+      <!-- 1 -->
+      <section class="content-block" id="s1">
+        <h2>1. Onde as Aulas 02 e 03 nos deixaram</h2>
+        <p>Três semanas de coleta deixaram o bucket <code>raw</code> do MinIO do grupo cheio de arquivos que ninguém consulta. A <a href="../../aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Aula 02</a> gravou, a cada hora, a resposta da Open-Meteo para seis capitais, com a chave <code>open_meteo/data=AAAA-MM-DD/hora=HH/&lt;cidade&gt;.json</code> e um manifesto de execução em JSON Lines em <code>_manifestos/open_meteo/</code>. A <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> gravou no <code>raw</code> as páginas de listagem e de detalhe do books.toscrape.com e a resposta da API PTAX do Banco Central, e extraiu delas dois arquivos em JSON Lines no bucket <code>bronze</code>: <code>bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl</code>, um livro por linha com o UPC como chave, e <code>bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl</code>, um boletim da cotação da libra por linha. A conversão de libras para reais ficou para esta aula.</p>
+        <p>Esses arquivos preservam o que as fontes entregaram, e por isso servem para reconstruir qualquer análise. Também por isso respondem mal a perguntas simples. Para saber a temperatura média prevista para Manaus num dia, é preciso abrir as respostas de todas as coletas daquele dia, extrair a lista de horários, decidir qual coleta vale para cada hora e calcular a média. Para saber quanto custa em reais um livro numa coleta de sábado, é preciso cruzar o preço em libras com o último boletim de fechamento da PTAX, que não é publicada em fim de semana. A Aula 04 constrói as camadas que fazem esse trabalho uma vez, de forma reproduzível, e publicam o resultado em tabelas prontas para consumo.</p>
+        <p>O método e o ambiente vêm da <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a>: Spec-Driven Development com prompts no formato CREATE (<code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code>, <code>[E] Extras</code>), OpenCode conectado à OpenRouter com o modelo <code>openrouter/free</code>, Codespace no repositório do grupo e MinIO publicado no Railway com domínio público para a porta 9000. Se algum desses itens faltar, volte à Aula 01 antes de continuar.</p>
+        <div class="note">
+          <strong>Resultado esperado ao fim da aula</strong>
+          <p>Uma pasta <code>aula_04_lakehouse/</code> no repositório do grupo com o esqueleto SDD preenchido; um job em Python com DuckDB, com testes passando, que lê o bronze e grava silver e gold no MinIO; a imagem do job publicada no Railway como serviço com cron; e um <code>docs/atam.md</code> com seis cenários de qualidade e medidas feitas sobre os dados do grupo.</p>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="content-block" id="s2">
+        <h2>2. Estruturado, semiestruturado e não estruturado</h2>
+        <p>A classificação mais útil para quem coleta dados não é pelo formato do arquivo, e sim por onde está o esquema, ou seja, a descrição de quais campos existem, com que tipos e com que significado. Essa localização determina quanto trabalho a engenharia precisa fazer antes que alguém consiga fazer uma pergunta ao dado.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Tipo</th><th>Exemplos concretos</th><th>Onde está o esquema</th><th>O que se extrai e com que ferramenta</th></tr></thead>
+          <tbody>
+            <tr><td>Estruturado</td><td>tabela de um banco relacional; CSV exportado com cabeçalho estável; planilha com uma linha por registro</td><td>fora do dado, declarado antes da gravação (DDL, cabeçalho combinado)</td><td>linhas e colunas já tipadas; SQL lê direto</td></tr>
+            <tr><td>Semiestruturado</td><td>JSON da Open-Meteo e da PTAX; HTML do books.toscrape.com; logs de aplicação; XML de nota fiscal</td><td>dentro do dado, nas chaves, tags e padrões de linha; pode variar de um registro para outro</td><td>campos aninhados, listas, atributos; leitor JSON com inferência, parser HTML, expressão regular para logs</td></tr>
+            <tr><td>Não estruturado</td><td>foto de produto; PDF digitalizado; áudio de atendimento; vídeo de câmera</td><td>não existe no conteúdo; só nos metadados do arquivo</td><td>texto por OCR ou transcrição, rótulos por modelo de visão, e os metadados (tamanho, data, autor)</td></tr>
+          </tbody>
+        </table></div>
+        <p>O JSON da Open-Meteo é semiestruturado no sentido mais direto: cada resposta traz as próprias chaves (<code>latitude</code>, <code>timezone</code>, <code>hourly</code>), e dentro de <code>hourly</code> há listas paralelas, uma de horários e uma para cada variável pedida. Um leitor de JSON consegue inferir esse esquema olhando o arquivo. A resposta da PTAX tem um envelope OData, com os boletins dentro da lista <code>value</code>.</p>
+        <p>O HTML ocupa um lugar intermediário. Ele tem marcação, e um navegador sabe exatamente o que é um parágrafo ou um link. Mas o esquema que interessa ao negócio (título do livro, preço) não está declarado em lugar nenhum: depende de convenções daquela página, como a classe <code>price_color</code> no elemento do preço. Por isso o HTML precisa de um extrator escrito e testado para aquele site, e esse extrator quebra quando o site muda. A distinção tem consequência prática: o JSON entra no lakehouse com uma consulta SQL; o HTML precisa de um parser com teste sobre um arquivo salvo. Na disciplina, esse parser foi escrito na Aula 03, e o resultado dele é o JSON Lines do bucket <code>bronze</code>.</p>
+        <p>Dados não estruturados não aparecem no projeto desta disciplina, mas o raciocínio é o mesmo: guardar o arquivo original no object storage, extrair o que for possível para uma tabela (texto, rótulos, metadados) e manter na tabela o caminho do arquivo de onde a informação saiu.</p>
+      </section>
+
+      <!-- 3 -->
+      <section class="content-block" id="s3">
+        <h2>3. Schema on write e schema on read</h2>
+        <p>Os dois termos descrevem em que momento o esquema é imposto ao dado. No schema on write, a estrutura é declarada antes, e a gravação rejeita o que não se encaixa. É o modelo de um banco relacional: <code>CREATE TABLE</code> primeiro, <code>INSERT</code> depois, e um campo inesperado causa erro na carga. No schema on read, o dado é gravado como chegou, e quem lê declara ou infere a estrutura no momento da consulta. É o modelo do bucket <code>raw</code>: o coletor da Aula 02 grava os bytes recebidos sem conhecer os campos.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Critério</th><th>Schema on write</th><th>Schema on read</th></tr></thead>
+          <tbody>
+            <tr><td>Quando o erro aparece</td><td>na carga, perto da fonte</td><td>na leitura, às vezes semanas depois</td></tr>
+            <tr><td>Fonte que muda (campo novo)</td><td>carga falha até alguém migrar a tabela</td><td>gravação continua; leitores decidem o que fazer</td></tr>
+            <tr><td>Custo de leitura</td><td>baixo: tipos conhecidos, formato otimizado</td><td>alto: parse e inferência a cada leitura</td></tr>
+            <tr><td>Preservação do original</td><td>só o que coube no esquema</td><td>tudo, inclusive o que ainda não interessa</td></tr>
+            <tr><td>Quem responde pela qualidade</td><td>quem grava</td><td>cada leitor, o que gera interpretações divergentes</td></tr>
+          </tbody>
+        </table></div>
+        <p>O lakehouse desta aula usa os dois, em camadas diferentes. O <code>raw</code> e o <code>bronze</code> ficam em schema on read, porque a coleta não deve parar quando a Open-Meteo acrescenta um campo. A silver aplica o esquema uma vez: lê o bruto, converte tipos, descarta o que não está no contrato e grava Parquet, que carrega os tipos dentro do arquivo. Daí em diante, quem lê a silver não precisa inferir nada. A escolha transfere a interpretação, que no schema on read puro ficaria espalhada entre os leitores, para um único job versionado e testado.</p>
+        <p>Na preparação da aula, um JSON com um campo novo dentro de <code>hourly</code> foi acrescentado ao raw. O DuckDB passou a inferir o campo, com nulo nos arquivos antigos, e a silver continuou igual, porque o <code>SELECT</code> do job nomeia as colunas do contrato. O campo novo só chega à silver quando a spec mudar. Esse comportamento é o desejado, mas precisa ser escrito como requisito, ou um agente pode trocar a lista de colunas por <code>SELECT *</code> e mudar o contrato sem ninguém perceber.</p>
+      </section>
+
+      <!-- 4 -->
+      <section class="content-block" id="s4">
+        <h2>4. Formatos de arquivo: CSV, JSON, JSON Lines e Parquet</h2>
+
+        <h3>4.1 CSV</h3>
+        <p>CSV é texto com um registro por linha e valores separados por vírgula (ou ponto e vírgula, ou tabulação; não há padrão único na prática). Não carrega tipos: <code>2026-10-30</code> é uma data ou um texto conforme o leitor decidir, e <code>1.234</code> pode ser mil duzentos e trinta e quatro ou um vírgula dois três quatro. Vírgula dentro do valor exige aspas, quebra de linha dentro do valor quebra leitores simples e o encoding precisa ser combinado. O CSV continua útil para troca com planilhas e sistemas legados, mas é uma escolha ruim para a camada intermediária de um pipeline.</p>
+
+        <h3>4.2 JSON</h3>
+        <p>JSON representa um documento com objetos, listas, textos, números, booleanos e nulo. Preserva hierarquia, o que o torna o formato natural de respostas de API, e por isso o bronze da disciplina é JSON. O custo aparece na leitura analítica: para obter um campo, o leitor precisa percorrer o documento inteiro; as chaves se repetem em todo registro, o que ocupa espaço; e os tipos são poucos (não há data, nem distinção entre inteiro e decimal).</p>
+
+        <h3>4.3 JSON Lines</h3>
+        <p>JSON Lines (também chamado NDJSON) guarda um documento JSON por linha. Duas propriedades decorrem disso: dá para acrescentar registros ao final sem reescrever o arquivo, e dá para ler em fluxo, linha a linha, sem carregar o arquivo inteiro. É o formato do manifesto de execução da Aula 02, com uma linha por cidade e o status da gravação, e do bucket <code>bronze</code> da Aula 03, com um livro ou um boletim PTAX por linha. Para o leitor do DuckDB, há uma terceira diferença prática: a opção <code>ignore_errors</code>, que pula registros malformados, só funciona com JSON Lines. Num JSON comum, um arquivo truncado derruba a leitura inteira, como a seção 8 mostra.</p>
+
+        <h3>4.4 Parquet por dentro</h3>
+        <p>Parquet é um formato binário e colunar, projetado para leitura analítica. Um arquivo Parquet se organiza assim:</p>
+        <ul>
+          <li>Row groups: o arquivo é dividido em blocos de linhas. Cada row group pode ser lido ou pulado de forma independente.</li>
+          <li>Column chunks: dentro de cada row group, os valores de cada coluna ficam juntos, uma coluna depois da outra. Valores do mesmo tipo e de distribuição parecida ficam adjacentes, o que favorece codificações como dicionário (o texto <code>sao_paulo</code> repetido vira um número pequeno) e compressão (Snappy, ZSTD, GZIP).</li>
+          <li>Estatísticas: para cada coluna em cada row group, o arquivo guarda contagem de nulos e os valores mínimo e máximo.</li>
+          <li>Rodapé: no fim do arquivo ficam o esquema, com tipos explícitos (data, timestamp, decimal, inteiro de 32 ou 64 bits, texto, estruturas aninhadas), e a localização de cada row group e coluna. O leitor lê o rodapé primeiro e só então decide o que baixar.</li>
+        </ul>
+        <p>O arquivo é imutável: não se altera uma linha de um Parquet; reescreve-se o arquivo. Por isso Parquet combina com cargas em lote e combina mal com gravação registro a registro.</p>
+
+        <h3>4.5 Projeção de colunas e predicate pushdown</h3>
+        <p>Essas duas otimizações explicam por que o Parquet lê menos bytes que o JSON para a mesma pergunta. A projeção de colunas acontece quando a consulta pede só algumas colunas: como cada coluna está gravada separada, o leitor baixa apenas os trechos dessas colunas e ignora o resto. O predicate pushdown acontece quando o filtro da consulta é levado até o leitor do arquivo: com <code>WHERE temperatura_c &gt; 30</code>, um row group cujo máximo de <code>temperatura_c</code> é 28 não precisa ser lido. Sobre object storage, as duas otimizações viram menos requisições HTTP com intervalo de bytes e menos bytes trafegados. No JSON, nenhuma das duas é possível: para saber se um registro passa no filtro, é preciso baixar e parsear o documento.</p>
+        <p>Existe uma terceira poda, que não depende do Parquet: a poda de partição. Quando os arquivos estão em caminhos no estilo Hive (<code>data=2026-10-30/</code>), o DuckDB transforma o trecho do caminho em coluna e, se a consulta filtra por ela, descarta arquivos inteiros antes de abri-los. Na preparação, um filtro em <code>data</code> sobre o JSON do raw fez o plano mostrar <code>Scanning Files: 21/23</code>, ou seja, dois arquivos fora da janela nem foram abertos.</p>
+
+        <h3>4.6 Medir em vez de citar</h3>
+        <p>É comum ler que Parquet ocupa uma fração do JSON e que a leitura fica dezenas de vezes mais rápida. Esses números dependem do volume, do número de arquivos, da compressão e da consulta, e por isso a aula não os cita. A medição é feita pelo grupo, na seção 12, com três instrumentos: <code>mc du</code> para os bytes de cada camada; <code>parquet_metadata</code> para ver row groups, compressão e estatísticas; e <code>EXPLAIN ANALYZE</code> para ver bytes lidos, requisições HTTP e tempo da mesma pergunta sobre JSON e sobre Parquet.</p>
+        <p>Um aviso que a própria preparação mostrou: com poucos arquivos pequenos, o rodapé e os metadados do Parquet pesam, e a diferença de tamanho entre as camadas fica pequena. O ganho de leitura aparece no número de requisições e nos bytes baixados, antes de aparecer no tamanho total. Registre a medida com o volume e a data em que foi feita, e não generalize para volumes que não mediu.</p>
+      </section>
+
+      <!-- 5 -->
+      <section class="content-block" id="s5">
+        <h2>5. Data lake, data warehouse e lakehouse</h2>
+        <p>Um data warehouse é um banco analítico com esquema declarado, motor de consulta próprio e armazenamento gerenciado por ele. Carrega dados já limpos e modelados, responde rápido e oferece transações, mas cobra caro por guardar dado bruto e exige que o esquema seja definido antes da carga. A Aula 05 volta a esse modelo com o esquema estrela.</p>
+        <p>Um data lake é um repositório de arquivos em object storage, em qualquer formato, lidos em schema on read por qualquer motor que entenda o arquivo. Guarda barato e aceita tudo. O risco conhecido é virar um depósito de arquivos sem dono, sem contrato e sem garantia de que duas pessoas leiam o mesmo dado da mesma forma.</p>
+        <p>Um lakehouse tenta ficar com o armazenamento aberto do lake e com a disciplina de tabelas do warehouse. Os dados continuam em object storage, em formatos abertos como Parquet, legíveis por vários motores; mas as camadas a partir da silver têm esquema declarado, contrato e processo de atualização controlado.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Critério</th><th>Data lake</th><th>Data warehouse</th><th>Lakehouse</th></tr></thead>
+          <tbody>
+            <tr><td>Armazenamento</td><td>object storage, qualquer formato</td><td>gerenciado pelo motor</td><td>object storage, formatos abertos</td></tr>
+            <tr><td>Esquema</td><td>on read</td><td>on write</td><td>on read no bronze; declarado da silver em diante</td></tr>
+            <tr><td>Motor de consulta</td><td>qualquer um que leia o arquivo</td><td>o do warehouse</td><td>vários motores sobre os mesmos arquivos</td></tr>
+            <tr><td>Transações e histórico</td><td>não</td><td>sim</td><td>só com formato de tabela (Delta, Iceberg)</td></tr>
+            <tr><td>Nesta disciplina</td><td>buckets <code>raw</code> e <code>bronze</code></td><td>Aula 05 (Postgres e esquema estrela)</td><td>buckets <code>raw</code>, <code>bronze</code>, <code>silver</code> e <code>gold</code> com DuckDB</td></tr>
+          </tbody>
+        </table></div>
+        <p>O lakehouse desta aula tem uma limitação que precisa ficar explícita. Ele grava arquivos Parquet diretamente, e o object storage não sabe que um conjunto de arquivos forma uma tabela. Não há transação envolvendo vários arquivos, não há histórico de versões da tabela e não há registro de qual esquema estava valendo em cada momento. Os formatos de tabela abertos, como Delta Lake e Apache Iceberg, resolvem isso acrescentando, sobre os arquivos Parquet, um log ou catálogo de metadados com as versões da tabela, o que dá gravação atômica, leitura de uma versão antiga e evolução de esquema controlada. O DuckDB tem extensões para os dois. Ficam como próximo passo; nesta aula, a atomicidade vem de uma regra mais simples, descrita na seção 8: cada partição é um único objeto, e a gravação de um objeto no object storage é atômica.</p>
+      </section>
+
+      <!-- 6 -->
+      <section class="content-block" id="s6">
+        <h2>6. Arquitetura medalhão aplicada aos buckets do grupo</h2>
+        <p>A arquitetura medalhão organiza o lakehouse em camadas de qualidade crescente. Os nomes vêm de metais, mas o que importa é o contrato de cada camada: o que entra, o que sai e o que se pode prometer sobre ela. A literatura e os fornecedores usam os nomes com significados um pouco diferentes; em alguns textos, bronze é a cópia do dado bruto. Nesta disciplina, a convenção é a dos quatro buckets criados na Aula 01:</p>
+        <div class="method-flow">
+          <div class="method-step"><strong>Raw</strong><span>Bytes como a fonte entregou: JSON da API, HTML da página. Nunca alterado.</span></div>
+          <div class="method-step"><strong>Bronze</strong><span>Extraído do raw em JSON Lines, um registro por linha, ainda sem tipos garantidos.</span></div>
+          <div class="method-step"><strong>Silver</strong><span>Parquet tipado, deduplicado, com origem. Um contrato por tabela.</span></div>
+          <div class="method-step"><strong>Gold</strong><span>No grão da pergunta de negócio. Pronto para consumo.</span></div>
+        </div>
+        <p>O job desta aula lê <code>raw</code> e <code>bronze</code> e nunca os altera; escreve só em <code>silver</code> e <code>gold</code>. O clima não tem etapa bronze: o JSON da Open-Meteo já é semiestruturado o bastante para que a leitura com <code>read_json_auto</code> e <code>unnest</code> faça a extração na própria consulta da silver. Os livros têm: o HTML exige parser, e a Aula 03 já o executou, gravando o resultado no bronze. Manter o raw intocado ao lado do bronze custa armazenamento e, em troca, permite refazer a extração quando o parser tiver um defeito.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Camada</th><th>Objeto</th><th>Grão</th><th>Colunas principais</th></tr></thead>
+          <tbody>
+            <tr><td>Raw</td><td><code>raw/open_meteo/data=D/hora=H/&lt;cidade&gt;.json</code> (D e H em UTC)</td><td>uma resposta da API por cidade e coleta</td><td>como a API entregou</td></tr>
+            <tr><td>Raw</td><td><code>raw/books_toscrape/data=D/livro=&lt;slug&gt;/detalhe.html</code>, <code>raw/ptax/moeda=GBP/data=D/*.json</code></td><td>uma página ou resposta por coleta</td><td>como a fonte entregou</td></tr>
+            <tr><td>Bronze</td><td><code>bronze/books_toscrape/data=D/livros.jsonl</code></td><td>livro por coleta</td><td><code>upc</code>, <code>url</code>, <code>titulo</code>, <code>categoria</code>, <code>avaliacao</code>, <code>preco_gbp</code>, <code>em_estoque</code>, <code>qtd_estoque</code>, <code>coletado_em</code></td></tr>
+            <tr><td>Bronze</td><td><code>bronze/ptax/moeda=GBP/data=D/cotacoes.jsonl</code></td><td>boletim PTAX</td><td><code>moeda</code>, <code>dataHoraCotacao</code>, <code>tipoBoletim</code>, <code>cotacaoCompra</code>, <code>cotacaoVenda</code></td></tr>
+            <tr><td>Silver</td><td><code>silver/clima/data=D/clima.parquet</code></td><td>cidade e hora prevista, coleta mais recente</td><td><code>cidade</code>, <code>horario_local</code>, <code>temperatura_c</code>, <code>umidade_pct</code>, <code>data_coleta</code>, <code>hora_coleta</code>, <code>arquivo_origem</code>, <code>processado_em</code></td></tr>
+            <tr><td>Silver</td><td><code>silver/livros/data_coleta=D/livros.parquet</code></td><td>livro (UPC) por dia de coleta</td><td><code>upc</code>, <code>url</code>, <code>titulo</code>, <code>categoria</code>, <code>avaliacao</code>, <code>preco_gbp</code>, <code>em_estoque</code>, <code>qtd_estoque</code>, <code>coletado_em</code>, <code>arquivo_origem</code>, <code>processado_em</code></td></tr>
+            <tr><td>Silver</td><td><code>silver/ptax/ptax.parquet</code></td><td>boletim PTAX, sem repetição</td><td><code>moeda</code>, <code>data_hora_cotacao</code>, <code>tipo_boletim</code>, <code>cotacao_compra</code>, <code>cotacao_venda</code>, <code>arquivo_origem</code>, <code>processado_em</code></td></tr>
+            <tr><td>Gold</td><td><code>gold/clima_media_diaria/clima_media_diaria.parquet</code></td><td>cidade e dia</td><td><code>temperatura_media_c</code>, mínima, máxima, <code>horas_com_previsao</code></td></tr>
+            <tr><td>Gold</td><td><code>gold/livro_preco_brl_diario/livro_preco_brl_diario.parquet</code></td><td>livro e dia de coleta</td><td><code>upc</code>, <code>titulo</code>, <code>preco_gbp</code>, <code>data_ptax</code>, <code>ptax_venda_gbp_brl</code>, <code>preco_brl</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>Os contratos de <code>silver/livros</code> e <code>silver/ptax</code> foram combinados com a Aula 05, que os lê para montar o modelo relacional e o esquema estrela; por isso os nomes seguem <code>snake_case</code> e o UPC é a chave natural do livro. Confira com <code>mc ls</code> os prefixos que o grupo de fato gravou nas Aulas 02 e 03 e ajuste os caminhos se forem outros.</p>
+        <p>A coluna <code>arquivo_origem</code> é o mecanismo de rastreabilidade. Ela guarda o caminho completo do objeto lido, como <code>s3://raw/open_meteo/data=2026-10-30/hora=14/manaus.json</code> ou <code>s3://bronze/books_toscrape/data=2026-10-24/livros.jsonl</code>. Com ela, um número estranho na gold pode ser seguido até a silver e daí até o arquivo das Aulas 02 e 03. A coluna <code>processado_em</code> diz quando o job gerou a linha, o que separa um erro de coleta de um erro de transformação.</p>
+      </section>
+
+      <!-- 7 -->
+      <section class="content-block" id="s7">
+        <h2>7. DuckDB como motor in-process sobre o MinIO</h2>
+        <p>O DuckDB é um banco analítico que roda dentro do processo que o chama, como o SQLite, sem servidor separado. No Python, <code>import duckdb</code> já dá um motor colunar e vetorizado. Para esta aula, a propriedade que interessa é outra: o DuckDB lê e escreve arquivos em object storage como se fossem arquivos locais, por meio da extensão <code>httpfs</code>, que implementa a API compatível com S3. O MinIO fala essa API, e a documentação do DuckDB informa que o <code>httpfs</code> é testado com ele.</p>
+        <p>Um motor in-process combina com o job desta aula. O job sobe, abre uma conexão em memória, lê o bronze, grava silver e gold e termina, sem banco para administrar e sem estado entre execuções. O estado durável fica todo no object storage. A contrapartida também precisa ser dita: a memória disponível é a do contêiner (até 1 GB no trial do Railway), e o DuckDB não coordena duas execuções simultâneas gravando o mesmo objeto. A seção 8 trata disso.</p>
+
+        <h3>7.1 Secret S3 apontando para o MinIO</h3>
+        <p>A sintaxe abaixo foi conferida na documentação oficial do DuckDB (página de suporte à API S3 da extensão <code>httpfs</code>) em 03/10/2026 e executada contra o MinIO local com <code>duckdb==1.5.6</code>:</p>
+        <pre><code>INSTALL httpfs;
+LOAD httpfs;
+CREATE OR REPLACE TEMPORARY SECRET minio_lake (
+    TYPE s3,
+    PROVIDER config,
+    KEY_ID 'valor de S3_ACCESS_KEY',
+    SECRET 'valor de S3_SECRET_KEY',
+    REGION 'us-east-1',
+    ENDPOINT 'localhost:9000',
+    URL_STYLE 'path',
+    USE_SSL false
+);</code></pre>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Parâmetro</th><th>Padrão</th><th>Valor para o MinIO</th><th>Por quê</th></tr></thead>
+          <tbody>
+            <tr><td><code>ENDPOINT</code></td><td><code>s3.amazonaws.com</code></td><td><code>localhost:9000</code> ou <code>&lt;dominio&gt;.up.railway.app</code></td><td>host e porta, sem <code>http://</code></td></tr>
+            <tr><td><code>URL_STYLE</code></td><td><code>vhost</code></td><td><code>path</code></td><td>com <code>vhost</code>, o bucket vira subdomínio (<code>raw.localhost</code>), que o MinIO local não resolve; a documentação indica <code>path</code> para o MinIO</td></tr>
+            <tr><td><code>USE_SSL</code></td><td><code>true</code></td><td><code>false</code> local; <code>true</code> no Railway</td><td>o MinIO local responde em HTTP; o domínio do Railway, em HTTPS</td></tr>
+            <tr><td><code>REGION</code></td><td><code>us-east-1</code></td><td><code>us-east-1</code></td><td>o MinIO aceita qualquer valor; manter o padrão evita surpresa</td></tr>
+          </tbody>
+        </table></div>
+        <p>O secret é <code>TEMPORARY</code>: existe só na conexão aberta pelo job e não é gravado em disco. As credenciais vêm de variáveis de ambiente. No laboratório, o utilitário <code>sql/rodar_sql.py</code> lê <code>S3_ENDPOINT_URL</code> (com esquema, como na Aula 02), separa o host e a porta para <code>ENDPOINT</code> e deriva <code>USE_SSL</code> do esquema <code>http</code> ou <code>https</code>. Nenhum arquivo <code>.sql</code> contém senha.</p>
+
+        <h3>7.2 Leitura: JSON, JSON Lines, HTML e Parquet</h3>
+        <p><code>read_json_auto</code> (alias de <code>read_json</code>) infere o esquema a partir de uma amostra dos arquivos. Com <code>filename = true</code>, acrescenta a coluna com o caminho do arquivo, que vira a <code>arquivo_origem</code>. Com <code>hive_partitioning = true</code>, transforma <code>data=</code> e <code>hora=</code> do caminho em colunas. Com <code>union_by_name = true</code>, une arquivos com conjuntos de campos diferentes pelo nome.</p>
+        <pre><code>SELECT
+    regexp_extract(filename, '([^/]+)\.json$', 1) AS cidade,
+    data                                          AS data_coleta,
+    hora                                          AS hora_coleta,
+    unnest(hourly.time)                           AS horario_local,
+    unnest(hourly.temperature_2m)                 AS temperatura_c,
+    filename                                      AS arquivo_origem
+FROM read_json_auto('s3://raw/open_meteo/*/*/*.json',
+                    filename = true, hive_partitioning = true)
+LIMIT 12;</code></pre>
+        <p>O <code>DESCRIBE</code> dessa leitura, na preparação, mostrou <code>hourly</code> como <code>STRUCT("time" VARCHAR[], temperature_2m DOUBLE[], relative_humidity_2m BIGINT[])</code>, <code>data</code> como <code>DATE</code> e <code>hora</code> como <code>VARCHAR</code>. Dois <code>unnest</code> no mesmo <code>SELECT</code> percorrem as listas em paralelo: o primeiro horário com a primeira temperatura, e assim por diante. Um arquivo com 24 horas vira 24 linhas.</p>
+        <p>Para o manifesto em JSON Lines, o mesmo leitor serve, com o formato explícito:</p>
+        <pre><code>SELECT status, count(*) AS cidades
+FROM read_json_auto('s3://raw/_manifestos/open_meteo/*/*/*.jsonl',
+                    format = 'newline_delimited')
+GROUP BY status;</code></pre>
+        <p>O HTML não tem esquema que um leitor genérico entenda. <code>read_text</code> devolve o conteúdo como texto, com nome e tamanho do arquivo. O arquivo <code>sql/02_raw_bronze_livros_ptax.sql</code> usa expressões regulares sobre a página de detalhe para mostrar de onde saem o UPC, o preço e a quantidade em estoque; na preparação, a página de <code>Sharp Objects</code> devolveu UPC <code>e00eb4fd7b871a48</code>, preço 47.82 e 20 unidades. Essa leitura serve para entender o mecanismo. A extração oficial é a do parser da Aula 03, com teste sobre página salva, e o resultado dela está no bronze.</p>
+        <p>O bronze dos livros mostra um cuidado que a inferência automática não toma. Lido com <code>read_json_auto</code>, o campo <code>coletado_em</code>, gravado como <code>2026-10-03T09:31:12-03:00</code>, foi inferido como <code>TIMESTAMP</code> sem fuso, com o valor convertido para 12:31:12; convertido depois para <code>TIMESTAMPTZ</code> no fuso de Brasília, virou 12:31 em Brasília, três horas a mais. Por isso a silver declara o esquema na leitura, com <code>columns</code>, lê <code>coletado_em</code> como texto e só então converte:</p>
+        <pre><code>FROM read_json(
+    's3://bronze/books_toscrape/data=2026-10-24/*.jsonl',
+    format = 'newline_delimited', filename = true,
+    columns = {
+        upc: 'VARCHAR', url: 'VARCHAR', titulo: 'VARCHAR', categoria: 'VARCHAR',
+        avaliacao: 'BIGINT', preco_gbp: 'DOUBLE', em_estoque: 'BOOLEAN',
+        qtd_estoque: 'BIGINT', coletado_em: 'VARCHAR'
+    })
+-- no SELECT: CAST(coletado_em AS TIMESTAMPTZ) respeita o deslocamento -03:00</code></pre>
+        <p>Declarar <code>columns</code> também fixa o contrato na entrada: um campo extra, como o <code>chave_origem</code> opcional da Aula 03, é ignorado, e um campo do contrato ausente aparece como nulo, o que um teste da silver deve detectar.</p>
+        <p>Para Parquet, <code>read_parquet</code> com <code>hive_partitioning = true</code> lê a silver e permite a poda de partição:</p>
+        <pre><code>SELECT cidade, avg(temperatura_c)
+FROM read_parquet('s3://silver/clima/*/*.parquet', hive_partitioning = true)
+WHERE data = DATE '2026-10-30'
+GROUP BY cidade;</code></pre>
+
+        <h3>7.3 Escrita: COPY para o object storage</h3>
+        <p>O <code>COPY ... TO 's3://...' (FORMAT parquet)</code> grava o resultado de uma consulta direto no MinIO. Com <code>PARTITION_BY (coluna)</code>, o DuckDB cria um diretório por valor no estilo Hive. A documentação de escritas particionadas descreve as opções <code>OVERWRITE_OR_IGNORE</code>, <code>OVERWRITE</code>, <code>APPEND</code> e <code>FILENAME_PATTERN</code>, e avisa que sobrescrita não é suportada em sistemas de arquivos remotos. A preparação testou o que acontece no MinIO:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Comando (segunda execução sobre o mesmo destino)</th><th>Resultado observado com DuckDB 1.5.6</th></tr></thead>
+          <tbody>
+            <tr><td><code>COPY ... TO 's3://silver/teste' (FORMAT parquet, PARTITION_BY (data))</code></td><td>erro: <code>Directory "s3://silver/teste" is not empty! Enable OVERWRITE option to overwrite files</code></td></tr>
+            <tr><td>idem com <code>APPEND</code></td><td>grava um arquivo novo com nome UUID ao lado do anterior; as linhas passam a existir duas vezes</td></tr>
+            <tr><td>idem com <code>OVERWRITE_OR_IGNORE</code></td><td>executou e substituiu <code>data_0.parquet</code>; arquivos antigos com outros nomes continuariam lá</td></tr>
+            <tr><td><code>COPY ... TO 's3://silver/clima/data=D/clima.parquet' (FORMAT parquet)</code></td><td>substitui o mesmo objeto; contagem de objetos e de linhas igual</td></tr>
+          </tbody>
+        </table></div>
+        <p>A conclusão para o projeto: a demonstração grava um objeto de nome fixo por data, montando o caminho da partição no próprio job, e não depende de opções de sobrescrita que a documentação declara não suportadas em destino remoto. O resultado observado com <code>OVERWRITE_OR_IGNORE</code> vale para esta versão e este teste, e não autoriza contar com ele.</p>
+      </section>
+
+      <!-- 8 -->
+      <section class="content-block" id="s8">
+        <h2>8. Decisões de desenho que a demonstração expõe</h2>
+
+        <h3>8.1 Idempotência por objeto de nome fixo</h3>
+        <p>O job é reexecutado por vários motivos: o cron dispara de hora em hora, alguém roda à mão para conferir, um erro de rede força nova tentativa. Cada reexecução precisa deixar o mesmo estado que uma execução. Na silver, isso se obtém gravando cada data num único objeto de nome determinístico; reprocessar a data substitui o objeto. A silver da PTAX, pequena, é um objeto só, recalculado inteiro a cada execução. Na gold, as tabelas são pequenas e são recalculadas inteiras a partir da silver a cada execução, também em objeto de nome fixo. Como a gravação de um objeto no object storage é atômica, quem lê no meio da execução vê o objeto antigo ou o novo, nunca metade.</p>
+
+        <h3>8.2 Partição em UTC, previsão no horário de Brasília</h3>
+        <p>A Aula 02 particiona o raw pela hora da coleta em UTC, e pede à Open-Meteo os horários no fuso <code>America/Sao_Paulo</code>, com um dia de previsão. A coleta das 1h UTC do dia 31 acontece às 22h do dia 30 em Brasília, e a resposta traz as 24 horas do dia 30. Se a silver do dia 30 lesse só a partição <code>data=2026-10-30</code>, perderia as coletas mais recentes das últimas horas do dia. Por isso a silver do dia D lê as partições D e D+1 e filtra pelo horário previsto. Na preparação, a silver do dia 30 escolheu a coleta da partição do dia 31, hora 01, como a mais recente, que é o comportamento correto.</p>
+        <pre><code>FROM read_json_auto('s3://raw/open_meteo/*/*/*.json',
+                    filename = true, hive_partitioning = true, union_by_name = true)
+WHERE data BETWEEN DATE '2026-10-30' AND DATE '2026-10-30' + INTERVAL 1 DAY</code></pre>
+        <p>O filtro na coluna de partição mantém a poda: os arquivos de outras datas não são abertos.</p>
+
+        <h3>8.3 Deduplicação: qual coleta vale</h3>
+        <p>Cada coleta horária devolve a previsão do dia inteiro, então a mesma hora prevista aparece em até 24 coletas, com valores que mudam à medida que a previsão é atualizada. A consulta 4 de <code>sql/01_raw_clima.sql</code> conta essas repetições. A silver precisa escolher uma: a proposta é a coleta mais recente, com <code>QUALIFY row_number() OVER (PARTITION BY cidade, horario_local ORDER BY data_coleta DESC, hora_coleta DESC) = 1</code>. Outra regra seria possível, como guardar todas as versões para avaliar a qualidade da previsão; é uma decisão de negócio, que pertence à spec e a um ADR.</p>
+
+        <h3>8.4 Arquivo corrompido no raw ou no bronze</h3>
+        <p>Na preparação, um JSON truncado foi colocado na partição do dia. A leitura falhou com <code>Malformed JSON in file "s3://raw/open_meteo/data=2026-10-31/hora=12/sao_paulo.json", at byte 81</code>, e a opção <code>ignore_errors</code> foi recusada com a mensagem de que erros de parse só podem ser ignorados no formato <code>newline_delimited</code>. Um único arquivo ruim derruba o processamento da data inteira. No bronze, que é JSON Lines, <code>ignore_errors</code> pularia a linha ruim em silêncio, o que esconde o problema; a política precisa dizer se isso é aceitável. O job precisa de uma política: validar cada objeto antes (por exemplo, com <code>json.loads</code> em Python) e montar a lista de arquivos válidos para o DuckDB; registrar caminho e erro dos inválidos no resumo; e decidir se a execução termina com sucesso ou falha. A decisão vai para a spec e para um ADR.</p>
+
+        <h3>8.5 Evolução de esquema</h3>
+        <p>Um campo novo no JSON entrou na inferência sem quebrar nada, como descrito na seção 3. Um campo removido ou renomeado é diferente: o <code>SELECT</code> da silver referencia o campo, e a leitura falha. O comportamento desejado nos dois casos precisa estar escrito. Uma proposta razoável é falhar com mensagem clara quando um campo do contrato some, e registrar como lacuna quando aparece um campo fora do contrato.</p>
+
+        <h3>8.6 Dockerfile com a extensão já instalada</h3>
+        <p>O <code>INSTALL httpfs</code> baixa a extensão na primeira vez. Num contêiner que sobe a cada hora, isso seria um download por execução e uma dependência de rede a mais. O <code>Dockerfile</code> do laboratório instala a extensão durante o build, com o usuário que roda o job, e o job só faz <code>LOAD httpfs</code>. Na preparação, a imagem foi construída e executada contra o MinIO local: a extensão carregou a partir da imagem e o processo terminou com código 0.</p>
+
+        <h3>8.7 Qual cotação converte o preço do livro</h3>
+        <p>As aulas são aos sábados, e a PTAX não é publicada em fim de semana nem em feriado. Uma junção simples por data entre livros e cotações deixaria sem preço em reais toda coleta de sábado. A gold usa um <code>ASOF JOIN</code> do DuckDB: para cada livro, o último boletim de fechamento com data menor ou igual à da coleta. Na preparação, a coleta de sábado, 03/10/2026, recebeu o fechamento de sexta, 02/10/2026, com venda a 6,91210.</p>
+        <pre><code>FROM read_parquet('s3://silver/livros/*/*.parquet', hive_partitioning = true) AS l
+ASOF JOIN fechamento AS p ON l.data_coleta &gt;= p.data_ptax</code></pre>
+        <p>O rótulo do fechamento muda com o recurso consultado: <code>CotacaoMoedaDia</code> devolve <code>Fechamento PTAX</code>, e <code>CotacaoMoedaPeriodo</code>, na chamada de 03/10/2026, devolveu <code>Fechamento</code>. O filtro da gold aceita os dois. Uma regra assim, que depende de um detalhe da fonte, precisa estar na spec e num teste.</p>
+      </section>
+
+      <!-- 9 -->
+      <section class="content-block" id="s9">
+        <h2>9. Preparação do ambiente</h2>
+        <p>Os comandos completos estão no <a href="../laboratorio/README.md">roteiro do laboratório</a>. Esta seção explica o que cada etapa faz.</p>
+
+        <h3>9.1 Pasta da aula no repositório do grupo</h3>
+        <ol class="steps">
+          <li>Abra o Codespace do repositório do grupo e um terminal.</li>
+          <li>Crie a pasta com o esqueleto SDD e baixe os arquivos de apoio de <code>laboratorio/</code>:</li>
+        </ol>
+        <pre><code>cd /workspaces/&lt;repositorio-do-grupo&gt;
+mkdir -p aula_04_lakehouse/{docs/adr,specs,src,tests,sql}
+cd aula_04_lakehouse
+
+BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/data_collection_and_storage/aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/laboratorio
+for f in docker-compose.yml .env.example requirements.txt AGENTS.md Dockerfile railway.json .gitignore; do
+  curl -fsSLO "$BASE/$f"
+done
+for f in rodar_sql.py 01_raw_clima.sql 02_raw_bronze_livros_ptax.sql 03_silver_clima.sql 04_silver_ptax.sql 05_silver_livros.sql 06_gold.sql 07_parquet_inspecao.sql; do
+  curl -fsSL -o "sql/$f" "$BASE/sql/$f"
+done
+touch src/__init__.py
+ls -la . sql</code></pre>
+        <p>O <code>AGENTS.md</code> traz as regras específicas desta aula: os buckets <code>raw</code> e <code>bronze</code> são somente leitura, toda linha da silver tem <code>arquivo_origem</code>, a escrita não usa <code>APPEND</code> e o job precisa terminar. Leia e ajuste antes do primeiro prompt.</p>
+
+        <h3>9.2 MinIO local com cópia do raw</h3>
+        <p>O <code>docker-compose.yml</code> usa a mesma imagem e a mesma tag das aulas anteriores (<code>ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z</code>) e um serviço <code>minio-init</code> que cria os buckets <code>raw</code>, <code>bronze</code>, <code>silver</code> e <code>gold</code>, os mesmos da Aula 01. Se o MinIO da Aula 02 ainda estiver rodando no Codespace, pare-o antes, porque as portas são as mesmas.</p>
+        <pre><code>cp .env.example .env
+SENHA=$(openssl rand -base64 24)
+sed -i "s|^MINIO_ROOT_PASSWORD=.*|MINIO_ROOT_PASSWORD=$SENHA|; s|^S3_SECRET_KEY=.*|S3_SECRET_KEY=$SENHA|" .env
+unset SENHA
+
+docker compose config -q &amp;&amp; echo "compose ok"
+docker compose up -d
+docker compose logs minio-init</code></pre>
+        <p>O desenvolvimento acontece sobre uma cópia do raw e do bronze do Railway. Assim, um erro do job durante o desenvolvimento não toca o dado de verdade, e o grupo trabalha com o volume e as irregularidades reais das três semanas de coleta. O alias <code>railway</code> sem chaves na linha de comando faz o <code>mc</code> pedir os valores de forma interativa:</p>
+        <pre><code>docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
+docker compose exec minio mc alias set railway https://&lt;dominio-da-porta-9000&gt;
+docker compose exec minio mc mirror railway/raw local/raw
+docker compose exec minio mc mirror railway/bronze local/bronze
+docker compose exec minio mc du local/raw
+docker compose exec minio mc ls --recursive local/raw | head -20</code></pre>
+        <p>Gate: <code>mc du local/raw</code> mostra o mesmo volume que <code>mc du railway/raw</code>, e <code>git status</code> não lista <code>.env</code>.</p>
+
+        <h3>9.3 Ambiente Python</h3>
+        <pre><code>python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -c "import duckdb, boto3, bs4, pytest; print(duckdb.__version__)"</code></pre>
+        <p>O <code>requirements.txt</code> fixa as versões usadas na preparação: <code>duckdb==1.5.6</code>, <code>boto3</code> para listar objetos e validar arquivos um a um, <code>pytest</code> e <code>pytz</code>, que o DuckDB exige para entregar valores <code>TIMESTAMPTZ</code> ao Python. O <code>beautifulsoup4</code> fica disponível caso o grupo precise refazer a extração do HTML.</p>
+
+        <h3>9.4 Schema on read no bronze, antes da spec</h3>
+        <p>Antes de pedir qualquer coisa ao agente, o grupo olha o dado. As duas consultas abaixo são as mesmas que o professor roda na projeção:</p>
+        <pre><code>python sql/rodar_sql.py sql/01_raw_clima.sql
+python sql/rodar_sql.py sql/02_raw_bronze_livros_ptax.sql</code></pre>
+        <ol class="steps">
+          <li>Anote o tipo inferido de <code>hourly</code> e os campos da resposta.</li>
+          <li>Veja quantas vezes a mesma hora prevista se repete entre coletas (consulta 4 do primeiro arquivo).</li>
+          <li>Confira o resumo dos manifestos em JSON Lines: quantas gravações e quantos <code>ja_existia</code>.</li>
+          <li>Veja o envelope <code>value</code> da PTAX no raw: na verificação de 02/10/2026, a resposta do dia trazia cinco boletins, de <code>Abertura</code> a <code>Fechamento PTAX</code>.</li>
+          <li>Leia uma página de detalhe como texto e compare o UPC e o preço extraídos por expressão regular com a linha correspondente do bronze.</li>
+          <li>Veja o tipo que a inferência deu a <code>coletado_em</code> no bronze dos livros (seção 7.2).</li>
+        </ol>
+        <p>Essas observações alimentam a spec. Um requisito escrito sem olhar o dado tende a supor um esquema que não existe.</p>
+      </section>
+
+      <!-- 10 -->
+      <section class="content-block" id="s10">
+        <h2>10. O projeto da aula em SDD</h2>
+        <p>O projeto continua os dois cenários fictícios das aulas anteriores. A distribuidora de bebidas da Aula 02 quer comparar a previsão de temperatura com as vendas de bebidas geladas em cada capital, e para isso precisa de uma tabela com a temperatura média diária por capital. O monitor de preços da Aula 03 quer acompanhar o preço em reais dos livros importados, o que exige combinar o preço em libras extraído do HTML com a cotação PTAX do dia.</p>
+        <p>O projeto desta aula entrega o job que constrói silver e gold a partir do raw e o publica no Railway com execução agendada. A sequência de prompts segue a convenção da disciplina:</p>
+        <div class="method-flow">
+          <div class="method-step"><strong>Persona e objetivos</strong><span>Prompts 1 e 2: quem consome a gold e como medir sucesso.</span></div>
+          <div class="method-step"><strong>Especificação</strong><span>Prompt 3: contrato de cada tabela, RF e RNF com Dado/Quando/Então.</span></div>
+          <div class="method-step"><strong>Plano e tarefas</strong><span>Prompts 4 e 5: C4, layout dos buckets, tarefas ligadas a testes.</span></div>
+          <div class="method-step"><strong>Implementação</strong><span>Prompt 6: uma tarefa por vez, teste antes de seguir.</span></div>
+          <div class="method-step"><strong>ATAM</strong><span>Prompt 7: seis cenários, ADRs e matriz de rastreabilidade.</span></div>
+        </div>
+        <p>Todos os prompts carregam as mesmas regras: não inventar números nem SLAs (marcar "hipótese, validação pendente"), separar fato, lacuna e suposição, preservar os IDs de requisito, não pôr segredos em arquivo versionado, mostrar o plano antes de editar e parar ao fim da etapa. Copie cada prompt por inteiro e rode um por vez: os modelos gratuitos da OpenRouter aceitam 20 requisições por minuto e 50 por dia para contas que compraram menos de US$ 10 em créditos, e cada prompt consome várias requisições. Diante de erro 429, espere e repita.</p>
+      </section>
+
+      <!-- 11 -->
+      <section class="content-block" id="s11">
+        <h2>11. Os sete prompts CREATE</h2>
+
+        <h3>Prompt 1. Persona</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um analista de requisitos de dados que entrevista quem consome dados antes de qualquer decisão técnica. Você escreve em português, de forma objetiva, e separa o que foi informado do que está sendo suposto.
+
+[R] Pedido
+Crie o arquivo docs/00_persona.md descrevendo as personas que vão consumir as tabelas gold do lakehouse desta pasta (aula_04_lakehouse) e a persona que mantém o job. Contexto fornecido pelo professor (cenários fictícios das aulas anteriores):
+- Desde a Aula 02, o bucket raw do MinIO do grupo recebe a cada hora a previsão de temperatura e umidade de seis capitais (São Paulo, Rio de Janeiro, Brasília, Salvador, Manaus e Porto Alegre), coletada da Open-Meteo. Cenário: uma distribuidora de bebidas cuja equipe de planejamento quer comparar a previsão com as vendas de bebidas geladas e ajustar o estoque de cada centro de distribuição.
+- Desde a Aula 03, o bucket raw recebe as páginas do books.toscrape.com e a resposta da PTAX da libra em reais (API do Banco Central), e o bucket bronze recebe a extração em JSON Lines: um livro por linha, com UPC, título, categoria e preço em libras, e um boletim PTAX por linha. Cenário: um monitor de preços de livros importados.
+- Nesta aula, o raw vira silver (Parquet tipado) e gold (tabelas prontas para consumo): temperatura média diária por capital e preço de cada livro em reais por dia.
+Se existir ../aula_02_coleta_json/docs/00_persona.md ou ../aula_03_api_scraping/docs/00_persona.md, leia e reaproveite as personas com os mesmos IDs, citando o caminho.
+
+[E] Exemplos
+Formato esperado de uma persona:
+## P-02 Analista de preços de livros importados
+- Quem é: analista da área comercial, usa planilhas e SQL básico.
+- Decisão que toma: se reajusta o preço de venda de um título quando o custo em reais muda.
+- Dor atual: o preço em libras e a cotação ficam em lugares diferentes; não sabe qual cotação foi usada em cada dia.
+- Frequência de uso: diária (hipótese, validação pendente).
+- Tabela gold que consome: livro_preco_brl_diario.
+- O que precisa saber sobre o dado: qual boletim PTAX foi usado e de qual página veio o preço.
+- Fato / suposição: separar em lista.
+
+[A] Ajustes
+- Crie no máximo três personas: P-01 consumidora da gold de clima, P-02 consumidora da gold de livros, P-03 engenheira de dados que mantém o job.
+- Para a P-03, descreva o que ela precisa para operar: saber se o job rodou, o que falhou, quanto tempo levou e de onde veio cada linha.
+- Não invente números (volumes, frequência, metas). Quando precisar de um valor, escreva "hipótese, validação pendente".
+- Não proponha tecnologia, arquitetura nem código nesta etapa.
+- Termine com uma seção "Fatos, lacunas e suposições" e uma seção "Perguntas para o cliente".
+
+[T] Tipo de saída
+Um único arquivo Markdown, docs/00_persona.md, com até 70 linhas. Mostre o conteúdo proposto antes de gravar.
+
+[E] Extras
+Leia AGENTS.md antes de começar e siga as regras dele. Se faltar informação essencial, pergunte antes de escrever. Pare ao final desta etapa e aguarde revisão; não avance para objetivos de negócio.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Cada persona de consumo nomeia a tabela gold que usa e a decisão que toma com ela? A P-03 diz o que precisa ver depois de uma execução? Algum número apareceu sem a marca de hipótese? Se o grupo tinha personas nas Aulas 02 e 03, os IDs foram mantidos?</p>
+        </div>
+
+        <h3>Prompt 2. Objetivos de negócio</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um gerente de produto de dados que transforma a dor de cada persona em objetivos mensuráveis, sem prometer o que não consegue medir.
+
+[R] Pedido
+Leia docs/00_persona.md e crie docs/01_objetivos_negocio.md com os objetivos do lakehouse desta pasta: tabelas gold de temperatura média diária por capital e de preço de livro em reais por dia, construídas a partir do bucket raw que as Aulas 02 e 03 alimentaram, atualizadas por um job agendado.
+
+[E] Exemplos
+Formato esperado de um objetivo:
+## OBJ-01 Média diária de temperatura disponível para o planejamento
+- Persona: P-01.
+- Resultado esperado: para cada capital e cada dia com coleta, uma linha na gold com média, mínima e máxima da previsão mais recente.
+- Métrica de sucesso: percentual de pares (capital, dia) com linha na gold, sobre os pares com coleta no raw. Meta: hipótese, validação pendente.
+- Como medir: consulta comparando raw e gold, registrada em docs/atam.md.
+
+[A] Ajustes
+- Um objetivo por necessidade das personas; inclua ao menos um objetivo da P-03 (operação: execução agendada, término, rastreabilidade).
+- Cada métrica diz como é medida (consulta, comando, log). Não invente metas numéricas; quando faltar, escreva "hipótese, validação pendente".
+- Liste os drivers de negócio (por que agora) e as restrições abaixo como "restrição fornecida pelo professor":
+  - os buckets raw e bronze são somente leitura para este job;
+  - o object storage é o MinIO publicado no Railway na Aula 01 (API compatível com S3), sem serviços de nuvem pública;
+  - o job roda no Railway como serviço com cron; no trial, o crédito é único de US$ 5 por até 30 dias, com até 1 GB de RAM, vCPU compartilhada e até 5 serviços por projeto; depois vira plano Free com US$ 1/mês;
+  - o cron do Railway usa UTC, exige pelo menos 5 minutos entre execuções e pula a execução seguinte se a anterior ainda estiver rodando.
+- Não proponha arquitetura nem código.
+- Termine com "Fatos, lacunas e suposições".
+
+[T] Tipo de saída
+Um único arquivo Markdown, docs/01_objetivos_negocio.md, com até 80 linhas. Mostre o conteúdo antes de gravar.
+
+[E] Extras
+Leia AGENTS.md. Se uma restrição conflitar com uma persona, registre o conflito em vez de resolvê-lo sozinho. Pare ao final desta etapa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Toda métrica tem um modo de medição executável? Existe objetivo para a operação do job, e não só para as tabelas? As restrições do Railway estão marcadas como fornecidas pelo professor, sem números novos? Há algum objetivo que nenhuma persona pediu?</p>
+        </div>
+
+        <h3>Prompt 3. Especificação</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados que escreve especificações verificáveis: cada requisito vira um teste ou uma consulta que alguém consegue executar.
+
+[R] Pedido
+Leia docs/00_persona.md e docs/01_objetivos_negocio.md e crie specs/spec.md com os requisitos do job do lakehouse. Fatos observados no bronze (rodando sql/01_raw_clima.sql e sql/02_raw_bronze_livros_ptax.sql):
+- raw/open_meteo/data=AAAA-MM-DD/hora=HH/&lt;cidade&gt;.json: data e hora da coleta em UTC; o campo hourly tem listas paralelas time[], temperature_2m[], relative_humidity_2m[], com horários no fuso America/Sao_Paulo; cada coleta repete as 24 horas do dia.
+- raw/_manifestos/open_meteo/.../*.jsonl: manifesto da Aula 02 em JSON Lines.
+- bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl: um livro por linha, extraído pela Aula 03 das páginas de detalhe, com upc, url, titulo, categoria, avaliacao, preco_gbp, em_estoque, qtd_estoque, coletado_em (ISO 8601 com deslocamento -03:00) e chave_origem opcional; a inferência automática transforma coletado_em em TIMESTAMP sem fuso.
+- bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl: um boletim por linha, com moeda, dataHoraCotacao (horário de Brasília), tipoBoletim, cotacaoCompra, cotacaoVenda; o fechamento se chama "Fechamento PTAX" (CotacaoMoedaDia) ou "Fechamento" (CotacaoMoedaPeriodo); não há boletim em fim de semana e feriado.
+- raw/books_toscrape/.../detalhe.html e raw/ptax/...: originais, usados só para auditoria.
+(Se os prefixos do grupo forem outros, use os reais e cite a saída do mc ls.)
+
+O spec.md precisa conter, no mínimo:
+1. Contrato de cada tabela silver e gold: caminho do objeto, grão em uma frase, colunas com tipo, nulidade e origem. Tabelas: silver/clima, silver/livros (s3://silver/livros/data_coleta=D/livros.parquet), silver/ptax (s3://silver/ptax/ptax.parquet), gold/clima_media_diaria, gold/livro_preco_brl_diario. Os contratos de silver/livros e silver/ptax foram combinados com a Aula 05 e são fixos: livros com upc, url, titulo, categoria, avaliacao, preco_gbp, em_estoque, qtd_estoque, coletado_em; ptax com moeda, data_hora_cotacao, tipo_boletim, cotacao_compra, cotacao_venda; as duas com arquivo_origem e processado_em a mais.
+2. RF para: leitura do bronze em schema on read; janela das partições D e D+1 para a silver de clima do dia D; deduplicação (coleta mais recente por cidade e hora prevista no clima; coleta mais recente por upc nos livros; boletim repetido entre arquivos na PTAX); leitura do bronze com esquema declarado e coletado_em convertido com o deslocamento; regra da cotação na gold de livros (último boletim de fechamento com data menor ou igual à da coleta, aceitando os rótulos "Fechamento PTAX" e "Fechamento"; sem nenhum fechamento anterior, a linha não é gerada e o fato é registrado); resumo de execução impresso no log (data processada, arquivos lidos, linhas por tabela, arquivos inválidos, duração).
+3. RNF para: idempotência (reprocessar a mesma data não muda objetos nem linhas); raw e bronze somente leitura; rastreabilidade (arquivo_origem e processado_em em toda linha da silver); término do processo com prazo máximo e código de saída; segredos só por variável de ambiente; evolução de esquema (campo novo não altera a silver; campo do contrato ausente gera erro claro); arquivo inválido no raw ou no bronze (política proposta: pular, registrar caminho e erro, e marcar a execução; decisão final no ATAM).
+
+[E] Exemplos
+RF-03 Silver de clima deduplicada
+Dado arquivos do raw com a mesma cidade e o mesmo horário previsto em coletas diferentes,
+Quando o job processa a data D,
+Então s3://silver/clima/data=D/clima.parquet tem uma linha por (cidade, horario_local), vinda da coleta mais recente, com arquivo_origem apontando para esse objeto.
+
+RNF-01 Idempotência
+Dado que o job já processou a data D,
+Quando o job processa D de novo sem mudança no raw,
+Então a contagem de objetos em silver/ e gold/ e a contagem de linhas de cada tabela são iguais às da execução anterior.
+
+[A] Ajustes
+- Todo RF e RNF tem critério Dado/Quando/Então verificável por teste, consulta ou comando.
+- IDs em sequência (RF-01, RF-02..., RNF-01...). Não use valores de prazo, volume ou latência sem a marca "hipótese, validação pendente".
+- Não escolha bibliotecas nem descreva módulos; isso é do plano.
+- Termine com "Fora de escopo" (inclua: formatos de tabela como Delta e Iceberg; painel; histórico de todas as versões da previsão) e "Fatos, lacunas e suposições".
+
+[T] Tipo de saída
+Um único arquivo Markdown, specs/spec.md. Contratos em tabelas Markdown. Mostre o conteúdo antes de gravar.
+
+[E] Extras
+Leia AGENTS.md e os dois arquivos de docs/. Se faltar uma regra de negócio (por exemplo, qual cotação usar), proponha e marque como suposição em vez de decidir em silêncio. Pare ao final desta etapa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Cada tabela tem grão declarado em uma frase e colunas com tipo e origem? O RF da janela D e D+1 está escrito, ou a spec supõe que a partição do raw coincide com o dia da previsão? A regra da cotação cobre o dia sem boletim? O RNF de término diz o que acontece quando o prazo estoura? Algum número de prazo apareceu sem a marca de hipótese?</p>
+        </div>
+
+        <h3>Prompt 4. Plano e arquitetura</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um arquiteto de dados que liga cada escolha técnica a um requisito e desenha só o que a spec pede.
+
+[R] Pedido
+Leia specs/spec.md e crie specs/plan.md com a arquitetura do job do lakehouse.
+
+O plan.md precisa conter:
+1. Diagrama C4 de contexto em Mermaid: personas, job do lakehouse, MinIO (buckets raw, silver, gold), Railway (cron), fontes das Aulas 02 e 03 como sistemas externos já existentes.
+2. Diagrama C4 de contêineres em Mermaid: contêiner do job (Python + DuckDB in-process + extensão httpfs) e MinIO; componentes do job: configuração (variáveis de ambiente), validação de arquivos de entrada, transformação de clima (raw), transformação de livros (bronze), transformação de PTAX (bronze), escrita da silver, construção da gold, resumo de execução e prazo máximo.
+3. Diagrama de sequência em Mermaid de uma execução: ler variáveis, criar secret TEMPORARY, listar e validar objetos, gravar cada silver, reconstruir a gold, imprimir resumo, sair com código.
+4. Layout dos buckets: caminho de cada objeto silver e gold (s3://silver/clima/data=D/clima.parquet; s3://silver/livros/data_coleta=D/livros.parquet; s3://silver/ptax/ptax.parquet; um objeto por tabela na gold).
+5. Tabela de escolhas técnicas com: escolha, alternativa considerada, requisito que justifica. Considere ao menos: SQL do DuckDB ou pandas; COPY para objeto de nome fixo ou COPY com PARTITION_BY; read_json com columns declaradas ou read_json_auto com inferência; ASOF JOIN ou junção por data para a cotação; data a processar (variável DATA_PROCESSAMENTO; vazia = hoje e ontem no fuso America/Sao_Paulo); endpoint público https do MinIO ou rede privada do Railway (http://minio.railway.internal:9000, a testar).
+6. Ponto de entrada python -m src.job_lakehouse; Dockerfile e railway.json da pasta (cronSchedule em UTC, restartPolicyType NEVER).
+
+[E] Exemplos
+| Escolha | Alternativa | Requisito |
+|---|---|---|
+| COPY para s3://silver/clima/data=D/clima.parquet | COPY com PARTITION_BY e APPEND | RNF-01 (APPEND cria arquivo novo com UUID e duplica linhas, observado na preparação da aula) |
+
+[A] Ajustes
+- Nenhuma escolha sem requisito; se não houver, escreva "sem requisito correspondente" e proponha remover.
+- O plano não altera raw nem bronze em nenhum passo.
+- Não escreva código; trechos de SQL de até 10 linhas são permitidos para fixar a regra de deduplicação e a janela de partições.
+- Mesmos nomes de componentes no texto e nos diagramas.
+
+[T] Tipo de saída
+specs/plan.md em Markdown, com três blocos Mermaid e as tabelas pedidas. Mostre o conteúdo antes de gravar.
+
+[E] Extras
+Leia AGENTS.md, specs/spec.md e os arquivos em sql/ desta pasta, que são exemplos validados pelo professor. Pergunte se algum requisito estiver ambíguo. Pare ao final desta etapa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Os nomes do Mermaid batem com os do texto? A tabela de escolhas tem alternativa e requisito em toda linha? O diagrama de sequência termina com saída do processo, ou deixa o job esperando? Alguma escolha apareceu sem requisito?</p>
+        </div>
+
+        <h3>Prompt 5. Tarefas</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um líder técnico que quebra um plano em tarefas pequenas, cada uma com um teste que prova que ela terminou.
+
+[R] Pedido
+Leia specs/spec.md e specs/plan.md e crie specs/tasks.md com as tarefas de implementação do job do lakehouse, na ordem de execução.
+
+[E] Exemplos
+## T-04 Silver de clima
+- Requisitos: RF-02, RF-03, RNF-01, RNF-05.
+- Entrega: função que grava s3://silver/clima/data=D/clima.parquet a partir das partições D e D+1 do raw.
+- Teste: tests/test_silver_clima.py com três JSON de exemplo em tests/fixtures/ (duas coletas da mesma cidade com valores diferentes e uma coleta de D+1 com horários de D); verifica uma linha por (cidade, horario_local), valor da coleta mais recente e arquivo_origem preenchido.
+- Pronto quando: python -m pytest -q tests/test_silver_clima.py passa.
+
+[A] Ajustes
+- Tarefas pequenas (uma função ou um arquivo por tarefa). Cada uma cita RF/RNF e um teste.
+- Inclua tarefas para: configuração e secret a partir de S3_ENDPOINT_URL; validação de arquivos com lista de inválidos; silver de clima; silver de PTAX; silver de livros (fixture: um livros.jsonl pequeno em tests/fixtures/, com um UPC repetido e coletado_em com deslocamento -03:00); gold de clima; gold de livros; resumo e prazo máximo; ponto de entrada; teste de integração contra o MinIO local (marcado para rodar só com docker compose ativo); Dockerfile e railway.json.
+- Fixtures de teste com dados pequenos e sem segredos. Inclua um JSON truncado e um JSON com campo novo.
+- Não escreva código.
+
+[T] Tipo de saída
+specs/tasks.md em Markdown, com uma seção por tarefa (T-01, T-02...). Ao final, uma tabela RF/RNF → tarefas, mostrando que todo requisito tem tarefa. Mostre antes de gravar.
+
+[E] Extras
+Leia AGENTS.md. Pare ao final desta etapa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Todo RF e RNF aparece na tabela final? Há teste para o JSON truncado e para o campo novo? O teste de integração está separado dos unitários, para que <code>pytest</code> rode sem MinIO? A última tarefa leva a um contêiner que termina sozinho?</p>
+        </div>
+
+        <h3>Prompt 6. Implementação tarefa a tarefa</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados que implementa uma tarefa por vez, com teste primeiro, e não toca no que a tarefa não pede.
+
+[R] Pedido
+Implemente a próxima tarefa pendente de specs/tasks.md (comece por T-01). Para cada tarefa: mostre o plano de alteração; escreva o teste; implemente em src/; rode python -m pytest -q; mostre o diff e a saída do pytest; marque a tarefa como concluída em specs/tasks.md; pare.
+
+[E] Exemplos
+Formato esperado do resumo impresso pelo job ao terminar:
+job_lakehouse data=2026-10-30 arquivos_lidos=150 arquivos_invalidos=0 silver_clima=144 silver_ptax=5 silver_livros=20 gold_clima=6 gold_livros=20 duracao_s=4.2 status=ok
+(valores ilustrativos; o job imprime os medidos.)
+
+[A] Ajustes
+- Credenciais só de variáveis de ambiente: S3_ENDPOINT_URL (com esquema), S3_ACCESS_KEY, S3_SECRET_KEY, S3_REGION. O secret do DuckDB é CREATE OR REPLACE TEMPORARY SECRET, TYPE s3, ENDPOINT com host:porta (sem esquema), URL_STYLE 'path', USE_SSL derivado do esquema da URL. Nunca grave valores reais em código, teste ou log.
+- No contêiner, use LOAD httpfs (a extensão é instalada no build); INSTALL só fora do contêiner.
+- Nunca escreva, mova ou apague objetos nos buckets raw e bronze.
+- Silver: COPY para objetos de nome fixo: s3://silver/clima/data=D/clima.parquet, s3://silver/livros/data_coleta=D/livros.parquet e s3://silver/ptax/ptax.parquet (este recalculado inteiro). Os nomes e colunas de silver/livros e silver/ptax são o contrato da Aula 05: não renomeie. Gold: um objeto por tabela, recalculado a partir da silver. Não use APPEND nem PARTITION_BY.
+- Ponto de entrada: python -m src.job_lakehouse. DATA_PROCESSAMENTO=AAAA-MM-DD processa essa data; vazio processa hoje e ontem no fuso America/Sao_Paulo.
+- Prazo máximo por variável JOB_TIMEOUT_SEGUNDOS (valor padrão: hipótese, validação pendente). Ao estourar, o job imprime o resumo parcial e sai com código diferente de 0.
+- Código de saída 0 só quando todas as tabelas da data foram gravadas.
+- Se o teste falhar duas vezes seguidas na mesma tarefa, pare e explique o erro em vez de mudar o teste.
+
+[T] Tipo de saída
+Arquivos em src/ e tests/ da tarefa atual, specs/tasks.md atualizado e, na resposta, o diff e a saída do pytest.
+
+[E] Extras
+Leia AGENTS.md, specs/spec.md, specs/plan.md e os exemplos em sql/. Use os comandos permitidos do AGENTS.md. Peça autorização antes de rodar qualquer comando railway ou apagar objetos. Pare ao final de cada tarefa e aguarde "pode seguir".</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir (a cada tarefa)</strong>
+          <p>O teste foi escrito antes e falhou antes da implementação? O diff mexe só nos arquivos da tarefa? Há credencial, URL do Railway ou caminho absoluto no código? Alguma chamada escreve no bucket <code>raw</code>? Ao fim das tarefas de silver, rode o job duas vezes para a mesma data e compare <code>mc ls --recursive local/silver</code>.</p>
+        </div>
+
+        <h3>Prompt 7. Validação ATAM</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é uma equipe avaliadora ATAM independente, formada por engenheiro de dados, operação/SRE e custos. Você só aceita evidência medida ou marcada como hipótese.
+
+[R] Pedido
+Leia docs/, specs/ e o código em src/ e crie docs/atam.md e os ADRs em docs/adr/. O atam.md precisa conter:
+1. Drivers de negócio e atributos de qualidade prioritários, com origem (OBJ, RF, RNF).
+2. Utility tree: atributo, refinamento, cenário, com importância e dificuldade (alta, média, baixa) justificadas.
+3. Os seis cenários abaixo, cada um com as seis partes (fonte do estímulo, estímulo, ambiente, artefato, resposta, medida de resposta), a decisão de arquitetura relacionada e a evidência (comando executado e saída resumida) ou a marca "evidência pendente":
+   a. reprocessamento idempotente da mesma data;
+   b. JSON com campo novo no bronze (evolução de esquema);
+   c. arquivo corrompido no bronze;
+   d. job concorrente: execução agendada e execução manual gravando a mesma data;
+   e. custo de armazenamento do dado em bronze e silver (medir com mc du por camada);
+   f. job que não termina e consome crédito do Railway.
+4. Pontos de sensibilidade, pontos de trade-off, riscos e não riscos.
+5. Matriz requisito → decisão → componente → evidência, com uma linha por RF e RNF, inclusive os sem cobertura.
+ADRs mínimos: ADR-001 objeto de nome fixo por data em vez de PARTITION_BY; ADR-002 janela de partições D e D+1; ADR-003 política para arquivo inválido no bronze.
+
+[E] Exemplos
+Cenário (f) Job que não termina
+- Fonte do estímulo: lentidão do MinIO ou do proxy do Railway.
+- Estímulo: uma requisição do DuckDB fica sem resposta.
+- Ambiente: execução agendada no Railway.
+- Artefato: contêiner lakehouse-job.
+- Resposta: o job encerra pelo prazo JOB_TIMEOUT_SEGUNDOS, imprime o resumo parcial e sai com código diferente de 0; a execução seguinte do cron acontece normalmente.
+- Medida de resposta: duração da execução no log menor ou igual ao prazo; nenhuma execução pulada no histórico do cron (hipótese, validação pendente até o primeiro teste no Railway).
+
+[A] Ajustes
+- Não invente medidas. Para (a), (b), (c) e (e), rode os comandos no MinIO local e cole a saída resumida. Para (d) e (f), descreva como testar e marque o que não foi testado.
+- Registre ao menos um trade-off nomeado (por exemplo: manter raw e bronze intocados custa armazenamento e permite reprocessar).
+- Cada ADR tem: status, contexto, alternativas, decisão, consequências positivas e negativas, condição de revisão.
+
+[T] Tipo de saída
+docs/atam.md e docs/adr/ADR-001-*.md, ADR-002-*.md, ADR-003-*.md, em Markdown. Mostre antes de gravar.
+
+[E] Extras
+Leia AGENTS.md. Use só comandos de leitura no MinIO (ls, du, stat, cat) e o job local. Peça autorização antes de qualquer comando railway. Pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise para fechar</strong>
+          <p>Os seis cenários têm as seis partes e uma medida que alguém consegue repetir? As evidências de (a), (b), (c) e (e) são saídas reais do grupo? Existe trade-off nomeado? A matriz tem linha para todo RF e RNF, inclusive os sem cobertura? Os ADRs registram a alternativa descartada e o motivo?</p>
+        </div>
+      </section>
+
+      <!-- 12 -->
+      <section class="content-block" id="s12">
+        <h2>12. Execução local e medição</h2>
+        <h3>12.1 Rodar o job e conferir a idempotência</h3>
+        <ol class="steps">
+          <li>Carregue as variáveis e rode os testes:</li>
+        </ol>
+        <pre><code>set -a; source .env; set +a
+python -m pytest -q</code></pre>
+        <ol class="steps" start="2">
+          <li>Rode o job para uma data com coleta, duas vezes:</li>
+        </ol>
+        <pre><code>DATA_PROCESSAMENTO=2026-10-30 python -m src.job_lakehouse
+docker compose exec minio mc ls --recursive local/silver &gt; /tmp/silver_1.txt
+DATA_PROCESSAMENTO=2026-10-30 python -m src.job_lakehouse
+docker compose exec minio mc ls --recursive local/silver &gt; /tmp/silver_2.txt
+diff &lt;(awk '{print $NF}' /tmp/silver_1.txt) &lt;(awk '{print $NF}' /tmp/silver_2.txt) &amp;&amp; echo "mesmos objetos"</code></pre>
+        <ol class="steps" start="3">
+          <li>Confira contagens e origem com o utilitário do laboratório:</li>
+        </ol>
+        <pre><code>python sql/rodar_sql.py sql/03_silver_clima.sql --var DATA=2026-10-30   # a consulta final confere a silver
+python sql/rodar_sql.py sql/06_gold.sql</code></pre>
+        <p>Gates: mesmos objetos nas duas listagens; 24 linhas por cidade na silver de clima quando a previsão do dia está completa; <code>arquivo_origem</code> sem nulos; o processo termina e imprime a duração.</p>
+
+        <h3>12.2 Medir camadas e leitura</h3>
+        <pre><code>docker compose exec minio mc du local/raw/open_meteo
+docker compose exec minio mc du local/silver/clima
+python sql/rodar_sql.py sql/07_parquet_inspecao.sql --var DATA=2026-10-30</code></pre>
+        <p>O arquivo <code>07_parquet_inspecao.sql</code> faz quatro coisas: lista row groups, compressão e estatísticas <code>stats_min</code> e <code>stats_max</code> de três colunas; mostra o esquema gravado no Parquet; roda <code>EXPLAIN ANALYZE</code> da mesma pergunta (média de temperatura acima de 20 °C por cidade) sobre o JSON e sobre o Parquet; e mostra o plano de uma contagem com filtro na partição. No plano, procure:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Linha do plano</th><th>O que indica</th></tr></thead>
+          <tbody>
+            <tr><td><code>HTTPFS HTTP Stats</code>: <code>in</code>, <code>#GET</code>, <code>#HEAD</code></td><td>bytes baixados e requisições ao MinIO</td></tr>
+            <tr><td><code>Projections</code></td><td>colunas efetivamente lidas</td></tr>
+            <tr><td><code>Filters</code> dentro de <code>READ_PARQUET</code></td><td>filtro empurrado para o leitor</td></tr>
+            <tr><td><code>Scanning Files: x/y</code></td><td>arquivos abertos depois da poda de partição</td></tr>
+            <tr><td><code>Total Time</code></td><td>tempo da consulta naquela execução</td></tr>
+          </tbody>
+        </table></div>
+        <p>Na preparação, o JSON do raw gerou mais requisições <code>GET</code> do que arquivos lidos, porque a inferência de esquema também lê os arquivos. Rode cada consulta mais de uma vez: a conexão guarda em cache metadados já baixados, e a segunda execução pode mostrar menos requisições. Registre no <code>docs/atam.md</code> as medidas, a data, o número de arquivos e se a execução era a primeira ou a repetida.</p>
+
+        <h3>12.3 Testar a imagem do job</h3>
+        <pre><code>docker build -t aula04-job .
+docker run --rm --env-file .env --network host -e DATA_PROCESSAMENTO=2026-10-30 aula04-job
+echo "código de saída: $?"</code></pre>
+        <p>Gate: o contêiner termina com código 0 e o resumo aparece na saída. Um contêiner que não termina aqui também não vai terminar no Railway.</p>
+      </section>
+
+      <!-- 13 -->
+      <section class="content-block" id="s13">
+        <h2>13. Deploy do job no Railway com cron</h2>
+        <h3>13.1 O que a documentação do Railway garante</h3>
+        <p>A página de cron jobs da documentação do Railway, consultada em 03/10/2026, estabelece quatro regras que o desenho do job precisa respeitar:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Regra documentada</th><th>Consequência para o job</th></tr></thead>
+          <tbody>
+            <tr><td>O agendamento é configurado em Settings, campo Cron Schedule, com expressão crontab; pela configuração como código, o campo é <code>deploy.cronSchedule</code></td><td>o <code>railway.json</code> da pasta declara a expressão; conferir no painel depois do deploy</td></tr>
+            <tr><td>Os horários são em UTC</td><td><code>15 * * * *</code> roda no minuto 15 de cada hora UTC, 12h15 em Brasília para a execução das 15h15 UTC</td></tr>
+            <tr><td>Execuções precisam estar a pelo menos 5 minutos de distância</td><td>não há agendamento por minuto</td></tr>
+            <tr><td>O serviço deve executar a tarefa e terminar, sem recursos abertos; se a execução anterior ainda estiver rodando, a seguinte é pulada</td><td>um job travado não gera erro: ele consome crédito e bloqueia as próximas execuções</td></tr>
+          </tbody>
+        </table></div>
+        <p>A configuração como código aceita <code>restartPolicyType</code> com os valores <code>ON_FAILURE</code>, <code>ALWAYS</code> e <code>NEVER</code>, e <code>builder</code> com <code>RAILPACK</code> ou <code>DOCKERFILE</code>. O <code>railway.json</code> do laboratório usa <code>DOCKERFILE</code> e <code>NEVER</code>, para que o fim normal do processo não dispare um reinício. A interação entre política de reinício e cron não está descrita na página de cron; confira o comportamento na primeira execução e registre no ATAM.</p>
+        <pre><code>{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": { "builder": "DOCKERFILE", "dockerfilePath": "Dockerfile" },
+  "deploy": { "cronSchedule": "15 * * * *", "restartPolicyType": "NEVER" }
+}</code></pre>
+        <p>O minuto 15 é uma escolha: dá tempo à coleta horária da Aula 02 de terminar antes que o job leia o raw. Se o coletor do grupo roda em outro minuto, ajuste.</p>
+
+        <h3>13.2 Passo a passo</h3>
+        <ol class="steps">
+          <li>Dentro de <code>aula_04_lakehouse/</code>, ligue a pasta ao projeto da Aula 01 e crie o serviço:</li>
+        </ol>
+        <pre><code>railway login --browserless
+railway link                 # projeto onde está o serviço minio
+railway add --service lakehouse-job
+railway service              # selecione lakehouse-job</code></pre>
+        <ol class="steps" start="2">
+          <li>Defina as variáveis. As credenciais usam a referência a variáveis de outro serviço, com a sintaxe <code>${{SERVICE_NAME.VAR}}</code> do Railway, e não passam pelo terminal. As aspas simples impedem que o shell interprete <code>${{...}}</code>:</li>
+        </ol>
+        <pre><code>railway variable set 'S3_ACCESS_KEY=${{minio.MINIO_ROOT_USER}}'
+railway variable set 'S3_SECRET_KEY=${{minio.MINIO_ROOT_PASSWORD}}'
+railway variable set S3_ENDPOINT_URL=https://&lt;dominio-da-porta-9000&gt;
+railway variable set S3_REGION=us-east-1 BUCKET_RAW=raw BUCKET_SILVER=silver BUCKET_GOLD=gold
+railway variable list</code></pre>
+        <ol class="steps" start="3">
+          <li>Crie os buckets de destino no MinIO do Railway, uma vez:</li>
+        </ol>
+        <pre><code>docker compose exec minio mc mb --ignore-existing railway/silver railway/gold</code></pre>
+        <ol class="steps" start="4">
+          <li>Publique. A opção <code>--path-as-root</code> faz a pasta atual ser a raiz do pacote enviado, para que o <code>Dockerfile</code> e o <code>railway.json</code> fiquem na raiz; <code>--ci</code> mostra o log do build e sai:</li>
+        </ol>
+        <pre><code>railway up . --path-as-root --service lakehouse-job --ci
+railway logs</code></pre>
+        <ol class="steps" start="5">
+          <li>No painel do Railway, abra o serviço <code>lakehouse-job</code>, vá a Settings e confira o campo Cron Schedule. Se ele estiver vazio, preencha com a mesma expressão do <code>railway.json</code>.</li>
+          <li>Depois do primeiro horário agendado, confira o log e os objetos:</li>
+        </ol>
+        <pre><code>railway logs
+docker compose exec minio mc ls --recursive railway/silver
+docker compose exec minio mc ls --recursive railway/gold</code></pre>
+        <p>Gates: o log do build mostra o uso do Dockerfile; o log da execução agendada mostra o resumo e o fim do processo; as partições da data aparecem em <code>railway/silver</code>.</p>
+
+        <h3>13.3 Rede privada, a testar</h3>
+        <p>A documentação do Railway descreve a rede privada entre serviços do mesmo projeto, com nomes no formato <code>SERVICE_NAME.railway.internal</code> e acesso por HTTP. Trocar <code>S3_ENDPOINT_URL</code> para <code>http://minio.railway.internal:9000</code> evitaria o proxy público, onde o projeto ClickHouse do professor observou respostas 502 esporádicas. Esse caminho não foi testado na preparação desta aula. Se o grupo testar, registre no ATAM o resultado e mantenha o domínio público como alternativa.</p>
+      </section>
+
+      <!-- 14 -->
+      <section class="content-block" id="s14">
+        <h2>14. Exemplo resolvido: cenário, ADR e rastreabilidade</h2>
+        <p>O exemplo abaixo mostra o nível de detalhe esperado no <code>docs/atam.md</code> para o cenário de reprocessamento, com as medidas que a preparação da aula obteve sobre dados de teste. Os números do grupo serão outros.</p>
+        <h3>14.1 Cenário (a): reprocessamento idempotente</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Parte</th><th>Conteúdo</th></tr></thead>
+          <tbody>
+            <tr><td>Fonte do estímulo</td><td>engenheira de dados (P-03) ou cron do Railway</td></tr>
+            <tr><td>Estímulo</td><td>o job é executado de novo para uma data já processada</td></tr>
+            <tr><td>Ambiente</td><td>operação normal; raw sem mudança desde a execução anterior</td></tr>
+            <tr><td>Artefato</td><td>escrita da silver e da gold</td></tr>
+            <tr><td>Resposta</td><td>os objetos da data são substituídos pelos de mesmo nome; nenhum objeto novo é criado</td></tr>
+            <tr><td>Medida de resposta</td><td>mesma lista de objetos em <code>mc ls --recursive local/silver</code> e mesma contagem de linhas por partição antes e depois</td></tr>
+          </tbody>
+        </table></div>
+        <p>Evidência da preparação: a silver de clima de 31/10/2026 tinha 24 linhas por cidade e um objeto (<code>clima/data=2026-10-31/clima.parquet</code>); depois de reexecutar <code>03_silver_clima.sql</code> para a mesma data, a listagem e as contagens ficaram iguais. Contraprova: o mesmo dado gravado com <code>PARTITION_BY</code> e <code>APPEND</code> passou a ter dois arquivos por partição.</p>
+        <p>Ponto de sensibilidade: a idempotência depende de o nome do objeto ser função só da data. Se alguém acrescentar um carimbo de tempo ao nome, o reprocessamento passa a duplicar. Trade-off: reescrever a partição inteira a cada execução custa mais escrita do que acrescentar só o novo, e em troca dispensa controle de estado.</p>
+
+        <h3>14.2 ADR-001 (resumo)</h3>
+        <pre class="is-wrap"><code># ADR-001 Silver com um objeto de nome fixo por data
+Status: aceito em 31/10/2026.
+Contexto: RNF-01 exige que reprocessar a mesma data não mude objetos nem linhas. O DuckDB grava no MinIO com COPY; a documentação diz que sobrescrita não é suportada em sistemas remotos.
+Alternativas: (1) COPY com PARTITION_BY e APPEND: duplica linhas no reprocessamento (observado); (2) COPY com PARTITION_BY e OVERWRITE_OR_IGNORE: funcionou no teste com DuckDB 1.5.6, mas contraria a documentação e não remove arquivos antigos com outros nomes; (3) COPY para um objeto de nome fixo por data, como s3://silver/clima/data=D/clima.parquet e s3://silver/livros/data_coleta=D/livros.parquet.
+Decisão: alternativa 3.
+Consequências: positiva: reprocessamento seguro e leitura atômica por objeto. Negativa: a partição inteira é reescrita a cada execução; uma data muito grande vira um único arquivo.
+Revisar quando: uma partição diária passar de um tamanho que o grupo definir no ATAM (hipótese, validação pendente) ou o projeto adotar Delta ou Iceberg.</code></pre>
+
+        <h3>14.3 Matriz de rastreabilidade (trecho)</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Requisito</th><th>Decisão</th><th>Componente</th><th>Evidência</th></tr></thead>
+          <tbody>
+            <tr><td>RF-03 deduplicação</td><td>coleta mais recente por cidade e hora prevista</td><td>transformação de clima</td><td>teste com duas coletas da mesma hora; 24 linhas por cidade na silver</td></tr>
+            <tr><td>RNF-01 idempotência</td><td>ADR-001</td><td>escrita da silver</td><td>listagens iguais antes e depois da reexecução</td></tr>
+            <tr><td>RNF-05 rastreabilidade</td><td><code>arquivo_origem</code> e <code>processado_em</code> em toda linha</td><td>transformações da silver</td><td>consulta com <code>count(*) FILTER (WHERE arquivo_origem IS NULL) = 0</code></td></tr>
+            <tr><td>RNF de arquivo inválido</td><td>ADR-003</td><td>validação de arquivos</td><td>teste com JSON truncado; evidência no Railway pendente</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="content-block" id="s15">
+        <h2>15. Erros comuns</h2>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Sintoma</th><th>Causa provável</th><th>Correção</th></tr></thead>
+          <tbody>
+            <tr><td>Erro de conexão ou de host ao ler <code>s3://raw/...</code></td><td><code>ENDPOINT</code> com <code>http://</code> na frente, ou <code>URL_STYLE</code> no padrão <code>vhost</code></td><td>só host e porta em <code>ENDPOINT</code>; <code>URL_STYLE 'path'</code></td></tr>
+            <tr><td>Funciona local e falha no Railway</td><td><code>USE_SSL false</code> com o domínio https</td><td>derivar <code>USE_SSL</code> do esquema de <code>S3_ENDPOINT_URL</code></td></tr>
+            <tr><td><code>Directory ... is not empty</code> na segunda execução</td><td><code>COPY</code> com <code>PARTITION_BY</code> para destino que já existe</td><td>gravar objeto de nome fixo por data (seção 7.3)</td></tr>
+            <tr><td>Linhas dobram a cada execução</td><td><code>APPEND</code> ou nome de arquivo com UUID ou carimbo de tempo</td><td>nome determinístico; conferir com <code>mc ls</code> antes e depois</td></tr>
+            <tr><td><code>Malformed JSON in file ...</code> derruba a data inteira</td><td>um objeto truncado no raw; <code>ignore_errors</code> só vale para JSON Lines</td><td>validar cada objeto antes e passar ao DuckDB só a lista de válidos</td></tr>
+            <tr><td>Silver do dia sem as últimas horas</td><td>leitura só da partição D, que está em UTC</td><td>janela D e D+1 com filtro pelo horário previsto (seção 8.2)</td></tr>
+            <tr><td><code>coletado_em</code> três horas adiantado na silver</td><td>inferência converteu o horário com deslocamento para <code>TIMESTAMP</code> sem fuso</td><td>ler como texto com <code>columns</code> e converter com <code>CAST(... AS TIMESTAMPTZ)</code> (seção 7.2)</td></tr>
+            <tr><td>Livros coletados no sábado sem preço em reais</td><td>junção por data com a PTAX, que não sai em fim de semana</td><td><code>ASOF JOIN</code> com o último fechamento (seção 8.7)</td></tr>
+            <tr><td>Nenhum fechamento encontrado</td><td>filtro só por <code>Fechamento PTAX</code>, mas a fonte usou <code>Fechamento</code></td><td>aceitar os dois rótulos</td></tr>
+            <tr><td><code>Required module 'pytz' failed to import</code></td><td>Python recebendo <code>TIMESTAMPTZ</code> do DuckDB sem <code>pytz</code></td><td>instalar o <code>requirements.txt</code> da aula</td></tr>
+            <tr><td>Contêiner baixa extensão a cada execução, ou falha sem rede</td><td><code>INSTALL httpfs</code> em tempo de execução</td><td>instalar no build (Dockerfile do laboratório) e só <code>LOAD</code> no job</td></tr>
+            <tr><td>Job roda numa hora diferente da esperada</td><td>cron do Railway em UTC</td><td>converter o horário de Brasília para UTC na expressão</td></tr>
+            <tr><td>Execuções agendadas somem do histórico</td><td>a anterior não terminou e a seguinte foi pulada</td><td>prazo máximo no job; conferir <code>railway logs</code></td></tr>
+            <tr><td><code>docker compose up</code> falha por porta em uso</td><td>MinIO da Aula 02 ainda rodando no Codespace</td><td><code>docker compose down</code> na pasta da Aula 02</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="content-block" id="s16">
+        <h2>16. Atividade em sala e entregável</h2>
+        <p>A atividade é reproduzir no repositório do grupo o que o professor construiu ao vivo, no Codespace, com o OpenCode e a OpenRouter, e publicar o job no Railway. A sequência sugerida para a manhã:</p>
+        <ol class="steps">
+          <li>Até 9h50: pasta <code>aula_04_lakehouse/</code> criada, MinIO local com cópia do raw e do bronze do Railway, ambiente Python pronto e as duas consultas exploratórias de raw e bronze executadas (seção 9).</li>
+          <li>Até 10h40: prompts 1 a 5 executados e revisados, com <code>spec.md</code>, <code>plan.md</code> e <code>tasks.md</code> no repositório.</li>
+          <li>Até 11h30: prompt 6, tarefa a tarefa, até o job gravar silver e gold no MinIO local e passar no teste de reexecução (seção 12).</li>
+          <li>Até 12h00: imagem testada localmente e job publicado no Railway com cron (seção 13).</li>
+          <li>Até 12h10: prompt 7 iniciado, com as medidas de (a), (b), (c) e (e) coladas no <code>docs/atam.md</code>. O ATAM pode ser concluído depois da aula, antes da Aula 05.</li>
+        </ol>
+        <div class="note">
+          <strong>Entregável na pasta aula_04_lakehouse/ do repositório do grupo</strong>
+          <ul>
+            <li>Esqueleto SDD: <code>AGENTS.md</code>, <code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code>, <code>specs/spec.md</code>, <code>specs/plan.md</code>, <code>specs/tasks.md</code>.</li>
+            <li>Código: <code>src/</code> com o job, <code>tests/</code> passando, <code>sql/</code> com as consultas usadas, <code>Dockerfile</code> e <code>railway.json</code>.</li>
+            <li>Dados: silver e gold no MinIO do Railway, com a saída de <code>mc ls --recursive railway/silver railway/gold</code> colada no <code>docs/atam.md</code>.</li>
+            <li>Operação: serviço <code>lakehouse-job</code> com cron publicado e o log de uma execução agendada, sem segredos.</li>
+            <li>Validação: <code>docs/atam.md</code> com os seis cenários e <code>docs/adr/ADR-001</code> a <code>ADR-003</code>.</li>
+          </ul>
+        </div>
+        <p>Antes do commit, confira que nenhum segredo entrou no diff:</p>
+        <pre><code>git status --short
+git diff --staged -- . ':!.env.example' | grep -nE "SECRET_KEY=|PASSWORD=|ACCESS_KEY=" &amp;&amp; echo "PARE: possível segredo no diff"</code></pre>
+        <div class="note">
+          <strong>Custo do job agendado</strong>
+          <p>Cada execução do cron consome crédito do Railway. O trial tem crédito único de US$ 5 e depois vira plano Free com US$ 1/mês, e os volumes de contas trial são apagados 30 dias após o fim dos créditos. Acompanhe o consumo no painel. Se o projeto final não usar o job, apague o serviço <code>lakehouse-job</code> ao fim da disciplina e exporte silver e gold com <code>mc mirror</code> antes que o volume do MinIO seja apagado.</p>
+        </div>
+        <p>Links desta aula: <a href="../slides/slide_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">slides</a> &middot; <a href="../laboratorio/README.md">roteiro do laboratório</a> &middot; <a href="../../../../pages/home_data_collection.html">home da disciplina</a> &middot; <a href="../../../../index.html">Hub</a>.</p>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>

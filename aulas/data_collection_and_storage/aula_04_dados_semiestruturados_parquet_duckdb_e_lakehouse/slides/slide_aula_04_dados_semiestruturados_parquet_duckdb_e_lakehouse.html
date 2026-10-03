@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 04 — Dados Semiestruturados, Parquet, DuckDB e Lakehouse</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- 1. CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="04" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Dados Semiestruturados, Parquet, DuckDB e Lakehouse</h1>
+          <p class="deck-meta">Aula 04 &nbsp;&bull;&nbsp; 31/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">O JSON e o JSON Lines que as Aulas 02 e 03 gravaram no MinIO viram silver e gold em Parquet, consultadas com DuckDB e atualizadas por um job com cron no Railway.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. AGENDA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Agenda da manhã</h2>
+          <p class="deck-summary">O professor constrói o lakehouse ao vivo em SDD. O material traz os sete prompts completos para o grupo reproduzir no próprio repositório.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h30 &middot; Conceitos</h3>
+            <ul>
+              <li>Estruturado, semiestruturado e não estruturado</li>
+              <li>Schema on write e schema on read</li>
+              <li>CSV, JSON, JSON Lines e Parquet</li>
+              <li>Data lake, warehouse, lakehouse e medalhão</li>
+              <li>DuckDB lendo o MinIO pela extensão httpfs</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>9h30 &ndash; 12h10 &middot; Prática em SDD</h3>
+            <ul>
+              <li>MinIO local com cópia do raw do Railway</li>
+              <li>Schema on read no raw e no bronze</li>
+              <li>Prompts 1 a 7: da persona ao ATAM</li>
+              <li>Silver e gold idempotentes, com origem</li>
+              <li>Job em contêiner com cron no Railway</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. PONTO DE PARTIDA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Ponto de partida</span>
+          <h2 class="deck-title">O que já está nos buckets raw e bronze</h2>
+          <p class="deck-summary">A Aula 02 gravou a previsão horária de seis capitais. A Aula 03 gravou páginas de livros e a PTAX da libra no raw, e a extração delas em JSON Lines no bronze. Para saber a temperatura média de ontem em Manaus, hoje, seria preciso abrir e somar dezenas de arquivos à mão.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Origem</th><th>O que está no raw</th><th>Pergunta de negócio</th></tr></thead>
+          <tbody>
+            <tr><td>Aula 02</td><td><code>open_meteo/data=&hellip;/hora=&hellip;/&lt;cidade&gt;.json</code></td><td>temperatura média diária por capital</td></tr>
+            <tr><td>Aula 03</td><td><code>bronze/books_toscrape/data=&hellip;/livros.jsonl</code> e <code>bronze/ptax/&hellip;/cotacoes.jsonl</code></td><td>preço de cada livro em reais, por dia</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. TIPOS DE DADO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Estrutura</span>
+          <h2 class="deck-title">Estruturado, semiestruturado e não estruturado</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Tipo</th><th>Exemplos</th><th>Onde está o esquema</th><th>O que se extrai</th></tr></thead>
+          <tbody>
+            <tr><td>Estruturado</td><td>tabela de banco, CSV com cabeçalho estável</td><td>fora do dado, declarado antes</td><td>linhas e colunas prontas</td></tr>
+            <tr><td>Semiestruturado</td><td>JSON da Open-Meteo, PTAX, HTML, logs</td><td>dentro do dado: chaves, tags, padrões</td><td>campos aninhados, listas, atributos</td></tr>
+            <tr><td>Não estruturado</td><td>imagem, PDF digitalizado, áudio</td><td>não há; precisa de modelo ou OCR</td><td>texto transcrito, rótulos, metadados do arquivo</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">O HTML fica no meio do caminho: tem marcação, mas o esquema que interessa (título, preço) depende de um parser escrito para aquela página.</p>
+      </div>
+    </div>
+
+    <!-- 5. SCHEMA ON WRITE X ON READ -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Esquema</span>
+          <h2 class="deck-title">Schema on write e schema on read</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Schema on write</strong>
+            <ul>
+              <li>Tabela criada antes; a carga rejeita o que não cabe.</li>
+              <li>Leitura rápida e previsível.</li>
+              <li>Campo novo na fonte exige migração antes da carga.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Schema on read</strong>
+            <ul>
+              <li>Grava o bruto; quem lê declara ou infere o esquema.</li>
+              <li>Aceita fonte que muda sem perder o original.</li>
+              <li>Cada leitura paga a inferência e descobre os erros tarde.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="deck-callout">
+          <strong>Na aula</strong>
+          <p style="margin:8px 0 0;">Raw e bronze em schema on read. Silver grava Parquet com tipos fixos, e a partir dela o esquema volta a ser declarado.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. FORMATOS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Formatos</span>
+          <h2 class="deck-title">CSV, JSON, JSON Lines e Parquet</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Formato</th><th>Organização</th><th>Tipos</th><th>Bom para</th><th>Custo</th></tr></thead>
+          <tbody>
+            <tr><td>CSV</td><td>linhas de texto</td><td>nenhum; tudo é texto</td><td>troca simples, planilha</td><td>vírgula no dado, encoding, datas ambíguas</td></tr>
+            <tr><td>JSON</td><td>um documento</td><td>string, número, booleano, lista, objeto</td><td>resposta de API guardada intacta</td><td>ler um campo exige parsear o documento</td></tr>
+            <tr><td>JSON Lines</td><td>um documento por linha</td><td>os do JSON</td><td>logs, manifestos, append</td><td>mesmo custo de parse, sem compressão própria</td></tr>
+            <tr><td>Parquet</td><td>colunas em row groups</td><td>tipados e aninhados</td><td>leitura analítica</td><td>binário, imutável, ruim para escrita linha a linha</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Tamanho e tempo de leitura serão medidos na demo, com os dados do grupo.</p>
+      </div>
+    </div>
+
+    <!-- 7. PARQUET POR DENTRO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Parquet</span>
+          <h2 class="deck-title">O que o Parquet guarda para ler menos</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step"><strong>Row group</strong><span>Bloco de linhas. Unidade que pode ser pulada inteira.</span></div>
+          <div class="method-step"><strong>Coluna</strong><span>Cada coluna gravada separada, com codificação e compressão próprias.</span></div>
+          <div class="method-step"><strong>Estatísticas</strong><span>min e max por coluna em cada row group, no rodapé.</span></div>
+          <div class="method-step"><strong>Rodapé</strong><span>Esquema tipado e localização de tudo. Lido primeiro.</span></div>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel"><strong>Projeção de colunas</strong><p>A consulta pede 2 de 12 colunas; o leitor baixa só esses trechos.</p></div>
+          <div class="deck-panel"><strong>Predicate pushdown</strong><p>Com <code>temperatura_c &gt; 30</code>, o row group com max 28 nem é lido.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. LAKE / WAREHOUSE / LAKEHOUSE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Arquitetura</span>
+          <h2 class="deck-title">Data lake, data warehouse e lakehouse</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th></th><th>Data lake</th><th>Data warehouse</th><th>Lakehouse</th></tr></thead>
+          <tbody>
+            <tr><td>Armazenamento</td><td>object storage, qualquer formato</td><td>motor próprio, tabelas</td><td>object storage com arquivos abertos</td></tr>
+            <tr><td>Esquema</td><td>on read</td><td>on write</td><td>on read no raw e no bronze, declarado da silver em diante</td></tr>
+            <tr><td>Motor</td><td>qualquer um que leia o arquivo</td><td>o do próprio warehouse</td><td>vários motores sobre os mesmos arquivos</td></tr>
+            <tr><td>Risco típico</td><td>pântano de arquivos sem dono</td><td>custo e rigidez para dado bruto</td><td>sem transações, sem histórico de tabela</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Delta Lake e Apache Iceberg acrescentam transações, versões e evolução de esquema sobre Parquet. Ficam como próximo passo; hoje o Parquet é gravado direto.</p>
+      </div>
+    </div>
+
+    <!-- 9. MEDALHÃO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Medalhão</span>
+          <h2 class="deck-title">Raw, bronze, silver e gold nos buckets do grupo</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step"><strong>Raw</strong><span>Bytes como a fonte entregou: JSON da API, HTML. O job só lê.</span></div>
+          <div class="method-step"><strong>Bronze</strong><span>Extraído em JSON Lines, sem tipos garantidos (Aula 03). O job só lê.</span></div>
+          <div class="method-step is-current"><strong>Silver</strong><span>Parquet tipado, deduplicado, com <code>arquivo_origem</code>.</span></div>
+          <div class="method-step"><strong>Gold</strong><span>No grão da pergunta: média diária, preço em BRL por dia.</span></div>
+        </div>
+        <p class="deck-note">Na disciplina, bronze significa extraído e ainda não tipado. O clima vai do raw direto para a silver: o próprio <code>read_json_auto</code> faz a extração.</p>
+        <div class="deck-callout">
+          <strong>Regra de rastreabilidade</strong>
+          <p style="margin:8px 0 0;">Toda linha da silver aponta para o objeto bruto que a originou. Um número da gold volta até o arquivo da Aula 02 ou 03.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. DUCKDB + SECRET -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">DuckDB &middot; Conexão</span>
+          <h2 class="deck-title">DuckDB lendo o MinIO pela extensão httpfs</h2>
+          <p class="deck-summary">O DuckDB roda dentro do processo Python, sem servidor. A extensão httpfs fala a API compatível com S3; o secret diz onde e com que credencial.</p>
+        </div>
+        <pre><code>INSTALL httpfs; LOAD httpfs;
+CREATE OR REPLACE TEMPORARY SECRET minio_lake (
+    TYPE s3, PROVIDER config,
+    KEY_ID '&lt;de S3_ACCESS_KEY&gt;', SECRET '&lt;de S3_SECRET_KEY&gt;',
+    REGION 'us-east-1',
+    ENDPOINT 'localhost:9000',   -- host:porta, sem http://
+    URL_STYLE 'path',            -- MinIO usa caminho, não subdomínio
+    USE_SSL false                -- true no domínio https do Railway
+);</code></pre>
+        <p class="deck-note">Sintaxe conferida na documentação do DuckDB em 03/10/2026. As credenciais vêm do <code>.env</code> por <code>sql/rodar_sql.py</code>; nenhum <code>.sql</code> guarda senha.</p>
+      </div>
+    </div>
+
+    <!-- 11. LEITURAS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">DuckDB &middot; Leitura</span>
+          <h2 class="deck-title">Três leitores para JSON, JSON Lines e Parquet</h2>
+        </div>
+        <pre><code>-- JSON: esquema inferido, partições Hive viram colunas data e hora
+SELECT regexp_extract(filename, '([^/]+)\.json$', 1) AS cidade,
+       unnest(hourly.time) AS horario, unnest(hourly.temperature_2m) AS temp
+FROM read_json_auto('s3://raw/open_meteo/*/*/*.json',
+                    filename = true, hive_partitioning = true);
+
+-- JSON Lines do bronze: esquema declarado na leitura
+SELECT upc, preco_gbp, CAST(coletado_em AS TIMESTAMPTZ)
+FROM read_json('s3://bronze/books_toscrape/*/*.jsonl', format = 'newline_delimited',
+     columns = {upc: 'VARCHAR', preco_gbp: 'DOUBLE', coletado_em: 'VARCHAR'});
+
+-- Parquet: tipos gravados no arquivo, filtro de partição poda arquivos
+SELECT count(*) FROM read_parquet('s3://silver/clima/*/*.parquet',
+                    hive_partitioning = true)
+WHERE data = DATE '2026-10-31';</code></pre>
+      </div>
+    </div>
+
+    <!-- 12. ESCRITA IDEMPOTENTE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">DuckDB &middot; Escrita</span>
+          <h2 class="deck-title">Escrita idempotente na silver</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Forma de gravar no MinIO</th><th>Segunda execução (medido na preparação)</th></tr></thead>
+          <tbody>
+            <tr><td><code>COPY ... TO 's3://silver/clima' (PARTITION_BY (data))</code></td><td>falha: diretório não está vazio</td></tr>
+            <tr><td>idem, com <code>APPEND</code></td><td>novo arquivo com UUID; linhas duplicadas</td></tr>
+            <tr><td><code>COPY ... TO 's3://silver/clima/data=D/clima.parquet'</code></td><td>mesmo objeto substituído; mesmas linhas</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout">
+          <strong>Decisão da demo</strong>
+          <p style="margin:8px 0 0;">Um objeto de nome fixo por data na silver; gold refeita inteira a cada execução. A documentação do DuckDB diz que sobrescrita não é suportada em sistemas remotos, então a demo não depende dela.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13. FUSO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Decisão de desenho &middot; Tempo</span>
+          <h2 class="deck-title">Partição em UTC, previsão no horário de Brasília</h2>
+          <p class="deck-summary">A Aula 02 particiona pela hora da coleta em UTC. A coleta das 1h UTC do dia 31 ainda traz a previsão do dia 30 em Brasília.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>A silver do dia D lê as partições D e D+1 do raw.</li>
+          <li>Filtra pelo horário previsto, não pela partição.</li>
+          <li>Para cada cidade e hora prevista, fica a coleta mais recente.</li>
+          <li>O filtro na coluna <code>data</code> evita abrir o resto do bucket.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 13b. COTAÇÃO E FUSO DOS LIVROS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Decisão de desenho &middot; Livros</span>
+          <h2 class="deck-title">Cotação de sábado e fuso do coletado_em</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>PTAX não sai no fim de semana</strong>
+            <p>A coleta de sábado usa o último fechamento anterior, com <code>ASOF JOIN</code>. Rótulos aceitos: <code>Fechamento PTAX</code> e <code>Fechamento</code>.</p>
+          </div>
+          <div class="deck-panel">
+            <strong>Inferência perde o fuso</strong>
+            <p><code>2026-10-03T09:31:12-03:00</code> virou <code>TIMESTAMP</code> 12:31:12. A silver lê como texto e converte para <code>TIMESTAMPTZ</code>.</p>
+          </div>
+        </div>
+        <pre><code>FROM read_parquet('s3://silver/livros/*/*.parquet', hive_partitioning = true) AS l
+ASOF JOIN fechamento AS p ON l.data_coleta &gt;= p.data_ptax</code></pre>
+      </div>
+    </div>
+
+    <!-- 14. ETAPA 0 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 0</span>
+          <h2 class="deck-title">Pasta da aula, MinIO local e cópia dos dados</h2>
+        </div>
+        <pre class="is-compact"><code>mkdir -p aula_04_lakehouse/{docs/adr,specs,src,tests,sql} &amp;&amp; cd aula_04_lakehouse
+# baixar os arquivos de laboratorio/ (comandos no README)
+cp .env.example .env            # trocar a senha
+docker compose up -d &amp;&amp; docker compose logs minio-init
+docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
+docker compose exec minio mc alias set railway https://&lt;dominio-da-porta-9000&gt;
+docker compose exec minio mc mirror railway/raw local/raw
+docker compose exec minio mc mirror railway/bronze local/bronze</code></pre>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Buckets</strong><span><code>raw</code>, <code>bronze</code>, <code>silver</code>, <code>gold</code> no MinIO local.</span></div>
+          <div class="quality-gate"><strong>Cópia</strong><span><code>mc du</code> de raw e bronze igual ao do Railway.</span></div>
+          <div class="quality-gate"><strong>Segredo</strong><span><code>git status</code> não lista <code>.env</code>.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 15. ETAPA 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Prática &middot; Etapa 1</span>
+          <h2 class="deck-title">Schema on read no raw e no bronze antes da spec</h2>
+        </div>
+        <pre><code>python sql/rodar_sql.py sql/01_raw_clima.sql
+python sql/rodar_sql.py sql/02_raw_bronze_livros_ptax.sql</code></pre>
+        <ol class="deck-steps">
+          <li>Anote o tipo inferido de <code>hourly</code>: STRUCT com listas paralelas.</li>
+          <li>Conte quantas vezes a mesma hora prevista se repete entre coletas.</li>
+          <li>Veja o envelope <code>value</code> da PTAX no raw e os boletins no bronze.</li>
+          <li>Compare o UPC extraído do HTML de detalhe com a linha do bronze.</li>
+          <li>Veja o tipo que a inferência deu a <code>coletado_em</code>.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 16. PROMPTS 1-2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompts 1 e 2</span>
+          <h2 class="deck-title">Persona e objetivos de negócio</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>P-01 Planejamento de estoque</h3><p>Distribuidora da Aula 02. Quer a temperatura média diária por capital para comparar com vendas.</p></article>
+          <article class="deck-card"><h3>P-02 Preços de livros</h3><p>Monitor da Aula 03. Quer o preço de cada livro em reais, por dia, com a cotação usada.</p></article>
+          <article class="deck-card"><h3>P-03 Engenharia de dados</h3><p>Mantém o job. Quer saber o que rodou, o que falhou e de onde veio cada linha.</p></article>
+        </div>
+        <p class="deck-note">Revise: nenhuma meta com número sem a marca "hipótese, validação pendente".</p>
+      </div>
+    </div>
+
+    <!-- 17. PROMPT 3 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompt 3</span>
+          <h2 class="deck-title">A spec define o contrato de cada tabela</h2>
+        </div>
+        <pre><code>RF-03 Silver de clima deduplicada
+Dado arquivos do raw com a mesma cidade e o mesmo horário previsto
+  em coletas diferentes,
+Quando o job processa a data D,
+Então s3://silver/clima/data=D/clima.parquet tem uma linha por
+  (cidade, horario_local), vinda da coleta mais recente,
+  com arquivo_origem apontando para esse objeto.</code></pre>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Contrato</strong><span>coluna, tipo, nulidade e origem de cada tabela silver e gold.</span></div>
+          <div class="quality-gate"><strong>Grão</strong><span>declarado em uma frase por tabela.</span></div>
+          <div class="quality-gate"><strong>RNF</strong><span>idempotência, término do processo, segredos, raw somente leitura.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 18. PROMPTS 4-5 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompts 4 e 5</span>
+          <h2 class="deck-title">Plano com C4 e tarefas ligadas a testes</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>plan.md</strong>
+            <ul>
+              <li>C4 de contexto e contêineres em Mermaid.</li>
+              <li>Layout dos três buckets e nomes dos objetos.</li>
+              <li>Estratégia de idempotência e janela D e D+1.</li>
+              <li>Escolha justificada: esquema declarado ou inferido na leitura.</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>tasks.md</strong>
+            <ul>
+              <li>Uma tarefa por camada e por fonte.</li>
+              <li>Cada tarefa com RF/RNF e o teste que a prova.</li>
+              <li><code>livros.jsonl</code> pequeno em <code>tests/fixtures/</code>.</li>
+              <li>Tarefa final: Dockerfile e cron.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 19. PROMPT 6 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompt 6</span>
+          <h2 class="deck-title">Implementação tarefa a tarefa, com gates</h2>
+        </div>
+        <pre><code>set -a; source .env; set +a
+python -m pytest -q
+DATA_PROCESSAMENTO=2026-10-30 python -m src.job_lakehouse
+DATA_PROCESSAMENTO=2026-10-30 python -m src.job_lakehouse   # de novo
+docker compose exec minio mc ls --recursive local/silver</code></pre>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Testes</strong><span><code>pytest</code> sem falhas a cada tarefa.</span></div>
+          <div class="quality-gate"><strong>Idempotência</strong><span>mesmos objetos e linhas na segunda execução.</span></div>
+          <div class="quality-gate"><strong>Origem</strong><span><code>arquivo_origem</code> sem nulos.</span></div>
+          <div class="quality-gate"><strong>Término</strong><span>processo encerra e imprime o tempo.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 20. MEDIR -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Evidência</span>
+          <h2 class="deck-title">Medir o JSON e o Parquet com os dados do grupo</h2>
+        </div>
+        <pre><code>docker compose exec minio mc du local/raw/open_meteo
+docker compose exec minio mc du local/silver/clima
+python sql/rodar_sql.py sql/07_parquet_inspecao.sql --var DATA=2026-10-30</code></pre>
+        <ol class="deck-steps">
+          <li>Bytes de cada camada, com data e número de arquivos.</li>
+          <li><code>stats_min</code> e <code>stats_max</code> por row group.</li>
+          <li>Bytes lidos e requisições HTTP no <code>EXPLAIN ANALYZE</code> de cada formato.</li>
+          <li><code>Scanning Files</code> com e sem filtro de partição.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 21. DEPLOY -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Deploy &middot; Railway</span>
+          <h2 class="deck-title">O job vira um serviço com cron</h2>
+        </div>
+        <pre><code>docker build -t aula04-job . &amp;&amp; docker run --rm --env-file .env --network host aula04-job
+railway link &amp;&amp; railway add --service lakehouse-job &amp;&amp; railway service
+railway variable set 'S3_ACCESS_KEY=${{minio.MINIO_ROOT_USER}}'
+railway variable set 'S3_SECRET_KEY=${{minio.MINIO_ROOT_PASSWORD}}'
+railway variable set S3_ENDPOINT_URL=https://&lt;dominio-da-porta-9000&gt;
+railway up . --path-as-root --service lakehouse-job --ci</code></pre>
+        <pre><code>{ "build":  { "builder": "DOCKERFILE", "dockerfilePath": "Dockerfile" },
+  "deploy": { "cronSchedule": "15 * * * *", "restartPolicyType": "NEVER" } }</code></pre>
+      </div>
+    </div>
+
+    <!-- 22. REGRAS DO CRON -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Deploy &middot; Cron</span>
+          <h2 class="deck-title">O que a documentação do cron do Railway exige</h2>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>UTC</strong><span><code>15 * * * *</code> roda no minuto 15 de cada hora UTC.</span></div>
+          <div class="quality-gate"><strong>5 minutos</strong><span>intervalo mínimo entre execuções.</span></div>
+          <div class="quality-gate"><strong>Terminar</strong><span>o serviço executa a tarefa e encerra, sem recursos abertos.</span></div>
+          <div class="quality-gate"><strong>Pular</strong><span>se a execução anterior ainda roda, a próxima é pulada.</span></div>
+        </div>
+        <div class="deck-callout">
+          <strong>Consequência</strong>
+          <p style="margin:8px 0 0;">Um job travado não gera erro visível: ele consome crédito e impede as execuções seguintes. O job precisa de prazo máximo e código de saída.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 23. ATAM -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompt 7 &middot; ATAM</span>
+          <h2 class="deck-title">Seis cenários para pressionar o lakehouse</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Cenário</th><th>Medida de resposta</th></tr></thead>
+          <tbody>
+            <tr><td>Reprocessamento da mesma data</td><td>objetos e linhas iguais antes e depois</td></tr>
+            <tr><td>JSON com campo novo</td><td>silver mantém o contrato; campo registrado como lacuna</td></tr>
+            <tr><td>Arquivo corrompido no raw</td><td>caminho do arquivo no log; decisão da spec aplicada</td></tr>
+            <tr><td>Job concorrente (cron e execução manual)</td><td>leitor vê o objeto antigo ou o novo, nunca metade</td></tr>
+            <tr><td>Bronze e silver ocupando espaço</td><td><code>mc du</code> por camada, com hipótese de retenção</td></tr>
+            <tr><td>Job que não termina</td><td>encerra pelo prazo máximo com código diferente de 0</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 24. ENTREGA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Atividade em sala &middot; Entrega</span>
+          <h2 class="deck-title">O que a pasta aula_04_lakehouse precisa ter</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Esqueleto SDD</h3><p><code>AGENTS.md</code>, persona, objetivos, spec, plan, tasks, ADR.</p></article>
+          <article class="deck-card"><h3>Código</h3><p><code>src/</code>, <code>tests/</code> passando, <code>sql/</code>, <code>Dockerfile</code>, <code>railway.json</code>.</p></article>
+          <article class="deck-card"><h3>Dados</h3><p>Silver e gold no MinIO do Railway, com <code>mc ls</code> como evidência.</p></article>
+          <article class="deck-card"><h3>Operação</h3><p>Cron publicado, log de uma execução e <code>docs/atam.md</code> com medidas.</p></article>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[index].classList.add("active");
+      currentSlide = index;
+      document.getElementById("current-slide").textContent = currentSlide + 1;
+      document.getElementById("prev-btn").disabled = currentSlide === 0;
+      document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft") previousSlide();
+      if (event.key.toLowerCase() === "f") toggleFullScreen();
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>

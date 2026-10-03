@@ -36,8 +36,10 @@ Organizar o conteúdo do curso em um repositório estático Hub com a página in
     │   └── aula_xx_nome_da_aula/
     │       ├── slides/
     │       │   └── slide_aula_xx_nome_da_aula.html
-    │       └── material/
-    │           └── material_aula_xx_nome_da_aula.html
+    │       ├── material/
+    │       │   └── material_aula_xx_nome_da_aula.html
+    │       └── laboratorio/              # opcional
+    │           └── README.md
     └── data_visualization/
         └── aula_xx_nome_da_aula/
             ├── slides/
@@ -77,8 +79,11 @@ Organizar o conteúdo do curso em um repositório estático Hub com a página in
 
 - O horário de cada disciplina deve seguir seu cronograma em `specs/estrutura_curso.md`.
 - Aulas noturnas ocorrem das `19h00` às `22h00`; aulas de sábado de Data Collection and Storage e Data Visualization ocorrem das `8h30` às `12h10`.
-- A primeira parte da aula deve ser sempre teórica, exceto nas Aulas 04 e 08 de Data Visualization. A Aula 04 é 100% prática: os conceitos são introduzidos durante a execução guiada no terminal, sem bloco teórico separado. A Aula 08 é somente acompanhamento do projeto do módulo, também sem bloco teórico e sem conteúdo novo: o professor atende os grupos no papel do cliente, e a entrega final é assíncrona, até 10/10/2026, sem defesa oral.
-- O restante da aula deve ser prático, no ambiente definido para a disciplina: `AWS Student Lab` em Cloud Computing e SRE e em Data Collection and Storage; instância `Metabase` hospedada em Data Visualization, com exceções explícitas nas Aulas 03, 04, 05, 06 e 07. A Aula 03 usa `GitHub Codespaces`, `D3` e assistência de IA sobre uma API segura; a Aula 04 usa Codespaces e OpenCode Zen para construir o fluxo Excel → SQLite → HTML → DuckDB → HTML. Das Aulas 05 a 08, o conjunto do projeto do módulo — o rastro de trabalho PBL — substitui o Olist. Na Aula 05, o fluxo anotado e o registro de divergências são construídos no board Miro da turma, um frame por grupo, sem captura de tela do Metabase nem dado identificado. Na Aula 06, o Metabase fornece evidência e referência do estado atual, enquanto o grupo transforma o fluxo em protótipo HTML de alta fidelidade com IA agêntica, cria skills de análise, audita por severidade e realiza reteste humano. Na Aula 07, o professor demonstra o protótipo ligado a um Postgres no `Supabase`, com RLS, views com `security_invoker` e login, e cada grupo escolhe construir o dashboard final no Metabase (schema `pbl`) ou no protótipo HTML ligado ao Supabase.
+- A primeira parte da aula deve ser sempre teórica, exceto nas Aulas 04 e 08 de Data Visualization e na Aula 08 de Data Collection and Storage. A Aula 04 é 100% prática: os conceitos são introduzidos durante a execução guiada no terminal, sem bloco teórico separado. A Aula 08 é somente acompanhamento do projeto do módulo, também sem bloco teórico e sem conteúdo novo: o professor atende os grupos no papel do cliente, e a entrega final é assíncrona, até 10/10/2026, sem defesa oral.
+- Em Data Collection and Storage, a primeira parte teórica é curta (cerca de 8h30 às 9h30) e o resto da aula é demonstração prática completa, construída ao vivo pelo professor: o slide projeta o roteiro (contexto, passos, comandos, gates) e o material é o tutorial completo. A Aula 08 de Data Collection and Storage é somente mentoria e entrega do projeto final, sem bloco teórico e sem conteúdo novo.
+- Data Collection and Storage não usa AWS nem AWS Student Lab. O ambiente é `GitHub Codespaces` (ou a máquina do aluno) com Docker, o agente `OpenCode` autenticado na `OpenRouter` (modelo `openrouter/free`) e o `Railway` para publicar MinIO, Postgres, RabbitMQ e ClickHouse. Todas as aulas são construídas em Spec-Driven Development (persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM), e todo prompt para o agente segue o formato CREATE (`[C] Personagem`, `[R] Pedido`, `[E] Exemplos`, `[A] Ajustes`, `[T] Tipo de saída`, `[E] Extras`).
+- Em Data Collection and Storage, cada aula pode ter a pasta opcional `laboratorio/` ao lado de `slides/` e `material/`, com `README.md` de roteiro e os arquivos de apoio que o aluno copia para o repositório do grupo (ex.: `docker-compose.yml`, `.env.example`, `AGENTS.md` modelo, `Dockerfile`). A home da disciplina deve linkar esse roteiro quando ele existir.
+- O restante da aula deve ser prático, no ambiente definido para a disciplina: `AWS Student Lab` em Cloud Computing e SRE; o ambiente descrito acima em Data Collection and Storage; instância `Metabase` hospedada em Data Visualization, com exceções explícitas nas Aulas 03, 04, 05, 06 e 07. A Aula 03 usa `GitHub Codespaces`, `D3` e assistência de IA sobre uma API segura; a Aula 04 usa Codespaces e OpenCode Zen para construir o fluxo Excel → SQLite → HTML → DuckDB → HTML. Das Aulas 05 a 08, o conjunto do projeto do módulo — o rastro de trabalho PBL — substitui o Olist. Na Aula 05, o fluxo anotado e o registro de divergências são construídos no board Miro da turma, um frame por grupo, sem captura de tela do Metabase nem dado identificado. Na Aula 06, o Metabase fornece evidência e referência do estado atual, enquanto o grupo transforma o fluxo em protótipo HTML de alta fidelidade com IA agêntica, cria skills de análise, audita por severidade e realiza reteste humano. Na Aula 07, o professor demonstra o protótipo ligado a um Postgres no `Supabase`, com RLS, views com `security_invoker` e login, e cada grupo escolhe construir o dashboard final no Metabase (schema `pbl`) ou no protótipo HTML ligado ao Supabase.
 - Slides, materiais e cronograma devem refletir os intervalos da respectiva disciplina de forma consistente.
 
 ## Regra obrigatória para slides
@@ -114,7 +119,7 @@ Organizar o conteúdo do curso em um repositório estático Hub com a página in
 - Todo material deve conter link explícito para o slide da mesma aula.
 - Todo material deve conter link explícito de volta para `index.html`.
 - Esses links de navegação são obrigatórios e não devem ser omitidos em nenhuma aula.
-- O fechamento do material é orientação para a atividade prática em sala (Codespace, IA, AWS Student Lab). O curso é 100% prático — não há seção de exercícios escritos.
+- O fechamento do material é orientação para a atividade prática em sala, no ambiente da disciplina (Codespace e IA em todas; AWS Student Lab em Cloud Computing e SRE; Railway em Data Collection and Storage). O curso é 100% prático — não há seção de exercícios escritos.
 
 ## Regras visuais iniciais
 

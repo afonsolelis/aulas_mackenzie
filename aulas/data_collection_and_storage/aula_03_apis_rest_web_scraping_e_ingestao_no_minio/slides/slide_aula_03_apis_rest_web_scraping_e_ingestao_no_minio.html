@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 03 — APIs REST, Web Scraping e Ingestão no MinIO</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- 1 · CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="03" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">APIs REST, Web Scraping e Ingestão no MinIO</h1>
+          <p class="deck-meta">Aula 03 &nbsp;&bull;&nbsp; 24/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Monitor de preços de livros: scraping do books.toscrape.com e cotação PTAX do Banco Central, gravados direto no MinIO.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 · AGENDA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Conceitos até 9h30, depois prática</h2>
+          <p class="deck-summary">O professor constrói o monitor ao vivo em SDD; os grupos reproduzem no próprio repositório com os prompts do material.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h30 &middot; Conceitos</h3>
+            <ul>
+              <li>APIs REST: métodos, status, paginação, chave</li>
+              <li>Timeout, 429, retry com backoff e jitter</li>
+              <li>PTAX: contrato e realidade</li>
+              <li>Scraping: seletores, ética, HTML bruto</li>
+              <li>API, scraping ou nenhum dos dois</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>9h30 &ndash; 12h10 &middot; Prática em SDD</h3>
+            <ul>
+              <li>MinIO local e buckets <code>raw</code> e <code>bronze</code></li>
+              <li>Prompts 1 a 5: persona até tarefas</li>
+              <li>Prompt 6: coletores (categorias e detalhes) e extrator</li>
+              <li>Execução local e no MinIO do Railway</li>
+              <li>Prompt 7: ATAM e ADR-001</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 · PROBLEMA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Construção do conteúdo &middot; Problema</span>
+          <h2 class="deck-title">Converter preços em libras para reais</h2>
+          <p class="deck-summary">Uma livraria importadora precisa saber, todo dia, quanto cada título custaria em reais.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel"><strong>Fonte 1 &middot; scraping</strong><p>books.toscrape.com: 1.000 livros em 50 categorias, preço em libras. Site de treino.</p></div>
+          <div class="deck-panel"><strong>Fonte 2 &middot; API</strong><p>PTAX do Banco Central: cotação GBP para BRL, sem chave.</p></div>
+        </div>
+        <div class="deck-callout">
+          <strong>Resultado da aula</strong>
+          <p style="margin:8px 0 0;">HTML e JSON brutos em <code>raw</code>; <code>livros.jsonl</code> e <code>cotacoes.jsonl</code> em <code>bronze</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 · RETOMADA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Retomada &middot; Aulas 01 e 02</span>
+          <h2 class="deck-title">O mesmo método e o mesmo MinIO</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Aula 01 &middot; SDD e CREATE</h3><p>Persona, objetivos, spec, plan, tasks, implementação e ATAM. Prompts com [C] [R] [E] [A] [T] [E]. OpenCode com <code>openrouter/free</code>.</p></article>
+          <article class="deck-card"><h3>Aula 02 &middot; Chaves no MinIO</h3><p>No object storage, a pasta é só um prefixo da chave. A chave decide como o dado é achado, sobrescrito e relido.</p></article>
+        </div>
+        <pre><code>aula_03_api_scraping/
+  AGENTS.md  docs/  specs/  src/  tests/</code></pre>
+      </div>
+    </div>
+
+    <!-- 5 · REST -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Conceito &middot; APIs REST</span>
+          <h2 class="deck-title">O status code decide a próxima ação</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Código</th><th>Significado</th><th>Coletor</th></tr></thead>
+          <tbody>
+            <tr><td><code>200</code></td><td>sucesso</td><td>grava o corpo bruto e valida o conteúdo</td></tr>
+            <tr><td><code>304</code></td><td>não modificado (<code>If-None-Match</code>)</td><td>não baixa de novo</td></tr>
+            <tr><td><code>400 401 403 404</code></td><td>erro do cliente</td><td>não repete; registra</td></tr>
+            <tr><td><code>408 429</code></td><td>timeout no servidor; limite excedido</td><td>espera; respeita <code>Retry-After</code></td></tr>
+            <tr><td><code>500 502 503 504</code></td><td>servidor, proxy ou gateway</td><td>repete com backoff e limite</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note"><code>GET</code> é seguro e idempotente. Paginação por offset (<code>$skip</code>, <code>$top</code>) ou por cursor (link <code>next</code>). Chave de API sempre em variável de ambiente.</p>
+      </div>
+    </div>
+
+    <!-- 6 · RETRY -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Conceito &middot; Falhas de rede</span>
+          <h2 class="deck-title">Timeout, retry, backoff e jitter</h2>
+        </div>
+        <pre><code>requests.get(url, timeout=(5, 20))   # conectar, ler
+
+espera = aleatorio(0, min(teto, base * 2 ** tentativa))
+# base 1 s: 0-1 s, 0-2 s, 0-4 s, 0-8 s ...
+# com Retry-After, vale o valor do servidor</code></pre>
+        <ol class="deck-steps">
+          <li>Repetir só o transitório: timeout, conexão, 408, 429, 5xx.</li>
+          <li>Limite de tentativas, com a falha registrada no manifesto.</li>
+          <li>Repetir só operação idempotente: mesma chave, mesmos bytes.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 7 · PTAX -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Fonte 2 &middot; API PTAX</span>
+          <h2 class="deck-title">A consulta PTAX que o monitor usa</h2>
+        </div>
+        <pre><code>B="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata"
+curl -s "$B/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,\
+dataFinalCotacao=@dataFinalCotacao)?@moeda='GBP'&amp;@dataInicial='10-17-2026'\
+&amp;@dataFinalCotacao='10-24-2026'&amp;\$format=json"</code></pre>
+        <div class="deck-columns">
+          <div class="deck-panel"><strong>Parâmetros</strong><p>Datas em <code>MM-DD-AAAA</code>. Aceita <code>$select</code>, <code>$filter</code>, <code>$orderby</code>, <code>$top</code>, <code>$skip</code>.</p></div>
+          <div class="deck-panel"><strong>Campos</strong><p><code>cotacaoCompra</code>, <code>cotacaoVenda</code>, <code>dataHoraCotacao</code>, <code>tipoBoletim</code>.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8 · CONTRATO VS REALIDADE -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">PTAX &middot; observado em 03/10/2026</span>
+          <h2 class="deck-title">O que a documentação da PTAX omite</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Situação</th><th>Resposta</th><th>Consequência</th></tr></thead>
+          <tbody>
+            <tr><td>sábado</td><td><code>200</code>, <code>value: []</code></td><td>janela de dias; registrar a data da cotação usada</td></tr>
+            <tr><td>data em ISO</td><td><code>200</code>, <code>value: []</code></td><td>erro silencioso; validar formato</td></tr>
+            <tr><td>data <code>DD-MM-AAAA</code></td><td><code>500</code> "Erro desconhecido"</td><td>500 causado pelo cliente; retry precisa de limite</td></tr>
+            <tr><td>fechamento</td><td><code>Fechamento PTAX</code> (Dia) e <code>Fechamento</code> (Período)</td><td>filtro depende do recurso; testar</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 9 · SELETORES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Fonte 1 &middot; Scraping</span>
+          <h2 class="deck-title">Seletores do books.toscrape.com</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Campo</th><th>Seletor</th><th>Exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>cartão</td><td><code>article.product_pod</code></td><td>20 por página</td></tr>
+            <tr><td>título</td><td><code>h3 &gt; a</code> atributo <code>title</code></td><td>texto visível vem truncado</td></tr>
+            <tr><td>preço</td><td><code>p.price_color</code></td><td><code>£47.82</code></td></tr>
+            <tr><td>estoque</td><td><code>p.instock.availability</code></td><td><code>In stock</code></td></tr>
+            <tr><td>avaliação</td><td>2ª classe de <code>p.star-rating</code></td><td><code>One</code> a <code>Five</code></td></tr>
+            <tr><td>próxima</td><td><code>li.next &gt; a</code></td><td><code>page-2.html</code> (relativo)</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Na página de detalhe: UPC em <code>table.table-striped</code>, estoque em <code>p.availability</code> (<code>In stock (20 available)</code>), categoria no <code>ul.breadcrumb</code>. Siga o link <code>next</code>; não fixe o número de páginas.</p>
+      </div>
+    </div>
+
+    <!-- 10 · ENCODING -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Armadilha real &middot; codificação</span>
+          <h2 class="deck-title">Por que o preço vira Â£51.77</h2>
+          <p class="deck-summary">O servidor responde <code>Content-Type: text/html</code> sem charset. O <code>requests</code> assume ISO-8859-1 e <code>r.text</code> corrompe o símbolo da libra.</p>
+        </div>
+        <pre><code>r = requests.get(url, timeout=(5, 20))
+r.encoding                        # 'ISO-8859-1'
+BeautifulSoup(r.text, ...)        # £51.77 vira Â£51.77
+BeautifulSoup(r.content, "html.parser")   # lê o meta charset UTF-8</code></pre>
+        <div class="deck-callout">
+          <strong>Regra</strong>
+          <p style="margin:8px 0 0;">Parser recebe bytes. MinIO recebe os bytes originais.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 11 · COLETA EDUCADA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Ética e conformidade</span>
+          <h2 class="deck-title">Quatro verificações antes de raspar</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>robots.txt</h3><p>RFC 9309. No books.toscrape.com devolve 404 hoje; consultar e registrar a cada execução.</p></article>
+          <article class="deck-card"><h3>Termos de uso</h3><p>Proibição contratual vale mesmo sem robots.txt.</p></article>
+          <article class="deck-card"><h3>LGPD</h3><p>Dado pessoal publicado continua pessoal. Este catálogo não tem.</p></article>
+          <article class="deck-card"><h3>Cadência</h3><p>User-Agent com contato, 1 s entre requisições (hipótese), sem paralelismo. Coleta completa: cerca de 1.081 requisições, perto de 18 min de espera.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12 · HTML BRUTO -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Decisão de arquitetura</span>
+          <h2 class="deck-title">Guardar o HTML bruto antes de extrair</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Seletor errado por uma semana: corrige e reprocessa a semana.</li>
+          <li>Pergunta nova sobre um campo ignorado: extrai do histórico.</li>
+          <li>Site mudou: compara a página antiga com a nova.</li>
+          <li>Custo: 81 listagens (perto de 4 MiB) e 1.000 detalhes (9 a 15 KiB cada), menos de 20 MiB por dia.</li>
+        </ol>
+        <div class="deck-callout">
+          <strong>Falhar de forma visível</strong>
+          <p style="margin:8px 0 0;">Página que declara 20 livros e rende zero interrompe a extração com erro.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13 · API OU SCRAPING -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Escolha da fonte</span>
+          <h2 class="deck-title">API, scraping ou nenhum dos dois</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Situação</th><th>Escolha</th></tr></thead>
+          <tbody>
+            <tr><td>API documentada entrega o dado</td><td>API</td></tr>
+            <tr><td>Exportação oficial (CSV, dados abertos)</td><td>download do arquivo</td></tr>
+            <tr><td>Sem API, site permite, sem dado pessoal</td><td>scraping educado</td></tr>
+            <tr><td>Termos proíbem, login, paywall, CAPTCHA</td><td>nenhum: negociar ou comprar</td></tr>
+            <tr><td>Dado pessoal sem base legal</td><td>nenhum</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 14 · ARQUITETURA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Arquitetura do monitor</span>
+          <h2 class="deck-title">Coleta e extração em etapas separadas</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step"><strong>Descobrir</strong><span>robots.txt e categorias.</span></div>
+          <div class="method-step"><strong>Páginas</strong><span>categorias e 1.000 detalhes no <code>raw</code>.</span></div>
+          <div class="method-step"><strong>PTAX</strong><span>JSON bruto no <code>raw</code>.</span></div>
+          <div class="method-step"><strong>Manifesto</strong><span>URLs, status, hash, tentativas.</span></div>
+          <div class="method-step is-current"><strong>Extrair</strong><span>lê do MinIO, grava JSONL.</span></div>
+        </div>
+        <p class="deck-note">Separar permite reprocessar sem chamar a fonte, isola falha de rede de falha de seletor e testa o extrator sem rede. O ADR-001 registra a decisão.</p>
+      </div>
+    </div>
+
+    <!-- 15 · CHAVES -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Desenho das chaves</span>
+          <h2 class="deck-title">Chaves determinísticas no MinIO</h2>
+        </div>
+        <pre><code>raw/books_toscrape/data=2026-10-24/categoria=mystery_3/pagina=001.html
+raw/books_toscrape/data=2026-10-24/livro=sharp-objects_997/detalhe.html
+raw/ptax/moeda=GBP/data=2026-10-24/cotacao_moeda_periodo.json
+raw/manifestos/data=2026-10-24/execucao=20261024T093012-0300.json
+bronze/books_toscrape/data=2026-10-24/livros.jsonl
+bronze/ptax/moeda=GBP/data=2026-10-24/cotacoes.jsonl</code></pre>
+        <div class="deck-columns">
+          <div class="deck-panel"><strong>Reexecução no mesmo dia</strong><p>Sobrescreve as mesmas chaves; só o manifesto é novo. Retry do 502 fica seguro. Metadados só em ASCII.</p></div>
+          <div class="deck-panel"><strong>Campos extraídos</strong><p>Livro: upc, url, titulo, categoria, avaliacao, preco_gbp, em_estoque, qtd_estoque, coletado_em. PTAX: moeda, dataHoraCotacao, tipoBoletim, cotacaoCompra, cotacaoVenda.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 16 · SETUP -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">9h30 &middot; Ambiente</span>
+          <h2 class="deck-title">MinIO local e buckets</h2>
+        </div>
+        <pre><code>cd aula_03_api_scraping
+printf '.env\n.env.*\n!.env.example\n.venv/\n__pycache__/\n' &gt;&gt; .gitignore
+cp .env.example .env && git check-ignore .env
+docker compose up -d --wait
+docker compose exec minio sh -c 'mc alias set local http://localhost:9000 \
+  "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" &amp;&amp; mc mb --ignore-existing local/raw local/bronze'</code></pre>
+        <p class="deck-note">Arquivos de apoio em <code>laboratorio/</code>: <code>docker-compose.yml</code>, <code>.env.example</code>, <code>requirements.txt</code>, <code>AGENTS.md</code>. Imagem <code>coollabsio/minio:RELEASE.2025-10-15T17-29-55Z</code>.</p>
+      </div>
+    </div>
+
+    <!-- 17 · PROMPTS 1 E 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompts 1 e 2</span>
+          <h2 class="deck-title">Persona e objetivos antes de código</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Prompt 1 &middot; 00_persona.md</h3><p>Analista de compras que reprecifica em reais e uma persona que opera o pipeline. Decisão, pergunta, frequência, dor.</p></article>
+          <article class="deck-card"><h3>Prompt 2 &middot; 01_objetivos_negocio.md</h3><p>OBJ-01: snapshot diário completo, medido contra o total que o site declara. Restrições e fora de escopo.</p></article>
+        </div>
+        <div class="deck-callout">
+          <strong>Revise antes de seguir</strong>
+          <p style="margin:8px 0 0;">Algum horário ou volume sem a marcação "hipótese"? A lista de lacunas está vazia? Prompts completos no material, seções 12.1 e 12.2.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 18 · PROMPT 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompt 3</span>
+          <h2 class="deck-title">Spec com Dado, Quando, Então</h2>
+        </div>
+        <pre><code>RF-05 · Gravar a resposta PTAX bruta
+Dado que a API respondeu 200 com ao menos um boletim de fechamento,
+quando a coleta da data D terminar,
+então existe o objeto raw/ptax/moeda=GBP/data=D/cotacao_moeda_periodo.json
+com SHA-256 igual ao do corpo e metadados fonte-url, coletado-em, sha256.</code></pre>
+        <p class="deck-note">A spec cobre PTAX vazia, data em formato errado, 429, 5xx, 502, reexecução, cadência e codificação. Não fixa 1.000 livros nem 80 páginas. Seção 12.3.</p>
+      </div>
+    </div>
+
+    <!-- 19 · PROMPT 4 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompt 4</span>
+          <h2 class="deck-title">O plano liga cada escolha a um requisito</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>C4 de contexto e contêineres em Mermaid.</li>
+          <li>Componentes: configuração, cliente HTTP, coletores, gravador, manifesto, extrator.</li>
+          <li>Layout de chaves e metadados ASCII.</li>
+          <li>Comparação: extração na mesma execução ou separada.</li>
+          <li>Sequência com 502 no MinIO e o retry.</li>
+        </ol>
+        <p class="deck-note">Tecnologia sem requisito fica marcada. Seção 12.4.</p>
+      </div>
+    </div>
+
+    <!-- 20 · PROMPTS 5 E 6 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompts 5 e 6</span>
+          <h2 class="deck-title">Tarefas pequenas, teste primeiro</h2>
+        </div>
+        <pre><code>T-04 · Extrair um livro da página de detalhe
+Arquivos: src/extrator.py, tests/test_extrator.py,
+          tests/fixtures/detalhe_sharp_objects.html
+Teste:    upc e00eb4fd7b871a48, preco_gbp 47.82, Mystery, qtd_estoque 20
+Comando:  pytest tests/test_extrator.py -q</code></pre>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Teste falha antes</strong><span>e passa depois.</span></div>
+          <div class="quality-gate"><strong>Sem rede</strong><span>extração testada com fixture.</span></div>
+          <div class="quality-gate"><strong>Diff revisado</strong><span>timeout, segredo, paralelismo.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 21 · VERIFICAÇÃO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Gate &middot; execução local</span>
+          <h2 class="deck-title">Prove que os objetos existem e batem</h2>
+        </div>
+        <pre><code>pytest -q
+docker compose exec minio mc ls --recursive \
+  local/raw/books_toscrape/data=AAAA-MM-DD/ | wc -l
+docker compose exec minio mc cat \
+  local/bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl | wc -l
+docker compose exec minio mc ls local/raw/manifestos/data=AAAA-MM-DD/</code></pre>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Linhas</strong><span>JSONL igual ao total declarado e aos detalhes.</span></div>
+          <div class="quality-gate"><strong>Reexecução</strong><span>mesma contagem, um manifesto a mais.</span></div>
+          <div class="quality-gate"><strong>Metadados</strong><span>conferidos com <code>head_object</code>.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 22 · RAILWAY -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Publicação &middot; Railway</span>
+          <h2 class="deck-title">Mesmo código, outro endpoint</h2>
+        </div>
+        <pre><code>cp .env .env.railway && git check-ignore .env.railway
+# S3_ENDPOINT_URL=https://&lt;dominio-gerado-pelo-railway&gt;
+docker compose exec minio mc alias set railway https://&lt;dominio&gt;
+docker compose exec minio mc mb --ignore-existing railway/raw railway/bronze</code></pre>
+        <div class="deck-callout">
+          <strong>502 do proxy</strong>
+          <p style="margin:8px 0 0;">O manifesto mostra gravações com mais de uma tentativa. Chave determinística torna o retry seguro.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 23 · ATAM -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">SDD &middot; Prompt 7 &middot; ATAM</span>
+          <h2 class="deck-title">Sete cenários ATAM obrigatórios</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Estímulo</th><th>Resposta esperada</th></tr></thead>
+          <tbody>
+            <tr><td>site muda o HTML</td><td>extração falha com erro; bruto preservado para reprocessar</td></tr>
+            <tr><td>PTAX sem cotação na data</td><td>janela acha o último fechamento; <code>data_cotacao</code> visível</td></tr>
+            <tr><td>429 ou timeout</td><td><code>Retry-After</code> ou backoff; desiste no limite</td></tr>
+            <tr><td>reexecução no mesmo dia</td><td>mesmas chaves; zero duplicação</td></tr>
+            <tr><td>1.000 requisições de detalhe</td><td>cadência mantida; duração medida; <code>If-None-Match</code> na reexecução</td></tr>
+            <tr><td>scraping agressivo demais</td><td>configuração rejeita intervalo baixo e paralelismo</td></tr>
+            <tr><td>502 do Railway</td><td>retry do <code>put_object</code> com a mesma chave</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 24 · ENTREGA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Entrega &middot; repositório do grupo</span>
+          <h2 class="deck-title">Pasta aula_03_api_scraping/</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Documentos</h3><p><code>AGENTS.md</code>, persona, objetivos, <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code>.</p></article>
+          <article class="deck-card"><h3>Código</h3><p>Coletores e extrator em <code>src/</code> rodando; <code>pytest -q</code> passando.</p></article>
+          <article class="deck-card"><h3>MinIO do Railway</h3><p><code>raw/books_toscrape/</code>, <code>raw/ptax/</code>, <code>raw/manifestos/</code>, <code>bronze/books_toscrape/</code> e <code>bronze/ptax/</code> de pelo menos uma data.</p></article>
+          <article class="deck-card"><h3>Validação</h3><p><code>docs/atam.md</code> com os sete cenários e <code>ADR-001-coleta-e-extracao-separadas.md</code>.</p></article>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html" class="material-link">Material</a>
+      <a href="../laboratorio/README.md" class="material-link">Laboratório</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[index].classList.add("active");
+      currentSlide = index;
+      document.getElementById("current-slide").textContent = currentSlide + 1;
+      document.getElementById("prev-btn").disabled = currentSlide === 0;
+      document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft") previousSlide();
+      if (event.key.toLowerCase() === "f") toggleFullScreen();
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>

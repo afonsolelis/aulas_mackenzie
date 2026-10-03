@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 05 — Modelagem de Dados Relacional e Dimensional</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
+      <a href="../laboratorio/README.md">Roteiro do laboratório</a>
+      <a href="../slides/slide_aula_05_modelagem_de_dados_relacional_e_dimensional.html">Ver Slide &rarr;</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 05 — Modelagem de Dados Relacional e Dimensional</h1>
+      <p class="meta">Aula 05 &middot; 07/11/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p>O silver da Aula 04 guarda livros, preços e cotações como foram coletados. Nesta aula, os mesmos dados ganham dois modelos: um relacional normalizado, publicado num PostgreSQL no Railway para consultas operacionais com integridade garantida pelo banco, e um dimensional em esquema estrela, montado em DuckDB e gravado na camada gold do MinIO para responder perguntas analíticas. Os dois são construídos ao vivo em Spec-Driven Development, com os sete prompts CREATE deste material.</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block" id="sumario">
+        <h2>Sumário</h2>
+        <ol>
+          <li><a href="#s1">Onde estamos e o problema da aula</a></li>
+          <li><a href="#s2">Dois trabalhos diferentes: OLTP e OLAP</a></li>
+          <li><a href="#s3">Entidades, atributos, relacionamentos e cardinalidade</a></li>
+          <li><a href="#s4">Modelo conceitual, lógico e físico</a></li>
+          <li><a href="#s5">Chaves primárias, estrangeiras, naturais e substitutas</a></li>
+          <li><a href="#s6">Normalização: 1FN, 2FN e 3FN com livros e preços</a></li>
+          <li><a href="#s7">Integridade referencial, constraints e índices</a></li>
+          <li><a href="#s8">O diagrama ER do monitor de preços</a></li>
+          <li><a href="#s9">Por que o modelo analítico é diferente</a></li>
+          <li><a href="#s10">Os quatro passos de Kimball</a></li>
+          <li><a href="#s11">Tipos de fato e tipos de medida</a></li>
+          <li><a href="#s12">Dimensão de data e dimensões com papéis</a></li>
+          <li><a href="#s13">Esquema estrela e floco de neve</a></li>
+          <li><a href="#s14">Slowly changing dimensions: tipo 1 e tipo 2</a></li>
+          <li><a href="#s15">Dimensões degeneradas e conformadas</a></li>
+          <li><a href="#s16">A mesma pergunta nos dois modelos</a></li>
+          <li><a href="#s17">Preparação do ambiente</a></li>
+          <li><a href="#s18">Postgres no Railway pelo terminal</a></li>
+          <li><a href="#s19">Prática guiada: os sete prompts CREATE</a></li>
+          <li><a href="#s20">Execução e gates de validação</a></li>
+          <li><a href="#s21">Cenários ATAM da aula</a></li>
+          <li><a href="#s22">Custo no Railway e encerramento</a></li>
+          <li><a href="#s23">Atividade em sala e entregável</a></li>
+          <li><a href="#s24">Referências</a></li>
+        </ol>
+      </section>
+
+      <!-- ============================ 1 ============================ -->
+      <section class="content-block" id="s1">
+        <h2>1. Onde estamos e o problema da aula</h2>
+        <p>Na <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> o grupo montou o ambiente (Codespace, OpenCode com OpenRouter, conta no Railway e MinIO publicado) e adotou a convenção SDD que todas as aulas seguem: persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM, sempre com prompts no formato CREATE. Na <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> o grupo coletou páginas de books.toscrape.com e a cotação PTAX da libra pela API do Banco Central. Na <a href="../../aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Aula 04</a> esse material bruto virou um lakehouse no MinIO: bronze com o que chegou, silver em Parquet tipado e uma primeira gold, tudo lido pelo DuckDB com schema on read.</p>
+        <p>O silver resolve um problema: os dados estão tipados, deduplicados e legíveis. Ele não resolve dois outros. O primeiro é operacional. Se um aplicativo de alerta de preço precisa saber o preço atual de um livro, ninguém garante, no Parquet, que exista um único livro com aquele identificador, que toda observação aponte para um livro existente ou que uma categoria não apareça escrita de três formas. O segundo é analítico. A pergunta "qual o preço médio em reais por categoria e mês" exige juntar preços, livros, categorias e cotações, decidir qual cotação vale num sábado sem PTAX e decidir se um livro reclassificado em novembro conta como da categoria antiga ou nova em outubro.</p>
+        <p>Cada problema pede um modelo. A modelagem relacional organiza os dados para que o banco imponha as regras de consistência em cada escrita. A modelagem dimensional organiza os dados para que perguntas de negócio sejam respondidas com poucas junções e com o histórico preservado. A aula constrói os dois sobre o mesmo silver e compara a mesma pergunta nos dois.</p>
+        <div class="note">
+          <strong>Resultado esperado ao fim da aula</strong>
+          <p>Uma pasta <code>aula_05_modelagem/</code> no repositório do grupo, com o esqueleto SDD completo, o diagrama ER e o esquema estrela em Mermaid, DDLs versionados, um Postgres no Railway carregado a partir do silver, a gold dimensional gravada no MinIO e o <code>docs/atam.md</code> com os seis cenários da seção 21.</p>
+        </div>
+        <h3>Contrato do silver usado nos exemplos</h3>
+        <p>Os exemplos e os SQLs do laboratório assumem o contrato abaixo. O silver do seu grupo pode ter outros nomes de coluna. O prompt de implementação manda o agente ler o schema real antes de qualquer código, e a adaptação acontece num único lugar: as views de staging.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Conjunto</th><th>Caminho assumido</th><th>Colunas</th></tr></thead>
+          <tbody>
+            <tr><td>Livros</td><td><code>s3://silver/livros/data_coleta=AAAA-MM-DD/*.parquet</code></td><td><code>upc</code>, <code>url</code>, <code>titulo</code>, <code>categoria</code>, <code>avaliacao</code>, <code>preco_gbp</code>, <code>em_estoque</code>, <code>qtd_estoque</code>, <code>coletado_em</code></td></tr>
+            <tr><td>PTAX</td><td><code>s3://silver/ptax/ptax.parquet</code></td><td><code>moeda</code>, <code>data_hora_cotacao</code>, <code>tipo_boletim</code>, <code>cotacao_compra</code>, <code>cotacao_venda</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>O <code>upc</code> aparece na página de detalhe de cada livro em books.toscrape.com, na tabela de informações do produto. Se o scraper da Aula 03 do grupo leu só as páginas de listagem, o silver não tem UPC. A seção 5 e o cenário CEN-02 tratam essa consequência.</p>
+      </section>
+
+      <!-- ============================ 2 ============================ -->
+      <section class="content-block" id="s2">
+        <h2>2. Dois trabalhos diferentes: OLTP e OLAP</h2>
+        <p>Um sistema transacional (OLTP, <em>online transaction processing</em>) recebe muitas operações pequenas: inserir uma observação, atualizar o título de um livro, consultar o preço de um UPC. Cada operação toca poucas linhas e precisa deixar o banco consistente mesmo com escritas concorrentes. Um sistema analítico (OLAP, <em>online analytical processing</em>) recebe poucas consultas grandes: varrer meses de observações, agrupar por categoria e calcular médias. Cada consulta lê muitas linhas, mas poucas colunas.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Critério</th><th>OLTP (relacional normalizado)</th><th>OLAP (dimensional)</th></tr></thead>
+          <tbody>
+            <tr><td>Operação típica</td><td>inserir, atualizar, buscar por chave</td><td>agregar, filtrar por período, comparar grupos</td></tr>
+            <tr><td>Linhas por operação</td><td>poucas</td><td>muitas</td></tr>
+            <tr><td>Objetivo do modelo</td><td>cada fato gravado uma vez, sem anomalia de atualização</td><td>perguntas de negócio com poucas junções e histórico preservado</td></tr>
+            <tr><td>Redundância</td><td>evitada por normalização</td><td>aceita nas dimensões para simplificar a leitura</td></tr>
+            <tr><td>Histórico</td><td>em geral, estado atual</td><td>estado de cada momento (SCD, snapshots)</td></tr>
+            <tr><td>Motor nesta aula</td><td>PostgreSQL 16 no Railway</td><td>DuckDB com Parquet no MinIO</td></tr>
+          </tbody>
+        </table></div>
+        <p>O mecanismo por trás da diferença está no armazenamento. O PostgreSQL guarda cada linha inteira numa página e usa índices B-tree para localizar poucas linhas rapidamente. O DuckDB processa colunas em vetores, então uma média sobre <code>preco_gbp</code> lê só essa coluna e as chaves de junção. Isso não autoriza dizer que um motor é melhor que o outro em geral: o cenário CEN-05 pede que o grupo meça a mesma consulta nos dois, com o volume que tem, e registre o resultado como evidência daquela carga.</p>
+      </section>
+
+      <!-- ============================ 3 ============================ -->
+      <section class="content-block" id="s3">
+        <h2>3. Entidades, atributos, relacionamentos e cardinalidade</h2>
+        <p>Modelar começa por nomear as coisas sobre as quais o negócio guarda informação. Uma entidade é uma classe de objetos com identidade própria: livro, categoria, moeda. Um atributo é uma propriedade de uma entidade: o título do livro, o nome da categoria, o código ISO da moeda. Um relacionamento liga entidades: um livro pertence a uma categoria. A cardinalidade diz quantas instâncias de um lado se ligam a quantas do outro.</p>
+        <p>No monitor de preços, cinco perguntas definem o modelo. O que é observado? Livros. Como são agrupados? Por categoria. O que muda a cada dia? Preço e estoque, então a observação de preço é uma entidade própria, identificada pelo livro e pela data. Em que moeda? Libra, convertida para real pela cotação PTAX, que é outra entidade, ligada à moeda e a um instante. Onde o livro está publicado? Numa URL, que pode mudar ao longo do tempo.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Relacionamento</th><th>Cardinalidade</th><th>Leitura</th></tr></thead>
+          <tbody>
+            <tr><td>categoria &ndash; livro</td><td>1 : N</td><td>uma categoria classifica zero ou mais livros; um livro tem exatamente uma categoria</td></tr>
+            <tr><td>livro &ndash; observacao_preco</td><td>1 : N</td><td>um livro tem uma observação por dia de coleta</td></tr>
+            <tr><td>livro &ndash; livro_url</td><td>1 : N</td><td>um livro pode ter várias URLs ao longo do tempo; uma URL pertence a um livro</td></tr>
+            <tr><td>moeda &ndash; cotacao</td><td>1 : N</td><td>uma moeda tem vários boletins PTAX por dia</td></tr>
+          </tbody>
+        </table></div>
+        <p>Não há relacionamento N : N neste domínio porque books.toscrape.com atribui uma categoria por livro. Se um livro pudesse ter várias categorias, o modelo precisaria de uma tabela associativa <code>livro_categoria</code> com chave composta. Vale verificar essa premissa no silver antes de fechar o modelo: uma consulta que conte categorias distintas por UPC responde a dúvida.</p>
+      </section>
+
+      <!-- ============================ 4 ============================ -->
+      <section class="content-block" id="s4">
+        <h2>4. Modelo conceitual, lógico e físico</h2>
+        <p>A modelagem passa por três níveis de detalhe, e cada nível responde a uma pergunta diferente. O conceitual pergunta o que existe no negócio, sem falar de banco: livros pertencem a categorias e têm preço observado diariamente. O lógico pergunta como isso vira tabelas, colunas, chaves e relacionamentos, ainda sem escolher motor: <code>observacao_preco</code> tem chave composta por livro e data. O físico pergunta como o motor escolhido implementa o lógico: tipos (<code>numeric(10,2)</code>, <code>timestamptz</code>), índices, constraints com nome, schema <code>livraria</code>, coluna gerada <code>data_cotacao</code>.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Nível</th><th>Artefato no repositório do grupo</th><th>Quem valida</th></tr></thead>
+          <tbody>
+            <tr><td>Conceitual</td><td>lista de entidades e relacionamentos em <code>specs/plan.md</code></td><td>persona e objetivos: o modelo responde às perguntas dela?</td></tr>
+            <tr><td>Lógico</td><td>diagrama <code>erDiagram</code> em Mermaid com PK, FK e UK</td><td>regras de normalização (seção 6)</td></tr>
+            <tr><td>Físico</td><td><code>sql/relacional/001_schema.sql</code></td><td>o próprio banco, ao aplicar o DDL duas vezes sem erro</td></tr>
+          </tbody>
+        </table></div>
+        <p>Pular o conceitual é o erro mais comum quando se trabalha com agente de código: o agente vai direto para o DDL, e decisões de negócio, como "o que identifica um livro", ficam escondidas num tipo de coluna. Por isso o prompt de plano pede os três níveis separados.</p>
+      </section>
+
+      <!-- ============================ 5 ============================ -->
+      <section class="content-block" id="s5">
+        <h2>5. Chaves primárias, estrangeiras, naturais e substitutas</h2>
+        <p>A chave primária identifica cada linha de forma única e não aceita nulo. A chave estrangeira é uma coluna que referencia a chave primária de outra tabela, e o banco recusa um valor que não exista do outro lado. A parte difícil da decisão está em escolher qual valor identifica cada linha.</p>
+        <p>Uma chave natural vem do próprio negócio: o UPC do livro, o código ISO <code>GBP</code> da moeda. Uma chave substituta (<em>surrogate key</em>) é gerada pelo banco, sem significado: <code>livro_id</code> 1, 2, 3. No monitor de preços há três candidatos a identificar um livro, e cada um tem uma fragilidade.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Candidato</th><th>Vantagem</th><th>Fragilidade</th><th>Decisão no modelo</th></tr></thead>
+          <tbody>
+            <tr><td>URL</td><td>sempre disponível na listagem</td><td>muda quando o site muda o slug ou a estrutura de pastas</td><td>atributo, com histórico em <code>livro_url</code></td></tr>
+            <tr><td>Título</td><td>legível</td><td>não é único e pode ser corrigido</td><td>atributo</td></tr>
+            <tr><td>UPC</td><td>estável e único por produto no site</td><td>só aparece na página de detalhe</td><td>chave natural, com <code>UNIQUE</code></td></tr>
+            <tr><td><code>livro_id</code></td><td>compacto, imutável, barato em junções</td><td>não tem significado fora do banco</td><td>chave primária substituta</td></tr>
+          </tbody>
+        </table></div>
+        <p>O modelo usa as duas: <code>livro_id</code> como chave primária, referenciada pelas outras tabelas, e <code>upc</code> com restrição <code>UNIQUE</code>, usada pela carga para decidir se um livro é novo. Se o UPC mudasse de formato, só uma coluna de <code>livro</code> seria afetada, e nenhuma chave estrangeira. Em <code>moeda</code>, a chave natural <code>codigo</code> serve como primária, porque o padrão ISO 4217 é estável e o código de três letras é tão compacto quanto um inteiro para este volume.</p>
+        <div class="note">
+          <strong>Se o silver do grupo não tem UPC</strong>
+          <p>A URL vira a única chave natural disponível, e a mudança de URL passa a criar um livro novo, com histórico partido em dois. As saídas são completar a coleta da Aula 03 com a página de detalhe ou aceitar o risco e registrá-lo no ATAM (CEN-02) com a medida de quantos livros duplicados apareceram.</p>
+        </div>
+      </section>
+
+      <!-- ============================ 6 ============================ -->
+      <section class="content-block" id="s6">
+        <h2>6. Normalização: 1FN, 2FN e 3FN com livros e preços</h2>
+        <p>Normalizar é decompor tabelas para que cada fato fique gravado num único lugar. O motivo é prático: se a categoria de um livro está repetida em cada observação diária, reclassificar o livro exige atualizar centenas de linhas, e uma atualização parcial deixa o banco dizendo duas coisas diferentes ao mesmo tempo. Essa é a anomalia de atualização. As formas normais são critérios verificáveis para detectar a redundância que a provoca.</p>
+        <p>O ponto de partida é uma tabela plana, como um scraper ingênuo gravaria (valores ilustrativos):</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>upc</th><th>titulo</th><th>trilha</th><th>categoria</th><th>disponibilidade</th><th>preco_gbp</th><th>data_coleta</th><th>cotacao_venda</th></tr></thead>
+          <tbody>
+            <tr><td>a897fe39b1053632</td><td>A Light in the Attic</td><td>Home, Books, Poetry</td><td>Poetry</td><td>In stock (22 available)</td><td>51.77</td><td>2026-11-06</td><td>7.1234</td></tr>
+            <tr><td>a897fe39b1053632</td><td>A Light in the Attic</td><td>Home, Books, Poetry</td><td>Poetry</td><td>In stock (22 available)</td><td>51.77</td><td>2026-11-07</td><td>7.1234</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>6.1 Primeira forma normal (1FN): valores atômicos</h3>
+        <p>Uma tabela está em 1FN quando cada célula guarda um único valor e não há grupos repetidos. A coluna <code>trilha</code> guarda uma lista (o caminho de navegação) e <code>disponibilidade</code> guarda dois fatos num texto: se há estoque e quantos exemplares. Para chegar à 1FN, <code>trilha</code> sai (a categoria já é o último elemento dela) e <code>disponibilidade</code> vira <code>em_estoque boolean</code> e <code>qtd_estoque integer</code>. A Aula 04 provavelmente já fez parte desse trabalho ao tipar o silver.</p>
+
+        <h3>6.2 Segunda forma normal (2FN): dependência da chave inteira</h3>
+        <p>A chave da tabela plana é composta: <code>(upc, data_coleta)</code>. Uma tabela está em 2FN quando está em 1FN e nenhum atributo depende só de parte da chave. Aqui, <code>titulo</code> e <code>categoria</code> dependem apenas de <code>upc</code>: não mudam de um dia para outro por causa da data. Essa dependência parcial é a origem da repetição. A decomposição separa <code>livro(upc, titulo, categoria)</code> de <code>observacao_preco(upc, data_coleta, preco_gbp, em_estoque, qtd_estoque)</code>.</p>
+
+        <h3>6.3 Terceira forma normal (3FN): sem dependência transitiva</h3>
+        <p>Uma tabela está em 3FN quando está em 2FN e nenhum atributo não chave depende de outro atributo não chave. Dois casos aparecem no domínio. Se <code>livro</code> guarda <code>categoria_id</code> e também <code>categoria_nome</code>, o nome depende do identificador da categoria, e não do livro: ele vai para <code>categoria(categoria_id, nome)</code>. E <code>cotacao_venda</code>, na tabela plana, depende da data e da moeda, não do livro: vai para <code>cotacao</code>. O preço em reais, por ser calculável a partir de <code>preco_gbp</code> e da cotação, não é gravado; vira a view <code>vw_preco_brl</code>.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Forma</th><th>Pergunta de verificação</th><th>Violação no domínio</th><th>Correção</th></tr></thead>
+          <tbody>
+            <tr><td>1FN</td><td>alguma célula guarda lista ou dois fatos?</td><td><code>trilha</code>, <code>disponibilidade</code></td><td>remover a lista; separar em <code>em_estoque</code> e <code>qtd_estoque</code></td></tr>
+            <tr><td>2FN</td><td>algum atributo depende só de parte da chave composta?</td><td><code>titulo</code> depende só de <code>upc</code></td><td>tabela <code>livro</code></td></tr>
+            <tr><td>3FN</td><td>algum atributo depende de outro não chave?</td><td><code>categoria_nome</code> via <code>categoria_id</code>; cotação via data</td><td>tabelas <code>categoria</code> e <code>cotacao</code>; view para BRL</td></tr>
+          </tbody>
+        </table></div>
+        <p>A normalização tem custo na leitura: a pergunta analítica passa a exigir quatro tabelas. Esse custo é aceitável no OLTP, onde a prioridade é a escrita consistente, e é justamente o que o modelo dimensional da parte B reorganiza.</p>
+      </section>
+
+      <!-- ============================ 7 ============================ -->
+      <section class="content-block" id="s7">
+        <h2>7. Integridade referencial, constraints e índices</h2>
+        <p>Um modelo relacional só protege os dados se as regras estiverem no banco, e não apenas no código da carga. O código muda, é reescrito por um agente, é executado por outra pessoa; o banco recusa a escrita inválida em qualquer caso. O DDL do laboratório (<code>sql/relacional/001_schema.sql</code>) declara quatro tipos de regra.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Regra</th><th>Exemplo no DDL</th><th>O que impede</th></tr></thead>
+          <tbody>
+            <tr><td><code>PRIMARY KEY</code></td><td><code>pk_observacao_preco (livro_id, data_coleta)</code></td><td>duas observações do mesmo livro no mesmo dia</td></tr>
+            <tr><td><code>FOREIGN KEY</code></td><td><code>fk_observacao_livro</code> com <code>ON DELETE RESTRICT</code></td><td>observação de livro inexistente; apagar livro com histórico</td></tr>
+            <tr><td><code>UNIQUE</code></td><td><code>uq_livro_upc</code>, <code>uq_categoria_nome</code></td><td>o mesmo livro cadastrado duas vezes</td></tr>
+            <tr><td><code>CHECK</code></td><td><code>preco_gbp &gt;= 0</code>, <code>avaliacao BETWEEN 1 AND 5</code>, <code>codigo ~ '^[A-Z]{3}$'</code></td><td>valores fora do domínio</td></tr>
+          </tbody>
+        </table></div>
+        <p>Os índices são a parte física que torna as consultas viáveis. O PostgreSQL cria índice automaticamente para <code>PRIMARY KEY</code> e <code>UNIQUE</code>, mas não para <code>FOREIGN KEY</code>. Por isso o DDL cria <code>ix_livro_categoria</code> e <code>ix_livro_url_livro</code>. A chave de <code>observacao_preco</code> começa por <code>livro_id</code>, então serve para "histórico de um livro" e não para "todas as observações de outubro": daí o índice <code>ix_observacao_data</code>. Cada índice acelera leitura e encarece escrita, e essa troca deve aparecer no plano ligada a uma consulta real.</p>
+        <p>A carga (<code>002_staging_e_carga.sql</code>) usa uma tabela de staging com o formato do silver e move os dados com <code>INSERT ... ON CONFLICT</code>. Como a chave primária de <code>observacao_preco</code> é <code>(livro_id, data_coleta)</code>, reexecutar o mesmo dia atualiza as mesmas linhas em vez de duplicar. A idempotência depende da chave escolhida na modelagem, e o código da carga apenas a usa.</p>
+        <pre><code>INSERT INTO observacao_preco (livro_id, data_coleta, preco_gbp, em_estoque, qtd_estoque, coletado_em, arquivo_origem)
+SELECT DISTINCT ON (l.livro_id, s.data_coleta) ...
+FROM stg_livro_dia s JOIN livro l ON l.upc = s.upc
+ON CONFLICT (livro_id, data_coleta) DO UPDATE
+SET preco_gbp = EXCLUDED.preco_gbp, ...;</code></pre>
+      </section>
+
+      <!-- ============================ 8 ============================ -->
+      <section class="content-block" id="s8">
+        <h2>8. O diagrama ER do monitor de preços</h2>
+        <p>O diagrama abaixo é o modelo lógico em Mermaid, que o GitHub renderiza dentro de arquivos Markdown. Ele vai para <code>specs/plan.md</code> e precisa bater, nome a nome, com o DDL físico. Na notação, <code>||--o{</code> lê-se "exatamente um para zero ou mais".</p>
+        <pre><code>```mermaid
+erDiagram
+    CATEGORIA ||--o{ LIVRO : classifica
+    LIVRO ||--o{ LIVRO_URL : "publicado em"
+    LIVRO ||--o{ OBSERVACAO_PRECO : "observado em"
+    MOEDA ||--o{ COTACAO : "cotada em"
+
+    CATEGORIA {
+        int categoria_id PK
+        text nome UK
+    }
+    LIVRO {
+        bigint livro_id PK
+        varchar upc UK "chave natural"
+        text titulo
+        int categoria_id FK
+        smallint avaliacao "1 a 5"
+    }
+    LIVRO_URL {
+        text url PK
+        bigint livro_id FK
+        date vista_primeiro
+        date vista_ultimo
+    }
+    OBSERVACAO_PRECO {
+        bigint livro_id PK, FK
+        date data_coleta PK
+        numeric preco_gbp
+        boolean em_estoque
+        int qtd_estoque
+        text arquivo_origem "linhagem"
+    }
+    MOEDA {
+        char codigo PK "ISO 4217"
+        text nome
+    }
+    COTACAO {
+        char moeda_codigo PK, FK
+        timestamp data_hora_cotacao PK
+        text tipo_boletim PK
+        numeric cotacao_compra
+        numeric cotacao_venda
+    }
+```</code></pre>
+        <p>A coluna <code>arquivo_origem</code> guarda o caminho do Parquet do silver que gerou a linha. Ela não participa de nenhuma regra de negócio, mas permite responder, meses depois, de onde veio um preço suspeito.</p>
+      </section>
+
+      <!-- ============================ 9 ============================ -->
+      <section class="content-block" id="s9">
+        <h2>9. Por que o modelo analítico é diferente</h2>
+        <p>Com o modelo relacional pronto, a persona analítica (quem decide o preço de revenda em reais) faz perguntas como: o preço médio de Poetry subiu em novembro? Quantos livros ficaram sem estoque por semana? A variação cambial explica a alta em reais, ou foi o preço em libras? Todas têm a mesma forma: uma medida numérica (preço, estoque) recortada por contextos (data, categoria, livro, moeda).</p>
+        <p>O modelo normalizado responde, mas cobra três preços. As consultas ficam longas, porque cada contexto mora numa tabela diferente. Regras como "qual cotação vale num sábado" precisam ser reescritas em toda consulta. E o histórico se perde: <code>livro.categoria_id</code> guarda a categoria atual, então reclassificar um livro reescreve o passado de todas as análises por categoria. A modelagem dimensional, sistematizada por Ralph Kimball, organiza os mesmos dados em fatos (as medidas) e dimensões (os contextos), resolve as regras uma vez, na carga, e preserva o histórico de forma explícita.</p>
+      </section>
+
+      <!-- ============================ 10 ============================ -->
+      <section class="content-block" id="s10">
+        <h2>10. Os quatro passos de Kimball</h2>
+        <p>Kimball propõe quatro decisões, nesta ordem, e a ordem importa: cada passo restringe o seguinte.</p>
+        <ol class="steps">
+          <li>Processo de negócio. Qual atividade gera as medidas? Aqui, o acompanhamento diário de preços de livros. A cotação PTAX é um segundo processo, com fato próprio.</li>
+          <li>Grão. O que exatamente uma linha da fato representa? Para <code>fato_preco_diario</code>: um livro por dia de coleta. Declarar o grão antes das colunas evita o erro mais caro da modelagem dimensional, que é misturar níveis de detalhe na mesma tabela.</li>
+          <li>Dimensões. Que contextos descrevem cada linha no grão escolhido? Data da coleta, livro, categoria, moeda, data da cotação usada.</li>
+          <li>Fatos. Que medidas existem nesse grão? Preço em GBP, cotação, preço em BRL, quantidade em estoque e um contador de observações.</li>
+        </ol>
+        <p>Com dois processos, a ferramenta de planejamento é a matriz de barramento (<em>bus matrix</em>): linhas são processos, colunas são dimensões, e um X marca o uso. Ela mostra quais dimensões precisam ser conformadas, ou seja, idênticas entre fatos.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Processo (fato)</th><th>dim_data</th><th>dim_livro</th><th>dim_categoria</th><th>dim_moeda</th></tr></thead>
+          <tbody>
+            <tr><td><code>fato_preco_diario</code></td><td>X (coleta e cotação)</td><td>X</td><td>X</td><td>X</td></tr>
+            <tr><td><code>fato_cotacao_diaria</code></td><td>X</td><td></td><td></td><td>X</td></tr>
+            <tr><td>clima da Aula 02 (futuro)</td><td>X</td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- ============================ 11 ============================ -->
+      <section class="content-block" id="s11">
+        <h2>11. Tipos de fato e tipos de medida</h2>
+        <h3>11.1 Três tipos de tabela fato</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Tipo</th><th>Uma linha representa</th><th>Exemplo no domínio</th></tr></thead>
+          <tbody>
+            <tr><td>Transacional</td><td>um evento, no instante em que ocorre</td><td>cada execução do scraper que leu um livro, inclusive duas no mesmo dia</td></tr>
+            <tr><td>Snapshot periódico</td><td>o estado de algo ao fim de um período regular</td><td><code>fato_preco_diario</code>: preço e estoque de cada livro em cada dia</td></tr>
+            <tr><td>Snapshot acumulado</td><td>o ciclo de vida de um processo com marcos, atualizado a cada marco</td><td>uma linha por livro com datas de primeira aparição, primeira queda de preço e primeira falta de estoque</td></tr>
+          </tbody>
+        </table></div>
+        <p>A <code>fato_preco_diario</code> é um snapshot periódico: mesmo que o preço não mude, cada dia de coleta gera uma linha. Isso permite responder "qual era o preço em 15 de outubro" sem procurar a última mudança anterior. Se o grupo quiser guardar cada execução do scraper, isso é outra fato, transacional, com outro grão, e não colunas extras nesta.</p>
+
+        <h3>11.2 Medidas aditivas, semiaditivas e não aditivas</h3>
+        <p>A classificação diz por quais dimensões uma medida pode ser somada sem produzir número sem sentido. Ela precisa estar documentada, porque a ferramenta de BI soma tudo por padrão.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Medida</th><th>Tipo</th><th>Pode somar por</th><th>Agregação correta</th></tr></thead>
+          <tbody>
+            <tr><td><code>qtd_observacoes</code></td><td>aditiva</td><td>todas as dimensões</td><td><code>sum</code></td></tr>
+            <tr><td><code>qtd_estoque</code></td><td>semiaditiva</td><td>livro e categoria, não data</td><td>soma no dia; média ou último valor entre dias</td></tr>
+            <tr><td><code>preco_gbp</code>, <code>preco_brl</code></td><td>não aditiva</td><td>nenhuma</td><td><code>avg</code>, <code>min</code>, <code>max</code>, mediana</td></tr>
+            <tr><td><code>cotacao_venda</code></td><td>não aditiva</td><td>nenhuma</td><td>média do período ou valor do último dia</td></tr>
+          </tbody>
+        </table></div>
+        <p>Somar o estoque de 30 dias dá um número 30 vezes maior que qualquer estoque real. A consulta Q7 de <code>007_consultas.sql</code> mostra o tratamento: soma por dia, depois média e último valor entre dias.</p>
+      </section>
+
+      <!-- ============================ 12 ============================ -->
+      <section class="content-block" id="s12">
+        <h2>12. Dimensão de data e dimensões com papéis</h2>
+        <p>Toda análise temporal precisa de atributos que a data sozinha não carrega diretamente: mês por extenso, trimestre, dia da semana, fim de semana. A <code>dim_data</code> é gerada, não coletada: o DDL cria uma linha por dia de 2026 e 2027 com <code>generate_series</code>. A chave <code>data_sk</code> é um inteiro no formato <code>AAAAMMDD</code>, legível e ordenável.</p>
+        <p>A PTAX não é publicada em sábados, domingos e feriados, e a coleta de livros roda todos os dias. A carga resolve isso uma vez: para cada observação, usa a última cotação de fechamento com data menor ou igual à da coleta. No DuckDB, isso é um <code>ASOF JOIN</code>. Para que a análise saiba qual cotação foi usada, a fato guarda duas chaves para a mesma dimensão: <code>data_coleta_sk</code> e <code>data_cotacao_sk</code>. Quando uma dimensão aparece mais de uma vez numa fato, com significados diferentes, ela cumpre papéis distintos (<em>role-playing dimension</em>).</p>
+        <pre><code>FROM stg_livro_dia_unico s
+JOIN gold.dim_livro d ON d.upc = s.upc AND s.data_coleta BETWEEN d.valido_de AND d.valido_ate
+...
+ASOF LEFT JOIN cot ON s.data_coleta &gt;= cot.data_cotacao;</code></pre>
+        <p>Feriados nacionais não estão na <code>dim_data</code> do laboratório. Incluí-los exige uma fonte de calendário que o grupo precisa escolher e citar; até lá, a coluna fica fora e a lacuna vai para o <code>spec.md</code>.</p>
+      </section>
+
+      <!-- ============================ 13 ============================ -->
+      <section class="content-block" id="s13">
+        <h2>13. Esquema estrela e floco de neve</h2>
+        <p>No esquema estrela, a fato fica no centro e cada dimensão se liga diretamente a ela, sem tabelas intermediárias. As dimensões são desnormalizadas: <code>dim_livro</code> guarda o nome da categoria como texto, mesmo que isso repita o valor em muitos livros. A redundância é aceita porque as dimensões são pequenas perto da fato e porque cada junção a menos simplifica a consulta de quem analisa.</p>
+        <pre><code>```mermaid
+erDiagram
+    DIM_DATA ||--o{ FATO_PRECO_DIARIO : "data da coleta"
+    DIM_DATA ||--o{ FATO_PRECO_DIARIO : "data da cotação"
+    DIM_LIVRO ||--o{ FATO_PRECO_DIARIO : "versão vigente"
+    DIM_CATEGORIA ||--o{ FATO_PRECO_DIARIO : "categoria no dia"
+    DIM_MOEDA ||--o{ FATO_PRECO_DIARIO : "moeda do preço"
+    DIM_DATA ||--o{ FATO_COTACAO_DIARIA : data
+    DIM_MOEDA ||--o{ FATO_COTACAO_DIARIA : moeda
+
+    FATO_PRECO_DIARIO {
+        int data_coleta_sk PK, FK
+        bigint livro_sk PK, FK
+        int categoria_sk FK
+        smallint moeda_sk FK
+        int data_cotacao_sk FK
+        varchar execucao_id "degenerada"
+        decimal preco_gbp "não aditiva"
+        decimal cotacao_venda "não aditiva"
+        decimal preco_brl "não aditiva"
+        int qtd_estoque "semiaditiva"
+        int qtd_observacoes "aditiva"
+    }
+    DIM_LIVRO {
+        bigint livro_sk PK
+        varchar upc "chave natural"
+        varchar titulo "SCD2"
+        varchar categoria_nome "SCD2"
+        tinyint avaliacao "SCD1"
+        varchar url "SCD1"
+        date valido_de
+        date valido_ate
+        boolean versao_atual
+    }
+    DIM_CATEGORIA {
+        int categoria_sk PK
+        varchar categoria_nome UK
+    }
+    DIM_DATA {
+        int data_sk PK "AAAAMMDD"
+        date data UK
+        varchar ano_mes
+        varchar nome_dia_semana
+        boolean fim_de_semana
+    }
+    DIM_MOEDA {
+        smallint moeda_sk PK
+        varchar codigo UK
+    }
+```</code></pre>
+        <p>No floco de neve (<em>snowflake</em>), as dimensões são normalizadas: <code>dim_livro</code> guardaria <code>categoria_sk</code> e a categoria seria lida por uma junção a mais (<code>DIM_LIVRO }o--|| DIM_CATEGORIA</code>). Economiza-se algum espaço e garante-se um único nome por categoria, mas cada consulta por categoria passa a atravessar duas tabelas. Para o volume deste projeto (books.toscrape.com tem mil livros), a economia é irrelevante e a estrela é a escolha padrão.</p>
+        <p>O modelo do laboratório tem uma particularidade: a fato aponta para <code>dim_categoria</code> diretamente, com a categoria do dia da coleta, e <code>dim_livro</code> também guarda <code>categoria_nome</code>. As duas coisas são coerentes porque a categoria é atributo tipo 2 de <code>dim_livro</code> (seção 14): a versão do livro ligada à linha da fato tem a mesma categoria que <code>categoria_sk</code>. A ligação direta deixa a consulta por categoria com uma junção só.</p>
+      </section>
+
+      <!-- ============================ 14 ============================ -->
+      <section class="content-block" id="s14">
+        <h2>14. Slowly changing dimensions: tipo 1 e tipo 2</h2>
+        <p>Atributos de dimensão mudam devagar e sem aviso: o site corrige um título, reclassifica um livro de Fiction para Mystery, atualiza a avaliação. A pergunta de modelagem é se a análise do passado deve enxergar o valor antigo ou o novo. Kimball chama as respostas de tipos de <em>slowly changing dimension</em> (SCD). Duas cobrem a maior parte dos casos.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Tipo</th><th>O que faz</th><th>Efeito no passado</th><th>Atributos do laboratório</th></tr></thead>
+          <tbody>
+            <tr><td>Tipo 1</td><td>sobrescreve o valor em todas as linhas do livro</td><td>o passado passa a mostrar o valor novo</td><td><code>avaliacao</code>, <code>url</code></td></tr>
+            <tr><td>Tipo 2</td><td>encerra a linha vigente e abre uma versão nova com outra chave substituta</td><td>fatos antigos continuam ligados à versão antiga</td><td><code>titulo</code>, <code>categoria_nome</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>O exemplo: o livro de UPC <code>eccbc87e4b5ce2fe</code> (dado sintético da validação) era Fiction até 02/11/2026 e passou a Mystery em 03/11/2026. Depois da carga de 03/11, <code>dim_livro</code> tem duas linhas para ele:</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>livro_sk</th><th>upc</th><th>categoria_nome</th><th>valido_de</th><th>valido_ate</th><th>versao_atual</th></tr></thead>
+          <tbody>
+            <tr><td>919</td><td>eccbc87e4b5ce2fe</td><td>Fiction</td><td>2026-10-26</td><td>2026-11-02</td><td>false</td></tr>
+            <tr><td>1001</td><td>eccbc87e4b5ce2fe</td><td>Mystery</td><td>2026-11-03</td><td>9999-12-31</td><td>true</td></tr>
+          </tbody>
+        </table></div>
+        <p>As observações de outubro continuam ligadas a <code>livro_sk</code> 919 e contam como Fiction; as de novembro, a 1001, e contam como Mystery. No modelo relacional, a mesma reclassificação simplesmente atualiza <code>livro.categoria_id</code>, e todo o histórico do livro passa a contar como Mystery. A consulta Q5 de <code>007_consultas.sql</code> mostra as duas leituras lado a lado.</p>
+        <p>A carga SCD2 (<code>004_carga_dimensoes_scd2.sql</code>) compara um hash dos atributos tipo 2 da versão vigente com o hash do staging do dia e segue quatro passos em uma transação.</p>
+        <ol class="steps">
+          <li>Insere categorias novas em <code>dim_categoria</code>, com chave substituta igual ao maior valor existente mais o número da linha.</li>
+          <li>Aplica tipo 1: atualiza <code>avaliacao</code> e <code>url</code> em todas as versões do livro quando diferem.</li>
+          <li>Encerra versões cujo hash mudou: <code>valido_ate</code> recebe o dia anterior e <code>versao_atual</code> vira <code>false</code>.</li>
+          <li>Abre versão nova para todo livro do staging que ficou sem versão vigente, seja porque é novo, seja porque acabou de ser encerrado.</li>
+        </ol>
+        <p>Dois limites precisam constar no <code>atam.md</code>. A carga supõe dias processados em ordem cronológica: carregar 01/11 depois de 05/11 produziria vigências erradas. E uma correção no silver de um dia que já abriu versão nova não é reaplicada, porque a versão já começa naquele dia. Ambos são aceitáveis para um cron diário, desde que estejam escritos.</p>
+      </section>
+
+      <!-- ============================ 15 ============================ -->
+      <section class="content-block" id="s15">
+        <h2>15. Dimensões degeneradas e conformadas</h2>
+        <p>Uma dimensão degenerada é um identificador que mora na fato sem tabela de dimensão própria, porque não há outros atributos para descrevê-lo. Em pedidos de venda, o número do pedido é o exemplo clássico. Aqui, <code>execucao_id</code> identifica a execução do pipeline que gravou a linha. Ele não tem atributos a mais, mas permite filtrar "tudo o que a execução de 07/11 às 9h gravou" quando uma publicação sai incompleta.</p>
+        <p>Uma dimensão conformada é a mesma dimensão, com as mesmas chaves e os mesmos atributos, usada por mais de uma fato. <code>dim_data</code> e <code>dim_moeda</code> servem a <code>fato_preco_diario</code> e a <code>fato_cotacao_diaria</code>. Por isso a consulta Q8 compara preço médio e cotação média no mesmo mês, vindos de fatos diferentes, agrupando pelo mesmo <code>ano_mes</code>. Se cada fato tivesse sua própria tabela de calendário, com regras diferentes para mês ou semana, a comparação deixaria de ser confiável. Quando o grupo levar o clima da Aula 02 para a gold, a mesma <code>dim_data</code> deve ser reutilizada.</p>
+      </section>
+
+      <!-- ============================ 16 ============================ -->
+      <section class="content-block" id="s16">
+        <h2>16. A mesma pergunta nos dois modelos</h2>
+        <p>Pergunta da persona: qual o preço médio em reais por categoria e mês, e quantos livros foram observados? As duas consultas abaixo estão em <code>sql/relacional/003_consultas.sql</code> e <code>sql/dimensional/007_consultas.sql</code>.</p>
+        <h3>16.1 Modelo relacional normalizado (PostgreSQL)</h3>
+        <pre><code>SELECT
+    c.nome                                   AS categoria,
+    date_trunc('month', o.data_coleta)::date AS mes,
+    count(DISTINCT o.livro_id)               AS livros_observados,
+    round(avg(o.preco_gbp), 2)               AS preco_medio_gbp,
+    round(avg(o.preco_gbp * ct.cotacao_venda), 2) AS preco_medio_brl
+FROM observacao_preco o
+JOIN livro l     ON l.livro_id = o.livro_id
+JOIN categoria c ON c.categoria_id = l.categoria_id
+LEFT JOIN LATERAL (
+    SELECT x.cotacao_venda
+    FROM cotacao x
+    WHERE x.moeda_codigo = 'GBP'
+      AND x.tipo_boletim ILIKE 'Fechamento%'
+      AND x.data_cotacao &lt;= o.data_coleta
+    ORDER BY x.data_hora_cotacao DESC
+    LIMIT 1
+) ct ON true
+GROUP BY c.nome, date_trunc('month', o.data_coleta)
+ORDER BY mes, categoria;</code></pre>
+        <h3>16.2 Esquema estrela (DuckDB)</h3>
+        <pre><code>SELECT
+    c.categoria_nome           AS categoria,
+    d.ano_mes                  AS mes,
+    count(DISTINCT l.upc)      AS livros_observados,
+    round(avg(f.preco_gbp), 2) AS preco_medio_gbp,
+    round(avg(f.preco_brl), 2) AS preco_medio_brl
+FROM gold.fato_preco_diario f
+JOIN gold.dim_data d      ON d.data_sk = f.data_coleta_sk
+JOIN gold.dim_categoria c ON c.categoria_sk = f.categoria_sk
+JOIN gold.dim_livro l     ON l.livro_sk = f.livro_sk
+GROUP BY ALL
+ORDER BY mes, categoria;</code></pre>
+        <h3>16.3 O que muda entre as duas</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Aspecto</th><th>Relacional</th><th>Estrela</th></tr></thead>
+          <tbody>
+            <tr><td>Regra da cotação</td><td>reescrita na consulta (subconsulta lateral)</td><td>resolvida uma vez na carga; <code>preco_brl</code> já está na fato</td></tr>
+            <tr><td>Categoria usada</td><td>a atual do livro</td><td>a do dia da coleta</td></tr>
+            <tr><td>Contagem de livros</td><td><code>livro_id</code></td><td><code>upc</code>, porque um livro pode ter várias versões</td></tr>
+            <tr><td>Resultado</td><td colspan="2">igual quando nenhum livro mudou de categoria no período; diferente quando mudou, e a diferença é a resposta à pergunta "qual história queremos contar"</td></tr>
+          </tbody>
+        </table></div>
+        <p>Na validação com dados sintéticos (1.000 livros, 14 dias, um livro reclassificado em 03/11), a estrela mostrou, em novembro, 250 livros em Fiction e 251 em Mystery: o livro reclassificado conta nas duas categorias, porque foi observado em Fiction nos dias 1 e 2 e em Mystery a partir do dia 3. Na consulta relacional, o mesmo livro conta só em Mystery, inclusive em outubro. As duas leituras são válidas e respondem a perguntas diferentes; cabe ao grupo registrar qual delas a persona analítica faz.</p>
+      </section>
+
+      <!-- ============================ 17 ============================ -->
+      <section class="content-block" id="s17">
+        <h2>17. Preparação do ambiente</h2>
+        <p>A prática acontece no Codespace do repositório do grupo, com os dados do silver produzidos na Aula 04. Se o silver do grupo estiver incompleto, gere dados sintéticos no formato do contrato da seção 1 para destravar a modelagem e registre a lacuna em <code>specs/spec.md</code>.</p>
+        <ol class="steps">
+          <li>Abra o Codespace do repositório do grupo e confirme as ferramentas: <code>docker --version</code>, <code>python3 --version</code>, <code>node --version</code>.</li>
+          <li>Crie a pasta da aula com o esqueleto SDD:
+            <pre><code>mkdir -p aula_05_modelagem/{docs/adr,docs/evidencias,specs,src,tests,sql}
+cd aula_05_modelagem</code></pre></li>
+          <li>Copie da pasta <a href="../laboratorio/README.md"><code>laboratorio/</code></a> desta aula os arquivos <code>AGENTS.md</code>, <code>docker-compose.yml</code>, <code>.env.example</code> e a pasta <code>sql/</code>. Pelo navegador, abra cada arquivo no GitHub do repositório da disciplina e copie o conteúdo; ou clone o repositório da disciplina numa pasta temporária e use <code>cp -r</code>.</li>
+          <li>Crie o <code>.env</code> e garanta que ele fique fora do Git:
+            <pre><code>cp .env.example .env
+grep -qxF '.env' ../.gitignore || echo '.env' &gt;&gt; ../.gitignore
+openssl rand -base64 24   # cole em POSTGRES_PASSWORD
+openssl rand -base64 24   # cole em MINIO_ROOT_PASSWORD</code></pre></li>
+          <li>Suba o ambiente local e aplique o DDL duas vezes (a segunda execução prova a idempotência):
+            <pre><code>docker compose up -d --wait
+docker compose exec -T postgres psql -U livraria -d livraria -v ON_ERROR_STOP=1 -f /sql/relacional/001_schema.sql
+docker compose exec -T postgres psql -U livraria -d livraria -v ON_ERROR_STOP=1 -f /sql/relacional/001_schema.sql
+docker compose exec -T postgres psql -U livraria -d livraria -c '\dt livraria.*'</code></pre></li>
+          <li>Abra o OpenCode na pasta da aula: <code>opencode</code>. Confira com <code>/models</code> que o modelo é <code>openrouter/openrouter/free</code>. Se não aparecer, declare-o em <code>opencode.json</code> como na Aula 01.</li>
+        </ol>
+        <div class="note">
+          <strong>Limite dos modelos gratuitos</strong>
+          <p>A OpenRouter limita os modelos gratuitos a 20 requisições por minuto e a 50 por dia para contas que compraram menos de US$ 10 em créditos (1.000 por dia a partir de US$ 10). Um prompt de agente consome várias requisições. Trabalhe um prompt por vez; diante de erro 429, espere e repita.</p>
+        </div>
+      </section>
+
+      <!-- ============================ 18 ============================ -->
+      <section class="content-block" id="s18">
+        <h2>18. Postgres no Railway pelo terminal</h2>
+        <p>O Postgres entra no mesmo projeto do Railway onde o MinIO já roda desde a Aula 01. O comando <code>railway add --database postgres</code> cria e implanta o serviço a partir do template oficial, com volume e variáveis de conexão.</p>
+        <ol class="steps">
+          <li>Autentique e vincule a pasta ao projeto existente:
+            <pre><code>railway login --browserless
+railway link</code></pre></li>
+          <li>Adicione o banco e confira o nome do serviço criado:
+            <pre><code>railway add --database postgres
+railway service</code></pre></li>
+          <li>Liste só os nomes das variáveis, sem expor valores na tela:
+            <pre><code>railway variable list --service Postgres --kv | cut -d= -f1</code></pre>
+            Use o nome que <code>railway service</code> mostrou se for diferente de <code>Postgres</code>. A documentação do Railway lista <code>PGHOST</code>, <code>PGPORT</code>, <code>PGUSER</code>, <code>PGPASSWORD</code>, <code>PGDATABASE</code> e <code>DATABASE_URL</code>.</li>
+          <li>Para conectar a partir do Codespace, abra no painel o serviço Postgres, vá em Settings, Networking e adicione Public Access. O Railway cria um TCP Proxy e a variável <code>DATABASE_PUBLIC_URL</code>. A <code>DATABASE_URL</code> serve aos serviços do mesmo projeto; se o host dela terminar em <code>.railway.internal</code>, ele só resolve dentro da rede privada do Railway.</li>
+          <li>Copie <code>DATABASE_PUBLIC_URL</code> para o <code>.env</code> (pelo painel, sem imprimir no terminal) e aplique o DDL com o cliente da imagem oficial do Postgres, que dispensa instalar <code>psql</code>:
+            <pre><code>set -a; source .env; set +a
+docker run --rm -i postgres:16 psql "$DATABASE_PUBLIC_URL" -v ON_ERROR_STOP=1 &lt; sql/relacional/001_schema.sql
+docker run --rm -i postgres:16 psql "$DATABASE_PUBLIC_URL" -c '\dt livraria.*'</code></pre></li>
+          <li>Para um console interativo, <code>railway connect</code> abre o <code>psql</code> contra o banco do projeto. Ele exige <code>psql</code> instalado, usa o TCP Proxy quando existe e, sem ele, abre um túnel SSH.</li>
+        </ol>
+        <div class="note">
+          <strong>Egress e segredo</strong>
+          <p>O Railway cobra o tráfego que passa pelo TCP Proxy como egress de rede. Cargas repetidas do Codespace para o Postgres consomem crédito. A <code>DATABASE_PUBLIC_URL</code> contém usuário e senha: não a cole em prompt, em captura de tela ou em arquivo versionado.</p>
+        </div>
+      </section>
+
+      <!-- ============================ 19 ============================ -->
+      <section class="content-block" id="s19">
+        <h2>19. Prática guiada: os sete prompts CREATE</h2>
+        <p>Os prompts seguem a sequência SDD da Aula 01 e o formato CREATE: Personagem, Pedido, Exemplos, Ajustes, Tipo de saída e Extras. Copie cada bloco inteiro para o OpenCode, aberto em <code>aula_05_modelagem/</code>. Depois de cada um, responda às perguntas de "Revise antes de seguir" lendo os arquivos gerados. É nessa revisão que o grupo aceita, corrige ou recusa o que o agente propôs.</p>
+
+        <h3>Prompt 1 · Persona</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é analista de requisitos de dados num projeto de MBA em Engenharia de Dados. Trabalha somente com os arquivos deste repositório.
+
+[R] Pedido
+Escreva docs/00_persona.md para a pasta aula_05_modelagem/. O projeto modela os dados de livros (books.toscrape.com) e da cotação PTAX GBP/BRL, já disponíveis no silver da Aula 04, de duas formas: um modelo relacional no PostgreSQL e um modelo dimensional (estrela) no DuckDB com a gold no MinIO. Descreva duas personas:
+1. Persona operacional: quem consulta o estado atual de um livro (preço, estoque, URL vigente), por exemplo um serviço de alerta de preço.
+2. Persona analítica: quem decide preço de revenda em reais e analisa tendência por categoria, mês e câmbio.
+Para cada persona: decisão que toma, pergunta que faz aos dados (escrita como pergunta), frequência, dor atual, o que acontece se o dado estiver errado e qual modelo atende melhor.
+
+[E] Exemplos
+"Pergunta: qual o preço médio em reais dos livros de Poetry em novembro, comparado a outubro? Frequência: semanal (hipótese — validação pendente). Dor: hoje a resposta exige juntar quatro arquivos Parquet e decidir à mão qual cotação vale no fim de semana."
+
+[A] Ajustes
+- Não invente números de usuários, volumes ou prazos; marque "hipótese — validação pendente".
+- Separe em seções: Fatos (do repositório), Lacunas, Suposições.
+- Leia aula_04_*/ e aula_03_*/ antes de escrever e cite os caminhos que usou.
+- Não crie código nem outros arquivos.
+
+[T] Tipo de saída
+Um arquivo Markdown, até 80 linhas, com uma tabela comparando as duas personas.
+
+[E] Extras
+Leia AGENTS.md antes. Se não encontrar o silver da Aula 04, pergunte antes de supor. Mostre o arquivo e pare ao final desta etapa.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>As duas personas fazem perguntas diferentes, uma por chave (um livro) e outra por agregação (categoria e mês)? Alguma frequência ou volume aparece sem a marca de hipótese? Os caminhos citados existem no repositório? A seção de lacunas menciona se o silver tem UPC?</p>
+        </div>
+
+        <h3>Prompt 2 · Objetivos de negócio</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é analista de negócios de dados. Conhece modelagem relacional e dimensional, mas nesta etapa escreve só objetivos e restrições.
+
+[R] Pedido
+Escreva docs/01_objetivos_negocio.md a partir de docs/00_persona.md. Inclua:
+1. Objetivos de negócio (OBJ-01, OBJ-02...) ligados a cada persona.
+2. Métricas de sucesso verificáveis para cada objetivo.
+3. Drivers de negócio que afetam a arquitetura: histórico de categoria preservado para análise, consistência do estado atual, reexecução segura do pipeline diário, custo.
+4. Restrições conhecidas: trial do Railway com crédito único de US$ 5 por até 30 dias, 1 GB de RAM e até 5 serviços por projeto; MinIO e Postgres no mesmo projeto; egress cobrado no TCP Proxy do Postgres; PTAX sem publicação em sábados, domingos e feriados; modelos gratuitos da OpenRouter com 20 requisições por minuto.
+5. Fora de escopo desta aula.
+
+[E] Exemplos
+"OBJ-02 · Persona analítica · Responder preço médio em BRL por categoria e mês com a categoria vigente no dia da coleta. Métrica: a consulta roda sobre a gold sem subconsulta de câmbio e retorna o mesmo total de observações da fato (verificável por contagem)."
+
+[A] Ajustes
+- Métricas sem fonte ficam como "hipótese — validação pendente".
+- Não proponha tecnologia nem tabela; isso é do plano.
+- Preserve os nomes das personas de 00_persona.md.
+
+[T] Tipo de saída
+Markdown, até 70 linhas, com uma tabela objetivo → persona → métrica → como verificar.
+
+[E] Extras
+Pare ao final e liste as perguntas que o grupo precisa responder antes da especificação.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Cada objetivo tem métrica que se verifica com um comando ou consulta? As restrições de custo e de limite de serviços estão lá, com os números exatos? Algum objetivo já escolhe tecnologia (sinal de que o agente pulou etapa)?</p>
+        </div>
+
+        <h3>Prompt 3 · Especificação</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é engenheiro de requisitos. Escreve requisitos testáveis, sem desenhar a solução.
+
+[R] Pedido
+Escreva specs/spec.md com requisitos funcionais (RF-xx) e não funcionais (RNF-xx) para as duas trilhas, cada um com critério de aceite no formato Dado/Quando/Então. Cubra no mínimo:
+- RF-01 Esquema relacional em 3FN no PostgreSQL com PK, FK, UNIQUE e CHECK.
+- RF-02 Carga do silver para o Postgres a partir de staging, idempotente por dia.
+- RF-03 Identificação do livro pela chave natural (UPC, ou a alternativa encontrada no silver) e histórico de URLs.
+- RF-04 Fato de preço com grão declarado: um livro por dia de coleta.
+- RF-05 dim_livro com SCD tipo 2 para título e categoria e tipo 1 para avaliação e URL.
+- RF-06 Conversão para BRL com a última cotação de fechamento disponível até a data da coleta.
+- RF-07 Publicação da gold dimensional em Parquet no MinIO.
+- RF-08 A mesma pergunta (preço médio em BRL por categoria e mês) respondida nos dois modelos.
+- RNF-01 Reexecução do mesmo dia não altera contagens.
+- RNF-02 Nenhum segredo em arquivo versionado.
+- RNF-03 DDL aplicável duas vezes sem erro.
+- RNF-04 Linhagem: cada linha aponta o arquivo do silver ou a execução que a gerou.
+- RNF-05 Custo dentro do crédito do Railway.
+
+[E] Exemplos
+"RF-05 · SCD tipo 2 em dim_livro
+Dado um livro com versão vigente na categoria Fiction desde 26/10/2026,
+Quando a carga de 03/11/2026 recebe o mesmo UPC na categoria Mystery,
+Então a versão Fiction recebe valido_ate = 02/11/2026 e versao_atual = false, uma nova versão Mystery é criada com valido_de = 03/11/2026, e as linhas da fato anteriores a 03/11 continuam apontando para a versão Fiction."
+
+[A] Ajustes
+- Requisito sem fonte em persona ou objetivo é marcado "sem objetivo correspondente".
+- Nada de nomes de tabela inventados além dos já citados acima; o plano decide o resto.
+- Números de desempenho ficam como hipótese.
+- Mantenha uma seção Lacunas (ex.: texto exato de tipo_boletim no silver, presença de UPC).
+
+[T] Tipo de saída
+Markdown com tabela de rastreio requisito → objetivo e os critérios de aceite abaixo dela.
+
+[E] Extras
+Leia docs/00_persona.md e docs/01_objetivos_negocio.md. Rode, ou peça para eu rodar, um DESCRIBE do silver no DuckDB para confirmar colunas antes de fechar RF-03 e RF-06. Pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Cada critério de aceite pode virar um teste automatizado sem interpretação? O grão está escrito por extenso em RF-04? RF-06 trata o fim de semana? A lacuna sobre o texto de <code>tipo_boletim</code> foi registrada ou resolvida com o DESCRIBE?</p>
+        </div>
+
+        <h3>Prompt 4 · Plano e arquitetura</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é arquiteto de dados com prática em modelagem relacional (até 3FN) e dimensional (Kimball).
+
+[R] Pedido
+Escreva specs/plan.md com:
+1. C4 em Mermaid: contexto (personas, Railway, MinIO, silver) e contêineres (Postgres no Railway, carregador Python, DuckDB, MinIO com silver e gold).
+2. Modelo conceitual: entidades e relacionamentos com cardinalidade, em texto.
+3. Modelo lógico relacional em Mermaid erDiagram com PK, FK e UK, e a justificativa de 1FN, 2FN e 3FN partindo de uma linha do silver.
+4. Modelo dimensional: os quatro passos de Kimball (processo, grão, dimensões, fatos), a bus matrix, a classificação de cada medida (aditiva, semiaditiva, não aditiva) e o esquema estrela em Mermaid erDiagram.
+5. Decisões ligadas a requisitos: chave natural vs substituta, SCD por atributo, onde fica o estado da gold (MinIO), estratégia de idempotência de cada trilha, como a carga relacional lê o silver (DuckDB com extensão postgres ou Python com psycopg).
+6. Candidatos a ADR (só os títulos).
+
+[E] Exemplos
+"Decisão D-03 · Estado da gold no MinIO. Requisitos: RF-07, RNF-01. A cada execução, o carregador restaura dim_livro e as fatos a partir de s3://gold/dimensional/ e regrava os Parquet ao final. Alternativa descartada: manter só o arquivo .duckdb no contêiner, que é apagado a cada execução do cron no Railway."
+
+[A] Ajustes
+- Os nomes no Mermaid são os mesmos do texto e do DDL de sql/.
+- Toda tecnologia aparece ligada a um RF ou RNF; sem isso, marque "sem requisito correspondente".
+- Não escreva código nem DDL novo nesta etapa; aponte os arquivos em sql/ que serão usados ou alterados.
+
+[T] Tipo de saída
+Markdown com quatro blocos Mermaid (contexto, contêiner, ER, estrela) e uma tabela decisão → requisito → alternativa descartada.
+
+[E] Extras
+Use sql/relacional/001_schema.sql e sql/dimensional/001_schema.sql como ponto de partida e aponte onde o silver real do grupo exige ajuste. Pare ao final.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Os nomes de tabela e coluna do Mermaid batem com o DDL? O grão aparece antes da lista de medidas? A justificativa da 2FN cita a dependência parcial de <code>titulo</code> em relação ao UPC? Alguma medida não aditiva aparece sendo somada em algum exemplo?</p>
+        </div>
+
+        <h3>Prompt 5 · Tarefas</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é líder técnico que quebra um plano em tarefas pequenas e verificáveis.
+
+[R] Pedido
+Escreva specs/tasks.md com tarefas T-01, T-02... para as duas trilhas, na ordem de execução. Cada tarefa tem: objetivo, RF/RNF atendidos, arquivos tocados, teste ou comando de verificação, e critério de pronto.
+Trilha relacional: aplicar DDL local; carregador silver → staging; upsert; teste de reexecução; aplicar DDL no Railway; carga no Railway; consulta Q2 com EXPLAIN.
+Trilha dimensional: views de staging com o schema real; restauração da gold; SCD2 de dim_livro; carga das fatos; testes de grão, órfãos e vigência; publicação no MinIO; consulta Q2 na estrela.
+
+[E] Exemplos
+"T-09 · Testes da fato · RF-04, RF-05, RNF-01
+Arquivos: tests/test_gold.py
+Verificação: pytest -q tests/test_gold.py roda as consultas T1 a T5 de sql/dimensional/007_consultas.sql sobre dados sintéticos de 3 dias com uma reclassificação; todas retornam 0.
+Pronto quando: os testes passam duas vezes seguidas, a segunda após reexecutar o último dia."
+
+[A] Ajustes
+- Nenhuma tarefa maior que o que se faz em 20 minutos; divida se for.
+- Toda tarefa tem teste; tarefa sem teste é rejeitada.
+- Tarefas que criam recurso no Railway pedem confirmação do grupo.
+
+[T] Tipo de saída
+Markdown com checklist (- [ ]) e uma tabela tarefa → requisito → teste.
+
+[E] Extras
+Leia specs/spec.md e specs/plan.md. Pare ao final; não implemente.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Todo RF e RNF aparece em pelo menos uma tarefa? Os testes usam dados sintéticos com uma reclassificação e uma troca de URL? A tarefa de reexecução existe nas duas trilhas? Alguma tarefa cria serviço no Railway sem pedir confirmação?</p>
+        </div>
+
+        <h3>Prompt 6 · Implementação tarefa a tarefa</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é engenheiro de dados Python com prática em PostgreSQL, DuckDB (httpfs, extensão postgres, ASOF JOIN) e testes com pytest.
+
+[R] Pedido
+Implemente specs/tasks.md uma tarefa por vez, começando pela primeira não marcada. Para cada tarefa:
+1. Mostre o plano da tarefa (arquivos e comandos) e espere meu "ok".
+2. Escreva primeiro o teste, depois o código.
+3. Rode o teste e mostre a saída.
+4. Marque a tarefa como feita em specs/tasks.md e registre a evidência em docs/evidencias/T-xx.md (comando e saída, sem segredos).
+Regras do carregador:
+- Credenciais do MinIO e do Postgres vêm do .env (S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_USE_SSL, DATABASE_URL_LOCAL ou DATABASE_PUBLIC_URL).
+- O DuckDB cria o secret S3 com URL_STYLE 'path' e ENDPOINT sem https://.
+- O dia a carregar vem de argumento --data AAAA-MM-DD; o padrão é a data de hoje.
+- Use os arquivos de sql/ como estão; se o silver real exigir ajuste, altere só as views de staging e explique.
+- Toda escrita no MinIO ou no Postgres tem retry com backoff para falhas transitórias (o proxy do Railway devolve 502 esporádico) e é idempotente.
+
+[E] Exemplos
+"Plano T-04: criar src/carregar_relacional.py (lê silver do dia com DuckDB, ATTACH no Postgres, DELETE + INSERT em livraria.stg_livro_dia, executa sql/relacional/002_staging_e_carga.sql) e tests/test_carga_relacional.py (sobe Postgres do docker compose, carrega 2 dias sintéticos duas vezes e compara contagens). Comando: pytest -q tests/test_carga_relacional.py."
+
+[A] Ajustes
+- Uma tarefa por resposta. Pare depois de cada uma.
+- Não imprima DATABASE_PUBLIC_URL nem senhas; mascare em logs.
+- Não use latest em imagem Docker.
+- Não apague volumes nem serviços.
+
+[T] Tipo de saída
+Código em src/, testes em tests/, evidências em docs/evidencias/, checklist atualizado.
+
+[E] Extras
+Leia AGENTS.md, specs/ e sql/. Se um teste falhar duas vezes, pare e descreva a hipótese de causa antes de tentar de novo.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <p>Cada tarefa tem evidência com comando e saída? A reexecução do mesmo dia foi testada nas duas trilhas, com contagens iguais? Os testes T1 a T5 retornam zero? Alguma senha ou URL de conexão apareceu em log, teste ou commit? O agente alterou tabelas em vez de views de staging para acomodar o silver?</p>
+        </div>
+
+        <h3>Prompt 7 · Validação ATAM</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é uma equipe avaliadora ATAM independente, com um especialista em modelagem de dados e um em operação no Railway.
+
+[R] Pedido
+Escreva docs/atam.md e os ADRs em docs/adr/. O atam.md contém:
+1. Drivers de negócio e atributos de qualidade (de docs/01_objetivos_negocio.md e specs/spec.md).
+2. Utility tree: atributo → refinamento → cenário, com importância e dificuldade (A/M/B) justificadas.
+3. Os seis cenários abaixo, cada um com as seis partes (fonte do estímulo, estímulo, ambiente, artefato, resposta, medida da resposta):
+   CEN-01 Mudança de atributo de dimensão (livro muda de categoria ou de título).
+   CEN-02 Chave natural instável (a URL do livro muda).
+   CEN-03 Grão misturado (alguém tenta gravar média semanal ou duas coletas do mesmo dia na fato).
+   CEN-04 Fato duplicado em reexecução (o cron roda de novo após 502 do proxy).
+   CEN-05 Consulta analítica lenta no Postgres vs DuckDB (mesma Q2, medida nos dois).
+   CEN-06 Crédito do Railway com Postgres + MinIO no ar.
+4. Para cada cenário: decisões relacionadas, evidência existente (arquivo em docs/evidencias/ ou teste), lacunas.
+5. Pontos de sensibilidade, trade-offs, riscos, não riscos.
+6. Matriz requisito → decisão → componente → evidência, incluindo requisitos sem cobertura.
+ADRs mínimos: ADR-001 chave natural + substituta; ADR-002 SCD por atributo; ADR-003 estado da gold no MinIO.
+
+[E] Exemplos
+"CEN-02 · Chave natural instável
+Fonte: books.toscrape.com. Estímulo: a URL de um livro muda de .../livro-x_123/ para .../livro-x_987/. Ambiente: carga diária normal. Artefato: livro, livro_url, dim_livro. Resposta: o livro continua identificado pelo UPC; a nova URL entra em livro_url e sobrescreve url em dim_livro (tipo 1); nenhum livro novo é criado. Medida: count(DISTINCT upc) = count(*) em livro após a carga; teste tests/test_url_muda.py verde."
+
+[A] Ajustes
+- Valores de medida sem evidência ficam como "hipótese — validação pendente".
+- Para CEN-05, use tempos medidos pelo grupo (EXPLAIN ANALYZE no Postgres e .timer on ou time.perf_counter no DuckDB), com volume, máquina e número de repetições; não declare vencedor geral.
+- Para CEN-06, use apenas os limites do trial já registrados nos objetivos e o consumo visto no painel.
+- Todo risco aponta para uma decisão concreta.
+
+[T] Tipo de saída
+docs/atam.md (Markdown com tabelas) e três arquivos docs/adr/ADR-00x-*.md com status, contexto, alternativas, decisão, consequências e condição de revisão.
+
+[E] Extras
+Leia todos os arquivos de docs/, specs/, sql/ e docs/evidencias/. Pare ao final e liste o que precisa ser medido para fechar as lacunas.</code></pre>
+        <div class="note">
+          <strong>Revise para fechar</strong>
+          <p>Os seis cenários têm as seis partes e uma medida verificável? CEN-05 traz números medidos pelo grupo, com volume e repetições, ou está honestamente marcado como hipótese? Existe ao menos um trade-off nomeado, por exemplo entre redundância na dimensão e simplicidade da consulta? A matriz mostra requisitos sem cobertura, se houver?</p>
+        </div>
+      </section>
+
+      <!-- ============================ 20 ============================ -->
+      <section class="content-block" id="s20">
+        <h2>20. Execução e gates de validação</h2>
+        <p>Os SQLs do laboratório foram validados antes da aula em PostgreSQL 16 e DuckDB 1.5.6, com um MinIO local na imagem <code>ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z</code> e dados sintéticos no formato do contrato da seção 1: 1.000 livros, 14 dias de coleta, um livro reclassificado, um livro com título alterado e um com URL trocada. A sequência abaixo é a mesma que o carregador do grupo executa.</p>
+        <h3>20.1 Trilha relacional</h3>
+        <ol class="steps">
+          <li>Aplique <code>sql/relacional/001_schema.sql</code> duas vezes (local e Railway). Esperado: nenhuma mensagem de erro, só avisos de "already exists".</li>
+          <li>Preencha <code>livraria.stg_livro_dia</code> e <code>livraria.stg_cotacao</code> com o silver do dia. Com DuckDB, a extensão <code>postgres</code> faz isso sem arquivo intermediário:
+            <pre><code>INSTALL postgres; LOAD postgres;
+ATTACH 'postgresql://...' AS pg (TYPE postgres);   -- URL lida do .env pelo carregador
+DELETE FROM pg.livraria.stg_livro_dia;
+INSERT INTO pg.livraria.stg_livro_dia
+SELECT upc, url, titulo, categoria, avaliacao, preco_gbp, em_estoque, qtd_estoque,
+       data_coleta, coletado_em, 'silver/livros'
+FROM read_parquet('s3://silver/livros/*/*.parquet', hive_partitioning = true);</code></pre></li>
+          <li>Execute <code>002_staging_e_carga.sql</code> duas vezes. Esperado: a tabela de contagens final é idêntica nas duas execuções.</li>
+          <li>Rode a consulta Q4 de <code>003_consultas.sql</code> (comentada no arquivo). Esperado: <code>violates foreign key constraint "fk_observacao_livro"</code>.</li>
+          <li>Guarde em <code>docs/evidencias/</code> as contagens e o <code>EXPLAIN (ANALYZE, BUFFERS)</code> de Q3.</li>
+        </ol>
+        <h3>20.2 Trilha dimensional</h3>
+        <ol class="steps">
+          <li>No DuckDB, crie o secret S3 com os valores do <code>.env</code> e defina as variáveis da execução:
+            <pre><code>INSTALL httpfs; LOAD httpfs;
+CREATE OR REPLACE SECRET minio (TYPE s3, KEY_ID '...', SECRET '...',
+    ENDPOINT 'dominio.up.railway.app', URL_STYLE 'path', USE_SSL true, REGION 'us-east-1');
+SET VARIABLE data_ref = DATE '2026-11-07';
+SET VARIABLE execucao_id = '2026-11-07T09:00:00Z';
+SET VARIABLE silver_livros = 's3://silver/livros/*/*.parquet';
+SET VARIABLE silver_ptax = 's3://silver/ptax/*.parquet';
+SET VARIABLE gold_prefix = 's3://gold/dimensional/';</code></pre></li>
+          <li>Execute, em ordem, <code>001_schema.sql</code>, <code>002_staging_silver.sql</code>, <code>003_restaurar_gold.sql</code> (pule na primeira vez), <code>004_carga_dimensoes_scd2.sql</code>, <code>005_carga_fatos.sql</code> e <code>006_publicar_gold.sql</code>. Se o bucket <code>gold</code> ainda não existir, crie-o com <code>mc mb railway/gold</code>.</li>
+          <li>Repita o mesmo dia. Esperado: contagens de <code>fato_preco_diario</code> e <code>dim_livro</code> iguais às da execução anterior.</li>
+          <li>Rode os testes T1 a T5 de <code>007_consultas.sql</code>. Esperado: todos 0.</li>
+          <li>Confira a publicação: <code>mc ls railway/gold/dimensional/</code> deve listar seis arquivos Parquet.</li>
+        </ol>
+        <h3>20.3 Gates de aceite</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Gate</th><th>Evidência</th><th>Falha típica</th></tr></thead>
+          <tbody>
+            <tr><td>DDL idempotente</td><td>duas aplicações sem erro</td><td><code>CREATE TABLE</code> sem <code>IF NOT EXISTS</code></td></tr>
+            <tr><td>Integridade</td><td>Q4 recusada por FK</td><td>FK esquecida ou desativada</td></tr>
+            <tr><td>Reconciliação</td><td>linhas do silver = carregadas + rejeitadas</td><td>linhas sem UPC sumindo sem registro</td></tr>
+            <tr><td>Reexecução</td><td>contagens iguais após repetir o dia</td><td><code>INSERT</code> sem chave ou sem <code>DELETE</code> da partição</td></tr>
+            <tr><td>Grão</td><td>T1 = 0</td><td>duas coletas no mesmo dia gravadas na fato</td></tr>
+            <tr><td>SCD2</td><td>T3 = 0, T4 = 0, Q6 com versões contíguas</td><td>dias carregados fora de ordem</td></tr>
+            <tr><td>Publicação</td><td><code>mc ls</code> com seis arquivos</td><td>secret com <code>https://</code> no ENDPOINT</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- ============================ 21 ============================ -->
+      <section class="content-block" id="s21">
+        <h2>21. Cenários ATAM da aula</h2>
+        <p>O ATAM avalia a arquitetura por cenários concretos. Cada cenário tem seis partes: fonte do estímulo, estímulo, ambiente, artefato, resposta e medida da resposta. A tabela resume a resposta esperada do modelo para os seis cenários desta aula; o prompt 7 pede ao agente que os escreva completos, com evidência do grupo.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Cenário</th><th>Estímulo</th><th>Resposta do modelo</th><th>Medida</th></tr></thead>
+          <tbody>
+            <tr><td>CEN-01 Mudança de atributo de dimensão</td><td>livro reclassificado de Fiction para Mystery</td><td>nova versão em <code>dim_livro</code>; fatos antigas mantêm Fiction; no Postgres, só o estado atual muda</td><td>T3 e T4 = 0; Q5 mostra a diferença</td></tr>
+            <tr><td>CEN-02 Chave natural instável</td><td>URL do livro muda</td><td>UPC mantém a identidade; nova linha em <code>livro_url</code>; <code>url</code> sobrescrita (tipo 1)</td><td><code>count(DISTINCT upc) = count(*)</code> em <code>livro</code></td></tr>
+            <tr><td>CEN-03 Grão misturado</td><td>tentativa de gravar média semanal ou duas coletas do dia</td><td>staging reduz a uma linha por UPC e dia; PK da fato recusa duplicata; média semanal vai para outra fato</td><td>T1 = 0</td></tr>
+            <tr><td>CEN-04 Fato duplicado em reexecução</td><td>cron reexecuta o dia após 502 do proxy</td><td>Postgres: <code>ON CONFLICT</code>; DuckDB: <code>DELETE</code> da partição e <code>INSERT</code> na mesma transação</td><td>contagens iguais entre execuções</td></tr>
+            <tr><td>CEN-05 Consulta analítica lenta</td><td>Q2 sobre meses de histórico</td><td>OLTP atende por chave; Q2 vai para a estrela no DuckDB</td><td>tempo medido nos dois, com volume e repetições</td></tr>
+            <tr><td>CEN-06 Crédito do Railway</td><td>Postgres, MinIO e cron consumindo o crédito</td><td>Public Access ligado só durante cargas; dump antes de remover</td><td>consumo no painel ao fim da aula e uma semana depois</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Exemplo resolvido: CEN-04 em seis partes</h3>
+        <div class="table-scroll"><table>
+          <tbody>
+            <tr><th>Fonte do estímulo</th><td>cron do Railway (job da Aula 04 estendido nesta aula)</td></tr>
+            <tr><th>Estímulo</th><td>a primeira execução do dia recebe 502 do proxy ao publicar a gold; o retry reexecuta o dia inteiro</td></tr>
+            <tr><th>Ambiente</th><td>operação normal, gold já parcialmente publicada (dimensões gravadas, fato não)</td></tr>
+            <tr><th>Artefato</th><td><code>fato_preco_diario</code>, <code>observacao_preco</code>, <code>006_publicar_gold.sql</code></td></tr>
+            <tr><th>Resposta</th><td>a reexecução restaura o estado do MinIO, reprocessa o dia sem duplicar e regrava os seis arquivos; a fato é publicada por último</td></tr>
+            <tr><th>Medida da resposta</th><td>contagem da fato no MinIO igual à contagem local após a segunda execução; zero linhas com o mesmo <code>(data_coleta_sk, upc)</code>; evidência em <code>docs/evidencias/</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>Ponto de sensibilidade: a publicação de seis objetos não é atômica como conjunto. Se a execução morrer entre a dimensão e a fato, a gold fica com uma dimensão mais nova que a fato. A ordem (fato por último) e o <code>execucao_id</code> tornam esse estado detectável, mas não o impedem. Trade-off: gravar tudo em um único prefixo versionado por execução resolveria, ao custo de mais objetos e de um ponteiro para a versão vigente.</p>
+      </section>
+
+      <!-- ============================ 22 ============================ -->
+      <section class="content-block" id="s22">
+        <h2>22. Custo no Railway e encerramento</h2>
+        <p>O trial do Railway oferece crédito único de US$ 5, válido por até 30 dias, com 1 GB de RAM, vCPU compartilhada e até 5 serviços por projeto. Depois, a conta passa ao plano Free, com US$ 1 por mês. Nesta altura do semestre o projeto do grupo pode ter MinIO, o job da Aula 04 e o Postgres desta aula: três serviços consumindo crédito ao mesmo tempo, mais o egress do TCP Proxy.</p>
+        <ol class="steps">
+          <li>Ao fim da aula, abra o painel de uso do Railway e registre o consumo em <code>docs/evidencias/custo_railway.md</code>.</li>
+          <li>Se o Postgres não for usado até a próxima aula, remova o Public Access ou exporte e remova o serviço. Antes de remover, faça o dump:
+            <pre><code>docker run --rm -i postgres:16 pg_dump "$DATABASE_PUBLIC_URL" --schema=livraria --no-owner &gt; docs/evidencias/livraria_dump.sql</code></pre></li>
+          <li>Lembre que volumes de contas trial são apagados 30 dias após o fim dos créditos. O dump e a gold em Parquet são a cópia que sobrevive.</li>
+        </ol>
+      </section>
+
+      <!-- ============================ 23 ============================ -->
+      <section class="content-block" id="s23">
+        <h2>23. Atividade em sala e entregável</h2>
+        <p>A aula segue o roteiro abaixo. O professor executa cada etapa ao vivo no próprio Codespace; os grupos reproduzem no deles, com os prompts da seção 19.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Horário</th><th>Etapa</th><th>Saída verificável</th></tr></thead>
+          <tbody>
+            <tr><td>8h30&ndash;9h00</td><td>modelagem relacional (seções 2 a 8)</td><td>ER do domínio desenhado em conjunto</td></tr>
+            <tr><td>9h00&ndash;9h30</td><td>modelagem dimensional (seções 9 a 16)</td><td>grão e estrela declarados</td></tr>
+            <tr><td>9h30&ndash;10h00</td><td>preparação, compose local e Postgres no Railway</td><td>DDL aplicado duas vezes, local e no Railway</td></tr>
+            <tr><td>10h00&ndash;10h45</td><td>prompts 1 a 5</td><td>persona, objetivos, spec, plan e tasks revisados</td></tr>
+            <tr><td>10h45&ndash;11h40</td><td>prompt 6, duas trilhas</td><td>Postgres carregado; gold no MinIO; testes verdes</td></tr>
+            <tr><td>11h40&ndash;12h00</td><td>prompt 7</td><td><code>atam.md</code> e três ADRs</td></tr>
+            <tr><td>12h00&ndash;12h10</td><td>gates e custo</td><td>evidências e consumo registrados</td></tr>
+          </tbody>
+        </table></div>
+        <h3>Entregável</h3>
+        <p>A pasta <code>aula_05_modelagem/</code> no repositório do grupo (o mesmo informado no formulário de grupo da disciplina), com:</p>
+        <ul>
+          <li>esqueleto SDD: <code>AGENTS.md</code>, <code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code>, <code>specs/spec.md</code>, <code>specs/plan.md</code>, <code>specs/tasks.md</code>;</li>
+          <li>ER relacional e esquema estrela em Mermaid dentro de <code>specs/plan.md</code>, com os mesmos nomes do DDL;</li>
+          <li>DDLs versionados em <code>sql/relacional/</code> e <code>sql/dimensional/</code>;</li>
+          <li>Postgres no Railway carregado a partir do silver, com contagens e reexecução em <code>docs/evidencias/</code>;</li>
+          <li>gold dimensional no MinIO, com a saída de <code>mc ls</code> e os testes T1 a T5 em <code>docs/evidencias/</code>;</li>
+          <li><code>docs/atam.md</code> com os seis cenários e <code>docs/adr/</code> com ao menos três ADRs;</li>
+          <li>nenhum segredo versionado: <code>git log -p | grep -i -E 'password|secret|DATABASE_PUBLIC_URL='</code> não deve trazer valores.</li>
+        </ul>
+        <div class="note">
+          <strong>Orientação final para a atividade prática</strong>
+          <p>Antes de encerrar, peça ao OpenCode: <code>Compare specs/spec.md com docs/evidencias/. Liste cada RF e RNF com a evidência que o comprova ou "sem evidência". Não edite nada.</code> Resolva as lacunas que couberem no tempo e registre as demais no <code>atam.md</code> como riscos aceitos, com o motivo.</p>
+          <p>O modelo dimensional desta aula é a base sobre a qual as próximas aulas acrescentam fluxo contínuo (Aula 06) e validação com contratos e testes integrados (Aula 07). Mantenha os nomes de tabela e o grão estáveis: eles serão referenciados.</p>
+        </div>
+      </section>
+
+      <!-- ============================ 24 ============================ -->
+      <section class="content-block" id="s24">
+        <h2>24. Referências</h2>
+        <ul>
+          <li>Kimball Group. <a href="https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/" target="_blank" rel="noopener noreferrer">Dimensional Modeling Techniques</a> (grão, tipos de fato, medidas, SCD, dimensões conformadas e degeneradas, bus matrix).</li>
+          <li>KIMBALL, R.; ROSS, M. <em>The Data Warehouse Toolkit</em>. 3. ed. Wiley, 2013.</li>
+          <li>PostgreSQL. <a href="https://www.postgresql.org/docs/16/ddl-constraints.html" target="_blank" rel="noopener noreferrer">Constraints</a> e <a href="https://www.postgresql.org/docs/16/sql-insert.html" target="_blank" rel="noopener noreferrer">INSERT ... ON CONFLICT</a>.</li>
+          <li>DuckDB. <a href="https://duckdb.org/docs/stable/guides/sql_features/asof_join" target="_blank" rel="noopener noreferrer">ASOF JOIN</a>, <a href="https://duckdb.org/docs/stable/core_extensions/httpfs/s3api" target="_blank" rel="noopener noreferrer">httpfs com API compatível com S3</a> e <a href="https://duckdb.org/docs/stable/core_extensions/postgres" target="_blank" rel="noopener noreferrer">extensão postgres</a>.</li>
+          <li>Railway. <a href="https://docs.railway.com/guides/postgresql" target="_blank" rel="noopener noreferrer">PostgreSQL</a>, <a href="https://docs.railway.com/cli/add" target="_blank" rel="noopener noreferrer">railway add</a>, <a href="https://docs.railway.com/cli/connect" target="_blank" rel="noopener noreferrer">railway connect</a> e <a href="https://docs.railway.com/cli/variable" target="_blank" rel="noopener noreferrer">railway variable</a>.</li>
+          <li>Mermaid. <a href="https://mermaid.js.org/syntax/entityRelationshipDiagram.html" target="_blank" rel="noopener noreferrer">Entity Relationship Diagrams</a>.</li>
+          <li>Banco Central do Brasil. <a href="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/aplicacao#!/recursos" target="_blank" rel="noopener noreferrer">API PTAX (Olinda)</a>.</li>
+        </ul>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>
