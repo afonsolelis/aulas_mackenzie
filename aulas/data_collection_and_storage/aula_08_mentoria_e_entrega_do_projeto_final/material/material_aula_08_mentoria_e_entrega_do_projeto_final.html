@@ -22,7 +22,7 @@
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
       <h1>Aula 08 — Mentoria e Entrega do Projeto Final</h1>
       <p class="meta">Aula 08 &middot; 05/12/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>Este documento é o enunciado oficial do projeto final da disciplina e o roteiro da Aula 08. Ele está publicado desde a Aula 01 para que cada grupo saiba, desde o primeiro sábado, o que vai entregar e como será avaliado. A Aula 08 não tem bloco teórico nem conteúdo novo: o professor atende os grupos em mentoria e a entrega fecha no mesmo dia, 05/12/2026.</p>
+      <p>Este documento é o enunciado oficial do projeto final da disciplina e o roteiro da Aula 08. Ele está publicado desde a Aula 01 para que cada grupo saiba, desde o primeiro sábado, o que vai entregar e como será avaliado. A Aula 08 não tem bloco teórico nem conteúdo novo: o professor atende os grupos em mentoria em 05/12/2026, e a entrega fecha uma semana depois, em 12/12/2026, às 23h59.</p>
     </header>
 
     <article class="material">
@@ -229,7 +229,7 @@ Commit: a1b2c3d feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code></p
 
       <section class="content-block" id="s9">
         <h2>9. Custos no Railway e preservação de evidências</h2>
-        <p>O trial do Railway dá um crédito único de US$ 5, válido por até 30 dias; terminado o trial, a conta passa para o plano Free, com US$ 1 por mês. A conta criada na Aula 01, em 10/10/2026, chega a 05/12/2026 depois do fim do trial. Confira no painel da conta, ao longo das aulas, qual é o plano atual e quanto crédito resta, e dimensione o projeto para isso: poucos serviços, coleta com a frequência que a persona precisa e nada além.</p>
+        <p>O trial do Railway dá um crédito único de US$ 5, válido por até 30 dias; terminado o trial, a conta passa para o plano Free, com US$ 1 por mês. A conta criada na Aula 01, em 10/10/2026, chega a 12/12/2026 depois do fim do trial. Confira no painel da conta, ao longo das aulas, qual é o plano atual e quanto crédito resta, e dimensione o projeto para isso: poucos serviços, coleta com a frequência que a persona precisa e nada além.</p>
         <p>Os volumes de contas trial são apagados 30 dias depois do fim dos créditos. O bucket do MinIO no Railway vive num volume, e por isso o dado coletado ao longo do semestre pode deixar de existir pouco depois da entrega, ou antes dela, conforme a data em que cada conta foi criada. Duas consequências práticas decorrem disso.</p>
         <p>A primeira: a avaliação não depende do ambiente no ar. O pipeline precisa rodar localmente com <code>docker compose</code>, a partir do repositório, e é essa execução que o professor reproduz. As evidências do Railway mostram que o grupo publicou e operou o serviço; a execução local mostra que o sistema funciona a partir do que foi entregue.</p>
         <p>A segunda: as evidências da operação no Railway são registradas enquanto o ambiente está no ar, e não na véspera da entrega. Elas ficam em <code>docs/evidencias/</code>, com data no nome do arquivo.</p>
@@ -260,7 +260,7 @@ Commit: a1b2c3d feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code></p
             <tr><td>05</td><td>07/11/2026</td><td>ADR de modelagem; modelo relacional e/ou dimensional implementado</td></tr>
             <tr><td>06</td><td>14/11/2026</td><td>ADR de streaming (adotado ou não, com o cenário de latência)</td></tr>
             <tr><td>07</td><td>28/11/2026</td><td>modelos Pydantic, quarentena, testes de unidade e de integração</td></tr>
-            <tr><td>08</td><td>05/12/2026</td><td>mentoria; <code>atam.md</code>, matriz e evidências completos; entrega até 23h59</td></tr>
+            <tr><td>08</td><td>05/12/2026</td><td>mentoria; <code>atam.md</code>, matriz e evidências completos; entrega até 12/12/2026, 23h59</td></tr>
           </tbody>
         </table></div>
         <p>Não há aula em 21/11/2026. A semana entre as Aulas 06 e 07 é a que mais rende para colocar a matriz em dia, porque nesse ponto todas as decisões de arquitetura já foram tomadas.</p>
@@ -305,7 +305,7 @@ Commit: a1b2c3d feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code></p
             <tr><td>8h45 &ndash; 10h00</td><td>Mentorias, primeira parte</td><td>pendências anotadas por grupo</td></tr>
             <tr><td>10h00 &ndash; 10h20</td><td>Intervalo</td><td>&ndash;</td></tr>
             <tr><td>10h20 &ndash; 11h40</td><td>Mentorias, segunda parte; depois, retornos curtos para quem pediu</td><td>pendências com responsável</td></tr>
-            <tr><td>11h40 &ndash; 12h10</td><td>Fechamento: autoauditoria, commit, conferência do formulário</td><td>relatório de autoauditoria versionado e plano até 23h59</td></tr>
+            <tr><td>11h40 &ndash; 12h10</td><td>Fechamento: autoauditoria, commit, conferência do formulário</td><td>relatório de autoauditoria versionado e plano até 12/12</td></tr>
           </tbody>
         </table></div>
 
@@ -341,7 +341,7 @@ Commit: a1b2c3d feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code></p
           <li>Explicar um trade-off do ATAM. O professor escolhe um cenário ou um ADR. O integrante explica o que a decisão melhora, o que piora, qual é o ponto de sensibilidade e o que mudaria na decisão se a premissa mudasse (por exemplo, se a persona passasse a precisar do dado em minutos, ou se o crédito do Railway acabasse).</li>
           <li>Rodar o pipeline. O grupo executa o comando do README no Codespace e mostra o objeto novo no <code>raw</code>, o Parquet da silver e a consulta gold. Depois roda <code>pytest</code> e mostra um teste de integração. O professor pode pedir que o grupo tente gravar duas vezes a mesma chave no <code>raw</code>.</li>
           <li>Dúvidas do grupo, a partir da lista escrita.</li>
-          <li>Registro das pendências. O grupo anota no próprio repositório (por exemplo, em <code>docs/pendencias_aula08.md</code>) o que saiu do atendimento, com responsável. O que não couber até 23h59 vira linha <code>parcial</code> ou <code>não atendido</code> na matriz, com a razão.</li>
+          <li>Registro das pendências. O grupo anota no próprio repositório (por exemplo, em <code>docs/pendencias_aula08.md</code>) o que saiu do atendimento, com responsável. O que não couber até 12/12, 23h59, vira linha <code>parcial</code> ou <code>não atendido</code> na matriz, com a razão.</li>
         </ol>
         <div class="note">
           <strong>Quando o pipeline não roda na hora</strong>
@@ -549,9 +549,9 @@ se spec.md tiver IDs repetidos. Pare ao final.</code></pre>
 
       <section class="content-block" id="s16">
         <h2>16. Como entregar</h2>
-        <p>A entrega fecha em 05/12/2026, às 23h59, no mesmo dia da mentoria. O professor avalia o último commit do ramo <code>main</code> do repositório informado no formulário de entrega até esse horário. Não há apresentação além da mentoria.</p>
+        <p>A entrega fecha em 12/12/2026, às 23h59, uma semana depois da mentoria. O professor avalia o último commit do ramo <code>main</code> do repositório informado no formulário de entrega até esse horário. Não há apresentação além da mentoria.</p>
         <ol class="steps">
-          <li>Feche as pendências da mentoria que couberem no prazo. O que não couber vira linha <code>parcial</code> ou <code>não atendido</code> na matriz, com a razão.</li>
+          <li>Use a semana entre a mentoria e o prazo para fechar as pendências registradas no atendimento. O que não couber vira linha <code>parcial</code> ou <code>não atendido</code> na matriz, com a razão.</li>
           <li>Rode a autoauditoria (seção 15.2) uma última vez e confira que nenhuma lacuna aciona limitador de nota.</li>
           <li>Procure segredos no que está versionado e no histórico, dentro da pasta do repositório:
             <pre><code>git ls-files | grep -E '(^|/)\.env$' &amp;&amp; echo "ATENCAO: .env versionado" || echo "nenhum .env no indice"

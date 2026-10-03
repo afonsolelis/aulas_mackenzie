@@ -421,7 +421,7 @@ values (
   'MBA Engenharia de Dados · 2026.2',
   'Entrega do projeto final',
   'Um envio por grupo. Se precisar corrigir algo, envie de novo: vale o envio mais recente até o prazo. O repositório precisa ser público, e o professor avalia o último commit do ramo main até o prazo.',
-  '2026-12-05 23:59:59-03'
+  '2026-12-12 23:59:59-03'
 )
 on conflict (slug) do update set
   disciplina = excluded.disciplina, turma = excluded.turma, titulo = excluded.titulo,
