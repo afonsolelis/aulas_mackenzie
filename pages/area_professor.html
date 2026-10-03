@@ -114,7 +114,8 @@
 
       async function carregar() {
         const data = await chamar('entrega_painel', {});
-        formularios = data.formularios;
+        // O banco é compartilhado com o hub do Senac; aqui entram só os formulários mack-*.
+        formularios = data.formularios.filter((f) => f.slug.startsWith('mack-'));
         const sel = $('formulario');
         const atual = sel.value;
         sel.replaceChildren(...formularios.map((f) =>

@@ -63,6 +63,9 @@ alter table entrega_formularios alter column prazo drop not null;
 alter table entrega_formularios add column if not exists serie text;
 alter table entrega_formularios add column if not exists numero int;
 alter table entrega_formularios add column if not exists fechado_em timestamptz;
+-- Limite de integrantes do formulário de grupo: 5 no Mackenzie, 4 no Senac.
+alter table entrega_formularios add column if not exists max_integrantes smallint not null default 5
+  check (max_integrantes between 1 and 10);
 create unique index if not exists entrega_formularios_serie_aberta
   on entrega_formularios (serie) where aberto and serie is not null;
 
@@ -129,7 +132,7 @@ set search_path = public
 as $$
   select jsonb_build_object(
     'slug', slug, 'disciplina', disciplina, 'turma', turma, 'titulo', titulo,
-    'instrucoes', instrucoes, 'prazo', prazo,
+    'instrucoes', instrucoes, 'prazo', prazo, 'max_integrantes', max_integrantes,
     'aceitando', aberto and (prazo is null or now() <= prazo))
   from entrega_formularios where slug = p_slug;
 $$;
@@ -205,7 +208,7 @@ begin
   return jsonb_build_object('id', v_id, 'enviado_em', v_em, 'repositorio', v_rep);
 end $$;
 
--- Formulário curto: integrantes (1 obrigatório, até 5) e repositório. O grupo
+-- Formulário curto: integrantes (1 obrigatório, até max_integrantes) e repositório. O grupo
 -- é identificado pelo repositório, então reenviar com o mesmo link substitui
 -- a versão anterior na área do professor.
 create or replace function entrega_enviar_grupo(
@@ -236,8 +239,8 @@ begin
   if cardinality(v_nome) = 0 then
     raise exception 'Informe o nome de pelo menos um integrante.';
   end if;
-  if cardinality(v_nome) > 5 then
-    raise exception 'O grupo tem no máximo 5 integrantes.';
+  if cardinality(v_nome) > f.max_integrantes then
+    raise exception 'O grupo tem no máximo % integrantes.', f.max_integrantes;
   end if;
   if exists (select 1 from unnest(v_nome) n where length(n) not between 3 and 120) then
     raise exception 'Cada nome precisa ter entre 3 e 120 caracteres.';
@@ -278,7 +281,7 @@ begin
     select jsonb_agg(jsonb_build_object(
       'slug', f.slug, 'disciplina', f.disciplina, 'turma', f.turma, 'titulo', f.titulo,
       'prazo', f.prazo, 'aberto', f.aberto, 'serie', f.serie, 'numero', f.numero,
-      'criado_em', f.criado_em, 'fechado_em', f.fechado_em,
+      'criado_em', f.criado_em, 'fechado_em', f.fechado_em, 'max_integrantes', f.max_integrantes,
       'respostas', coalesce((
         select jsonb_agg(to_jsonb(r) - 'formulario_slug' order by r.grupo, r.enviado_em desc)
         from entrega_respostas r where r.formulario_slug = f.slug), '[]'::jsonb))
