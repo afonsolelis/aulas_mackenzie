@@ -183,14 +183,18 @@
             dl.append(dd);
           };
           linha('Repositório', link(r.repositorio_url));
-          // O formulário de grupo só pede integrantes e repositório.
+          // O formulário de grupo só pede integrantes e repositório. A entrega final de
+          // Data Visualization tem plataforma; a de Data Collection não tem, mas pode ter link e acesso.
+          const completa = r.plataforma || r.painel_url || r.acesso_painel || r.observacoes;
           if (r.plataforma) {
             linha('Plataforma', r.plataforma === 'supabase' ? 'Protótipo HTML com Supabase' : 'Metabase');
-            linha('Painel', link(r.painel_url));
+          }
+          if (completa) {
+            linha(r.plataforma ? 'Painel' : 'Serviço publicado', link(r.painel_url));
             linha('Acesso', r.acesso_painel);
           }
           linha('Integrantes', r.integrantes);
-          if (r.plataforma) linha('Observações', r.observacoes);
+          if (completa) linha('Observações', r.observacoes);
           card.append(dl);
 
           const corr = el('form', null, { class: 'form-inline' });

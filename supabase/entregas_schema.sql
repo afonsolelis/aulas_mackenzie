@@ -66,6 +66,9 @@ alter table entrega_formularios add column if not exists fechado_em timestamptz;
 -- Limite de integrantes do formulário de grupo: 5 no Mackenzie, 4 no Senac.
 alter table entrega_formularios add column if not exists max_integrantes smallint not null default 5
   check (max_integrantes between 1 and 10);
+-- Plataformas aceitas no formulário de entrega final. Nulo: o formulário não
+-- tem campo de plataforma (Data Collection); Data Visualization usa metabase/supabase.
+alter table entrega_formularios add column if not exists plataformas text[];
 create unique index if not exists entrega_formularios_serie_aberta
   on entrega_formularios (serie) where aberto and serie is not null;
 
@@ -182,11 +185,15 @@ begin
   if v_rep !~ '^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$' then
     raise exception 'O repositório precisa ser um link do GitHub no formato https://github.com/usuario/repositorio.';
   end if;
-  if p_plataforma not in ('metabase', 'supabase') then
-    raise exception 'Escolha a plataforma do painel.';
+  if f.plataformas is not null then
+    if p_plataforma is null or not (p_plataforma = any (f.plataformas)) then
+      raise exception 'Escolha a plataforma do painel.';
+    end if;
+  elsif coalesce(p_plataforma, '') <> '' then
+    raise exception 'Este formulário não tem campo de plataforma.';
   end if;
   if coalesce(p_painel, '') <> '' and p_painel !~ '^https?://' then
-    raise exception 'O link do painel precisa começar com http:// ou https://.';
+    raise exception 'O link precisa começar com http:// ou https://.';
   end if;
   if length(coalesce(p_painel, '')) > 500 or length(coalesce(p_acesso, '')) > 1000
      or length(coalesce(p_observacoes, '')) > 4000 then
@@ -201,7 +208,7 @@ begin
 
   insert into entrega_respostas (formulario_slug, grupo, integrantes, repositorio_url,
                                  plataforma, painel_url, acesso_painel, observacoes)
-  values (p_slug, trim(p_grupo), trim(p_integrantes), v_rep, p_plataforma,
+  values (p_slug, trim(p_grupo), trim(p_integrantes), v_rep, nullif(p_plataforma, ''),
           nullif(trim(p_painel), ''), nullif(trim(p_acesso), ''), nullif(trim(p_observacoes), ''))
   returning id, enviado_em into v_id, v_em;
 
@@ -399,6 +406,22 @@ values (
   'Entrega do projeto final',
   'Um envio por grupo. Se precisar corrigir algo, envie de novo: vale o envio mais recente até o prazo. Se o repositório for privado, adicione o usuário afonsolelis como colaborador antes de enviar.',
   '2026-10-10 23:59:59-03'
+)
+on conflict (slug) do update set
+  disciplina = excluded.disciplina, turma = excluded.turma, titulo = excluded.titulo,
+  instrucoes = excluded.instrucoes;
+
+update entrega_formularios set plataformas = array['metabase', 'supabase']
+where slug = 'mack-dv-2026-2-final' and plataformas is null;
+
+insert into entrega_formularios (slug, disciplina, turma, titulo, instrucoes, prazo)
+values (
+  'mack-dc-2026-2-final',
+  'Data Collection and Storage',
+  'MBA Engenharia de Dados · 2026.2',
+  'Entrega do projeto final',
+  'Um envio por grupo. Se precisar corrigir algo, envie de novo: vale o envio mais recente até o prazo. O repositório precisa ser público, e o professor avalia o último commit do ramo main até o prazo.',
+  '2026-12-05 23:59:59-03'
 )
 on conflict (slug) do update set
   disciplina = excluded.disciplina, turma = excluded.turma, titulo = excluded.titulo,
