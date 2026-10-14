@@ -13,7 +13,7 @@ O código do coletor não está nesta pasta. Ele nasce durante a aula, pelos pro
 | `docker-compose.yml` | MinIO local (imagem `ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z`) e um serviço que cria o bucket `raw` |
 | `.env.example` | Variáveis do MinIO local e do coletor; vira `.env` e `.env.railway` |
 | `requirements.txt` | Dependências sugeridas: `requests`, `boto3`, `pytest`, `responses` |
-| `AGENTS.md` | Regras para o OpenCode: escopo, comandos permitidos, segredos, gates |
+| `AGENTS.md` | Regras para o agente de código (Claude Code ou OpenCode): escopo, comandos permitidos, segredos, gates |
 | `.gitignore` | Impede que `.env`, `.env.railway` e `.venv/` entrem no Git |
 
 O `docker-compose.yml` foi validado com `docker compose config` e executado de ponta a ponta (bucket criado, versionamento ligado, objeto gravado com metadados e lido com `mc stat`).
@@ -21,10 +21,10 @@ O `docker-compose.yml` foi validado com `docker compose config` e executado de p
 ## Pré-requisitos (feitos na Aula 01)
 
 - Codespace aberto no repositório do grupo.
-- OpenCode instalado e conectado à OpenRouter com o modelo `openrouter/free` (no OpenCode, `openrouter/openrouter/free`).
+- Um agente de código no terminal: Claude Code (`claude`), que a maioria dos grupos usa, ou o OpenCode configurado na Aula 01.
 - MinIO publicado no Railway, com domínio público para a porta 9000, usuário e senha guardados fora do Git.
 
-Os modelos gratuitos da OpenRouter aceitam 20 requisições por minuto e 50 por dia para contas que compraram menos de US$ 10 em créditos. Uma sessão do agente consome várias requisições por prompt. Rode um prompt por vez; se aparecer erro 429, espere e repita.
+Rode um prompt por vez e revise a saída antes do próximo: é nessa revisão que o erro do agente é pego antes de contaminar a etapa seguinte.
 
 ## Etapa 1. Criar a pasta da aula no repositório do grupo
 
@@ -93,12 +93,20 @@ curl -s -w "\nHTTP %{http_code}\n" "https://api.open-meteo.com/v1/forecast?latit
 
 O segundo comando mostra o formato de erro da API: HTTP 400 com `{"error": true, "reason": "..."}`.
 
-## Etapa 5. Prompts SDD no OpenCode
+## Etapa 5. Prompts SDD no agente de código
 
-Abra o OpenCode dentro de `aula_02_coleta_json/`:
+Abra o agente dentro de `aula_02_coleta_json/`, para que ele enxergue o `AGENTS.md`:
 
 ```bash
-opencode
+claude          # Claude Code
+# ou: opencode  # OpenCode, configurado na Aula 01
+```
+
+O Claude Code lê instruções de um `CLAUDE.md`. Para não manter dois arquivos, crie um que importe o `AGENTS.md`:
+
+```bash
+echo "@AGENTS.md" > CLAUDE.md
+git add CLAUDE.md
 ```
 
 Execute os prompts do material, seção 9, um por vez. Depois de cada um, faça a revisão indicada antes de seguir.

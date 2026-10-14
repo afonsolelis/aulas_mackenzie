@@ -19,7 +19,7 @@
           <h1 class="deck-title">Tipos de Storage e Coleta em Object Storage com MinIO</h1>
           <p class="deck-meta">Aula 02 &nbsp;&bull;&nbsp; 17/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Bloco, arquivo, objeto e bancos comparados; depois, um coletor da Open-Meteo construído em SDD e gravando JSON bruto no MinIO.</p>
+          <p class="deck-subtitle">Duas horas sobre bloco, arquivo, objeto e bancos, com números medidos; depois, um coletor da Open-Meteo construído em SDD e gravando JSON bruto no MinIO.</p>
         </div>
       </div>
     </div>
@@ -29,27 +29,26 @@
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">Conceitos até 9h30, prática até 12h10</h2>
-          <p class="deck-summary">O professor constrói ao vivo; cada grupo reproduz no próprio Codespace com os prompts do material.</p>
+          <h2 class="deck-title">Teoria até 10h30, prática até 12h10</h2>
+          <p class="deck-summary">Quatro blocos teóricos, cada um fechado com um exemplo numérico e uma pausa. Depois o professor constrói ao vivo e cada grupo reproduz no próprio Codespace.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>8h30 &ndash; 9h30 &middot; Conceitos</h3>
+            <h3>8h30 &ndash; 10h30 &middot; Teoria</h3>
             <ul>
-              <li>Coleta e armazenamento como decisão arquitetural</li>
-              <li>Bloco, arquivo, objeto, relacional, chave-valor, colunar</li>
-              <li>Object storage por dentro</li>
-              <li>Chaves, formatos, imutabilidade e idempotência</li>
+              <li>Bloco 1: coleta e armazenamento como decisão; ingredientes do storage</li>
+              <li>Bloco 2: tipos de storage e latência medida</li>
+              <li>Bloco 3: object storage por dentro</li>
+              <li>Bloco 4: camada raw e a fonte Open-Meteo</li>
             </ul>
           </article>
           <article class="deck-card">
-            <h3>9h30 &ndash; 12h10 &middot; Prática em SDD</h3>
+            <h3>10h30 &ndash; 12h10 &middot; Prática em SDD</h3>
             <ul>
               <li>MinIO local com docker compose</li>
-              <li>Sete prompts CREATE no OpenCode</li>
-              <li>Coletor com testes, rodando no local</li>
-              <li>Mesmo coletor no MinIO do Railway</li>
-              <li>ATAM com evidência medida</li>
+              <li>Prompts 1 a 5 no agente de código, com revisão</li>
+              <li>Primeiras tarefas com teste</li>
+              <li>O que fica para a semana: Railway e ATAM</li>
             </ul>
           </article>
         </div>
@@ -60,7 +59,7 @@
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Construção do conteúdo &middot; Problema</span>
+          <span class="deck-kicker">Bloco 1 &middot; Problema</span>
           <h2 class="deck-title">O que a previsão dizia às 10h de terça?</h2>
           <p class="deck-summary">A API de previsão devolve sempre a previsão vigente. Quem não gravou a resposta às 10h não consegue reconstruí-la depois.</p>
         </div>
@@ -71,11 +70,11 @@
       </div>
     </div>
 
-    <!-- 4. Decisão arquitetural -->
+    <!-- 4. Cinco decisões -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Conceito</span>
+          <span class="deck-kicker">Bloco 1 &middot; Decisão arquitetural</span>
           <h2 class="deck-title">Cinco decisões tomadas no primeiro dia</h2>
           <p class="deck-summary">As escolhas do primeiro dia são caras de mudar quando o bucket tiver milhões de objetos.</p>
         </div>
@@ -89,11 +88,100 @@
       </div>
     </div>
 
-    <!-- 5. Tabela de tipos -->
+    <!-- 5. Cenário condutor -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Cenário condutor</span>
+          <h2 class="deck-title">Dois números que voltam em todos os exemplos</h2>
+          <p class="deck-summary">Distribuidora de bebidas com centros em seis capitais guarda, a cada hora, a previsão de temperatura e umidade da Open-Meteo.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>992 bytes por documento</strong>
+            <ul>
+              <li>Resposta para São Paulo, <code>forecast_days=1</code>, duas variáveis, medida em 14/10/2026</li>
+              <li>989 bytes em 03/10/2026</li>
+              <li>4.877 bytes com <code>forecast_days=7</code></li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>144 documentos por dia</strong>
+            <ul>
+              <li>6 capitais vezes 24 horas</li>
+              <li>144 chamadas por dia, contra limite de 10.000</li>
+              <li>Um objeto por cidade e hora</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Ingredientes -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Tipos de storage</span>
+          <span class="deck-kicker">Bloco 1 &middot; Ingredientes</span>
+          <h2 class="deck-title">Os ingredientes de qualquer armazenamento</h2>
+          <p class="deck-summary">Os tipos de storage diferem na combinação; os ingredientes são sempre os mesmos.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Ingrediente</th><th>O que faz</th><th>No projeto da aula</th></tr></thead>
+          <tbody>
+            <tr><td>Mídia física</td><td>RAM, SSD, disco: cada degrau é mais barato por byte e mais lento por acesso</td><td>volume do Railway em <code>/data</code></td></tr>
+            <tr><td>Rede</td><td>toda requisição paga ida e volta, cabeçalhos, assinatura e proxy</td><td>cada <code>PUT</code> e <code>HEAD</code>; o 502 esporádico</td></tr>
+            <tr><td>Serialização</td><td>texto (JSON, CSV) ou binário (Parquet, Avro)</td><td>JSON gravado tal como chegou</td></tr>
+            <tr><td>Compressão</td><td>menos bytes em troca de CPU; colunas comprimem melhor</td><td>nenhuma na raw; colunar na Aula 04</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Sequencial é barato; aleatório custa uma operação inteira, e em rede uma requisição inteira. Separar armazenamento de computação é o que deixa coletor, DuckDB e ClickHouse lerem o mesmo bucket.</p>
+      </div>
+    </div>
+
+    <!-- 7. Exemplo numérico 1 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Exemplo numérico 1</span>
+          <h2 class="deck-title">Quanto o bucket cresce em um semestre</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Período</th><th>Objetos</th><th>Conteúdo (992 B cada)</th><th>Em disco (6,6 KB cada, medido)</th></tr></thead>
+          <tbody>
+            <tr><td>1 dia</td><td>144</td><td>140 KiB</td><td>0,9 MB</td></tr>
+            <tr><td>30 dias</td><td>4.320</td><td>4,1 MiB</td><td>28 MB</td></tr>
+            <tr><td>até a Aula 08 (49 dias)</td><td>7.056</td><td>6,7 MiB</td><td>47 MB</td></tr>
+            <tr><td>1 ano</td><td>52.560</td><td>49,7 MiB</td><td>346 MB</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout">
+          <strong>O que a medição mostra</strong>
+          <p style="margin:8px 0 0;">144 objetos de 992 B ocuparam 949.392 B no volume do MinIO local (<code>du -sb</code> no contêiner): o arquivo de metadados por objeto custa mais que o conteúdo. Para objetos pequenos, a contagem pesa mais que os bytes. Preço do volume só com fonte e data.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Pontos-chave bloco 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 1</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Onde, com que nome, em que formato, com que procedência e o que acontece ao repetir: cinco decisões caras de mudar.</li>
+          <li>Todo storage combina mídia, rede, serialização e compressão.</li>
+          <li>Para objetos de 1 KB, o custo é dominado pelo número de objetos. Por isso um documento por cidade e hora, e não um por variável.</li>
+        </ol>
+        <p class="deck-note">Pergunta de passagem: qual unidade de acesso corresponde ao dado da distribuidora? O bloco 2 responde.</p>
+      </div>
+    </div>
+
+    <!-- 9. Tabela de tipos -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Tipos de storage</span>
           <h2 class="deck-title">Tipos de storage por unidade de acesso</h2>
         </div>
         <table class="deck-table">
@@ -110,13 +198,74 @@
       </div>
     </div>
 
-    <!-- 6. Trade-offs -->
+    <!-- 10. Bloco e arquivo -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Trade-offs</span>
+          <span class="deck-kicker">Bloco 2 &middot; Bloco e arquivo</span>
+          <h2 class="deck-title">Bloco e arquivo atualizam no lugar</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Bloco</strong>
+            <ul>
+              <li>Blocos fixos endereçados por número; quem organiza é o sistema de arquivos ou o banco</li>
+              <li>Um banco reescreve uma página de 8 KB sem tocar no resto</li>
+              <li>Um volume por máquina; crescer é redimensionar</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Arquivo</strong>
+            <ul>
+              <li>Diretórios; abrir, ler por deslocamento, acrescentar, renomear, travar</li>
+              <li>Em rede (NFS, SMB), a coordenação da hierarquia vira gargalo</li>
+              <li>MinIO: NFS não é estritamente consistente como disco</li>
+            </ul>
+          </div>
+        </div>
+        <p class="deck-note">O volume que o Railway monta em <code>/data</code> é bloco. Quando o MinIO exige XFS e desaconselha ext4, é desse degrau que fala.</p>
+      </div>
+    </div>
+
+    <!-- 11. Objeto -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Objeto</span>
+          <h2 class="deck-title">Objeto: o dado inteiro por uma chave, via HTTP</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>O que é</h3><p>Objeto inteiro num bucket, com chave textual e metadados. Operações <code>PUT</code>, <code>GET</code>, <code>HEAD</code>, <code>DELETE</code> e listagem por prefixo.</p></article>
+          <article class="deck-card"><h3>O que não faz</h3><p>Não tem diretório de verdade: a barra é só um caractere. Não atualiza em pedaços: mudar um byte é regravar o objeto.</p></article>
+          <article class="deck-card"><h3>O que ganha</h3><p>Capacidade quase ilimitada e custo por GB baixo, porque não coordena travas nem hierarquia.</p></article>
+          <article class="deck-card"><h3>Por que MinIO</h3><p>API compatível com S3: <code>boto3</code>, DuckDB, Spark e <code>mc</code> falam com MinIO, Ceph, R2 ou S3 mudando o endpoint.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 12. Bancos -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Bancos de dados</span>
+          <h2 class="deck-title">Relacional, chave-valor, documento e colunar</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Relacional</h3><p>Tabelas com esquema, chaves e ACID. Atualiza a linha, garante tudo ou nada. Esquema rígido: campo novo na API exige migração. Aula 05.</p></article>
+          <article class="deck-card"><h3>Chave-valor</h3><p>Redis, Valkey, etcd: um valor por chave, latência muito baixa. Cache, sessão, contadores. Sem consulta analítica ampla.</p></article>
+          <article class="deck-card"><h3>Documento</h3><p>MongoDB, Couchbase: JSON flexível com consulta por campo. Receberia o JSON da Open-Meteo, mas cobraria por recursos que a raw não usa.</p></article>
+          <article class="deck-card"><h3>Colunar</h3><p>ClickHouse, DuckDB, Parquet: coluna junta, compressão alta, leitura seletiva. Escrita linha a linha cara; esquema conhecido. Aulas 04 e 06.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13. Trade-offs -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Trade-offs</span>
           <h2 class="deck-title">Latência, escala e custo em ordem relativa</h2>
-          <p class="deck-summary">Sem números absolutos: valores reais dependem de hardware, rede e provedor, e precisam ser medidos ou citados.</p>
+          <p class="deck-summary">Sem números absolutos: valores reais dependem de hardware, rede e provedor, e precisam ser medidos ou citados. O próximo slide mede.</p>
         </div>
         <table class="deck-table">
           <thead><tr><th>Critério</th><th>Bloco</th><th>Arquivo</th><th>Objeto</th><th>Colunar</th></tr></thead>
@@ -124,17 +273,38 @@
             <tr><td>Latência por operação</td><td>a mais baixa</td><td>baixa; maior em rede</td><td>a mais alta (HTTP)</td><td>alta por linha, baixa em varredura</td></tr>
             <tr><td>Escala</td><td>um volume por máquina</td><td>limitada pela hierarquia</td><td>horizontal</td><td>horizontal em leitura</td></tr>
             <tr><td>Custo por GB</td><td>alto</td><td>alto</td><td>baixo</td><td>médio, com compressão</td></tr>
-            <tr><td>Consistência</td><td>a do sistema por cima</td><td>POSIX; varia em rede</td><td>depende do servidor</td><td>varia; cargas em lote</td></tr>
+            <tr><td>Consistência</td><td>a do sistema por cima</td><td>POSIX; varia em rede</td><td>S3 e MinIO: forte após escrita</td><td>varia; cargas em lote</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- 7. Como escolher -->
+    <!-- 14. Exemplo numérico 2 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Exemplo numérico 2</span>
+          <h2 class="deck-title">Latência medida: objeto contra arquivo local</h2>
+          <p class="deck-summary">Mesma máquina, 144 documentos de 992 B, mediana em milissegundos. MinIO local em Docker via <code>boto3</code>; arquivos com <code>fsync</code>.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Operação</th><th>Object storage</th><th>Arquivo local</th></tr></thead>
+          <tbody>
+            <tr><td>Gravar um documento</td><td>3,97 (<code>PUT</code> com 7 metadados)</td><td>0,48</td></tr>
+            <tr><td>Ler um documento</td><td>1,90 (<code>GET</code>)</td><td>0,01</td></tr>
+            <tr><td>Saber se existe</td><td>1,39 inexistente; 1,77 existente (<code>HEAD</code>)</td><td>não medido</td></tr>
+            <tr><td>Listar 144 documentos</td><td>12 a 27</td><td>não medido</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">De 8 a 100 vezes por operação, sem rede. Uma coleta inteira (144 <code>HEAD</code> + 144 <code>PUT</code>) custa 0,8 s: poucas operações grandes. Objeto perde quando o padrão é o oposto, milhares de leituras pontuais por segundo.</p>
+      </div>
+    </div>
+
+    <!-- 15. Como escolher -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Escolha</span>
+          <span class="deck-kicker">Bloco 2 &middot; Escolha</span>
           <h2 class="deck-title">Por que objeto para a resposta bruta da API</h2>
         </div>
         <div class="deck-columns">
@@ -162,45 +332,150 @@
       </div>
     </div>
 
-    <!-- 8. Object storage por dentro -->
+    <!-- 16. Pausa bloco 2 -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Object storage por dentro</span>
-          <h2 class="deck-title">Bucket, chave, objeto e metadados</h2>
+          <span class="deck-kicker">Bloco 2 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Classifique quatro dados da distribuidora</h2>
+          <p class="deck-summary">Cinco perguntas, um tipo da tabela para cada dado. Justifique pelo padrão de acesso.</p>
         </div>
         <div class="deck-grid">
-          <article class="deck-card"><h3>Bucket</h3><p>Contêiner com nome único; recebe política de acesso, versionamento e ciclo de vida.</p></article>
-          <article class="deck-card"><h3>Chave</h3><p>Uma string. A barra é só um caractere; listar por prefixo simula pastas.</p></article>
-          <article class="deck-card"><h3>Objeto</h3><p>Imutável: mudar um byte significa regravar o objeto inteiro.</p></article>
-          <article class="deck-card"><h3>Metadados</h3><p>Cabeçalhos <code>x-amz-meta-*</code>, lidos com <code>HEAD</code>; valores em ASCII.</p></article>
+          <article class="deck-card"><h3>Previsão horária</h3><p>JSON de 992 B, gravado uma vez por cidade e hora, lido em lote depois.</p></article>
+          <article class="deck-card"><h3>Estoque do centro</h3><p>Uma linha por produto e centro, atualizada a cada venda, consultada por chave.</p></article>
+          <article class="deck-card"><h3>Carrinho no aplicativo</h3><p>Vive minutos, muda a cada clique, some ao fechar o pedido.</p></article>
+          <article class="deck-card"><h3>Vendas por categoria e mês</h3><p>Agregação sobre milhões de itens, consultada pelo planejamento.</p></article>
         </div>
       </div>
     </div>
 
-    <!-- 9. Consistência, versão, ciclo de vida -->
+    <!-- 17. Object storage por dentro -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Object storage por dentro</span>
+          <h2 class="deck-title">Bucket, chave, objeto e metadados</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Bucket</h3><p>Contêiner com nome único; recebe política de acesso, versionamento e ciclo de vida.</p></article>
+          <article class="deck-card"><h3>Chave</h3><p>Uma string. A barra é só um caractere; listar por prefixo simula pastas. Bucket, chave e versão identificam o objeto.</p></article>
+          <article class="deck-card"><h3>Objeto</h3><p>Imutável: mudar um byte significa regravar o objeto inteiro ou criar uma versão.</p></article>
+          <article class="deck-card"><h3>Metadados</h3><p>Cabeçalhos <code>x-amz-meta-*</code>, lidos com <code>HEAD</code> sem baixar o conteúdo.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 18. Listagem -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Object storage por dentro</span>
-          <h2 class="deck-title">Consistência, versionamento e ciclo de vida</h2>
+          <span class="deck-kicker">Bloco 3 &middot; Exemplo numérico 3</span>
+          <h2 class="deck-title">Listagem por prefixo, em páginas de 1.000 chaves</h2>
+          <p class="deck-summary"><code>ListObjectsV2</code> devolve até 1.000 chaves por requisição, em ordem lexicográfica, com token de continuação. Com delimitador, o que compartilha prefixo vira um item <code>CommonPrefixes</code>.</p>
         </div>
-        <div class="deck-grid">
-          <article class="deck-card"><h3>Consistência</h3><p>MinIO documenta leitura e listagem após escrita estritas (em XFS, ZFS, Btrfs). Um <code>HEAD</code> após <code>PUT</code> confirmado encontra o objeto.</p></article>
-          <article class="deck-card"><h3>Versionamento</h3><p>Cada gravação na mesma chave vira uma versão. Aqui, também detecta falha de idempotência.</p></article>
-          <article class="deck-card"><h3>Ciclo de vida</h3><p>Regras expiram objetos ou versões antigas por prefixo e por dias.</p></article>
+        <table class="deck-table">
+          <thead><tr><th>Listagem</th><th>Prefixo</th><th>Chaves</th><th>Requisições</th></tr></thead>
+          <tbody>
+            <tr><td>Um ano inteiro</td><td><code>open_meteo/</code></td><td>52.560</td><td>53</td></tr>
+            <tr><td>Um dia</td><td><code>open_meteo/data=2026-10-17/</code></td><td>144</td><td>1 (12 a 27 ms medidos)</td></tr>
+            <tr><td>Uma hora</td><td><code>open_meteo/data=2026-10-17/hora=12/</code></td><td>6</td><td>1</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">A partição na chave transforma 53 páginas em uma. É o mesmo mecanismo que o DuckDB usa na Aula 04 para ler só as partições filtradas.</p>
+      </div>
+    </div>
+
+    <!-- 19. Limites -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Limites da API</span>
+          <h2 class="deck-title">Limites do S3 que moldam o coletor</h2>
+          <p class="deck-summary">Documentação da AWS, consultada em 14/10/2026. Sistemas compatíveis podem diferir; vale a documentação deles.</p>
         </div>
-        <pre><code>mc version enable local/raw
+        <ol class="deck-steps">
+          <li><strong>2 KB de metadados de usuário</strong> dentro de um cabeçalho de <code>PUT</code> de até 8 KB. Guarde procedência, não dado.</li>
+          <li><strong>US-ASCII nos valores</strong> pela API REST; fora disso o valor é recodificado. <code>sao_paulo</code>, não <code>São Paulo</code>.</li>
+          <li><strong>Metadado não muda depois do <code>PUT</code></strong>; só copiando o objeto. Decida os metadados antes da primeira gravação.</li>
+          <li><strong>Sem trava entre escritores:</strong> dois <code>PUT</code> na mesma chave, vence o carimbo mais recente. Atomicidade por chave, nunca entre chaves.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 20. Consistência -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Consistência</span>
+          <h2 class="deck-title">O que S3 e MinIO garantem após a escrita</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Amazon S3</strong>
+            <ul>
+              <li>Leitura após escrita forte para <code>PUT</code> e <code>DELETE</code>, em todas as regiões</li>
+              <li>Listagem e <code>HEAD</code> também fortes</li>
+              <li>Gravou e listou em seguida: o objeto aparece</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>MinIO</strong>
+            <ul>
+              <li>Leitura e listagem após escrita estritas, em um nó ou distribuído</li>
+              <li>Garantido com XFS, ZFS, Btrfs; ext4 desaconselhado; NFS não é estritamente consistente</li>
+              <li>Sistema de arquivos do volume do Railway: não verificado, hipótese no ATAM</li>
+            </ul>
+          </div>
+        </div>
+        <p class="deck-note">Para o coletor: um <code>HEAD</code> logo após um <code>PUT</code> confirmado encontra o objeto. É isso que sustenta a idempotência do bloco 4.</p>
+      </div>
+    </div>
+
+    <!-- 21. Versionamento e ciclo de vida -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Versionamento e ciclo de vida</span>
+          <h2 class="deck-title">Versionamento detecta, ciclo de vida limpa</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Versionamento</strong>
+            <p>Cada gravação na mesma chave vira uma versão; a exclusão só marca. Aqui, também detecta falha de idempotência: se a contagem de versões cresce na segunda execução, algo gravou de novo.</p>
+          </div>
+          <div class="deck-panel">
+            <strong>Ciclo de vida</strong>
+            <p>Regras expiram objetos ou versões antigas por prefixo e por dias. Transforma o crescimento do bucket numa decisão, e não numa surpresa quando o crédito acaba.</p>
+          </div>
+        </div>
+        <pre class="is-compact"><code>mc version enable local/raw
 mc ls --recursive --versions local/raw/open_meteo/
 mc ilm rule add --noncurrent-expire-days 7 local/raw</code></pre>
       </div>
     </div>
 
-    <!-- 10. Desenho de chaves -->
+    <!-- 22. Pontos-chave bloco 3 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Camada raw</span>
+          <span class="deck-kicker">Bloco 3 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 3</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>A chave é uma string; prefixo e delimitador simulam pastas; a listagem vem em páginas de 1.000.</li>
+          <li>Metadados de usuário: até 2 KB, em ASCII, imutáveis depois do <code>PUT</code>.</li>
+          <li>S3 e MinIO garantem leitura e listagem após escrita; no MinIO, depende do sistema de arquivos.</li>
+          <li>Sem trava entre escritores nem atomicidade entre chaves: a aplicação carrega isso.</li>
+          <li>Versionamento detecta repetição indevida; ciclo de vida decide quanto histórico fica.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 23. Chave Hive -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Camada raw</span>
           <h2 class="deck-title">Chave particionada no estilo Hive</h2>
           <p class="deck-summary">A chave diz a fonte, o dia e a hora da coleta e a cidade. DuckDB e Spark leem <code>data</code> e <code>hora</code> como colunas.</p>
         </div>
@@ -210,63 +485,132 @@ open_meteo/data=2026-10-17/hora=12/manaus.json
 _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</code></pre>
         <div class="deck-callout">
           <strong>Decisões embutidas</strong>
-          <p style="margin:8px 0 0;">Partição pelo momento da coleta, em UTC. Cidade como identificador ASCII estável. Manifesto em JSON Lines fora do prefixo de dados.</p>
+          <p style="margin:8px 0 0;">Partição pelo momento da coleta, em UTC. Cidade como identificador ASCII estável. Data antes de cidade porque a Aula 04 lê por período; quem lê por cidade inverteria. Manifesto em JSON Lines fora do prefixo de dados.</p>
         </div>
       </div>
     </div>
 
-    <!-- 11. Raw imutável, idempotência, metadados -->
+    <!-- 24. Formatos -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Camada raw</span>
+          <span class="deck-kicker">Bloco 4 &middot; Formatos</span>
+          <h2 class="deck-title">JSON para o dado, JSON Lines para o manifesto</h2>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>JSON, um documento por objeto</strong>
+            <ul>
+              <li>Preserva a resposta exatamente como a API enviou</li>
+              <li>Grava <code>response.content</code>, nunca <code>json.dumps(response.json())</code></li>
+              <li>Reserializar muda espaços e ordem e invalida o hash</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>JSON Lines, uma linha por cidade</strong>
+            <ul>
+              <li>Um manifesto por execução, acrescentado linha a linha</li>
+              <li>Status <code>gravado</code>, <code>ja_existia</code>, <code>erro</code> e alertas</li>
+              <li>Schema da fonte mudou: grava o bruto e registra <code>alerta_schema</code></li>
+            </ul>
+          </div>
+        </div>
+        <p class="deck-note">Parquet não entra na raw: exige esquema na escrita e reorganiza por coluna. Entra na Aula 04, lendo os JSON de hoje.</p>
+      </div>
+    </div>
+
+    <!-- 25. Imutabilidade, idempotência, procedência -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Camada raw</span>
           <h2 class="deck-title">Imutabilidade, idempotência e procedência</h2>
         </div>
-        <div class="deck-grid">
-          <article class="deck-card"><h3>Imutável</h3><p>Grava os bytes recebidos. Sem limpar, renomear ou reserializar.</p></article>
-          <article class="deck-card"><h3>Idempotente</h3><p><code>HEAD</code> antes do <code>PUT</code>. Se a chave existe, não grava e registra <code>ja_existia</code>.</p></article>
-          <article class="deck-card"><h3>Rastreável</h3><p><code>fonte</code>, <code>coletado-em</code>, <code>versao-coletor</code>, <code>sha256</code>, cidade e coordenada pedida.</p></article>
+        <ol class="deck-steps">
+          <li><strong>Imutável:</strong> grava os bytes recebidos, sem limpar, renomear ou reserializar. Correção é objeto novo ou outra camada.</li>
+          <li><strong>Idempotente:</strong> chave determinística e <code>HEAD</code> antes do <code>PUT</code>. Se a chave existe, não grava e registra <code>ja_existia</code>. A primeira gravação da hora vale.</li>
+          <li><strong>Rastreável:</strong> <code>fonte</code>, <code>coletado-em</code>, <code>versao-coletor</code>, <code>sha256</code>, cidade e coordenada pedida. A API devolve a coordenada da grade, diferente da pedida.</li>
+        </ol>
+        <p class="deck-note">Por que importa no Railway: o proxy devolve 502 esporádico. Com chave determinística, repetir é seguro; com chave por horário em segundos, cada retry duplica.</p>
+      </div>
+    </div>
+
+    <!-- 26. Exemplo numérico 4 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Exemplo numérico 4</span>
+          <h2 class="deck-title">Duas execuções na mesma hora, medidas</h2>
+          <p class="deck-summary">Com os tempos do bloco 2, o que cada política de chave faz com o bucket.</p>
         </div>
+        <table class="deck-table">
+          <thead><tr><th>Execução</th><th>Chave determinística + <code>HEAD</code></th><th>Chave com horário em segundos</th></tr></thead>
+          <tbody>
+            <tr><td>Primeira da hora</td><td>144 <code>HEAD</code> (0,22 s) + 144 <code>PUT</code> (0,60 s); 144 objetos</td><td>144 <code>PUT</code>; 144 objetos</td></tr>
+            <tr><td>Segunda, mesma hora</td><td>144 <code>HEAD</code> (0,27 s), 0 <code>PUT</code>; 144 objetos, 144 <code>ja_existia</code></td><td>mais 144 <code>PUT</code>; 288 objetos</td></tr>
+            <tr><td>Evidência no ATAM (C-02)</td><td>contagem de objetos e versões igual antes e depois</td><td>nenhum teste unitário percebe</td></tr>
+          </tbody>
+        </table>
         <div class="deck-callout">
-          <strong>Por que importa no Railway</strong>
-          <p style="margin:8px 0 0;">O proxy devolve 502 esporádico. Com chave determinística, repetir a gravação é seguro; com chave por horário em segundos, cada retry duplica.</p>
+          <strong>O caso que a política não cobre</strong>
+          <p style="margin:8px 0 0;"><code>PUT</code> chegou, resposta se perdeu no proxy, cliente repetiu: mesma chave, mesmos bytes, segunda versão idêntica com o mesmo ETag. O dado não duplica, a contagem de versões cresce. Risco a registrar com <code>mc ls --versions</code>. Execuções simultâneas: S3 não trava, o último carimbo vence.</p>
         </div>
       </div>
     </div>
 
-    <!-- 12. A fonte -->
+    <!-- 27. A fonte -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">A fonte</span>
+          <span class="deck-kicker">Bloco 4 &middot; A fonte</span>
           <h2 class="deck-title">API de previsão da Open-Meteo, sem chave</h2>
-          <p class="deck-summary">Uso não comercial: menos de 10.000 chamadas por dia e licença CC BY 4.0. Seis capitais por hora somam 144 chamadas por dia.</p>
+          <p class="deck-summary">Uso não comercial: menos de 10.000 chamadas por dia, 5.000 por hora, 600 por minuto; licença CC BY 4.0. Seis capitais por hora somam 144 chamadas por dia.</p>
         </div>
         <pre class="is-wrap"><code>curl -s "https://api.open-meteo.com/v1/forecast?latitude=-23.55&amp;longitude=-46.63&amp;hourly=temperature_2m,relative_humidity_2m&amp;timezone=America/Sao_Paulo&amp;forecast_days=1"
 
 # parâmetro inválido: HTTP 400 com {"error": true, "reason": "..."}
-# resposta traz a coordenada da grade: -23.514938, -46.610504</code></pre>
+# resposta traz a coordenada da grade: -23.514938, -46.610504
+# hourly.time com 24 posições; 992 bytes em 14/10/2026</code></pre>
       </div>
     </div>
 
-    <!-- 13. Ambiente -->
+    <!-- 28. Pausa bloco 4 e passagem -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Pausa e passagem para a prática</span>
+          <h2 class="deck-title">E se a distribuidora pedir sete dias de previsão?</h2>
+          <p class="deck-summary">Em janeiro, <code>forecast_days=1</code> vira <code>forecast_days=7</code>. O que muda na chave, nos metadados, no manifesto e no bucket? Qual decisão precisa de ADR novo?</p>
+        </div>
+        <ol class="deck-steps">
+          <li>A chave <code>fonte/data=/hora=/cidade.json</code>, em UTC, faz a partição que as próximas aulas leem.</li>
+          <li>JSON preserva o documento; JSON Lines registra a execução; Parquet fica para a transformação.</li>
+          <li>Chave determinística e <code>HEAD</code> antes do <code>PUT</code> tornam a repetição segura; execução simultânea fica como risco.</li>
+          <li>Sete metadados dizem de onde, quando, por qual versão e com que pedido o dado veio.</li>
+        </ol>
+        <p class="deck-note">Daqui em diante, cada decisão vira um requisito, uma tarefa, um teste e um cenário ATAM no projeto do grupo.</p>
+      </div>
+    </div>
+
+    <!-- 29. Ambiente -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Etapa 0 &middot; Ambiente</span>
           <h2 class="deck-title">MinIO local e pasta do projeto</h2>
-          <p class="deck-summary">Codespace, OpenCode e MinIO do Railway vêm da Aula 01. Aqui entra o MinIO local para desenvolver.</p>
+          <p class="deck-summary">Codespace, agente de código e MinIO do Railway vêm da Aula 01. Aqui entra o MinIO local para desenvolver.</p>
         </div>
         <pre class="is-compact"><code>mkdir -p aula_02_coleta_json/{docs/adr,specs,src,tests} &amp;&amp; cd aula_02_coleta_json
 # baixe docker-compose.yml, .env.example, requirements.txt, AGENTS.md, .gitignore (roteiro)
 cp .env.example .env            # troque a senha: openssl rand -base64 24
 docker compose up -d &amp;&amp; docker compose ps -a
 docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
-python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -r requirements.txt</code></pre>
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -r requirements.txt
+echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou: opencode</code></pre>
       </div>
     </div>
 
-    <!-- 14. Fluxo SDD -->
+    <!-- 30. Fluxo SDD -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -280,11 +624,11 @@ python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip instal
           <div class="method-step"><strong>6</strong><span>Implementação, uma tarefa por vez</span></div>
           <div class="method-step"><strong>7</strong><span>ATAM com evidência medida</span></div>
         </div>
-        <p class="deck-note">Um prompt por vez: <code>openrouter/free</code> aceita 20 requisições por minuto e 50 por dia em contas com menos de US$ 10 comprados.</p>
+        <p class="deck-note">Um prompt por vez, no Claude Code ou no OpenCode. A revisão entre um prompt e o próximo é onde o grupo pega o erro do agente antes que ele contamine a etapa seguinte.</p>
       </div>
     </div>
 
-    <!-- 15. Prompts 1 e 2 -->
+    <!-- 31. Prompts 1 e 2 -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -313,7 +657,7 @@ python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip instal
       </div>
     </div>
 
-    <!-- 16. Prompt 3 -->
+    <!-- 32. Prompt 3 -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -330,7 +674,7 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
       </div>
     </div>
 
-    <!-- 17. Prompts 4 e 5 -->
+    <!-- 33. Prompts 4 e 5 -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -349,7 +693,7 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
       </div>
     </div>
 
-    <!-- 18. Prompt 6 -->
+    <!-- 34. Prompt 6 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -366,7 +710,7 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
       </div>
     </div>
 
-    <!-- 19. Gates locais -->
+    <!-- 35. Gates locais -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -384,7 +728,7 @@ docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12
       </div>
     </div>
 
-    <!-- 20. Railway -->
+    <!-- 36. Railway -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -402,7 +746,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
 
-    <!-- 21. Prompt 7 ATAM -->
+    <!-- 37. Prompt 7 ATAM -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -417,13 +761,14 @@ docker compose exec minio mc du railway/raw</code></pre>
             <tr><td>C-03 502 do Railway</td><td>retry na mesma chave</td><td>log do coletor</td></tr>
             <tr><td>C-04 bucket contra crédito</td><td>crescimento estimado com tamanho medido</td><td><code>mc du</code></td></tr>
             <tr><td>C-05 schema da API muda</td><td>grava o bruto; alerta no manifesto</td><td>teste com payload alterado</td></tr>
+            <tr><td>C-06 credencial no diff</td><td>commit bloqueado pela revisão</td><td><code>git diff --staged</code></td></tr>
             <tr><td>C-07 execuções simultâneas</td><td>risco residual registrado</td><td>ADR-002</td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- 22. Gates -->
+    <!-- 38. Gates -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -441,7 +786,36 @@ docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
 
-    <!-- 23. Entregável -->
+    <!-- 39. Até 12h10 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento</span>
+          <h2 class="deck-title">O que precisa existir às 12h10</h2>
+          <p class="deck-summary">A prática tem 1h40. O que não couber segue durante a semana, com o material e o roteiro do laboratório.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Em sala, até 12h10</strong>
+            <ul>
+              <li>Pasta <code>aula_02_coleta_json/</code>, MinIO local no ar, ambiente Python</li>
+              <li>Prompts 1 a 5 executados, revisados e commitados</li>
+              <li>Primeiras tarefas (estrutura, chave, metadados) com teste verde</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Na semana, até a Aula 03 (24/10)</strong>
+            <ul>
+              <li>Tarefas restantes, uma por vez</li>
+              <li>Gates locais e execução no Railway</li>
+              <li>Prompt 7, ATAM com evidência e ADRs</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 40. Entregável -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -452,7 +826,7 @@ docker compose exec minio mc du railway/raw</code></pre>
           <div class="deck-panel">
             <strong>Documentos</strong>
             <ul>
-              <li><code>AGENTS.md</code></li>
+              <li><code>AGENTS.md</code> (e <code>CLAUDE.md</code> que o importa)</li>
               <li><code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code></li>
               <li><code>specs/spec.md</code>, <code>plan.md</code>, <code>tasks.md</code></li>
               <li><code>docs/atam.md</code> e <code>docs/adr/</code></li>

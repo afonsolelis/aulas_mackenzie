@@ -1,6 +1,6 @@
 # AGENTS.md (modelo para aula_02_coleta_json/)
 
-Copie este arquivo para a raiz de `aula_02_coleta_json/` no repositório do grupo e ajuste o que estiver entre `<>`.
+Copie este arquivo para a raiz de `aula_02_coleta_json/` no repositório do grupo e ajuste o que estiver entre `<>`. Vale para qualquer agente de código no terminal; no Claude Code, crie um `CLAUDE.md` com a linha `@AGENTS.md` para que ele seja lido.
 
 ## Escopo
 
