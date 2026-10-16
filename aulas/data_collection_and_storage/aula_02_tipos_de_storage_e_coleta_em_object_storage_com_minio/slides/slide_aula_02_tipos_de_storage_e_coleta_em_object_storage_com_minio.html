@@ -26,7 +26,7 @@
 
     <!-- 2. Agenda -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Agenda</span>
           <h2 class="deck-title">Teoria até 10h30, prática até 12h10</h2>
@@ -94,7 +94,7 @@
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Bloco 1 &middot; Cenário condutor</span>
-          <h2 class="deck-title">Dois números que voltam em todos os exemplos</h2>
+          <h2 class="deck-title">Dois números que voltam nos exemplos</h2>
           <p class="deck-summary">Distribuidora de bebidas com centros em seis capitais guarda, a cada hora, a previsão de temperatura e umidade da Open-Meteo.</p>
         </div>
         <div class="deck-columns">
@@ -230,7 +230,7 @@
 
     <!-- 11. Objeto -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell is-dense" style="gap:14px;">
         <div>
           <span class="deck-kicker">Bloco 2 &middot; Objeto</span>
           <h2 class="deck-title">Objeto: o dado inteiro por uma chave, via HTTP</h2>
@@ -246,7 +246,7 @@
 
     <!-- 12. Bancos -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell is-dense" style="gap:14px;">
         <div>
           <span class="deck-kicker">Bloco 2 &middot; Bancos de dados</span>
           <h2 class="deck-title">Relacional, chave-valor, documento e colunar</h2>
@@ -297,7 +297,7 @@
             <tr><td>Listar 144 documentos</td><td>12 a 27</td><td>não medido</td></tr>
           </tbody>
         </table>
-        <p class="deck-note">De 8 a 100 vezes por operação, sem rede. Uma coleta inteira (144 <code>HEAD</code> + 144 <code>PUT</code>) custa 0,8 s: poucas operações grandes. Objeto perde quando o padrão é o oposto, milhares de leituras pontuais por segundo.</p>
+        <p class="deck-note">De 8 a 100 vezes por operação, sem rede. Um dia inteiro de coleta (144 <code>HEAD</code> + 144 <code>PUT</code>) custa 0,8 s: poucas operações grandes. Objeto perde quando o padrão é o oposto, milhares de leituras pontuais por segundo.</p>
       </div>
     </div>
 
@@ -335,11 +335,11 @@
 
     <!-- 16. Pausa bloco 2 -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell is-dense" style="gap:16px;">
         <div>
           <span class="deck-kicker">Bloco 2 &middot; Pausa para reflexão</span>
           <h2 class="deck-title">Classifique quatro dados da distribuidora</h2>
-          <p class="deck-summary">Cinco perguntas, um tipo da tabela para cada dado. Justifique pelo padrão de acesso.</p>
+          <p class="deck-summary">Responda às cinco perguntas e escolha um tipo da tabela para cada dado.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card"><h3>Previsão horária</h3><p>JSON de 992 B, gravado uma vez por cidade e hora, lido em lote depois.</p></article>
@@ -352,7 +352,7 @@
 
     <!-- 17. Object storage por dentro -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 3 &middot; Object storage por dentro</span>
           <h2 class="deck-title">Bucket, chave, objeto e metadados</h2>
@@ -405,7 +405,7 @@
 
     <!-- 20. Consistência -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense" style="gap:16px;">
         <div>
           <span class="deck-kicker">Bloco 3 &middot; Consistência</span>
           <h2 class="deck-title">O que S3 e MinIO garantem após a escrita</h2>
@@ -428,7 +428,7 @@
             </ul>
           </div>
         </div>
-        <p class="deck-note">Para o coletor: um <code>HEAD</code> logo após um <code>PUT</code> confirmado encontra o objeto. É isso que sustenta a idempotência do bloco 5.</p>
+        <p class="deck-note">Para o coletor: um <code>HEAD</code> logo após um <code>PUT</code> confirmado encontra o objeto. Essa garantia sustenta a idempotência do bloco 5.</p>
       </div>
     </div>
 
@@ -449,7 +449,7 @@
             <p>Regras expiram objetos ou versões antigas por prefixo e por dias. Transforma o crescimento do bucket numa decisão, e não numa surpresa quando o crédito acaba.</p>
           </div>
         </div>
-        <pre class="is-compact"><code>mc version enable local/raw
+        <pre class="is-compact" style="flex-shrink:0;"><code>mc version enable local/raw
 mc ls --recursive --versions local/raw/open_meteo/
 mc ilm rule add --noncurrent-expire-days 7 local/raw</code></pre>
       </div>
@@ -654,13 +654,13 @@ TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA</code></pre>
 
     <!-- 32. Chave Hive -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense" style="gap:16px; padding-top:32px;">
         <div>
           <span class="deck-kicker">Bloco 5 &middot; Camada raw</span>
           <h2 class="deck-title">Chave particionada no estilo Hive</h2>
           <p class="deck-summary">A chave diz a fonte, o dia e a hora da coleta e a cidade. DuckDB e Spark leem <code>data</code> e <code>hora</code> como colunas.</p>
         </div>
-        <pre><code>bucket: raw
+        <pre class="is-compact" style="flex-shrink:0;"><code>bucket: raw
 open_meteo/data=2026-10-17/hora=12/sao_paulo.json
 open_meteo/data=2026-10-17/hora=12/manaus.json
 _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</code></pre>
@@ -673,7 +673,7 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
 
     <!-- 33. Formatos -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 5 &middot; Formatos</span>
           <h2 class="deck-title">JSON para o dado, JSON Lines para o manifesto</h2>
@@ -718,17 +718,17 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
 
     <!-- 35. Exemplo numérico 5 -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell is-dense" style="gap:16px;">
         <div>
           <span class="deck-kicker">Bloco 5 &middot; Exemplo numérico 5</span>
-          <h2 class="deck-title">Duas execuções na mesma hora, medidas</h2>
-          <p class="deck-summary">Com os tempos do bloco 2, o que cada política de chave faz com o bucket.</p>
+          <h2 class="deck-title">Coleta repetida nas mesmas chaves, medida</h2>
+          <p class="deck-summary">Um dia de coleta (144 documentos) gravado duas vezes, com os tempos do bloco 2.</p>
         </div>
         <table class="deck-table">
           <thead><tr><th>Execução</th><th>Chave determinística + <code>HEAD</code></th><th>Chave com horário em segundos</th></tr></thead>
           <tbody>
-            <tr><td>Primeira da hora</td><td>144 <code>HEAD</code> (0,22 s) + 144 <code>PUT</code> (0,60 s); 144 objetos</td><td>144 <code>PUT</code>; 144 objetos</td></tr>
-            <tr><td>Segunda, mesma hora</td><td>144 <code>HEAD</code> (0,27 s), 0 <code>PUT</code>; 144 objetos, 144 <code>ja_existia</code></td><td>mais 144 <code>PUT</code>; 288 objetos</td></tr>
+            <tr><td>Primeira passada (24 horas)</td><td>144 <code>HEAD</code> (0,22 s) + 144 <code>PUT</code> (0,60 s); 144 objetos</td><td>144 <code>PUT</code>; 144 objetos</td></tr>
+            <tr><td>Segunda passada, mesmas horas</td><td>144 <code>HEAD</code> (0,27 s), 0 <code>PUT</code>; 144 objetos, 144 <code>ja_existia</code></td><td>mais 144 <code>PUT</code>; 288 objetos</td></tr>
             <tr><td>Evidência no ATAM (C-02)</td><td>contagem de objetos e versões igual antes e depois</td><td>nenhum teste unitário percebe</td></tr>
           </tbody>
         </table>
@@ -1033,7 +1033,7 @@ docker compose exec minio mc du railway/raw</code></pre>
 
     <!-- 51. Entregável -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Entregável</span>
           <h2 class="deck-title">Pasta aula_02_coleta_json no repositório do grupo</h2>

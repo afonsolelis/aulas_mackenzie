@@ -103,3 +103,11 @@ html.quiz-root, html.quiz-root > body.quiz-page {
 .quiz-page button:disabled { opacity: .6; }
 .quiz-page dialog.reiniciar { background: var(--deck-panel); color: var(--deck-text); }
 .quiz-page main { background: var(--deck-panel); }
+
+/* Botão de acesso ao painel do professor no rodapé da sala do aluno. */
+.quiz-page a.botao-professor {
+  display: inline-block; padding: 8px 14px; border: 1px solid var(--ink); border-radius: 4px;
+  background: var(--ink); color: var(--paper) !important; text-decoration: none; font-weight: 700;
+  font-family: var(--font-mono); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase;
+}
+.quiz-page a.botao-professor:hover, .quiz-page a.botao-professor:focus-visible { background: var(--paper); color: var(--ink) !important; }

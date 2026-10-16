@@ -70,7 +70,7 @@
             <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>Conferência do que existe às 12h10 e do que fica para a semana (seção 15).</td></tr>
           </tbody>
         </table></div>
-        <p>A teoria ocupa duas horas porque as decisões desta aula (tipo de storage, chave, formato, idempotência, procedência) são as que as Aulas 03 e 04 herdam, e todas elas dependem de separar um storage de um data lake. A prática fica com 1h40 e termina, em sala, com os prompts 1 a 5 revisados e as primeiras tarefas implementadas; o restante do laboratório segue durante a semana, como a seção 15 detalha.</p>
+        <p>A teoria ocupa duas horas porque as decisões desta aula (tipo de storage, chave, formato, idempotência, procedência) são as que as Aulas 03 e 04 herdam, e todas elas dependem de separar um storage de um data lake. Depois da teoria restam 1h40: uma hora de prática, que termina em sala com os prompts 1 a 5 revisados, 30 minutos de TBL e 10 minutos de fechamento. O restante do laboratório segue durante a semana, como a seção 15 detalha.</p>
       </section>
 
       <!-- 2 -->
@@ -182,7 +182,7 @@
             </tbody>
           </table></div>
           <p>A leitura por HTTP custou cerca de 100 vezes mais que a leitura de arquivo, e a gravação cerca de 8 vezes mais, sem nenhuma rede envolvida: o que se paga é a requisição (cabeçalhos, assinatura, resposta), não o disco. Contra o Railway soma-se a ida e volta pela internet e o proxy, o que o grupo deve medir e registrar no ATAM.</p>
-          <p>A mesma medição mostra por que a latência por operação não decide sozinha. Uma coleta completa faz 144 <code>HEAD</code> e 144 <code>PUT</code>: cerca de 0,8 segundo no total. A diferença de 100 vezes por operação vira menos de um segundo por hora de coleta, porque o coletor faz poucas operações grandes em vez de muitas pequenas. O object storage perde quando o padrão de acesso é o oposto: milhares de leituras pontuais por segundo, como num cache ou numa tela de aplicação.</p>
+          <p>A mesma medição mostra por que a latência por operação não decide sozinha. Um dia inteiro de coleta faz 144 <code>HEAD</code> e 144 <code>PUT</code>: cerca de 0,8 segundo no total. A diferença de 100 vezes por operação vira menos de um segundo por dia de coleta, porque o coletor faz poucas operações grandes em vez de muitas pequenas. O object storage perde quando o padrão de acesso é o oposto: milhares de leituras pontuais por segundo, como num cache ou numa tela de aplicação.</p>
         </div>
         <div class="note">
           <strong>Pausa para reflexão</strong>
@@ -193,7 +193,7 @@
           <ul>
             <li>A unidade de acesso (bloco, arquivo, objeto, linha, valor, coluna) determina protocolo, atualização parcial e escala.</li>
             <li>Objeto é o único tipo sem atualização parcial; em troca, escala horizontalmente a custo baixo por GB.</li>
-            <li>Medido localmente, uma operação de objeto custa de 8 a 100 vezes uma operação de arquivo; uma coleta inteira ainda cabe em menos de um segundo.</li>
+            <li>Medido localmente, uma operação de objeto custa de 8 a 100 vezes uma operação de arquivo; um dia inteiro de coleta ainda cabe em menos de um segundo.</li>
             <li>O padrão de acesso decide o tipo; a resposta bruta de uma API é gravada uma vez e lida em lote.</li>
           </ul>
         </div>
@@ -294,7 +294,7 @@ TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA</code></pre>
             <tr><td>Consequências aceitas</td><td>O grupo opera o serviço: disco, backup, atualização. O MinIO do Railway roda em um nó, sem redundância; a perda do volume perde o dado. A consistência depende do sistema de arquivos do volume, não verificado (seção 4.5).</td></tr>
           </tbody>
         </table></div>
-        <p>A portabilidade é o argumento central. Como a API é a mesma do S3, a decisão é reversível: se a transportadora fosse para a AWS, a mudança ficaria no endpoint, e não no coletor nem nos leitores. É isso que a separação entre armazenamento e computação da seção 2.2 permite na prática.</p>
+        <p>A portabilidade é o argumento central. Como a API é a mesma do S3, a decisão é reversível: se a transportadora fosse para a AWS, a mudança ficaria no endpoint, e não no coletor nem nos leitores. Essa reversibilidade decorre da separação entre armazenamento e computação descrita na seção 2.2.</p>
 
         <h3>5.4 Exemplo numérico: quanto a frota gera</h3>
         <div class="note">
@@ -391,9 +391,9 @@ exemplo: open_meteo/data=2026-10-17/hora=12/sao_paulo.json</code></pre>
         <p>Uma operação é idempotente quando executá-la duas vezes produz o mesmo estado que executá-la uma vez. Coletores são reexecutados por muitos motivos: agendador que dispara de novo, pessoa que roda à mão para testar, retry depois de erro de rede. Se cada execução gerasse uma chave nova (por exemplo, com o horário em segundos ou um UUID), cada repetição duplicaria dados. A chave determinística resolve: a mesma cidade, na mesma hora de coleta, sempre produz a mesma chave. A política proposta é "a primeira gravação da hora vale": antes de gravar, o coletor faz <code>HEAD</code> na chave; se o objeto existe, não grava e registra <code>ja_existia</code> no manifesto.</p>
         <p>A lição do projeto ClickHouse no Railway, do professor, mostra por que isso importa: o proxy do Railway devolve 502 de forma esporádica. Com retry e chave determinística, repetir a gravação é seguro. Sem chave determinística, o retry de uma gravação que de fato chegou ao servidor, mas cuja confirmação se perdeu, cria um duplicado.</p>
         <div class="note">
-          <strong>Exemplo numérico 5. Duas execuções na mesma hora</strong>
-          <p>Com os tempos medidos na seção 3.9, a primeira execução da hora faz 144 <code>HEAD</code> em chaves inexistentes (0,22 s) e 144 <code>PUT</code> (0,60 s): cerca de 0,8 s e 144 objetos novos. A segunda execução, na mesma hora, faz 144 <code>HEAD</code> em chaves existentes (0,27 s) e nenhum <code>PUT</code>: o bucket termina com os mesmos 144 objetos e 144 linhas <code>ja_existia</code> no manifesto. Com uma chave que incluísse o horário em segundos, a segunda execução faria mais 144 <code>PUT</code> e o bucket dobraria, sem que nenhum teste unitário percebesse. A contagem de objetos e de versões antes e depois da segunda execução é a evidência do cenário C-02 do ATAM.</p>
-          <p>Há um caso que a política não cobre por completo: o <code>PUT</code> chegou ao servidor, a resposta se perdeu no proxy e o cliente repetiu. A repetição grava os mesmos bytes na mesma chave; com versionamento ligado, isso aparece como uma segunda versão idêntica, com o mesmo ETag. O dado não duplica, mas a contagem de versões cresce. É um risco a registrar, com a evidência de <code>mc ls --versions</code>, e não a esconder.</p>
+          <strong>Exemplo numérico 5. Cada execução horária rodando duas vezes</strong>
+          <p>Na preparação da aula, os 144 documentos de um dia foram gravados e a gravação foi repetida em seguida, o equivalente a rodar duas vezes cada uma das 24 execuções horárias de seis cidades. Com os tempos medidos na seção 3.9, a primeira passada faz 144 <code>HEAD</code> em chaves inexistentes (0,22 s) e 144 <code>PUT</code> (0,60 s): cerca de 0,8 s e 144 objetos novos. A segunda passada, com as mesmas horas, faz 144 <code>HEAD</code> em chaves existentes (0,27 s) e nenhum <code>PUT</code>: o bucket termina com os mesmos 144 objetos e 144 linhas <code>ja_existia</code> no manifesto. Com uma chave que incluísse o horário em segundos, a segunda passada faria mais 144 <code>PUT</code> e o bucket dobraria, sem que nenhum teste unitário percebesse. A contagem de objetos e de versões antes e depois da segunda passada é a evidência do cenário C-02 do ATAM.</p>
+          <p>Há um caso que a política não cobre por completo: o <code>PUT</code> chegou ao servidor, a resposta se perdeu no proxy e o cliente repetiu. A repetição grava os mesmos bytes na mesma chave; com versionamento ligado, isso aparece como uma segunda versão idêntica, com o mesmo ETag. O dado não duplica, mas a contagem de versões cresce. É um risco a registrar no ATAM, com a evidência de <code>mc ls --versions</code>.</p>
         </div>
         <p>Fica um segundo risco residual, que deve entrar no ATAM: duas execuções simultâneas podem fazer o <code>HEAD</code> ao mesmo tempo, não encontrar o objeto e gravar as duas. Como a seção 4.5 mostrou, o S3 não trava chaves e o último carimbo vence. Para um coletor horário com uma execução por vez, o risco é baixo; para um coletor com várias réplicas, exigiria trava externa ou gravação condicional, quando o servidor a suportar.</p>
 
@@ -412,7 +412,7 @@ exemplo: open_meteo/data=2026-10-17/hora=12/sao_paulo.json</code></pre>
         <p>O último item vem de uma observação feita na preparação da aula: ao pedir latitude <code>-23.55</code> e longitude <code>-46.63</code>, a resposta veio com <code>"latitude": -23.514938</code> e <code>"longitude": -46.610504</code>, a célula da grade do modelo. Sem guardar a coordenada pedida, não se reconstrói a requisição a partir do objeto.</p>
         <div class="note">
           <strong>Pausa para reflexão</strong>
-          <p>A distribuidora decide, em janeiro, trocar <code>forecast_days=1</code> por <code>forecast_days=7</code>. O que muda na chave, nos metadados, no manifesto e no tamanho do bucket? Qual das cinco decisões desta seção precisaria de um ADR novo, e qual continua válida sem mudança? Responda antes de olhar o ADR-001 do exemplo resolvido na seção 13.</p>
+          <p>A distribuidora decide, em janeiro, trocar <code>forecast_days=1</code> por <code>forecast_days=7</code>. O que muda na chave, nos metadados, no manifesto e no tamanho do bucket? Qual das cinco decisões desta seção precisaria de um ADR novo, e qual continua válida sem mudança? Responda antes de escrever o ADR-001 do prompt 7, sobre a chave e a partição; o formato esperado aparece no ADR-002 do exemplo resolvido na seção 13.</p>
         </div>
         <div class="note">
           <strong>Pontos-chave do bloco 5</strong>
@@ -459,7 +459,7 @@ curl -s -w "\nHTTP %{http_code}\n" "https://api.open-meteo.com/v1/forecast?latit
             <tr><td><code>porto_alegre</code></td><td>Porto Alegre</td><td>-30.03</td><td>-51.23</td></tr>
           </tbody>
         </table></div>
-        <p>As coordenadas são aproximações do centro de cada capital, com duas casas decimais. Manaus fica num fuso diferente do de Brasília; com <code>timezone=America/Sao_Paulo</code>, todas as horas da resposta ficam no horário de Brasília. Essa é uma escolha a registrar, não um detalhe.</p>
+        <p>As coordenadas são aproximações do centro de cada capital, com duas casas decimais. Manaus fica num fuso diferente do de Brasília; com <code>timezone=America/Sao_Paulo</code>, todas as horas da resposta ficam no horário de Brasília. Essa escolha deve ser registrada no ADR do grupo.</p>
 
         <h3>7.2 Para saber mais</h3>
         <ul>

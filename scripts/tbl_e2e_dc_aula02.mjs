@@ -3,7 +3,7 @@
  *
  *   node scripts/tbl_e2e_dc_aula02.mjs [slug-da-sala] [dir-de-screenshots]
  *
- * O token do professor vem do .env local (TBL_HOST_TOKEN_DCS_A02); ele nunca
+ * O token do professor vem do .env local (DCS_HOST_TOKEN); ele nunca
  * é passado por argumento nem impresso.
  *
  * Roda nos arquivos locais (file://), com o mesmo código das páginas, falando
@@ -21,8 +21,8 @@ import { chromium } from '@playwright/test';
 const PADRAO_SALA = 'mack-dcs-a02-2026-2';
 const [SALA = PADRAO_SALA, SHOTS] = process.argv.slice(2);
 const env = fs.readFileSync(process.env.QUIZ_ENV_FILE || '.env', 'utf8');
-const tk = env.match(/^\s*TBL_HOST_TOKEN_DCS_A02\s*=\s*(.+)\s*$/m);
-if (!tk) { console.error('TBL_HOST_TOKEN_DCS_A02 ausente no arquivo de ambiente.'); process.exit(2); }
+const tk = env.match(/^\s*DCS_HOST_TOKEN\s*=\s*(.+)\s*$/m);
+if (!tk) { console.error('DCS_HOST_TOKEN ausente no arquivo de ambiente.'); process.exit(2); }
 const TOKEN = tk[1].trim().replace(/^(['"])(.*)\1$/, '$2');
 
 const BASE = 'file://' + path.resolve('aulas/data_collection_and_storage/aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/tbl') + '/';
