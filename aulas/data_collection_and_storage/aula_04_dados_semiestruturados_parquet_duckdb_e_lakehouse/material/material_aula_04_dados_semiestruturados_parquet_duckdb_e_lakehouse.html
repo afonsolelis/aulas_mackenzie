@@ -130,6 +130,7 @@
       <!-- 5 -->
       <section class="content-block" id="s5">
         <h2>5. Data lake, data warehouse e lakehouse</h2>
+        <p>A Aula 02 apresentou esta comparação com o caso da telemetria de caminhões em TXT, junto com a diferença entre storage e data lake e entre schema on write e schema on read. Esta seção a retoma para o lakehouse que a prática constrói.</p>
         <p>Um data warehouse é um banco analítico com esquema declarado, motor de consulta próprio e armazenamento gerenciado por ele. Carrega dados já limpos e modelados, responde rápido e oferece transações, mas cobra caro por guardar dado bruto e exige que o esquema seja definido antes da carga. A Aula 05 volta a esse modelo com o esquema estrela.</p>
         <p>Um data lake é um repositório de arquivos em object storage, em qualquer formato, lidos em schema on read por qualquer motor que entenda o arquivo. Guarda barato e aceita tudo. O risco conhecido é virar um depósito de arquivos sem dono, sem contrato e sem garantia de que duas pessoas leiam o mesmo dado da mesma forma.</p>
         <p>Um lakehouse tenta ficar com o armazenamento aberto do lake e com a disciplina de tabelas do warehouse. Os dados continuam em object storage, em formatos abertos como Parquet, legíveis por vários motores; mas as camadas a partir da silver têm esquema declarado, contrato e processo de atualização controlado.</p>

@@ -19,7 +19,7 @@
           <h1 class="deck-title">Tipos de Storage e Coleta em Object Storage com MinIO</h1>
           <p class="deck-meta">Aula 02 &nbsp;&bull;&nbsp; 17/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Duas horas sobre bloco, arquivo, objeto e bancos, com números medidos; depois, um coletor da Open-Meteo construído em SDD e gravando JSON bruto no MinIO.</p>
+          <p class="deck-subtitle">Duas horas sobre bloco, arquivo, objeto e bancos, e sobre o que separa um storage de um data lake, com números medidos; depois, um coletor da Open-Meteo construído em SDD e gravando JSON bruto no MinIO.</p>
         </div>
       </div>
     </div>
@@ -30,7 +30,7 @@
         <div>
           <span class="deck-kicker">Agenda</span>
           <h2 class="deck-title">Teoria até 10h30, prática até 12h10</h2>
-          <p class="deck-summary">Quatro blocos teóricos, cada um fechado com um exemplo numérico e uma pausa. Depois o professor constrói ao vivo e cada grupo reproduz no próprio Codespace.</p>
+          <p class="deck-summary">Cinco blocos teóricos, cada um fechado com um exemplo numérico e uma pausa. Depois o professor constrói ao vivo e cada grupo reproduz no próprio Codespace.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
@@ -39,7 +39,8 @@
               <li>Bloco 1: coleta e armazenamento como decisão; ingredientes do storage</li>
               <li>Bloco 2: tipos de storage e latência medida</li>
               <li>Bloco 3: object storage por dentro</li>
-              <li>Bloco 4: camada raw e a fonte Open-Meteo</li>
+              <li>Bloco 4: telemetria em TXT, file ou object storage, data lake e lakehouse</li>
+              <li>Bloco 5: camada raw e a fonte Open-Meteo</li>
             </ul>
           </article>
           <article class="deck-card">
@@ -427,7 +428,7 @@
             </ul>
           </div>
         </div>
-        <p class="deck-note">Para o coletor: um <code>HEAD</code> logo após um <code>PUT</code> confirmado encontra o objeto. É isso que sustenta a idempotência do bloco 4.</p>
+        <p class="deck-note">Para o coletor: um <code>HEAD</code> logo após um <code>PUT</code> confirmado encontra o objeto. É isso que sustenta a idempotência do bloco 5.</p>
       </div>
     </div>
 
@@ -471,11 +472,191 @@ mc ilm rule add --noncurrent-expire-days 7 local/raw</code></pre>
       </div>
     </div>
 
-    <!-- 23. Chave Hive -->
+    <!-- 23. Bloco 4: cenário da telemetria -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Cenário</span>
+          <h2 class="deck-title">Telemetria de caminhões chegando em TXT</h2>
+          <p class="deck-summary">Tacógrafo, GPS e rádio de cada caminhão chegam via satélite, em lotes de texto sem formato fixo.</p>
+        </div>
+        <pre class="is-compact" style="flex-shrink:0;"><code>CAM-0412|17/10/26 09:14:03|-23.5481,-46.6390|VEL 087|TAC MOT 03h12
+#RADIO 09:14 MOTORISTA: parada posto km 214 BR-116
+CAM-0412 17-10-2026 09:15:03 GPS -23.5502 -46.6411 v=85
+ERR SAT SINAL FRACO
+TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA</code></pre>
+        <p class="deck-note">Três formatos de data, separadores trocados, texto livre e erro no mesmo lote. Antes do parser, o arquivo precisa pousar sem perder nada.</p>
+      </div>
+    </div>
+
+    <!-- 24. Bloco 4: file contra object storage -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Onde o TXT pousa</span>
+          <h2 class="deck-title">File storage contra object storage</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Critério</th><th>File storage (disco, NFS, SFTP)</th><th>Object storage (S3, MinIO)</th></tr></thead>
+          <tbody>
+            <tr><td>Como o lote chega</td><td>cópia para pasta; aceita acrescentar ao arquivo</td><td><code>PUT</code> HTTP do lote inteiro; sem acrescentar</td></tr>
+            <tr><td>Latência medida (bloco 2)</td><td>0,48 ms grava, 0,01 ms lê</td><td>3,97 ms grava, 1,90 ms lê</td></tr>
+            <tr><td>Procedência</td><td>nome, data de modificação, permissão</td><td>até 2 KB de metadados por objeto</td></tr>
+            <tr><td>Versão e retenção</td><td>fora do sistema, por script</td><td>versionamento e ciclo de vida nativos</td></tr>
+            <tr><td>Quem lê e escala</td><td>quem monta o volume; um volume por servidor</td><td>qualquer motor com API S3; cresce sem redimensionar</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Se o provedor só entrega por SFTP, a pasta vira pouso temporário e o lote segue para o bucket.</p>
+      </div>
+    </div>
+
+    <!-- 25. Bloco 4: por que MinIO -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Decisão arquitetural</span>
+          <h2 class="deck-title">Por que MinIO para a camada bruta</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>API compatível com S3</h3><p>O mesmo código <code>boto3</code> roda no Codespace, no Railway e na AWS; mudar é trocar o endpoint.</p></article>
+          <article class="deck-card"><h3>Roda onde o grupo está</h3><p>Docker local e Railway, sem conta na AWS, dentro do crédito.</p></article>
+          <article class="deck-card"><h3>Regras de lake nativas</h3><p>Metadados, versionamento, ciclo de vida e leitura após escrita estrita.</p></article>
+          <article class="deck-card"><h3>Custos aceitos</h3><p>O grupo opera disco e backup; um nó não tem redundância. Vai para o ADR.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 26. Bloco 4: exemplo numérico 4 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Exemplo numérico 4</span>
+          <h2 class="deck-title">Quanto a frota gera, numa hipótese</h2>
+          <p class="deck-summary">Hipótese: 500 caminhões, uma linha por minuto, cerca de 120 bytes por linha, um lote por caminhão a cada 15 minutos.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Período</th><th>Lotes (objetos)</th><th>Conteúdo</th><th>Listar tudo</th></tr></thead>
+          <tbody>
+            <tr><td>1 hora</td><td>2.000</td><td>3,6 MB</td><td>2 requisições</td></tr>
+            <tr><td>1 dia</td><td>48.000</td><td>86,4 MB</td><td>48 requisições</td></tr>
+            <tr><td>1 ano</td><td>17,52 milhões</td><td>31,5 GB</td><td>17.520 requisições</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Com chave por data e hora, ler uma hora da frota custa 2 listagens e 2.000 <code>GET</code>: cerca de 3,8 s com a mediana do bloco 2. Sem convenção, achar essa hora exige abrir tudo: cerca de 9 h.</p>
+      </div>
+    </div>
+
+    <!-- 27. Bloco 4: storage e data lake -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Storage e data lake</span>
+          <h2 class="deck-title">O que um data lake acrescenta ao storage</h2>
+          <p class="deck-summary">Um bucket com os lotes da frota é storage. Vira data lake quando estas respostas vêm de regras, e não da memória de alguém.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Pergunta</th><th>Só storage</th><th>Data lake</th></tr></thead>
+          <tbody>
+            <tr><td>De que caminhão e hora é o lote?</td><td>o nome que o provedor deu</td><td>chave <code>telemetria/data=/hora=/caminhao=</code></td></tr>
+            <tr><td>De onde veio e quando chegou?</td><td>data de modificação</td><td>metadados de origem, recepção e hash</td></tr>
+            <tr><td>Foi alterado depois?</td><td>não há como saber</td><td>raw imutável e versionamento</td></tr>
+            <tr><td>Quem lê, e por quanto tempo?</td><td>quem tem a credencial; até alguém apagar</td><td>acesso por serviço e ciclo de vida</td></tr>
+            <tr><td>Como se lê o TXT?</td><td>cada um escreve o seu parser</td><td>parser versionado, testado, com contrato de saída</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 28. Bloco 4: schema on write e on read -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Esquema</span>
+          <h2 class="deck-title">Schema on write e schema on read</h2>
+          <p class="deck-summary">Em março, o provedor acrescenta <code>TEMP_BAU 04.2</code>, a temperatura do baú, no fim de cada linha.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Schema on write</strong>
+            <ul>
+              <li>Parser antes de gravar; só entra o que cabe</li>
+              <li>Campo novo é rejeitado ou perdido</li>
+              <li>Leitura rápida; mudança exige migração</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Schema on read</strong>
+            <ul>
+              <li>TXT gravado como chegou; parser na leitura</li>
+              <li>Campo novo fica guardado até o parser mudar</li>
+              <li>Erro de parser: reprocessa o original</li>
+            </ul>
+          </div>
+        </div>
+        <p class="deck-note">O lake guarda em schema on read e declara o esquema nas camadas seguintes. O warehouse exige schema on write.</p>
+      </div>
+    </div>
+
+    <!-- 29. Bloco 4: lake, lakehouse, warehouse -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Arquiteturas</span>
+          <h2 class="deck-title">Data lake, lakehouse e data warehouse</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Critério</th><th>Data lake</th><th>Lakehouse</th><th>Data warehouse</th></tr></thead>
+          <tbody>
+            <tr><td>Armazena</td><td>object storage, qualquer formato</td><td>object storage, Parquet em camadas</td><td>o próprio motor</td></tr>
+            <tr><td>Esquema</td><td>on read</td><td>on read no raw; declarado da silver em diante</td><td>on write</td></tr>
+            <tr><td>Na telemetria</td><td>lotes TXT como chegaram</td><td>posições tipadas por caminhão e minuto</td><td>horas de direção por motorista e mês</td></tr>
+            <tr><td>Risco típico</td><td>pântano de arquivos sem dono</td><td>sem transação, se for só Parquet</td><td>custo e rigidez para dado bruto</td></tr>
+            <tr><td>Na disciplina</td><td>bucket <code>raw</code>, hoje</td><td>Aula 04</td><td>Aula 05</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">Transação e histórico de tabela no lakehouse exigem formato de tabela: Delta Lake ou Apache Iceberg.</p>
+      </div>
+    </div>
+
+    <!-- 30. Bloco 4: pausa -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Onde guardar cada dado da transportadora</h2>
+          <p class="deck-summary">Storage, lake, lakehouse ou warehouse? Justifique por esquema, governança e escala.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Lote TXT do satélite</h3><p>Guardado para auditoria e reprocessamento.</p></article>
+          <article class="deck-card"><h3>Posição por minuto</h3><p>Lida pela roteirização e por um painel.</p></article>
+          <article class="deck-card"><h3>Jornada do motorista</h3><p>Horas de direção por mês, acesso restrito.</p></article>
+          <article class="deck-card"><h3>Escala da semana</h3><p>Planilha que só o coordenador edita.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 31. Bloco 4: síntese -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 4</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>File storage grava e lê mais rápido e aceita acrescentar; object storage traz metadados, versões, retenção e leitura por qualquer motor.</li>
+          <li>MinIO dá a API S3 no Codespace e no Railway; o custo é operar o serviço e não ter redundância.</li>
+          <li>Storage guarda bytes. Data lake acrescenta chave convencionada, procedência, imutabilidade, acesso e retenção.</li>
+          <li>Schema on read preserva o TXT e permite reprocessar; schema on write rejeita o que não cabe.</li>
+          <li>O bloco 5 aplica as mesmas regras à coleta da Open-Meteo que o grupo constrói hoje.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 32. Chave Hive -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Bloco 4 &middot; Camada raw</span>
+          <span class="deck-kicker">Bloco 5 &middot; Camada raw</span>
           <h2 class="deck-title">Chave particionada no estilo Hive</h2>
           <p class="deck-summary">A chave diz a fonte, o dia e a hora da coleta e a cidade. DuckDB e Spark leem <code>data</code> e <code>hora</code> como colunas.</p>
         </div>
@@ -490,11 +671,11 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       </div>
     </div>
 
-    <!-- 24. Formatos -->
+    <!-- 33. Formatos -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Bloco 4 &middot; Formatos</span>
+          <span class="deck-kicker">Bloco 5 &middot; Formatos</span>
           <h2 class="deck-title">JSON para o dado, JSON Lines para o manifesto</h2>
         </div>
         <div class="deck-columns">
@@ -519,11 +700,11 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       </div>
     </div>
 
-    <!-- 25. Imutabilidade, idempotência, procedência -->
+    <!-- 34. Imutabilidade, idempotência, procedência -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Bloco 4 &middot; Camada raw</span>
+          <span class="deck-kicker">Bloco 5 &middot; Camada raw</span>
           <h2 class="deck-title">Imutabilidade, idempotência e procedência</h2>
         </div>
         <ol class="deck-steps">
@@ -535,11 +716,11 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       </div>
     </div>
 
-    <!-- 26. Exemplo numérico 4 -->
+    <!-- 35. Exemplo numérico 5 -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Bloco 4 &middot; Exemplo numérico 4</span>
+          <span class="deck-kicker">Bloco 5 &middot; Exemplo numérico 5</span>
           <h2 class="deck-title">Duas execuções na mesma hora, medidas</h2>
           <p class="deck-summary">Com os tempos do bloco 2, o que cada política de chave faz com o bucket.</p>
         </div>
@@ -558,11 +739,11 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       </div>
     </div>
 
-    <!-- 27. A fonte -->
+    <!-- 36. A fonte -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Bloco 4 &middot; A fonte</span>
+          <span class="deck-kicker">Bloco 5 &middot; A fonte</span>
           <h2 class="deck-title">API de previsão da Open-Meteo, sem chave</h2>
           <p class="deck-summary">Uso não comercial: menos de 10.000 chamadas por dia, 5.000 por hora, 600 por minuto; licença CC BY 4.0. Seis capitais por hora somam 144 chamadas por dia.</p>
         </div>
@@ -574,11 +755,11 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       </div>
     </div>
 
-    <!-- 28. Pausa bloco 4 e passagem -->
+    <!-- 37. Pausa bloco 5 e passagem -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Bloco 4 &middot; Pausa e passagem para a prática</span>
+          <span class="deck-kicker">Bloco 5 &middot; Pausa e passagem para a prática</span>
           <h2 class="deck-title">E se a distribuidora pedir sete dias de previsão?</h2>
           <p class="deck-summary">Em janeiro, <code>forecast_days=1</code> vira <code>forecast_days=7</code>. O que muda na chave, nos metadados, no manifesto e no bucket? Qual decisão precisa de ADR novo?</p>
         </div>
@@ -592,7 +773,7 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       </div>
     </div>
 
-    <!-- 29. Ambiente -->
+    <!-- 38. Ambiente -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -610,7 +791,7 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou: opencode</code></pre
       </div>
     </div>
 
-    <!-- 30. Fluxo SDD -->
+    <!-- 39. Fluxo SDD -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -628,7 +809,7 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou: opencode</code></pre
       </div>
     </div>
 
-    <!-- 31. Prompts 1 e 2 -->
+    <!-- 40. Prompts 1 e 2 -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -657,7 +838,7 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou: opencode</code></pre
       </div>
     </div>
 
-    <!-- 32. Prompt 3 -->
+    <!-- 41. Prompt 3 -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -674,7 +855,7 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
       </div>
     </div>
 
-    <!-- 33. Prompts 4 e 5 -->
+    <!-- 42. Prompts 4 e 5 -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -693,7 +874,7 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
       </div>
     </div>
 
-    <!-- 34. Prompt 6 -->
+    <!-- 43. Prompt 6 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -710,7 +891,7 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
       </div>
     </div>
 
-    <!-- 35. Gates locais -->
+    <!-- 44. Gates locais -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -728,7 +909,7 @@ docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12
       </div>
     </div>
 
-    <!-- 36. Railway -->
+    <!-- 45. Railway -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -746,7 +927,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
 
-    <!-- 37. Prompt 7 ATAM -->
+    <!-- 46. Prompt 7 ATAM -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
@@ -768,7 +949,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
 
-    <!-- 38. Gates -->
+    <!-- 47. Gates -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -786,7 +967,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
 
-    <!-- 39. Até 12h10 -->
+    <!-- 48. Até 12h10 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -815,7 +996,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
 
-    <!-- 40. Entregável -->
+    <!-- 49. Entregável -->
     <div class="slide">
       <div class="deck-shell">
         <div>

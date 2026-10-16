@@ -109,7 +109,7 @@ echo "@AGENTS.md" > CLAUDE.md
 git add CLAUDE.md
 ```
 
-Execute os prompts do material, seção 9, um por vez. Depois de cada um, faça a revisão indicada antes de seguir.
+Execute os prompts do material, seção 10, um por vez. Depois de cada um, faça a revisão indicada antes de seguir.
 
 | Prompt | Artefato | Gate antes do próximo |
 |---|---|---|
