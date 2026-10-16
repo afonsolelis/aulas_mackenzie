@@ -159,9 +159,9 @@ The design system is consistently implemented, navigation is solid, and spec com
 
 ### 6.2 Should Fix (Next Iteration)
 
-4. **Minicurso Agenda alignment** — The slide 2 agenda lists "Prática" but lacks specific setup instructions (opencode-ai, gemini-cli). Add details or remove from agenda until ready.
+4. **Minicurso Agenda alignment** — The slide 2 agenda lists "Prática" but lacks specific setup instructions (the student's preferred coding agent, e.g. Claude Code, Codex CLI, Gemini CLI or OpenCode). Add details or remove from agenda until ready.
 
-5. **Minicurso practice section** — All main course lessons have a specific practice section (AWS Student Lab). Minicurso should have equivalent (e.g., "Setup do ambiente opencode / gemini-cli") to maintain course consistency.
+5. **Minicurso practice section** — All main course lessons have a specific practice section (AWS Student Lab). Minicurso should have equivalent (e.g., "Setup do agente de código de preferência do aluno") to maintain course consistency.
 
 ### 6.3 Consider (Nice to Have)
 

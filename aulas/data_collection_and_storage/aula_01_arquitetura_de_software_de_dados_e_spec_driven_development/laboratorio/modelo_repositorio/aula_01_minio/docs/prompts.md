@@ -9,7 +9,7 @@
 
 - Data e hora:
 - Quem enviou:
-- Modelo usado: openrouter/openrouter/free
+- Agente e modelo usados:
 - Arquivos alterados:
 - Resultado da revisão ("Revise antes de seguir"): aceito / refeito, com o motivo
 

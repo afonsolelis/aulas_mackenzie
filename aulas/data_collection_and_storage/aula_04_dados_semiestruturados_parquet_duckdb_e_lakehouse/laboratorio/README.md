@@ -15,7 +15,7 @@ O código do job não está nesta pasta. Ele nasce durante a aula, pelos prompts
 | `docker-compose.yml` | MinIO local (imagem `ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z`) e um serviço que cria os buckets `raw`, `bronze`, `silver` e `gold` |
 | `.env.example` | Variáveis do MinIO local e do job; os nomes `S3_*` são os mesmos da Aula 02 |
 | `requirements.txt` | `duckdb`, `boto3`, `beautifulsoup4`, `pytest` e `pytz` (exigido pelo DuckDB para entregar `TIMESTAMPTZ` ao Python), nas versões validadas |
-| `AGENTS.md` | Regras para o OpenCode: escopo, raw e bronze somente leitura, idempotência, comandos, segredos, gates |
+| `AGENTS.md` | Regras para o agente de código: escopo, raw e bronze somente leitura, idempotência, comandos, segredos, gates |
 | `Dockerfile` | Imagem modelo do job, com a extensão `httpfs` já instalada |
 | `railway.json` | Configuração como código do serviço: build por Dockerfile, `cronSchedule` e `restartPolicyType` |
 | `sql/rodar_sql.py` | Executa um `.sql` no DuckDB criando o secret S3 a partir do `.env` |
@@ -46,10 +46,10 @@ O deploy no Railway não foi executado nesta validação. Os comandos da Etapa 8
 ## Pré-requisitos (feitos nas Aulas 01 a 03)
 
 - Codespace aberto no repositório do grupo.
-- OpenCode conectado à OpenRouter com o modelo `openrouter/free` (no OpenCode, `openrouter/openrouter/free`).
+- Agente de código de sua preferência (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot) lendo o `AGENTS.md`.
 - MinIO publicado no Railway com domínio público para a porta 9000, e o bucket `raw` com dados da Aula 02 (`raw/open_meteo/...`) e da Aula 03 (PTAX e páginas do books.toscrape.com).
 
-Os modelos gratuitos da OpenRouter aceitam 20 requisições por minuto e 50 por dia para contas que compraram menos de US$ 10 em créditos. Rode um prompt por vez; se aparecer erro 429, espere e repita.
+Rode um prompt por vez e revise antes do próximo. Nenhuma chave de API entra no Git.
 
 ## Etapa 1. Criar a pasta da aula no repositório do grupo
 
@@ -130,11 +130,13 @@ python sql/rodar_sql.py sql/02_raw_bronze_livros_ptax.sql
 
 Observe e anote para a spec: o tipo inferido de `hourly` (STRUCT com listas), quantas vezes a mesma hora prevista se repete entre coletas, o envelope `value` da PTAX no raw, o UPC extraído do HTML de detalhe comparado com o bronze e o tipo que a inferência deu a `coletado_em`.
 
-## Etapa 5. Prompts SDD no OpenCode
+## Etapa 5. Prompts SDD no agente de código
 
 ```bash
-opencode
+claude            # ou o agente que você usa
 ```
+
+No Claude Code, crie antes um `CLAUDE.md` que importe as regras: `echo "@AGENTS.md" > CLAUDE.md`. Outros agentes leem o `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto.
 
 Execute os prompts do material, seção 10, um por vez. Depois de cada um, faça a revisão indicada antes de seguir.
 

@@ -1,6 +1,6 @@
 # AGENTS.md · aula_03_api_scraping
 
-Regras para o agente de código (OpenCode) nesta pasta. Leia este arquivo antes de qualquer etapa.
+Regras para o agente de código nesta pasta, qualquer que seja o agente escolhido pelo grupo (Claude Code, Codex CLI, OpenCode ou outro). Leia este arquivo antes de qualquer etapa.
 
 ## Escopo
 

@@ -2,7 +2,7 @@
 
 [Abrir no GitHub Codespaces](https://codespaces.new/afonsolelis/aulas_mackenzie?quickstart=1)
 
-Este template organiza a prática em uma sequência verificável: catálogo do banco, discussão da modelagem, contrato de métricas e dashboard. O frontend usa HTML/CSS/D3; a API Node.js lê o PostgreSQL Olist do Railway. Copilot e OpenCode apoiam a análise e a implementação, mas nenhuma sugestão substitui teste de grão, cardinalidade ou reconciliação.
+Este template organiza a prática em uma sequência verificável: catálogo do banco, discussão da modelagem, contrato de métricas e dashboard. O frontend usa HTML/CSS/D3; a API Node.js lê o PostgreSQL Olist do Railway. Copilot ou o agente de código de sua preferência apoiam a análise e a implementação, mas nenhuma sugestão substitui teste de grão, cardinalidade ou reconciliação.
 
 ## Início rápido
 
@@ -22,15 +22,14 @@ Este template organiza a prática em uma sequência verificável: catálogo do b
 
 O dev container solicita as extensões **GitHub Copilot** e **GitHub Copilot Chat**. Se o chat não aparecer, abra **Extensions**, procure por `GitHub Copilot`, instale e autentique com a conta GitHub que possui acesso ao serviço. Abra o chat pelo ícone do Copilot e confirme que ele consegue explicar um arquivo selecionado sem alterá-lo.
 
-No terminal do Codespaces, instale o OpenCode com Node.js:
+Se preferir trabalhar com um agente no terminal, use o agente de código ou a IA de sua preferência (por exemplo Claude Code, Codex CLI, Gemini CLI, OpenCode com o provedor que quiser ou Cursor). Abra o agente escolhido na pasta do projeto e peça que ele leia o `AGENTS.md`. No Claude Code, crie antes o arquivo de contexto:
 
 ```bash
-npm install -g opencode-ai
-opencode --version
-opencode
+echo "@AGENTS.md" > CLAUDE.md
+claude   # ou o agente que você usa
 ```
 
-Dentro do OpenCode, digite `/connect`, escolha **OpenCode Zen**, abra a página de autenticação indicada e cole a chave. Em seguida, use `/models` para escolher um modelo disponível. Zen é opcional, cobrado separadamente e requer conta/créditos próprios. Nunca cole a chave no chat, em `.env` versionado, no HTML ou em commits.
+Nunca cole chave de API no chat, em `.env` versionado, no HTML ou em commits.
 
 ## 2. Extrair e discutir a modelagem
 
@@ -40,7 +39,7 @@ Com `DATABASE_URL` configurada, gere um catálogo sem linhas de negócio:
 npm run inspect:aula03
 ```
 
-O comando grava `docs/00_catalogo_banco.md` com schemas, tabelas, views, colunas e restrições declaradas. Abra também `docs/00_modelagem_e_metricas.md`. No Copilot Chat, use **Add Context** para incluir os dois arquivos; no OpenCode, mencione os caminhos no pedido. Use o prompt registrado no próprio documento.
+O comando grava `docs/00_catalogo_banco.md` com schemas, tabelas, views, colunas e restrições declaradas. Abra também `docs/00_modelagem_e_metricas.md`. No Copilot Chat, use **Add Context** para incluir os dois arquivos; no agente de terminal, mencione os caminhos no pedido. Use o prompt registrado no próprio documento.
 
 A resposta do assistente é uma hipótese de modelagem. Antes de aceitá-la, o grupo precisa declarar o grão de cada objeto, testar unicidade das chaves candidatas, verificar fanout nas junções e distinguir as datas do processo. O catálogo mostra estrutura declarada; ele não prova significado de negócio.
 
@@ -50,7 +49,7 @@ Preencha o contrato de métricas com pergunta, fórmula, grão, filtros, denomin
 
 ## 4. Construir o dashboard
 
-Inicie o template, abra a porta 3000 e trate cada gráfico como um painel do mesmo dashboard. Use Copilot ou OpenCode para propor pequenas alterações em `public/index.html`, `public/styles.css` e `public/app.js`. Trabalhe uma mudança por vez, inspecione o diff, execute os testes e confirme que a implementação respeita o contrato de métricas.
+Inicie o template, abra a porta 3000 e trate cada gráfico como um painel do mesmo dashboard. Use Copilot ou o agente de código de sua preferência para propor pequenas alterações em `public/index.html`, `public/styles.css` e `public/app.js`. Trabalhe uma mudança por vez, inspecione o diff, execute os testes e confirme que a implementação respeita o contrato de métricas.
 
 ## Conectar ao Railway e à IA
 

@@ -13,7 +13,7 @@ O código não está aqui. Ele nasce ao vivo, pelos prompts, no repositório do 
 | `docker-compose.yml` | MinIO local (`coollabsio/minio:RELEASE.2025-10-15T17-29-55Z`), API S3 na porta 9000 e console na 9001 |
 | `.env.example` | variáveis do MinIO, da coleta e das fontes; copie para `.env` |
 | `requirements.txt` | dependências Python sugeridas |
-| `AGENTS.md` | regras para o OpenCode nesta pasta |
+| `AGENTS.md` | regras para o agente de código nesta pasta |
 
 ## Fontes
 
@@ -70,10 +70,10 @@ curl -s "$B/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalC
 ## 5. Agente
 
 ```bash
-opencode
+claude            # ou o agente que você usa
 ```
 
-Dentro do OpenCode: `/models` para confirmar `openrouter/openrouter/free`. Rode os prompts 1 a 7 do material (seção 12), um por vez, e faça a revisão "Revise antes de seguir" depois de cada um. Limite do plano gratuito da OpenRouter: 20 requisições por minuto e 50 por dia para contas com menos de US$ 10 em créditos comprados. Em caso de 429, espere e repita.
+Use o agente de código de sua preferência, aberto nesta pasta. No Claude Code, crie antes um `CLAUDE.md` que importe as regras: `echo "@AGENTS.md" > CLAUDE.md`. Outros agentes leem o `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto. Rode os prompts 1 a 7 do material (seção 12), um por vez, e faça a revisão "Revise antes de seguir" depois de cada um. Nenhuma chave de API entra no Git.
 
 Ordem dos artefatos:
 

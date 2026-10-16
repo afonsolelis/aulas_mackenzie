@@ -45,7 +45,7 @@ O curso é desenhado para profissionais que buscam liderança técnica, combinan
 -   **Carga Horária:** 30h
 -   **Objetivos de Aprendizagem:** Acelerar o desenvolvimento de código e testes usando LLMs. Orquestrar múltiplos agentes de IA para resolver tarefas complexas. Implementar um ciclo de Spec-Driven Development (SDD).
 -   **Tópicos Abordados:** Prompt Engineering para código. Retrieval-Augmented Generation (RAG) para dar contexto de domínio à IA. Construção de squads de agentes com CrewAI/AutoGen. Fine-tuning de modelos para estilos de código específicos.
--   **Ferramentas e Tecnologias:** OpenCode, Gemini CLI, CrewAI, LangChain, Vector Databases (ChromaDB).
+-   **Ferramentas e Tecnologias:** agente de código de preferência do aluno (Claude Code, Codex CLI, Gemini CLI ou OpenCode), CrewAI, LangChain, Vector Databases (ChromaDB).
 -   **Atividade Prática:** Criar uma "squad" de agentes (Arquiteto, Desenvolvedor, Revisor de Código) para gerar, testar e documentar uma API CRUD completa a partir de um arquivo de especificação.
 
 ### **Módulo 6: Arquitetura Cloud-Native e SRE**

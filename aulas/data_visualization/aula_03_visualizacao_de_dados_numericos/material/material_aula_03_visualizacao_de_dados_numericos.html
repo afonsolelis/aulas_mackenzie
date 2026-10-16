@@ -198,19 +198,18 @@
         <h2>8. Laboratório — do modelo ao dashboard</h2>
         <p>Duração aproximada de duas horas e dez minutos. O trabalho começa no catálogo do PostgreSQL, passa pela discussão da modelagem e pelo contrato de métricas e termina em um dashboard D3. Essa ordem impede que uma interface visualmente correta esconda uma junção com fanout, uma contagem no grão errado ou um denominador indefinido.</p>
 
-        <h3>Etapa 0 — Preparar Copilot e OpenCode com Zen (15 minutos)</h3>
+        <h3>Etapa 0 — Preparar Copilot e o agente de código (15 minutos)</h3>
         <ol class="steps">
           <li>Abra o Codespace. O projeto solicita as extensões GitHub Copilot e GitHub Copilot Chat; se necessário, instale-as em <strong>Extensions</strong> e autentique sua conta GitHub.</li>
-          <li>No terminal, execute <code>npm install -g opencode-ai</code>, confirme com <code>opencode --version</code> e inicie com <code>opencode</code>.</li>
-          <li>No TUI do OpenCode, use <code>/connect</code>, escolha <strong>OpenCode Zen</strong>, autentique-se e informe a chave. Use <code>/models</code> para selecionar um modelo disponível.</li>
-          <li>Não cole chaves em chats, arquivos versionados, HTML ou capturas. Zen é opcional, exige conta e possui cobrança própria.</li>
+          <li>Se preferir um agente no terminal, use o agente de código ou a IA de sua preferência (por exemplo Claude Code, Codex CLI, Gemini CLI, OpenCode com o provedor que quiser ou Cursor). Abra-o na pasta do projeto e peça que leia o <code>AGENTS.md</code>; no Claude Code, rode antes <code>echo "@AGENTS.md" &gt; CLAUDE.md</code> e depois <code>claude</code>.</li>
+          <li>Não cole chaves em chats, arquivos versionados, HTML ou capturas. Nenhuma chave de API vai para o Git.</li>
         </ol>
 
         <h3>Etapa 1 — Coletar e discutir a modelagem (20 minutos)</h3>
         <ol class="steps">
           <li>Com o secret <code>DATABASE_URL</code> configurado, execute <code>npm run inspect:aula03</code>.</li>
           <li>Abra <code>docs/00_catalogo_banco.md</code> e <code>docs/00_modelagem_e_metricas.md</code>.</li>
-          <li>Forneça os dois arquivos como contexto ao Copilot ou mencione seus caminhos no OpenCode. Use o prompt de revisão registrado no documento.</li>
+          <li>Forneça os dois arquivos como contexto ao Copilot ou mencione seus caminhos no agente de terminal. Use o prompt de revisão registrado no documento.</li>
           <li>Exija a declaração de entidades, grãos, chaves candidatas, relações, datas e riscos de fanout. Marque cada conclusão como evidência do catálogo ou hipótese.</li>
           <li>Valide hipóteses com consultas de contagem, unicidade e cardinalidade. Nome de coluna semelhante não prova relacionamento.</li>
         </ol>
@@ -220,7 +219,7 @@
         <p>As quatro métricas mínimas cobrem pedidos entregues no tempo, distribuição do preço, faturamento por categoria e relação entre preço e frete. O assistente pode propor SQL; o grupo inspeciona, limita e testa antes de executar.</p>
 
         <h3>Etapa 3 — Construir o dashboard (50 minutos)</h3>
-        <p>O template já entrega API segura, dados de fallback e quatro painéis D3. Use Copilot ou OpenCode para realizar alterações pequenas em <code>public/index.html</code>, <code>public/styles.css</code> e <code>public/app.js</code>. Depois de cada diff, execute os testes e compare a implementação com o contrato de métricas. O dashboard deve possuir visão executiva, ordem de leitura, filtros compreensíveis, unidade, fonte, escala e limitação junto ao painel correspondente.</p>
+        <p>O template já entrega API segura, dados de fallback e quatro painéis D3. Use Copilot ou o agente de código de sua preferência para realizar alterações pequenas em <code>public/index.html</code>, <code>public/styles.css</code> e <code>public/app.js</code>. Depois de cada diff, execute os testes e compare a implementação com o contrato de métricas. O dashboard deve possuir visão executiva, ordem de leitura, filtros compreensíveis, unidade, fonte, escala e limitação junto ao painel correspondente.</p>
 
         <div class="note">
           <strong>Regra do laboratório</strong>
@@ -292,7 +291,7 @@
       <section class="content-block">
         <h2>10. Preparação para a Aula 04</h2>
         <p>Em 5 de setembro vamos construir a cadeia de dados que sustenta uma publicação: nove planilhas Excel serão perfiladas, carregadas em SQLite, lidas para produzir um HTML, materializadas em DuckDB e consultadas para produzir um segundo HTML orientado a OLAP.</p>
-        <p>Confirme o acesso à sua conta GitHub para criar um Codespace e prepare uma conta no OpenCode Zen. Os arquivos Olist completos e o passo a passo de configuração estarão disponíveis nos slides e no material da Aula 04.</p>
+        <p>Confirme o acesso à sua conta GitHub para criar um Codespace e deixe pronto o agente de código ou a IA de sua preferência. Os arquivos Olist completos e o passo a passo de configuração estarão disponíveis nos slides e no material da Aula 04.</p>
       </section>
 
       <section class="content-block">

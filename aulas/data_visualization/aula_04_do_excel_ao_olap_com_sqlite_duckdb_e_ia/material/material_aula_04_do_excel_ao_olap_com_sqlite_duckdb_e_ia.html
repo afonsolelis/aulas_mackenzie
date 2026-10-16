@@ -21,7 +21,7 @@
       <span class="kicker">Data Visualization &middot; MBA Engenharia de Dados</span>
       <h1>Aula 04 — Do Excel ao OLAP com SQLite, DuckDB e IA</h1>
       <p class="meta">Aula 04 &middot; 05/09/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>Laboratório integral no GitHub Codespaces com OpenCode Zen: quatro arquivos Excel, com as nove tabelas Olist distribuídas em abas, são perfilados, carregados em SQLite, lidos para produzir um HTML operacional, materializados em DuckDB e consultados para produzir um segundo HTML orientado a OLAP.</p>
+      <p>Laboratório integral no GitHub Codespaces com o agente de código de preferência do aluno: quatro arquivos Excel, com as nove tabelas Olist distribuídas em abas, são perfilados, carregados em SQLite, lidos para produzir um HTML operacional, materializados em DuckDB e consultados para produzir um segundo HTML orientado a OLAP.</p>
     </header>
 
     <article class="material">
@@ -54,8 +54,8 @@
       </section>
 
       <section class="content-block">
-        <h2>3. Configuração do GitHub Codespaces e OpenCode Zen</h2>
-        <p>Todo o trabalho ocorre no terminal do Codespace. O ambiente elimina diferenças de sistema operacional e preserva o rastro dos arquivos criados. O OpenCode funciona como agente de desenvolvimento: pode ler o repositório, propor mudanças e executar ferramentas, portanto cada autorização precisa ser tratada como autorização dada a um programador.</p>
+        <h2>3. Configuração do GitHub Codespaces e do agente de código</h2>
+        <p>Todo o trabalho ocorre no terminal do Codespace. O ambiente elimina diferenças de sistema operacional e preserva o rastro dos arquivos criados. O agente de código funciona como um desenvolvedor auxiliar: pode ler o repositório, propor mudanças e executar ferramentas, portanto cada autorização precisa ser tratada como autorização dada a um programador.</p>
 
         <h3>3.1 Criar o Codespace</h3>
         <ol class="steps">
@@ -70,28 +70,17 @@ git status --short
 python3 --version
 node --version</code></pre>
 
-        <h3>3.2 Instalar o OpenCode</h3>
-        <p>A documentação oficial oferece várias formas de instalação. No Codespace, já temos Node.js; portanto, usamos npm:</p>
-        <pre><code>npm install -g opencode-ai
-opencode --version
-cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
-opencode</code></pre>
-        <p>O terceiro comando abre a interface textual. A partir desse ponto, comandos iniciados por barra são digitados dentro do OpenCode. Consulte a <a href="https://opencode.ai/docs" target="_blank" rel="noopener noreferrer">documentação oficial de instalação e início</a> se a interface mudar.</p>
-
-        <h3>3.3 Conectar o OpenCode Zen</h3>
+        <h3>3.2 Abrir o agente de código</h3>
+        <p>Use o agente de código ou a IA de sua preferência, por exemplo Claude Code, Codex CLI, Gemini CLI, OpenCode com o provedor que quiser, Cursor ou Copilot. A aula não fixa ferramenta nem modelo. Antes de propor código, o agente deve ler as regras do repositório.</p>
+        <pre><code>cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
+claude   # ou o agente que você usa</code></pre>
         <ol class="steps">
-          <li>Na interface do OpenCode, digite <code>/connect</code>.</li>
-          <li>Selecione <strong>OpenCode Zen</strong>.</li>
-          <li>Abra o endereço de autenticação mostrado, entre em sua conta, adicione os dados de cobrança e créditos necessários e copie a API key.</li>
-          <li>Cole a chave somente no campo seguro solicitado pelo OpenCode.</li>
-          <li>Digite <code>/models</code> e escolha um dos modelos disponíveis no Zen.</li>
           <li>Faça o teste inicial: <code>Leia ../../../../AGENTS.md e README.md; resuma as restrições que devem orientar a Aula 04.</code></li>
-          <li>Mantenha o OpenCode aberto nesse terminal e abra um segundo terminal para executar os comandos do laboratório.</li>
+          <li>Mantenha o agente aberto nesse terminal e abra um segundo terminal para executar os comandos do laboratório.</li>
         </ol>
-        <p>O Zen é cobrado por uso e a lista de modelos muda. Por isso a aula não fixa um modelo. O procedimento atual está na <a href="https://opencode.ai/docs/zen" target="_blank" rel="noopener noreferrer">documentação oficial do OpenCode Zen</a>.</p>
         <div class="note">
           <strong>Controle de credenciais</strong>
-          <p>Não cole a chave no prompt, em captura de tela, no HTML, em um <code>.env</code> versionado ou em commit. Se uma chave aparecer no diff, interrompa o trabalho, remova-a e faça a rotação no provedor.</p>
+          <p>Não cole chave de API no prompt, em captura de tela, no HTML, em um <code>.env</code> versionado ou em commit. Se uma chave aparecer no diff, interrompa o trabalho, remova-a e faça a rotação no provedor.</p>
         </div>
       </section>
 
@@ -142,7 +131,7 @@ python -c "import openpyxl, duckdb; print(openpyxl.__version__, duckdb.__version
       <section class="content-block">
         <h2>7. Fase A — perfil dos arquivos Excel</h2>
         <p>A primeira leitura não cria banco. Ela verifica se os arquivos recebidos correspondem ao contrato. A geolocalização impede uma solução ingênua: carregar um milhão de linhas em um DataFrame pode consumir a memória do Codespace sem produzir evidência adicional. O modo <code>read_only</code> do <code>openpyxl</code> percorre as linhas sem construir a planilha inteira em memória.</p>
-        <h3>Prompt para o OpenCode</h3>
+        <h3>Prompt para o agente de código</h3>
         <pre><code>Leia README.md. Inspecione entrada/*.xlsx em modo
 read_only, sem carregar a planilha inteira em memória. Crie
 src/00_perfil_excel.py para registrar arquivo, aba, cabeçalhos,
@@ -172,7 +161,7 @@ python -m json.tool saida/perfil_excel.json | less</code></pre>
         </table>
         <p>Geolocalização não recebe uma chave estrangeira por prefixo de CEP: o campo não é único. A tradução de categoria também permanece como tabela de referência auditada por consulta, pois categorias nulas ou sem tradução precisam continuar visíveis.</p>
 
-        <h3>Prompt para o OpenCode</h3>
+        <h3>Prompt para o agente de código</h3>
         <pre><code>Crie src/01_excel_para_sqlite.py. Use openpyxl em read_only,
 sqlite3 da biblioteca padrão, esquema explícito para as nove tabelas,
 transação por arquivo e inserção em lotes de 5.000 linhas. Converta
@@ -227,7 +216,7 @@ LIMIT 10;"</code></pre>
         <h2>10. Gerar o primeiro HTML a partir do SQLite</h2>
         <p>O primeiro HTML funciona como inventário operacional. Ele mostra o volume de cada tabela, a distribuição dos pedidos por status e os pedidos mais recentes. O script abre o banco em modo somente leitura, executa consultas registradas e monta uma página estática com CSS embutido. Nenhuma métrica é escrita manualmente.</p>
 
-        <h3>Prompt para o OpenCode</h3>
+        <h3>Prompt para o agente de código</h3>
         <pre><code>Crie src/02_html_sqlite.py. Abra saida/olist.sqlite em modo somente
 leitura e gere saida/relatorio_sqlite.html com HTML semântico e CSS
 embutido. Mostre contagem das nove tabelas, pedidos por status, cinco
@@ -244,7 +233,7 @@ python -m http.server 8000 -d saida</code></pre>
         <h2>11. Fase C — transformar SQLite em DuckDB</h2>
         <p>A extensão oficial <code>sqlite</code> permite anexar o banco de origem. Anexar não significa converter: nesse estado, os dados ainda são lidos do arquivo SQLite. A conversão acontece quando o script cria tabelas no catálogo principal do DuckDB com <code>CREATE TABLE AS SELECT</code>. Essa cópia produz armazenamento nativo e tipos rígidos no arquivo <code>olist.duckdb</code>.</p>
 
-        <h3>Prompt para o OpenCode</h3>
+        <h3>Prompt para o agente de código</h3>
         <pre><code>Crie src/03_sqlite_para_duckdb.py. Conecte a saida/olist.duckdb,
 instale e carregue a extensão sqlite, anexe saida/olist.sqlite como
 sqlite_src e materialize as nove tabelas no catálogo main com
@@ -264,7 +253,7 @@ python -c "import duckdb; duckdb.connect('saida/olist.duckdb').sql('SHOW TABLES'
         <p>OLAP não é apenas executar <code>GROUP BY</code>. É declarar dimensões, métricas e grão de forma que cada agregação conserve o significado. A fato de itens terá uma linha por <code>order_id + order_item_id</code>. Pedidos, clientes, produtos, vendedores e tradução podem ser ligados a esse grão por relações muitos-para-um.</p>
         <p>Pagamentos e avaliações não entram diretamente. Um pedido pode conter vários itens e vários pagamentos; juntar as duas coleções multiplica linhas. Somar preço após esse join duplica receita. Se uma pergunta exigir pagamento, primeiro agregamos pagamentos para uma linha por pedido e apenas depois combinamos.</p>
 
-        <h3>Prompt para o OpenCode</h3>
+        <h3>Prompt para o agente de código</h3>
         <pre><code>Crie src/04_criar_mart_olap.py. No DuckDB, materialize
 fato_item_venda no grão order_id + order_item_id, juntando pedidos,
 clientes, itens, produtos e tradução; derive mes da data de compra.
@@ -333,7 +322,7 @@ ORDER BY receita DESC;</code></pre>
         <h2>14. Gerar o segundo HTML a partir do DuckDB</h2>
         <p>O segundo HTML apresenta o resultado analítico: KPIs, série mensal, categorias com cobertura e estados. O relatório precisa declarar que lê <code>olist.duckdb</code> e não pode abrir o SQLite. Essa separação é o teste arquitetural da etapa.</p>
 
-        <h3>Prompt para o OpenCode</h3>
+        <h3>Prompt para o agente de código</h3>
         <pre><code>Crie src/05_html_duckdb.py. Leia somente saida/olist.duckdb e gere
 saida/dashboard_duckdb.html. Mostre KPIs de receita, pedidos e ticket;
 série mensal; top 10 categorias com cobertura; estados com receita e
@@ -371,7 +360,7 @@ python -m http.server 8000 -d saida</code></pre>
           <thead><tr><th>Horário</th><th>Ação</th><th>Gate</th></tr></thead>
           <tbody>
             <tr><td>8h30–9h00</td><td>prática guiada: inspecionar arquivos, comandos, pipeline e risco de fanout</td><td>grupo executa a primeira leitura no terminal</td></tr>
-            <tr><td>9h00–9h20</td><td>Codespaces, OpenCode e Zen</td><td>agente lê <code>AGENTS.md</code></td></tr>
+            <tr><td>9h00–9h20</td><td>Codespaces e agente de código</td><td>agente lê <code>AGENTS.md</code></td></tr>
             <tr><td>9h20–9h40</td><td>download, cópia e perfil dos Excels</td><td>nove contagens reconciliadas</td></tr>
             <tr><td>9h40–10h20</td><td>carga SQLite</td><td><code>integrity_check = ok</code></td></tr>
             <tr><td>10h20–10h40</td><td>leitura e HTML SQLite</td><td>um valor conferido no terminal</td></tr>
@@ -384,7 +373,7 @@ python -m http.server 8000 -d saida</code></pre>
 
         <div class="note">
           <strong>Orientação final para a atividade prática</strong>
-          <p>Ao terminar, peça ao OpenCode: <code>Revise os seis scripts contra README.md. Liste divergências sem editar. Depois proponha a menor correção para cada gate que falhou.</code> Inspecione cada correção, esvazie apenas a pasta <code>saida/</code>, execute os scripts em ordem e confirme que os dois HTMLs podem ser reconstruídos a partir dos Excels.</p>
+          <p>Ao terminar, peça ao agente: <code>Revise os seis scripts contra README.md. Liste divergências sem editar. Depois proponha a menor correção para cada gate que falhou.</code> Inspecione cada correção, esvazie apenas a pasta <code>saida/</code>, execute os scripts em ordem e confirme que os dois HTMLs podem ser reconstruídos a partir dos Excels.</p>
           <p>Depois dos gates, peça: <code>Crie docs/04_pipeline_excel_olap.md somente a partir dos manifestos, relatórios e medições produzidos. Registre proveniência, contagens, FKs, reconciliação, consulta comparada, mediana, limitações e caminhos dos dois HTMLs. Não invente números.</code></p>
           <p>O laboratório termina quando a cadeia inteira é reproduzível e reconciliada, não quando a primeira página visualmente convincente abre no navegador.</p>
         </div>

@@ -43,7 +43,7 @@
           <article class="deck-card">
             <h3>9h30 &ndash; 12h10 &middot; Prática guiada</h3>
             <ul>
-              <li>Codespace, OpenCode + OpenRouter, Railway</li>
+              <li>Codespace, agente de código, Railway</li>
               <li>Oito prompts SDD do projeto MinIO</li>
               <li>Deploy, buckets, ATAM e entregável</li>
             </ul>
@@ -405,18 +405,15 @@ git status --short        # .env não pode aparecer</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Setup 2 &middot; OpenRouter e OpenCode</span>
-          <h2 class="deck-title">Agente no terminal com modelo gratuito</h2>
+          <span class="deck-kicker">Setup 2 &middot; Agente de código</span>
+          <h2 class="deck-title">Agente de sua preferência no terminal</h2>
         </div>
-        <pre><code>npm install -g opencode-ai
-cd aula_01_minio
-opencode
-# dentro do OpenCode:
-/connect      # OpenRouter, colar a chave no campo seguro
-/models       # openrouter/openrouter/free</code></pre>
+        <pre><code>cd aula_01_minio
+echo "@AGENTS.md" &gt; CLAUDE.md   # só no Claude Code
+claude            # ou o agente que você usa</code></pre>
         <div class="deck-callout">
-          <strong>Limites do plano gratuito</strong>
-          <p style="margin:8px 0 0;">20 requisições/min; 50/dia com menos de US$ 10 em créditos comprados. Erro 429: espere. Revezem o piloto.</p>
+          <strong>Qualquer agente serve</strong>
+          <p style="margin:8px 0 0;">Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot. O agente precisa ler o AGENTS.md; nenhuma chave de API entra no Git. Revezem o piloto.</p>
         </div>
       </div>
     </div>

@@ -37,7 +37,7 @@
           <li><a href="#s6">O formato CREATE</a></li>
           <li><a href="#s7">Boas práticas de prompt para agentes</a></li>
           <li><a href="#s8">Setup 1: repositório do grupo e Codespace</a></li>
-          <li><a href="#s9">Setup 2: OpenRouter e OpenCode</a></li>
+          <li><a href="#s9">Setup 2: agente de código</a></li>
           <li><a href="#s10">Setup 3: conta e CLI do Railway</a></li>
           <li><a href="#s11">Por que MinIO e por que a imagem da coolLabs</a></li>
           <li><a href="#s12">Demonstração SDD: os oito prompts do projeto MinIO</a></li>
@@ -68,12 +68,12 @@
           <thead><tr><th>Horário</th><th>Bloco</th><th>O que acontece</th></tr></thead>
           <tbody>
             <tr><td>8h30 &ndash; 9h30</td><td>Conceitos</td><td>Arquitetura de dados, atributos de qualidade, C4, ADR, ATAM, SDD, CREATE e boas práticas de prompt (seções 3 a 7).</td></tr>
-            <tr><td>9h30 &ndash; 10h15</td><td>Setup</td><td>Repositório do grupo, Codespace, OpenRouter, OpenCode e Railway (seções 8 a 10).</td></tr>
+            <tr><td>9h30 &ndash; 10h15</td><td>Setup</td><td>Repositório do grupo, Codespace, agente de código e Railway (seções 8 a 10).</td></tr>
             <tr><td>10h15 &ndash; 11h40</td><td>Demonstração SDD</td><td>O professor executa os prompts 1 a 8 no projeto MinIO; os grupos reproduzem em paralelo (seções 11 a 14).</td></tr>
             <tr><td>11h40 &ndash; 12h10</td><td>Fechamento</td><td>ATAM, ADRs, rastreabilidade, conferência do entregável e registro no formulário (seções 15 a 17).</td></tr>
           </tbody>
         </table></div>
-        <p>O ambiente da disciplina é o mesmo em todas as aulas: GitHub Codespaces (ou a máquina do aluno, com Docker), o agente OpenCode autenticado na OpenRouter com o modelo <code>openrouter/free</code> e o Railway para publicar serviços. A disciplina não usa AWS. Quando o material diz "API compatível com S3", refere-se ao protocolo que o MinIO implementa, e não ao serviço da Amazon.</p>
+        <p>O ambiente da disciplina é o mesmo em todas as aulas: GitHub Codespaces (ou a máquina do aluno, com Docker), o agente de código de preferência de cada aluno (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot) e o Railway para publicar serviços. A disciplina não usa AWS. Quando o material diz "API compatível com S3", refere-se ao protocolo que o MinIO implementa, e não ao serviço da Amazon.</p>
       </section>
 
       <!-- 3 -->
@@ -283,7 +283,7 @@ flowchart TB
         <h2>5. Spec-Driven Development</h2>
 
         <h3>5.1 Por que especificar antes de pedir código a um agente</h3>
-        <p>Um agente de código como o OpenCode lê arquivos, escreve arquivos e executa comandos. Ele é rápido, mas preenche qualquer lacuna do pedido com a resposta mais provável no material em que foi treinado. Se o pedido é "suba um MinIO no Railway", o agente escolhe a imagem, a porta, onde guardar a senha e se o console fica público, e cada escolha parece razoável isoladamente. O problema é que essas escolhas não foram feitas pelo grupo, não estão registradas e não respondem a nenhum requisito. Uma delas (a senha num arquivo versionado de um repositório público, por exemplo) pode ser grave.</p>
+        <p>Um agente de código, como o Claude Code ou o Codex CLI, lê arquivos, escreve arquivos e executa comandos. Ele é rápido, mas preenche qualquer lacuna do pedido com a resposta mais provável no material em que foi treinado. Se o pedido é "suba um MinIO no Railway", o agente escolhe a imagem, a porta, onde guardar a senha e se o console fica público, e cada escolha parece razoável isoladamente. O problema é que essas escolhas não foram feitas pelo grupo, não estão registradas e não respondem a nenhum requisito. Uma delas (a senha num arquivo versionado de um repositório público, por exemplo) pode ser grave.</p>
         <p>Spec-Driven Development inverte a ordem: antes de qualquer código, o grupo escreve, com ajuda do agente, quem é a persona, quais objetivos de negócio importam, quais requisitos o sistema cumpre e com quais critérios de aceite, qual arquitetura atende a esses requisitos e quais tarefas pequenas levam até ela. A especificação vira o contexto do agente. Cada prompt seguinte lê arquivos do repositório em vez de depender da memória da conversa, e cada artefato gerado pode ser revisado, versionado e contestado.</p>
 
         <h3>5.2 O ciclo da disciplina</h3>
@@ -302,7 +302,6 @@ flowchart TB
         <p>Cada grupo tem um único repositório no GitHub, o mesmo informado no <a href="../../../../pages/entrega_grupo_data_collection.html">formulário de grupo</a>. Cada aula vira uma pasta nesse repositório, e o projeto final fica em <code>projeto_final/</code>, na raiz, ao lado das pastas de aula, com o mesmo esqueleto SDD (ver o <a href="../../aula_08_mentoria_e_entrega_do_projeto_final/material/material_aula_08_mentoria_e_entrega_do_projeto_final.html">enunciado do projeto final</a>).</p>
         <pre><code>repositorio-do-grupo/
 ├── .gitignore                 # .env e credenciais fora do Git
-├── opencode.json              # modelo padrão do agente
 ├── README.md
 ├── aula_01_minio/             # esta aula
 ├── aula_02_coleta_json/       # uma pasta por aula
@@ -388,7 +387,7 @@ flowchart TB
         <h2>7. Boas práticas de prompt para agentes</h2>
         <p>Um agente de código age no repositório. As práticas abaixo existem porque cada uma evita um tipo de dano observado com frequência em sala.</p>
         <ol class="steps">
-          <li>Um prompt por etapa. Pedir persona, spec e código na mesma mensagem faz o agente produzir tudo raso e impede a revisão entre etapas. Com o limite de 50 requisições por dia do plano gratuito, refazer um prompt grande também custa caro.</li>
+          <li>Um prompt por etapa. Pedir persona, spec e código na mesma mensagem faz o agente produzir tudo raso e impede a revisão entre etapas. Refazer um prompt grande também custa caro, em tempo e em cota do agente.</li>
           <li>Contexto por arquivo, e não por memória. O agente deve ler <code>AGENTS.md</code>, <code>docs/</code> e <code>specs/</code> a cada etapa. A memória da conversa se perde quando a sessão fecha, quando outro integrante assume ou quando o contexto do modelo enche; o arquivo continua no repositório.</li>
           <li>Pedir o plano antes de editar. O agente lista os arquivos que pretende criar ou alterar e o motivo. O grupo confirma ou corrige antes que algo seja escrito.</li>
           <li>Critério de parada explícito. Todo prompt termina com "pare ao final da etapa". Sem isso, o agente tende a seguir para a próxima etapa por iniciativa própria.</li>
@@ -423,7 +422,7 @@ LAB=/tmp/aulas_mackenzie/aulas/data_collection_and_storage/aula_01_arquitetura_d
 cp -rn "$LAB/modelo_repositorio/." .
 cp aula_01_minio/.env.example aula_01_minio/.env
 git status --short</code></pre>
-        <p>A saída de <code>git status --short</code> deve listar <code>.gitignore</code>, <code>opencode.json</code> e os arquivos de <code>aula_01_minio/</code>, mas nunca <code>aula_01_minio/.env</code>. Se o <code>.env</code> aparecer, o <code>.gitignore</code> não foi copiado: pare e corrija antes de qualquer commit.</p>
+        <p>A saída de <code>git status --short</code> deve listar <code>.gitignore</code> e os arquivos de <code>aula_01_minio/</code>, mas nunca <code>aula_01_minio/.env</code>. Se o <code>.env</code> aparecer, o <code>.gitignore</code> não foi copiado: pare e corrija antes de qualquer commit.</p>
         <ol class="steps" start="6">
           <li>Faça o primeiro commit do esqueleto: <code>git add . &amp;&amp; git commit -m "chore(T-00): esqueleto SDD da aula 01"</code> e <code>git push</code>.</li>
         </ol>
@@ -435,39 +434,22 @@ git status --short</code></pre>
 
       <!-- 9 -->
       <section class="content-block" id="s9">
-        <h2>9. Setup 2: OpenRouter e OpenCode</h2>
-        <p>O OpenCode é um agente de código que roda no terminal. Ele precisa de um provedor de modelos; na disciplina, usamos a OpenRouter, que agrega modelos de vários fornecedores atrás de uma única chave. O modelo <code>openrouter/free</code> é o roteador de modelos gratuitos da OpenRouter: ele escolhe, a cada requisição, um modelo gratuito disponível que suporte chamada de ferramentas, recurso de que um agente precisa para ler arquivos e executar comandos.</p>
-        <h3>9.1 Chave da OpenRouter</h3>
+        <h2>9. Setup 2: agente de código</h2>
+        <p>Cada integrante usa o agente de código ou a IA de sua preferência: Claude Code, Codex CLI, Gemini CLI, OpenCode com o provedor que quiser, Cursor ou Copilot. O fluxo SDD, o <code>AGENTS.md</code> e os prompts CREATE são os mesmos para qualquer um deles. O que o agente precisa é ler arquivos, escrever arquivos e executar comandos dentro da pasta do projeto, porque os prompts pedem exatamente isso.</p>
+        <h3>9.1 Abrir o agente na pasta do projeto</h3>
+        <pre><code>cd aula_01_minio
+claude            # ou o agente que você usa</code></pre>
+        <p>Abra o agente dentro de <code>aula_01_minio/</code>, que é onde está o <code>AGENTS.md</code> do projeto. Assim ele enxerga as regras e a estrutura de pastas desde o primeiro pedido.</p>
+        <h3>9.2 Garantir que o agente leia o AGENTS.md</h3>
         <ol class="steps">
-          <li>Crie a conta em <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer">openrouter.ai</a>.</li>
-          <li>Abra <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener noreferrer">openrouter.ai/settings/keys</a> e clique em Create API Key. Dê um nome que identifique a disciplina.</li>
-          <li>Copie a chave e guarde num gerenciador de senhas. Ela não vai para nenhum arquivo do repositório.</li>
-        </ol>
-        <h3>9.2 Instalar e conectar o OpenCode</h3>
-        <pre><code>npm install -g opencode-ai
-opencode --version
-cd aula_01_minio
-opencode</code></pre>
-        <p>A alternativa de instalação é <code>curl -fsSL https://opencode.ai/install | bash</code>. O último comando abre a interface do OpenCode dentro de <code>aula_01_minio/</code>, que é onde está o <code>AGENTS.md</code> do projeto. A partir daqui, comandos com barra são digitados dentro do OpenCode.</p>
-        <ol class="steps">
-          <li>Digite <code>/connect</code>, escolha OpenRouter e cole a chave no campo seguro.</li>
-          <li>Digite <code>/models</code> e escolha <code>openrouter/openrouter/free</code> (o prefixo duplicado é o provedor do OpenCode seguido do ID do modelo na OpenRouter).</li>
-          <li>Se o modelo não aparecer na lista, o <code>opencode.json</code> copiado para a raiz do repositório já o declara. Feche o OpenCode e abra de novo. O conteúdo do arquivo é:</li>
-        </ol>
-        <pre><code>{
-  "$schema": "https://opencode.ai/config.json",
-  "provider": { "openrouter": { "models": { "openrouter/free": {} } } },
-  "model": "openrouter/openrouter/free"
-}</code></pre>
-        <ol class="steps" start="4">
+          <li>No Claude Code, que lê instruções de um <code>CLAUDE.md</code>, crie um arquivo que importe o <code>AGENTS.md</code>, para não manter dois arquivos: <code>echo "@AGENTS.md" &gt; CLAUDE.md</code>. Outros agentes leem o <code>AGENTS.md</code> diretamente ou aceitam o arquivo colado no contexto.</li>
           <li>Teste o agente com um pedido que só lê: <code>Leia AGENTS.md e liste, em 5 itens, as regras que você deve seguir neste projeto. Não edite nada.</code></li>
         </ol>
-        <h3>9.3 Limites do plano gratuito</h3>
-        <p>Os modelos gratuitos da OpenRouter aceitam 20 requisições por minuto. Contas que compraram menos de US$ 10 em créditos têm 50 requisições por dia; a partir de US$ 10 comprados, o limite passa a 1.000 por dia. Um único prompt de agente consome várias requisições, porque cada leitura de arquivo, cada edição e cada comando executado é uma volta ao modelo. Na prática, os oito prompts desta aula podem esgotar o limite diário de uma única conta.</p>
-        <p>Por isso, o grupo trabalha em revezamento: um integrante pilota o agente no próprio Codespace, com a própria chave, enquanto os outros revisam os arquivos gerados; quando a cota acaba, outro integrante faz <code>git pull</code> e assume. O erro HTTP 429 indica limite atingido: espere e repita. Se o limite diário acabar no meio da aula, o material mostra, para cada etapa, os comandos esperados, e o grupo pode concluir manualmente.</p>
+        <h3>9.3 Chaves e revezamento</h3>
+        <p>Se o agente escolhido pedir chave de API, guarde-a num gerenciador de senhas ou no campo seguro do próprio agente. Ela não vai para nenhum arquivo do repositório. O grupo trabalha em revezamento: um integrante pilota o agente no próprio Codespace enquanto os outros revisam os arquivos gerados; para trocar o piloto, o próximo integrante faz <code>git pull</code> e assume. Se o agente travar no meio da aula, o material mostra, para cada etapa, os comandos esperados, e o grupo pode concluir manualmente.</p>
         <div class="note">
           <strong>Gate do setup 2</strong>
-          <p>O agente respondeu ao teste citando regras do <code>AGENTS.md</code>; <code>git grep -n "sk-or-"</code> não encontra nada (as chaves da OpenRouter começam com esse prefixo).</p>
+          <p>O agente respondeu ao teste citando regras do <code>AGENTS.md</code>; <code>git grep -nE "\bsk-[A-Za-z0-9_-]{16,}"</code> não encontra nada (<code>sk-</code> é o prefixo comum das chaves de API).</p>
         </div>
       </section>
 
@@ -514,7 +496,7 @@ railway whoami</code></pre>
       <!-- 12 -->
       <section class="content-block" id="s12">
         <h2>12. Demonstração SDD: os oito prompts do projeto MinIO</h2>
-        <p>O professor executa os prompts abaixo ao vivo, no repositório de demonstração; cada grupo executa os mesmos prompts no próprio repositório, dentro do OpenCode aberto em <code>aula_01_minio/</code>. Os sete primeiros seguem a sequência SDD; o oitavo conduz o deploy e a verificação no Railway. Cada prompt é um bloco completo: copie por inteiro, sem resumir.</p>
+        <p>O professor executa os prompts abaixo ao vivo, no repositório de demonstração; cada grupo executa os mesmos prompts no próprio repositório, dentro do agente de código aberto em <code>aula_01_minio/</code>. Os sete primeiros seguem a sequência SDD; o oitavo conduz o deploy e a verificação no Railway. Cada prompt é um bloco completo: copie por inteiro, sem resumir.</p>
         <div class="note">
           <strong>Antes de cada prompt</strong>
           <p>Confira que o anterior foi revisado e commitado. Depois de cada prompt: responda ao quadro "Revise antes de seguir", cole o prompt em <code>docs/prompts.md</code> e faça o commit da etapa. Se a revisão reprovar o artefato, peça a correção citando a pergunta que falhou, em vez de reescrever o arquivo à mão sem registro.</p>
@@ -594,7 +576,7 @@ Fatos e restrições (origem: enunciado da Aula 01):
 - Railway trial: crédito único de US$ 5, até 30 dias; depois, plano Free com US$ 1 por mês; 1 GB de RAM, vCPU compartilhada, até 5 serviços por projeto; volumes de contas trial apagados 30 dias após o fim dos créditos.
 - MinIO: imagem ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z; porta 9000 = API S3, 9001 = console.
 - Repositório do grupo público no GitHub.
-- Agente: OpenRouter, modelo gratuito, 50 requisições por dia por conta.
+- Agente de código: o de preferência de cada integrante, sem chave de API em arquivo versionado.
 - O storage será usado pelas Aulas 02, 03 e 04 e pelo projeto final.
 Se faltar informação, pergunte. Ao terminar, liste perguntas abertas e pare.</code></pre>
         <div class="note">
@@ -1087,8 +1069,8 @@ Condição de revisão: se o grupo precisar de console remoto, reavaliar com usu
         <div class="table-scroll"><table>
           <thead><tr><th>Sintoma</th><th>Causa provável</th><th>O que fazer</th></tr></thead>
           <tbody>
-            <tr><td>OpenCode responde 429</td><td>Limite de 20 por minuto ou de 50 por dia.</td><td>Espere um minuto e repita; se for o limite diário, troque o piloto do agente ou conclua pelos comandos das seções 13 e 14.</td></tr>
-            <tr><td><code>openrouter/openrouter/free</code> não aparece em <code>/models</code></td><td>Lista do provedor não carregada.</td><td>Confira o <code>opencode.json</code> na raiz do repositório e reabra o OpenCode.</td></tr>
+            <tr><td>Agente responde com erro de limite (429)</td><td>Cota do provedor ou do plano do agente atingida.</td><td>Espere um minuto e repita; se a cota acabar, troque o piloto do agente ou conclua pelos comandos das seções 13 e 14.</td></tr>
+            <tr><td>Agente ignora as regras do projeto</td><td><code>AGENTS.md</code> não foi lido.</td><td>Abra o agente dentro de <code>aula_01_minio/</code>; no Claude Code, confira o <code>CLAUDE.md</code> com <code>@AGENTS.md</code>; nos demais, cole o arquivo no contexto.</td></tr>
             <tr><td><code>docker compose config</code> pede MINIO_ROOT_USER</td><td><code>.env</code> ausente ou fora da pasta do compose.</td><td><code>cp .env.example .env</code> dentro de <code>aula_01_minio/</code>.</td></tr>
             <tr><td>Porta 9000 já em uso</td><td>Outro MinIO ou contêiner local.</td><td><code>docker ps</code>; pare o outro contêiner ou mude o lado esquerdo do mapeamento de porta.</td></tr>
             <tr><td>502 em <code>mc</code> no Railway</td><td>Proxy do Railway ou deploy ainda subindo.</td><td>Espere 10 segundos e repita; confira <code>railway logs</code>.</td></tr>
@@ -1102,10 +1084,10 @@ Condição de revisão: se o grupo precisar de console remoto, reavaliar com usu
       <!-- 17 -->
       <section class="content-block" id="s17">
         <h2>17. Atividade em sala e entregável</h2>
-        <p>A atividade é a reprodução, pelo grupo, do que o professor demonstra: o ciclo SDD completo do projeto MinIO, no repositório do grupo, com o agente OpenCode no Codespace e o MinIO publicado no Railway. O roteiro resumido, com comandos e checklists, está no <a href="../laboratorio/README.md">README do laboratório</a>.</p>
+        <p>A atividade é a reprodução, pelo grupo, do que o professor demonstra: o ciclo SDD completo do projeto MinIO, no repositório do grupo, com o agente de código de cada integrante no Codespace e o MinIO publicado no Railway. O roteiro resumido, com comandos e checklists, está no <a href="../laboratorio/README.md">README do laboratório</a>.</p>
         <ol class="steps">
           <li>Criem o repositório público do grupo, abram os Codespaces e copiem o modelo (seção 8).</li>
-          <li>Cada integrante configura a própria chave da OpenRouter e o OpenCode; o grupo define a ordem de revezamento do piloto (seção 9).</li>
+          <li>Cada integrante abre o agente de código de sua preferência na pasta do projeto e confere que ele lê o <code>AGENTS.md</code>; o grupo define a ordem de revezamento do piloto (seção 9).</li>
           <li>Pelo menos uma pessoa cria a conta no Railway e autentica a CLI no Codespace que fará o deploy (seção 10).</li>
           <li>Executem os prompts 1 a 6 em ordem, revisando e commitando cada etapa; colem cada prompt enviado em <code>docs/prompts.md</code> (seção 12).</li>
           <li>Executem o prompt 8 e, por fim, o prompt 7 (seções 12.7, 12.8 e 14).</li>
@@ -1139,7 +1121,7 @@ Condição de revisão: se o grupo precisar de console remoto, reavaliar com usu
           <li>NYGARD, M. <a href="https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions" target="_blank" rel="noopener noreferrer">Documenting Architecture Decisions</a>, 2011.</li>
           <li>BIRSS, D. Formato CREATE para prompts de IA generativa.</li>
           <li><a href="https://github.com/github/spec-kit" target="_blank" rel="noopener noreferrer">GitHub Spec Kit</a> e <a href="https://github.com/Fission-AI/OpenSpec" target="_blank" rel="noopener noreferrer">OpenSpec</a>.</li>
-          <li><a href="https://opencode.ai/docs" target="_blank" rel="noopener noreferrer">Documentação do OpenCode</a>; <a href="https://openrouter.ai/docs" target="_blank" rel="noopener noreferrer">documentação da OpenRouter</a>; <a href="https://docs.railway.com" target="_blank" rel="noopener noreferrer">documentação do Railway</a>.</li>
+          <li><a href="https://agents.md" target="_blank" rel="noopener noreferrer">Formato AGENTS.md</a>; <a href="https://docs.railway.com" target="_blank" rel="noopener noreferrer">documentação do Railway</a>.</li>
           <li><a href="https://github.com/coollabsio/minio" target="_blank" rel="noopener noreferrer">coollabsio/minio</a> (imagens do MinIO) e <a href="https://github.com/minio/mc/releases" target="_blank" rel="noopener noreferrer">releases do cliente mc</a>.</li>
         </ul>
       </section>

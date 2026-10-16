@@ -120,8 +120,8 @@
         Ao final, o AWS CLI é conectado ao Codespace via session token do Student Lab, deixando o ambiente armado para a Aula 04.
       </p>
       <p>
-        <span class="m03-tag">Pré-requisitos</span> Aula 02 entregue: <code>spec/00_problem.md</code> commitado, Codespace com OpenCode
-        e Gemini CLI funcionando, repo <code>olist-sre-pipeline</code> sincronizado.
+        <span class="m03-tag">Pré-requisitos</span> Aula 02 entregue: <code>spec/00_problem.md</code> commitado, Codespace com o agente de código
+        de sua preferência funcionando, repo <code>olist-sre-pipeline</code> sincronizado.
       </p>
     </section>
 
@@ -472,7 +472,7 @@
 
       <h3>8.1 Arquivos canônicos de instrução</h3>
       <ul>
-        <li><strong><code>AGENTS.md</code></strong> &mdash; padrão emergente, lido por OpenCode e similares na raiz do repo.</li>
+        <li><strong><code>AGENTS.md</code></strong> &mdash; padrão emergente, lido por Codex CLI, OpenCode e similares na raiz do repo.</li>
         <li><strong><code>GEMINI.md</code> ou <code>.gemini/system.md</code></strong> &mdash; carregado pelo Gemini CLI.</li>
         <li><strong><code>CLAUDE.md</code></strong> &mdash; equivalente para o Claude Code.</li>
         <li><strong><code>documents/agents/skills/*.md</code></strong> &mdash; skills focadas, chamadas por nome.</li>
@@ -554,8 +554,8 @@
         ├── plan_load_test.md
         └── plan_security_test.md</pre>
 
-      <h3>9.2 Recipe &mdash; Gemini CLI</h3>
-      <p>Padrão de chamada não-interativa: a IA lê arquivos do repo, escreve markdown novo na <code>/documents</code> e nada além disso.</p>
+      <h3>9.2 Recipe &mdash; modo não interativo (exemplo com Gemini CLI)</h3>
+      <p>Os exemplos abaixo usam Gemini CLI; outros agentes têm modo equivalente, como <code>claude -p</code> no Claude Code e <code>codex exec</code> no Codex CLI. Padrão de chamada não-interativa: a IA lê arquivos do repo, escreve markdown novo na <code>/documents</code> e nada além disso.</p>
 <pre>gemini --yolo &lt;&lt;'EOF'
 Leia spec/00_problem.md e documents/01_functional_requirements.md.
 Aplique a skill documents/agents/skills/elicit_rnf.md.
@@ -569,9 +569,9 @@ EOF</pre>
 em documents/03_architecture.md. Liste 5 riscos, 3 trade-offs
 e 2 perguntas que ainda preciso responder."</pre>
 
-      <h3>9.3 Recipe &mdash; OpenCode</h3>
-      <p>OpenCode é interativo por padrão. O fluxo abaixo é colado dentro da sessão. A skill é chamada por nome.</p>
-<pre>opencode
+      <h3>9.3 Recipe &mdash; sessão interativa</h3>
+      <p>Na sessão interativa do agente que você usa, o fluxo abaixo é colado dentro da sessão. A skill é chamada por nome.</p>
+<pre>claude   # ou o agente que você usa
 
 &gt; Carregue AGENTS.md, depois rode a skill elicit_rf
 &gt; usando spec/00_problem.md como entrada.
@@ -590,7 +590,7 @@ e 2 perguntas que ainda preciso responder."</pre>
           <tr><td>1</td><td><strong>Brief</strong> &mdash; enunciar problema e restrições</td><td>Prompt curto + arquivos referenciados</td></tr>
           <tr><td>2</td><td><strong>Draft</strong> &mdash; deixa a IA propor</td><td>Markdown rascunho na <code>/documents</code></td></tr>
           <tr><td>3</td><td><strong>Critique</strong> &mdash; pede autocrítica</td><td>Lista de riscos, ambiguidades, premissas</td></tr>
-          <tr><td>4</td><td><strong>Cross-check</strong> &mdash; roda o mesmo brief nas duas IAs</td><td>Diff entre Gemini e OpenCode</td></tr>
+          <tr><td>4</td><td><strong>Cross-check</strong> &mdash; roda o mesmo brief em uma segunda IA ou compara com um colega que usa outra ferramenta</td><td>Diff entre as duas saídas</td></tr>
           <tr><td>5</td><td><strong>Commit</strong> &mdash; revisa, edita, comita</td><td>Diff humano no git</td></tr>
         </tbody>
       </table>
@@ -699,8 +699,8 @@ Entrada: spec/00_problem.md e
 documents/01_functional_requirements.md.
 Escreva documents/02_non_functional_requirements.md."
 
-# OpenCode
-opencode
+# Sessão interativa
+claude   # ou o agente que você usa
 &gt; Aplique elicit_rf usando spec/00_problem.md.
 &gt; Em seguida elicit_rnf.
 &gt; Compare seu draft com o que esta no git;
@@ -754,7 +754,7 @@ secret scan (gitleaks), cloud posture (Prowler).
 Saida: documents/06_test_plan_security.md."
 
 # Modelagem (incluindo closed loops)
-opencode
+claude   # ou o agente que você usa
 &gt; Faca um ATAM enxuto sobre 03_architecture.md usando os
 &gt; cenarios da utility tree em 02_non_functional_requirements.md.
 &gt; Para cada cenario, classifique como risco / sensibilidade /
@@ -871,7 +871,7 @@ git push origin main --tags</pre>
       <h2>11. Hands-on em sala</h2>
       <p>
         Esta aula é 100% prática &mdash; o material acima orienta a execução. Em sala você roda o roteiro do bloco 10 lado a lado
-        com o Codespace, alterna entre Gemini CLI e OpenCode para comparar saídas e termina com o repo armado para a Aula 04.
+        com o Codespace, compara a saída do seu agente com a de um colega que usa outra ferramenta e termina com o repo armado para a Aula 04.
         Não há lista de exercícios escritos: a entrega é o conjunto de arquivos commitados em <code>documents/</code> e o
         AWS CLI respondendo ao <code>aws sts get-caller-identity</code>.
       </p>
@@ -954,7 +954,7 @@ git push origin main --tags</pre>
         <thead><tr><th style="width:18%;">Sigla</th><th>Significado</th></tr></thead>
         <tbody>
           <tr><td><strong>AWS</strong></td><td>Amazon Web Services &mdash; provedor de cloud usado no Learner Lab.</td></tr>
-          <tr><td><strong>CLI</strong></td><td>Command Line Interface &mdash; aqui referindo a <code>aws</code>, <code>gemini</code>, <code>opencode</code>, <code>git</code>.</td></tr>
+          <tr><td><strong>CLI</strong></td><td>Command Line Interface &mdash; aqui referindo a <code>aws</code>, <code>git</code> e ao agente de código (<code>claude</code>, <code>codex</code>, <code>gemini</code>, <code>opencode</code>).</td></tr>
           <tr><td><strong>ARN</strong></td><td>Amazon Resource Name &mdash; identificador único de recurso AWS (ex.: <code>arn:aws:iam::1234:role/LabRole</code>).</td></tr>
           <tr><td><strong>IAM</strong></td><td>Identity and Access Management &mdash; controle de identidades e políticas na AWS.</td></tr>
           <tr><td><strong>EC2</strong></td><td>Elastic Compute Cloud &mdash; máquinas virtuais gerenciadas.</td></tr>
@@ -1001,7 +1001,7 @@ git push origin main --tags</pre>
         <li>Microsoft &mdash; <em>The STRIDE Threat Model</em>, Microsoft Learn.</li>
         <li>OWASP &mdash; <em>Top 10:2021</em> e <em>Application Security Verification Standard</em>.</li>
         <li>Mermaid &mdash; <code>mermaid.js.org</code>.</li>
-        <li>GitHub Spec Kit &middot; AGENTS.md spec &middot; Gemini CLI docs &middot; OpenCode docs.</li>
+        <li>GitHub Spec Kit &middot; AGENTS.md spec &middot; documentação do agente escolhido (Claude Code, Codex CLI, Gemini CLI, OpenCode).</li>
         <li>Hellerstein, J.; Diao, Y.; Parekh, S.; Tilbury, D. &mdash; <em>Feedback Control of Computing Systems</em> (closed loops em SRE).</li>
       </ul>
     </section>

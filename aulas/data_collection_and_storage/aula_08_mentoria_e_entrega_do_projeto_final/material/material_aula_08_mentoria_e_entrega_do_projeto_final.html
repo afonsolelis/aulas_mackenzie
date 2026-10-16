@@ -61,7 +61,7 @@
         <h2>2. Objetivo do projeto</h2>
         <p>Cada grupo, de um a cinco integrantes, constrói em Spec-Driven Development uma plataforma de coleta e armazenamento de dados para um domínio escolhido pelo próprio grupo. A plataforma coleta de pelo menos duas fontes de tipos diferentes, guarda o dado bruto sem alteração no MinIO, organiza o dado em camadas bronze, silver e gold com Parquet e DuckDB, modela o resultado para as perguntas de uma persona definida, valida os registros com Pydantic, tem testes de unidade e de integração e roda publicada no Railway.</p>
         <p>O domínio é livre, desde que as fontes sejam públicas e de coleta permitida. Os domínios das aulas servem de ponto de partida: clima das capitais pela Open-Meteo, preços de livros em books.toscrape.com com câmbio da PTAX, leituras de sensores simulados. Um grupo pode partir de um deles e ampliá-lo, ou escolher outro, como transporte público, qualidade do ar, editais públicos ou preços de combustível. O que o domínio precisa ter é uma persona real que toma uma decisão com aquele dado, porque é dela que saem os requisitos e as decisões de arquitetura avaliadas.</p>
-        <p>O código nasce dos prompts CREATE, escritos e enviados pelo grupo ao agente (OpenCode com a OpenRouter, como na Aula 01), na ordem persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM. A avaliação olha para o produto, mas olha igualmente para o caminho: os artefatos SDD, o histórico de prompts e o histórico de commits mostram se o código foi especificado antes de ser escrito.</p>
+        <p>O código nasce dos prompts CREATE, escritos e enviados pelo grupo ao agente de código de preferência do grupo, como na Aula 01, na ordem persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM. A avaliação olha para o produto, mas olha igualmente para o caminho: os artefatos SDD, o histórico de prompts e o histórico de commits mostram se o código foi especificado antes de ser escrito.</p>
         <div class="note">
           <strong>Resultado esperado</strong>
           <p>Uma pessoa de fora do grupo clona o repositório, cria o <code>.env</code> a partir do <code>.env.example</code>, sobe os serviços locais com <code>docker compose</code>, executa o comando documentado no README e vê o dado sair das fontes, chegar ao bucket bruto e terminar numa consulta gold que responde a uma pergunta da persona. Em seguida roda <code>pytest</code> e vê os testes passarem. A mesma pessoa abre <code>docs/rastreabilidade.md</code> e encontra, para cada requisito, a decisão, o componente e a evidência.</p>
@@ -180,14 +180,14 @@ Medida:     reconstrução completa sem perda de registro e sem duplicata;
         <p>O <code>AGENTS.md</code> é lido pelo agente no início de cada sessão e define o que ele pode fazer no projeto. Ele declara o escopo (somente a pasta <code>projeto_final/</code>), os comandos permitidos (<code>docker compose</code>, <code>pytest</code>, <code>python</code>, <code>git status</code> e <code>git diff</code>; nada de <code>git push</code> sem pedido explícito), a política de segredos (ler variáveis de ambiente, nunca escrever valores em arquivo versionado), os gates de cada etapa (mostrar o plano antes de editar, parar ao fim da etapa) e a convenção de commits.</p>
         <p>O <code>docs/prompts.md</code> é o histórico real dos prompts enviados ao agente, na ordem em que foram enviados, incluindo os que falharam ou foram refeitos. Ele serve para duas coisas. Para o grupo, é a forma de reproduzir uma etapa e de entender por que o código ficou como ficou. Para a avaliação, é a evidência de que a especificação veio antes do código e de que o grupo revisou o que o agente produziu. Um histórico reescrito no fim do semestre, com prompts perfeitos e sem nenhuma correção, perde esse valor, e o histórico de commits costuma revelar a reescrita.</p>
         <pre><code>## P-07 · 2026-11-14 · Etapa 6, tarefa T-05
-Agente: OpenCode · modelo openrouter/openrouter/free
+Agente: Claude Code · modelo usado na sessão
 Prompt (literal):
   [C] Personagem ... [E] Extras ...
 Resultado: criou src/coleta/gravador_raw.py e tests/integracao/test_gravador_raw.py
 Revisão do grupo: o agente gravava com put_object sem conferir a chave;
   pedimos a verificação de existência (P-08). Teste passou depois de P-08.
 Commit: a1b2c3d feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code></pre>
-        <p>Os modelos gratuitos da OpenRouter têm limite de 20 requisições por minuto e de 50 por dia para contas que compraram menos de US$ 10 em créditos, e uma sessão de agente consome várias requisições por prompt. Um projeto inteiro não cabe num único dia de trabalho com esse limite. Trabalhe um prompt por vez, distribua as etapas ao longo das semanas e, se aparecer o erro 429, espere e repita.</p>
+        <p>Um projeto inteiro não cabe numa única sessão de agente. Trabalhe um prompt por vez, distribua as etapas ao longo das semanas e registre no histórico qual agente e qual modelo foram usados em cada prompt.</p>
       </section>
 
       <section class="content-block" id="s7">
@@ -287,7 +287,7 @@ Commit: a1b2c3d feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code></p
           <thead><tr><th>Situação</th><th>Efeito</th><th>Por quê</th></tr></thead>
           <tbody>
             <tr><td>Pipeline que não roda a partir do README, nem localmente</td><td>pipeline, qualidade e testes, e operação não pontuam (55% da nota)</td><td>sem execução, não há como verificar nada que dependa dela</td></tr>
-            <tr><td>Segredo versionado: senha, chave da OpenRouter ou URL com credencial em qualquer commit, inclusive apagado depois</td><td>operação no Railway não pontua até o segredo ser trocado e a troca registrada</td><td>o repositório é público; apagar o arquivo não retira o segredo do histórico, e só a troca da credencial encerra a exposição</td></tr>
+            <tr><td>Segredo versionado: senha, chave de API ou URL com credencial em qualquer commit, inclusive apagado depois</td><td>operação no Railway não pontua até o segredo ser trocado e a troca registrada</td><td>o repositório é público; apagar o arquivo não retira o segredo do histórico, e só a troca da credencial encerra a exposição</td></tr>
             <tr><td>Código sem especificação prévia: componente sem RF/RNF ou commit de código anterior ao requisito que o justifica</td><td>artefatos SDD não pontuam, e o componente não conta na dimensão de pipeline</td><td>o método da disciplina é especificar antes de implementar; especificação escrita depois descreve o código, sem orientá-lo</td></tr>
             <tr><td>Grupo que não explica o projeto na mentoria</td><td>as dimensões cujo conteúdo o grupo não conseguiu explicar não pontuam</td><td>trabalho que o grupo não explica não pode ser atribuído ao grupo</td></tr>
           </tbody>
@@ -351,7 +351,7 @@ Commit: a1b2c3d feat(T-05): gravador do raw recusa sobrescrita [RF-04]</code></p
 
       <section class="content-block" id="s15">
         <h2>15. Prompts CREATE de abertura e de fechamento</h2>
-        <p>Os três prompts abaixo seguem o formato CREATE da disciplina e complementam os da Aula 01. O primeiro abre o projeto final e é usado na Aula 01, logo depois da escolha do domínio. Os outros dois são usados na semana da entrega e na própria Aula 08: um audita o repositório contra este enunciado, o outro monta a matriz de rastreabilidade a partir dos artefatos. Copie cada um inteiro, um por vez, numa sessão do OpenCode aberta na pasta <code>projeto_final/</code>, e registre-o em <code>docs/prompts.md</code>.</p>
+        <p>Os três prompts abaixo seguem o formato CREATE da disciplina e complementam os da Aula 01. O primeiro abre o projeto final e é usado na Aula 01, logo depois da escolha do domínio. Os outros dois são usados na semana da entrega e na própria Aula 08: um audita o repositório contra este enunciado, o outro monta a matriz de rastreabilidade a partir dos artefatos. Copie cada um inteiro, um por vez, numa sessão do agente de código aberta na pasta <code>projeto_final/</code>, e registre-o em <code>docs/prompts.md</code>.</p>
 
         <h3>15.1 Abertura do projeto final</h3>
         <pre class="is-wrap"><code>[C] Personagem
@@ -453,7 +453,7 @@ ausente, com o arquivo e a linha que sustentam o julgamento.
     commits citam T-xx e RF/RNF (use git log --oneline).
 11. Ordem SDD: spec.md e tasks.md têm commits anteriores aos commits de
     código que implementam seus itens (use git log --follow).
-12. Segredos: procure no histórico (git log -p) senhas, chaves sk-or-,
+12. Segredos: procure no histórico (git log -p) senhas, chaves de API (sk-...),
     URLs com usuário e senha, e arquivos .env versionados.
 
 [E] Exemplos
@@ -555,7 +555,7 @@ se spec.md tiver IDs repetidos. Pare ao final.</code></pre>
           <li>Rode a autoauditoria (seção 15.2) uma última vez e confira que nenhuma lacuna aciona limitador de nota.</li>
           <li>Procure segredos no que está versionado e no histórico, dentro da pasta do repositório:
             <pre><code>git ls-files | grep -E '(^|/)\.env$' &amp;&amp; echo "ATENCAO: .env versionado" || echo "nenhum .env no indice"
-git log -p --all | grep -nE 'sk-or-|PASSWORD=.+|postgresql://[^ ]+:[^ ]+@' | head -20</code></pre>
+git log -p --all | grep -nE '\bsk-[A-Za-z0-9_-]{16,}|PASSWORD=.+|postgresql://[^ ]+:[^ ]+@' | head -20</code></pre>
             Cada linha encontrada precisa ser inspecionada; documentação que mostra um valor fictício de exemplo pode aparecer e não é problema. Se um segredo real aparecer, troque a credencial no serviço (<code>railway variable set</code> e novo deploy) e registre a troca. Apagar o arquivo não basta, porque o repositório é público e o histórico já pode ter sido clonado.</li>
           <li>Clone o repositório numa pasta nova (ou num Codespace novo), siga o README do zero e confirme que o dado chega à gold e que <code>pytest</code> passa. Esse é o teste que o professor vai repetir.</li>
           <li>Confira <code>git status</code>, faça o commit de fechamento e envie para o GitHub. Opcionalmente, marque o estado entregue com <code>git tag entrega-final</code> e envie a tag.</li>
@@ -566,7 +566,7 @@ git log -p --all | grep -nE 'sk-or-|PASSWORD=.+|postgresql://[^ ]+:[^ ]+@' | hea
       <section class="content-block" id="s17">
         <h2>17. Orientação para a atividade prática em sala</h2>
         <p>A manhã inteira é prática. Chegue com o Codespace aberto no repositório do grupo, os serviços locais no ar, o pipeline executado uma vez e o checklist da seção 13 conferido. Anote o horário do grupo na abertura.</p>
-        <p>Fora do atendimento, trabalhe no terminal do Codespace com o OpenCode. A ordem que mais rende é: rodar a autoauditoria (15.2) para ter a lista de lacunas por escrito; corrigir, um prompt por vez, as que acionam limitador de nota; gerar ou atualizar a matriz (15.3); registrar no <code>docs/prompts.md</code> cada prompt enviado. Lembre o limite diário dos modelos gratuitos da OpenRouter: com 50 requisições por dia, a manhã comporta poucas sessões longas, e vale mais escrever o prompt com cuidado do que reenviá-lo várias vezes.</p>
+        <p>Fora do atendimento, trabalhe no terminal do Codespace com o agente de código. A ordem que mais rende é: rodar a autoauditoria (15.2) para ter a lista de lacunas por escrito; corrigir, um prompt por vez, as que acionam limitador de nota; gerar ou atualizar a matriz (15.3); registrar no <code>docs/prompts.md</code> cada prompt enviado. Vale mais escrever o prompt com cuidado do que reenviá-lo várias vezes.</p>
         <p>No Railway, use a manhã para registrar as evidências que ainda faltam (seção 9) e conferir o crédito restante. Não crie serviço novo no dia da entrega: um serviço que ainda não rodou de forma agendada não tem evidência de operação para mostrar.</p>
         <p>Antes de sair, faça um teste cruzado com outro grupo. Entreguem um ao outro a matriz e peçam que o outro grupo sorteie duas linhas. Para cada uma, mostrem o teste ou a evidência e rodem o teste. Se em alguma for preciso procurar, anotem a correção nas pendências e façam o commit antes das 12h10.</p>
       </section>

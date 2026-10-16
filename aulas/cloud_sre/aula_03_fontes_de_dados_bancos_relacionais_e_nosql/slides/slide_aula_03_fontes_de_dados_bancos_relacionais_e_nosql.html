@@ -145,7 +145,7 @@
               <li>EARS, ISO/IEC 25010, SLI/SLO/SLA</li>
               <li>Planos de teste: carga, segurança, modelagem</li>
               <li>RTM e RM-ODP / arc42</li>
-              <li>Skills, AGENTS.md e prompts para Gemini CLI e OpenCode</li>
+              <li>Skills, AGENTS.md e prompts para o agente de código</li>
             </ul>
           </article>
           <article class="deck-card">
@@ -178,7 +178,7 @@
             <ul>
               <li><code>spec/00_problem.md</code> versionado</li>
               <li>Stakeholders, fluxos críticos e modos de falha mapeados</li>
-              <li>OpenCode e Gemini CLI rodando no Codespace</li>
+              <li>Agente de código de preferência rodando no Codespace</li>
               <li>Loop SDD instalado como rotina</li>
             </ul>
           </div>
@@ -751,7 +751,7 @@
           <div class="deck-panel">
             <strong>Arquivos canônicos</strong>
             <ul>
-              <li><code>AGENTS.md</code> &mdash; padrão emergente, lido por OpenCode e similares.</li>
+              <li><code>AGENTS.md</code> &mdash; padrão emergente, lido por Codex CLI, OpenCode e similares.</li>
               <li><code>GEMINI.md</code> ou <code>.gemini/system.md</code> &mdash; carregado pelo Gemini CLI.</li>
               <li><code>CLAUDE.md</code> &mdash; equivalente para Claude Code.</li>
               <li><code>documents/agents/skills/*.md</code> &mdash; skills focadas.</li>
@@ -878,14 +878,14 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 22 - PROMPT GEMINI CLI                                 -->
+    <!-- SLIDE 22 - PROMPT NAO INTERATIVO                            -->
     <!-- ============================================================ -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prompts &middot; Gemini CLI</span>
-          <h2 class="deck-title">Recipe &mdash; Gemini CLI</h2>
-          <p class="deck-summary">Padrão de chamada não-interativa: a IA lê arquivos do repo, escreve markdown novo na <code>/documents</code> e nada além disso.</p>
+          <span class="deck-kicker">Prompts &middot; Modo não interativo</span>
+          <h2 class="deck-title">Recipe &mdash; exemplo com Gemini CLI</h2>
+          <p class="deck-summary">Equivale a <code>claude -p</code> ou <code>codex exec</code>. Padrão de chamada não-interativa: a IA lê arquivos do repo, escreve markdown novo na <code>/documents</code> e nada além disso.</p>
         </div>
         <span class="a03-prompt-label">Terminal &middot; gerar RNFs</span>
 <pre class="a03-prompt">gemini --yolo &lt;&lt;'EOF'
@@ -904,17 +904,17 @@ e 2 perguntas que ainda preciso responder."</pre>
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 23 - PROMPT OPENCODE                                   -->
+    <!-- SLIDE 23 - PROMPT SESSAO INTERATIVA                          -->
     <!-- ============================================================ -->
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Prompts &middot; OpenCode</span>
-          <h2 class="deck-title">Recipe &mdash; OpenCode</h2>
-          <p class="deck-summary">OpenCode é interativo por padrão. O fluxo abaixo é colado dentro da sessão. A skill é chamada por nome.</p>
+          <span class="deck-kicker">Prompts &middot; Sessão interativa</span>
+          <h2 class="deck-title">Recipe &mdash; sessão interativa</h2>
+          <p class="deck-summary">Na sessão do agente que você usa, o fluxo abaixo é colado dentro da sessão. A skill é chamada por nome.</p>
         </div>
-        <span class="a03-prompt-label">Sessão &middot; opencode</span>
-<pre class="a03-prompt">opencode
+        <span class="a03-prompt-label">Sessão &middot; agente de código</span>
+<pre class="a03-prompt">claude   # ou o agente que você usa
 
 &gt; Carregue AGENTS.md, depois rode a skill elicit_rf
 &gt; usando spec/00_problem.md como entrada.
@@ -926,8 +926,8 @@ e 2 perguntas que ainda preciso responder."</pre>
 
 &gt; Critique o resultado: onde a rastreabilidade está fraca?</pre>
         <span class="a03-prompt-label" style="margin-top:14px;">Comparar saídas</span>
-<pre class="a03-prompt"># Rode o mesmo pedido com gemini e diff os arquivos
-git diff --no-index gemini.md opencode.md</pre>
+<pre class="a03-prompt"># Rode o mesmo pedido em uma segunda IA (ou troque com um colega) e diff os arquivos
+git diff --no-index saida_a.md saida_b.md</pre>
       </div>
     </div>
 
@@ -949,7 +949,7 @@ git diff --no-index gemini.md opencode.md</pre>
             <tr><td>1</td><td><strong>Brief</strong> &mdash; enunciar problema e restrições</td><td>Prompt curto + arquivos referenciados</td></tr>
             <tr><td>2</td><td><strong>Draft</strong> &mdash; deixa a IA propor</td><td>Markdown rascunho na <code>/documents</code></td></tr>
             <tr><td>3</td><td><strong>Critique</strong> &mdash; pede autocrítica</td><td>Lista de riscos, ambiguidades</td></tr>
-            <tr><td>4</td><td><strong>Cross-check</strong> &mdash; roda nas duas IAs</td><td>Diff entre Gemini e OpenCode</td></tr>
+            <tr><td>4</td><td><strong>Cross-check</strong> &mdash; roda em uma segunda IA ou compara com colega</td><td>Diff entre as duas saídas</td></tr>
             <tr><td>5</td><td><strong>Commit</strong> &mdash; revisa, edita, comita</td><td>Diff humano no git</td></tr>
           </tbody>
         </table>
@@ -990,7 +990,7 @@ git diff --no-index gemini.md opencode.md</pre>
         <div>
           <span class="deck-kicker">Prática &middot; Passo 1</span>
           <h2 class="deck-title">Reabrir o Codespace e criar <code>/documents</code></h2>
-          <p class="deck-summary">Ponto de partida idêntico para todos. O Codespace já tem OpenCode e Gemini instalados desde a Aula 02.</p>
+          <p class="deck-summary">Ponto de partida idêntico para todos. O Codespace já tem o agente de código de cada aluno desde a Aula 02.</p>
         </div>
 <pre class="a03-prompt">cd ~/olist-sre-pipeline
 git pull origin main
@@ -1114,8 +1114,8 @@ Entrada: spec/00_problem.md e
 documents/01_functional_requirements.md.
 Escreva documents/02_non_functional_requirements.md."
 
-# OpenCode
-opencode
+# Sessão interativa
+claude   # ou o agente que você usa
 &gt; Aplique elicit_rf usando spec/00_problem.md.
 &gt; Em seguida elicit_rnf.
 &gt; Compare seu draft com o que esta no git;
@@ -1201,7 +1201,7 @@ secret scan (gitleaks), cloud posture (Prowler).
 Saida: documents/06_test_plan_security.md."
 
 # Modelagem
-opencode
+claude   # ou o agente que você usa
 &gt; Faca um ATAM enxuto sobre 03_architecture.md usando os
 &gt; cenarios da utility tree em 02_non_functional_requirements.md.
 &gt; Para cada cenario, classifique como risco / sensibilidade /
@@ -1540,7 +1540,7 @@ git push origin main --tags</pre>
               <li>OWASP Top 10 (2021) e ASVS.</li>
               <li>Microsoft &mdash; STRIDE threat modeling.</li>
               <li>Mermaid docs &mdash; mermaid.js.org.</li>
-              <li>Spec Kit &middot; AGENTS.md spec &middot; Gemini CLI docs &middot; OpenCode docs.</li>
+              <li>Spec Kit &middot; AGENTS.md spec &middot; documentação do agente escolhido (Claude Code, Codex CLI, Gemini CLI, OpenCode).</li>
             </ul>
           </div>
         </div>

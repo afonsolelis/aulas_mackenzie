@@ -242,7 +242,7 @@ As aulas combinam fundamentação, demonstração e prática. Duas são exceçõ
 
 ### Aula 04 — 05/09/2026 — Do Excel ao OLAP com SQLite, DuckDB e IA
 **Conceitos em execução:** diferença entre planilha, banco e relatório; SQLite como banco embutido orientado a linhas; DuckDB como mecanismo colunar vetorizado para OLAP; grão, fanout, reconciliação e limites de comparação de desempenho.
-**Prática integral:** configuração do OpenCode Zen no terminal do Codespaces; download e perfil de quatro arquivos Excel com as nove tabelas Olist; carga em SQLite; geração de HTML operacional; materialização em DuckDB; construção de fato e mart; geração de HTML analítico.
+**Prática integral:** abertura do agente de código de preferência do aluno no terminal do Codespaces; download e perfil de quatro arquivos Excel com as nove tabelas Olist; carga em SQLite; geração de HTML operacional; materialização em DuckDB; construção de fato e mart; geração de HTML analítico.
 **Artefato:** seis scripts, `olist.sqlite`, `olist.duckdb`, dois relatórios HTML, registros de reconciliação e `docs/04_pipeline_excel_olap.md`.
 **Saída verificável:** o grupo reconstrói os dois HTMLs a partir dos Excels, demonstra a fonte de cada número e compara a mesma consulta nos dois mecanismos sem exceder a evidência medida.
 

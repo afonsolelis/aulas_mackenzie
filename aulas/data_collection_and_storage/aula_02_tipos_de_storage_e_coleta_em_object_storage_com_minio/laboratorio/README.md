@@ -13,7 +13,7 @@ O código do coletor não está nesta pasta. Ele nasce durante a aula, pelos pro
 | `docker-compose.yml` | MinIO local (imagem `ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z`) e um serviço que cria o bucket `raw` |
 | `.env.example` | Variáveis do MinIO local e do coletor; vira `.env` e `.env.railway` |
 | `requirements.txt` | Dependências sugeridas: `requests`, `boto3`, `pytest`, `responses` |
-| `AGENTS.md` | Regras para o agente de código (Claude Code ou OpenCode): escopo, comandos permitidos, segredos, gates |
+| `AGENTS.md` | Regras para o agente de código de preferência do grupo: escopo, comandos permitidos, segredos, gates |
 | `.gitignore` | Impede que `.env`, `.env.railway` e `.venv/` entrem no Git |
 
 O `docker-compose.yml` foi validado com `docker compose config` e executado de ponta a ponta (bucket criado, versionamento ligado, objeto gravado com metadados e lido com `mc stat`).
@@ -21,7 +21,7 @@ O `docker-compose.yml` foi validado com `docker compose config` e executado de p
 ## Pré-requisitos (feitos na Aula 01)
 
 - Codespace aberto no repositório do grupo.
-- Um agente de código no terminal: Claude Code (`claude`), que a maioria dos grupos usa, ou o OpenCode configurado na Aula 01.
+- Um agente de código no terminal, o de preferência do grupo (Claude Code, Codex CLI, Gemini CLI, OpenCode ou outro).
 - MinIO publicado no Railway, com domínio público para a porta 9000, usuário e senha guardados fora do Git.
 
 Rode um prompt por vez e revise a saída antes do próximo: é nessa revisão que o erro do agente é pego antes de contaminar a etapa seguinte.
@@ -98,8 +98,7 @@ O segundo comando mostra o formato de erro da API: HTTP 400 com `{"error": true,
 Abra o agente dentro de `aula_02_coleta_json/`, para que ele enxergue o `AGENTS.md`:
 
 ```bash
-claude          # Claude Code
-# ou: opencode  # OpenCode, configurado na Aula 01
+claude          # ou o agente que você usa
 ```
 
 O Claude Code lê instruções de um `CLAUDE.md`. Para não manter dois arquivos, crie um que importe o `AGENTS.md`:

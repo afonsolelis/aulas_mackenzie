@@ -1,6 +1,6 @@
 # AGENTS.md · aula_05_modelagem
 
-Regras para o agente de código (OpenCode) nesta pasta do repositório do grupo.
+Regras para o agente de código nesta pasta do repositório do grupo, qualquer que seja o agente escolhido (Claude Code, Codex CLI, OpenCode ou outro).
 
 ## Escopo
 

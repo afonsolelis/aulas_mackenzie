@@ -25,7 +25,7 @@ Este documento vem antes do HTML. Preencha-o com base no catálogo extraído do 
 | Faturamento por categoria | Quais categorias concentram valor? | `SUM(price)` | item do pedido | categoria tratada | — | R$ | reconciliar soma total | Top N oculta cauda |
 | Preço × frete | Há associação entre valores? | pares `price`, `freight_value` | item do pedido | valores válidos | — | R$ × R$ | comparar com/sem P95 | associação não demonstra causa |
 
-## 4. Prompt para discutir o modelo com Copilot ou OpenCode
+## 4. Prompt para discutir o modelo com Copilot ou outro agente de código
 
 Anexe ou referencie `docs/00_catalogo_banco.md` e use:
 

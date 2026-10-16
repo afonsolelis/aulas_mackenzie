@@ -130,7 +130,7 @@
             <h3>20h30 – 22h00 &middot; Prática</h3>
             <ul>
               <li>Bootstrap do GitHub Codespace</li>
-              <li>Instalação do OpenCode e Gemini CLI</li>
+              <li>Abertura do agente de código escolhido</li>
               <li>Criação do repositório <code>olist-sre-pipeline</code></li>
               <li>Estrutura de pastas segundo o roadmap</li>
               <li>Primeiro commit com <code>spec/00_problem.md</code></li>
@@ -747,8 +747,8 @@
           <strong>Fluxo do laboratório</strong>
           <ol style="margin:0; padding-left:22px;">
             <li>Abrir um GitHub Codespace a partir de repositório vazio.</li>
-            <li>Instalar OpenCode e Gemini CLI.</li>
-            <li>Autenticar cada CLI com seu modelo gratuito.</li>
+            <li>Abrir o agente de código ou a IA de sua preferência.</li>
+            <li>Autenticar a ferramenta sem colocar chave de API no Git.</li>
             <li>Criar a estrutura de pastas do projeto segundo o roadmap.</li>
             <li>Escrever a primeira versão do <code>spec/00_problem.md</code>.</li>
             <li>Comitar e subir para o GitHub.</li>
@@ -782,30 +782,22 @@
     </div>
 
     <!-- ============================================================ -->
-    <!-- SLIDE 22 - PASSO 2 INSTALAR AS IAS                           -->
+    <!-- SLIDE 22 - PASSO 2 ABRIR O AGENTE                           -->
     <!-- ============================================================ -->
     <div class="slide">
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Prática &middot; Passo 2</span>
-          <h2 class="deck-title">Instalar OpenCode e Gemini CLI</h2>
-          <p class="deck-summary">Dois agentes gratuitos para o terminal. O aluno comparará saídas entre eles ao longo do curso.</p>
+          <h2 class="deck-title">Abrir o agente de código</h2>
+          <p class="deck-summary">Use o agente ou a IA de sua preferência: Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot. Ao longo do curso, você compara saídas com colegas que usam outras ferramentas.</p>
         </div>
         <div class="deck-callout">
           <strong>Comandos no terminal do Codespace</strong>
-          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.92rem; margin-top:10px; overflow-x:auto;"># OpenCode (agente CLI open-source)
-npm i -g opencode-ai@latest
-opencode --version
-
-# Gemini CLI oficial do Google
-npm i -g @google/gemini-cli
-gemini --version
-
+          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.92rem; margin-top:10px; overflow-x:auto;"># Instale conforme a documentação da ferramenta escolhida
 # Primeira execução pede autenticação via navegador
-opencode
-gemini</pre>
+claude   # ou o agente que você usa</pre>
         </div>
-        <p style="margin-top:14px;"><em>Ambos suportam o modelo gratuito padrão. Copilot é opcional se o aluno já tiver acesso.</em></p>
+        <p style="margin-top:14px;"><em>Nenhuma chave de API vai para o Git.</em></p>
       </div>
     </div>
 
@@ -902,7 +894,7 @@ git push origin main</pre>
           <ul style="margin:0; padding-left:22px;">
             <li>Repositório aparece no GitHub com a árvore de pastas.</li>
             <li><code>spec/00_problem.md</code> preenchido e versionado.</li>
-            <li>OpenCode e Gemini respondem no terminal.</li>
+            <li>O agente de código responde no terminal.</li>
             <li>Aluno consegue pedir à IA para "ler <code>spec/00_problem.md</code> e resumir".</li>
           </ul>
         </div>
@@ -921,7 +913,7 @@ git push origin main</pre>
         </div>
         <div class="deck-callout">
           <strong>Prompt de validação</strong>
-          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.9rem; margin-top:10px; overflow-x:auto;">opencode
+          <pre style="background:#111; color:#f6f6f6; padding:14px; border-radius:6px; font-size:.9rem; margin-top:10px; overflow-x:auto;">claude   # ou o agente que você usa
 
 &gt; Leia spec/00_problem.md e liste:
 &gt; 1) três riscos que eu não mencionei
@@ -929,8 +921,7 @@ git push origin main</pre>
 &gt;    tornadas mensuráveis na Aula 03
 &gt; 3) uma ambiguidade no texto
 
-# repetir com gemini para comparar saídas
-gemini</pre>
+# compare a saída com a de um colega que usa outra IA</pre>
         </div>
       </div>
     </div>
@@ -953,7 +944,7 @@ gemini</pre>
               <li>SEBoK: systems thinking, propriedades emergentes, SoS.</li>
               <li>Confiabilidade como propriedade do sistema.</li>
               <li>Loop SDD instalado como rotina semanal.</li>
-              <li>Codespace com OpenCode e Gemini CLI operando.</li>
+              <li>Codespace com o agente de código operando.</li>
               <li>Repo <code>olist-sre-pipeline</code> com <code>spec/00_problem.md</code> comitado.</li>
             </ul>
           </article>
@@ -1009,8 +1000,8 @@ gemini</pre>
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Hands-on em sala &middot; Agora</span>
-          <h2 class="deck-title">Abra o Codespace e instale as IAs</h2>
-          <p class="deck-summary">Agora é com vocês. Dez minutos para toda a turma estar com as duas IAs rodando no terminal.</p>
+          <h2 class="deck-title">Abra o Codespace e o agente de código</h2>
+          <p class="deck-summary">Agora é com vocês. Dez minutos para toda a turma estar com o agente de sua preferência rodando no terminal.</p>
         </div>
         <div class="deck-callout">
           <strong>Os três passos, em ordem</strong>
@@ -1018,25 +1009,17 @@ gemini</pre>
 #    github.com &rarr; repo &rarr; Code &rarr; Codespaces &rarr;
 #    Create codespace on main
 
-# 2) Instalar o OpenCode
-npm i -g opencode-ai@latest
+# 2) Instalar o agente escolhido conforme a documentação dele
+#    (Claude Code, Codex CLI, Gemini CLI, OpenCode...)
 
-# 3) Instalar o Gemini CLI
-npm i -g @google/gemini-cli
-
-# Validar que as duas IAs estão vivas
-opencode --version
-gemini  --version
-
-# Abrir sessão interativa (autentica via OAuth no navegador)
-opencode
-gemini</pre>
+# 3) Abrir sessão interativa (autentica no navegador)
+claude   # ou o agente que você usa</pre>
         </div>
         <div class="deck-panel" style="margin-top:14px;">
           <strong>Critério de pronto &middot; 10 min</strong>
           <ul style="margin:0; padding-left:22px;">
             <li>Codespace ativo e terminal aberto.</li>
-            <li><code>opencode</code> e <code>gemini</code> respondem a um <em>hello</em> curto.</li>
+            <li>O agente escolhido responde a um <em>hello</em> curto.</li>
             <li>Professor circula na sala para destravar autenticação.</li>
           </ul>
         </div>
@@ -1067,9 +1050,9 @@ gemini</pre>
           <div class="deck-panel">
             <strong>Roteiro da atividade</strong>
             <ol style="margin:0; padding-left:22px;">
-              <li>Rodar o prompt inicial no <code>opencode</code>.</li>
+              <li>Rodar o prompt inicial no agente de código.</li>
               <li>Iterar: questionar suposições e pedir autocrítica.</li>
-              <li>Repetir o mesmo prompt no <code>gemini</code>.</li>
+              <li>Trocar a saída com um colega que usa outra IA.</li>
               <li>Comparar divergências entre as duas saídas.</li>
               <li>Consolidar em <code>spec/00_problem.md</code> e commitar.</li>
             </ol>
@@ -1130,7 +1113,7 @@ gemini</pre>
     const stages = [
       { n: '01', label: 'Conceito',   sub: 'framework da aula' },
       { n: '02', label: 'Spec',       sub: 'spec/XX_*.md' },
-      { n: '03', label: 'Geracao',    sub: 'OpenCode / Gemini' },
+      { n: '03', label: 'Geracao',    sub: 'agente do aluno' },
       { n: '04', label: 'Revisao',    sub: 'aluno critica' },
       { n: '05', label: 'Testes',     sub: 'pytest' },
       { n: '06', label: 'Deploy',     sub: 'CloudFormation / SSM' },

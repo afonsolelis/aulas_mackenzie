@@ -28,7 +28,7 @@
         <div>
           <span class="deck-kicker">Agenda</span>
           <h2 class="deck-title">Uma aula para construir, medir e comparar</h2>
-          <p class="deck-summary">Prática do início ao fim no GitHub Codespaces, com os conceitos introduzidos enquanto o OpenCode Zen constrói e valida o pipeline no terminal.</p>
+          <p class="deck-summary">Prática do início ao fim no GitHub Codespaces, com os conceitos introduzidos enquanto o agente de código de cada aluno constrói e valida o pipeline no terminal.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
@@ -43,7 +43,7 @@
           <article class="deck-card">
             <h3>9h00 &ndash; 12h10 &middot; Construção assistida</h3>
             <ul>
-              <li>Configurar Codespaces, OpenCode e Zen</li>
+              <li>Configurar Codespaces e o agente de código</li>
               <li>Baixar e auditar quatro arquivos Excel com todo o Olist</li>
               <li>Excel &rarr; SQLite &rarr; HTML operacional</li>
               <li>SQLite &rarr; DuckDB &rarr; HTML analítico</li>
@@ -144,17 +144,15 @@ node --version</code></pre>
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Etapa 0 &middot; OpenCode</span>
-          <h2 class="deck-title">Instale o agente no terminal</h2>
-          <p class="deck-summary">O Codespace já fornece Node.js. A instalação oficial por npm mantém o comando disponível na sessão.</p>
+          <span class="deck-kicker">Etapa 0 &middot; Agente de código</span>
+          <h2 class="deck-title">Abra o agente no terminal</h2>
+          <p class="deck-summary">Use o agente de código ou a IA de sua preferência: Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot.</p>
         </div>
-        <pre><code>npm install -g opencode-ai
-opencode --version
-cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
-opencode</code></pre>
+        <pre><code>cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
+claude   # ou o agente que você usa</code></pre>
         <div class="deck-callout">
           <strong>Não feche este terminal</strong>
-          <p style="margin:8px 0 0;">Os próximos comandos com barra são digitados dentro da interface do OpenCode, não no shell.</p>
+          <p style="margin:8px 0 0;">Os pedidos ao agente são digitados dentro da interface dele, não no shell.</p>
         </div>
       </div>
     </div>
@@ -162,20 +160,16 @@ opencode</code></pre>
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Etapa 0 &middot; OpenCode Zen</span>
-          <h2 class="deck-title">Conecte o modelo sem expor a chave</h2>
+          <span class="deck-kicker">Etapa 0 &middot; Agente de código</span>
+          <h2 class="deck-title">Teste o agente sem expor chaves</h2>
         </div>
         <ol class="deck-steps">
-          <li>Digite <code>/connect</code> e selecione <strong>OpenCode Zen</strong>.</li>
-          <li>Abra <code>opencode.ai/auth</code>, autentique-se e adicione créditos.</li>
-          <li>Copie a API key e cole somente no campo seguro solicitado.</li>
-          <li>Digite <code>/models</code> e escolha um modelo disponível.</li>
           <li>Peça: <code>Leia ../../../../AGENTS.md e README.md; resuma as restrições.</code></li>
           <li>Mantenha o agente aberto e use um segundo terminal para executar os scripts.</li>
         </ol>
         <div class="deck-callout">
           <strong>Segredo não é contexto</strong>
-          <p style="margin:8px 0 0;">Não cole a chave no prompt, no HTML, em arquivo <code>.env</code> versionado ou em commit.</p>
+          <p style="margin:8px 0 0;">Não cole chave de API no prompt, no HTML, em arquivo <code>.env</code> versionado ou em commit.</p>
         </div>
       </div>
     </div>
@@ -255,7 +249,7 @@ python -m pip install -r requirements.txt</code></pre>
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">OpenCode &middot; Prompt 1</span>
+          <span class="deck-kicker">Agente &middot; Prompt 1</span>
           <h2 class="deck-title">Primeiro peça perfil, não transformação</h2>
         </div>
         <pre><code>Leia README.md. Inspecione entrada/*.xlsx em modo
@@ -273,7 +267,7 @@ Não altere a entrada. Mostre o plano antes de editar.</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">OpenCode &middot; Prompt 2</span>
+          <span class="deck-kicker">Agente &middot; Prompt 2</span>
           <h2 class="deck-title">Transforme Excel em SQLite por lotes</h2>
         </div>
         <pre><code>Crie src/01_excel_para_sqlite.py. Use openpyxl em read_only,
@@ -310,7 +304,7 @@ sqlite3 saida/olist.sqlite "PRAGMA foreign_key_check;"</code></pre>
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">OpenCode &middot; Prompt 3</span>
+          <span class="deck-kicker">Agente &middot; Prompt 3</span>
           <h2 class="deck-title">Leia o SQLite e publique o primeiro HTML</h2>
         </div>
         <pre><code>Crie src/02_html_sqlite.py. Abra saida/olist.sqlite em modo somente
@@ -354,7 +348,7 @@ fonte e a data de geração. Nenhuma métrica pode ser digitada no HTML.</code><
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">OpenCode &middot; Prompt 4</span>
+          <span class="deck-kicker">Agente &middot; Prompt 4</span>
           <h2 class="deck-title">Transforme SQLite em DuckDB</h2>
         </div>
         <pre><code>Crie src/03_sqlite_para_duckdb.py. Conecte a saida/olist.duckdb,
@@ -388,7 +382,7 @@ Falhe se qualquer tabela divergir.</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">OpenCode &middot; Prompt 5</span>
+          <span class="deck-kicker">Agente &middot; Prompt 5</span>
           <h2 class="deck-title">Peça o mart com contrato de métrica</h2>
         </div>
         <pre><code>Crie src/04_criar_mart_olap.py. No DuckDB, materialize
@@ -425,7 +419,7 @@ ORDER BY mes;</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">OpenCode &middot; Prompt 6</span>
+          <span class="deck-kicker">Agente &middot; Prompt 6</span>
           <h2 class="deck-title">Leia o DuckDB e publique o segundo HTML</h2>
         </div>
         <pre><code>Crie src/05_html_duckdb.py. Leia somente saida/olist.duckdb e gere
@@ -481,7 +475,7 @@ Não use números fixos nem leia o SQLite.</code></pre>
         </div>
         <div class="deck-callout">
           <strong>Antes de encerrar</strong>
-          <p style="margin:8px 0 0;">Peça ao OpenCode para revisar os seis scripts contra o manifesto, execute tudo numa pasta de saída vazia e gere <code>docs/04_pipeline_excel_olap.md</code> apenas com evidências medidas.</p>
+          <p style="margin:8px 0 0;">Peça ao agente para revisar os seis scripts contra o manifesto, execute tudo numa pasta de saída vazia e gere <code>docs/04_pipeline_excel_olap.md</code> apenas com evidências medidas.</p>
         </div>
       </div>
     </div>

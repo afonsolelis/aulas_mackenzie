@@ -13,7 +13,6 @@ exemplo resolvido estão no material:
 ```text
 repositorio-do-grupo/
 ├── .gitignore
-├── opencode.json
 ├── README.md
 ├── aula_01_minio/           # esta aula
 ├── aula_02_coleta_json/     # próximas aulas, uma pasta por aula
@@ -28,7 +27,6 @@ laboratorio/
 ├── README.md                       # este roteiro
 ├── modelo_repositorio/             # copiar para a raiz do repositório do grupo
 │   ├── .gitignore                  # .env e credenciais fora do Git
-│   ├── opencode.json               # modelo openrouter/free como padrão
 │   └── aula_01_minio/
 │       ├── AGENTS.md               # regras do agente para a disciplina
 │       ├── .env.example            # nomes das variáveis, sem segredo
@@ -49,7 +47,7 @@ laboratorio/
 
 Os arquivos de `referencia/` não são copiados no início. O agente os cria na etapa de
 implementação; o grupo compara com o gabarito usando `diff`. Use a cópia direta apenas se
-o limite diário da OpenRouter impedir a geração.
+o agente não conseguir gerar os arquivos a tempo.
 
 ## Etapa 1. Repositório do grupo e Codespace
 
@@ -80,33 +78,31 @@ Checklist:
 - [ ] `aula_01_minio/AGENTS.md`, `docs/` e `specs/` existem.
 - [ ] `git status --short` não lista `aula_01_minio/.env`.
 
-## Etapa 2. OpenRouter e OpenCode
+## Etapa 2. Agente de código
 
-1. Crie conta em https://openrouter.ai e gere uma chave em
-   https://openrouter.ai/settings/keys (Create API Key). Copie e guarde fora do repositório.
-2. Instale e abra o OpenCode dentro da pasta do projeto:
+Cada integrante usa o agente de código ou a IA de sua preferência: Claude Code, Codex CLI,
+Gemini CLI, OpenCode com o provedor que quiser, Cursor ou Copilot. O fluxo SDD e os prompts
+são os mesmos para qualquer um deles.
+
+1. Abra o agente escolhido dentro da pasta do projeto:
 
 ```bash
-npm install -g opencode-ai
-opencode --version
 cd aula_01_minio
-opencode
+claude            # ou o agente que você usa
 ```
 
-3. Dentro do OpenCode: `/connect` > OpenRouter > cole a chave no campo seguro.
-4. `/models` > escolha `openrouter/openrouter/free`. Se não aparecer, o `opencode.json`
-   copiado na raiz já declara o modelo; feche e abra o OpenCode de novo.
-5. Teste: `Leia AGENTS.md e liste, em 5 itens, as regras que você deve seguir neste projeto. Não edite nada.`
+2. Garanta que o agente leia o `AGENTS.md`. No Claude Code, crie um `CLAUDE.md` que o
+   importe, antes de abrir o agente: `echo "@AGENTS.md" > CLAUDE.md`. Outros agentes leem o
+   `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto.
+3. Teste: `Leia AGENTS.md e liste, em 5 itens, as regras que você deve seguir neste projeto. Não edite nada.`
 
-Limites dos modelos gratuitos: 20 requisições por minuto; 50 por dia para contas com menos
-de US$ 10 em créditos comprados (1.000 por dia a partir de US$ 10). Cada prompt de agente
-consome várias requisições. Erro 429 significa limite: espere e repita. Revezem o piloto
-do agente entre os integrantes, cada um com a própria chave.
+Se o agente pedir chave de API, guarde-a fora do repositório. Revezem o piloto do agente
+entre os integrantes.
 
 Checklist:
 
 - [ ] O agente respondeu ao teste citando regras do `AGENTS.md`.
-- [ ] A chave não aparece em nenhum arquivo do repositório (`git grep -n "sk-or-"` vazio).
+- [ ] Nenhuma chave de API aparece em arquivo do repositório (`git grep -nE "\bsk-[A-Za-z0-9_-]{16,}"` vazio).
 
 ## Etapa 3. Railway
 
@@ -129,7 +125,7 @@ Checklist:
 
 ## Etapa 4. Ciclo SDD do projeto MinIO (prompts 1 a 7)
 
-Execute, no OpenCode, os sete prompts CREATE do material (seção 11), um por vez, e faça a
+Execute, no agente de código, os sete prompts CREATE do material (seção 11), um por vez, e faça a
 revisão "Revise antes de seguir" depois de cada um. Arquivos esperados:
 
 | Prompt | Arquivo gerado ou atualizado |

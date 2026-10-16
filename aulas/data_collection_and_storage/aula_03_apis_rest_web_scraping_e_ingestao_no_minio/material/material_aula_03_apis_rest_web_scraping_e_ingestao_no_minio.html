@@ -62,7 +62,7 @@
 
       <section class="content-block" id="s2">
         <h2>2. Retomada: SDD, CREATE e chaves no MinIO</h2>
-        <p>Esta aula reaproveita duas bases. Da <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> vêm o método e o ambiente: Spec-Driven Development com a sequência persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM; prompts no formato CREATE; OpenCode no terminal com a OpenRouter e o modelo <code>openrouter/free</code>; e o MinIO publicado no Railway. Da <a href="../../aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Aula 02</a> vêm a diferença entre block, file e object storage e o desenho de chaves particionadas no bucket <code>raw</code>.</p>
+        <p>Esta aula reaproveita duas bases. Da <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> vêm o método e o ambiente: Spec-Driven Development com a sequência persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM; prompts no formato CREATE; um agente de código no terminal, o de preferência de cada aluno; e o MinIO publicado no Railway. Da <a href="../../aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Aula 02</a> vêm a diferença entre block, file e object storage e o desenho de chaves particionadas no bucket <code>raw</code>.</p>
         <p>O esqueleto SDD é o mesmo de todas as aulas. A pasta desta aula no repositório do grupo se chama <code>aula_03_api_scraping/</code>:</p>
         <pre><code>aula_03_api_scraping/
 ├── AGENTS.md
@@ -117,7 +117,7 @@
         <p>Coleções grandes são entregues em páginas. Na paginação por offset, o cliente pede "pule N registros e traga M", como nos parâmetros OData <code>$skip</code> e <code>$top</code>, que a PTAX aceita. É simples e permite saltar para qualquer página, mas se a coleção muda durante a leitura um registro pode ser lido duas vezes ou pulado, já que as posições se deslocam. Na paginação por cursor, o servidor devolve um marcador opaco ou um link para a próxima página, e o cliente apenas o segue. A leitura fica estável mesmo com inserções, ao custo de não permitir saltos. O link <code>next</code> do books.toscrape.com funciona como um cursor: o coletor segue o link até ele deixar de existir, em vez de calcular o número de páginas.</p>
 
         <h3>3.4 Autenticação por chave</h3>
-        <p>Muitas APIs exigem uma chave enviada em cabeçalho, por exemplo <code>Authorization: Bearer &lt;chave&gt;</code> ou <code>X-API-Key: &lt;chave&gt;</code>. A PTAX não exige chave, mas o coletor deve nascer preparado para fontes que exigem, lendo a chave de variável de ambiente e nunca de arquivo versionado. A mesma regra vale para as credenciais do MinIO e para a chave da OpenRouter. Chave em URL também é problema, porque URLs aparecem em logs, no manifesto e nos metadados do objeto.</p>
+        <p>Muitas APIs exigem uma chave enviada em cabeçalho, por exemplo <code>Authorization: Bearer &lt;chave&gt;</code> ou <code>X-API-Key: &lt;chave&gt;</code>. A PTAX não exige chave, mas o coletor deve nascer preparado para fontes que exigem, lendo a chave de variável de ambiente e nunca de arquivo versionado. A mesma regra vale para as credenciais do MinIO e para qualquer chave de API do agente de código. Chave em URL também é problema, porque URLs aparecem em logs, no manifesto e nos metadados do objeto.</p>
 
         <h3>3.5 Cache condicional com ETag e If-None-Match</h3>
         <p>Alguns servidores devolvem o cabeçalho <code>ETag</code>, um identificador da versão do conteúdo. Na requisição seguinte, o cliente envia <code>If-None-Match</code> com esse valor; se nada mudou, o servidor responde <code>304 Not Modified</code> sem corpo. Em 03/10/2026, o books.toscrape.com devolveu <code>ETag</code> na página inicial e respondeu <code>304</code> quando a requisição repetiu o valor. A PTAX, na mesma data, não devolveu <code>ETag</code> e respondeu com <code>pragma: no-cache</code>. O coletor, portanto, só pode usar cache condicional onde o servidor o oferece, e precisa funcionar sem ele.</p>
@@ -137,7 +137,7 @@ curl -s -o /dev/null -w "%{http_code}\n" \
         <p>Sem timeout, uma requisição pode esperar indefinidamente, e a biblioteca <code>requests</code> não define timeout por padrão. O timeout tem duas partes: o tempo para abrir a conexão e o tempo entre bytes da resposta. Em <code>requests</code>, a tupla <code>timeout=(5, 20)</code> declara 5 segundos para conectar e 20 para ler. Os valores do <code>.env.example</code> da aula são ponto de partida e devem ser tratados no <code>spec.md</code> como hipótese até serem medidos.</p>
 
         <h3>4.2 Rate limit, 429 e Retry-After</h3>
-        <p>Servidores limitam quantas requisições um cliente pode fazer num intervalo. Ao ultrapassar o limite, a resposta é <code>429 Too Many Requests</code> (RFC 6585), que pode trazer o cabeçalho <code>Retry-After</code> com o número de segundos a esperar ou uma data HTTP. Quando o cabeçalho existe, ele prevalece sobre qualquer cálculo próprio do cliente. A OpenRouter, usada pelo agente, aplica esse mesmo mecanismo nos modelos gratuitos (20 requisições por minuto), e o aluno vai encontrá-lo do lado do agente antes de encontrá-lo do lado do coletor.</p>
+        <p>Servidores limitam quantas requisições um cliente pode fazer num intervalo. Ao ultrapassar o limite, a resposta é <code>429 Too Many Requests</code> (RFC 6585), que pode trazer o cabeçalho <code>Retry-After</code> com o número de segundos a esperar ou uma data HTTP. Quando o cabeçalho existe, ele prevalece sobre qualquer cálculo próprio do cliente. Os provedores de modelos usados pelos agentes de código aplicam esse mesmo mecanismo, e o aluno pode encontrá-lo do lado do agente antes de encontrá-lo do lado do coletor.</p>
 
         <h3>4.3 Retry com backoff exponencial e jitter</h3>
         <p>Repetir imediatamente depois de uma falha costuma piorar a situação: se o servidor caiu por sobrecarga, cem clientes repetindo ao mesmo tempo mantêm a sobrecarga. O backoff exponencial aumenta a espera a cada tentativa, e o jitter sorteia parte dessa espera para que clientes diferentes não repitam no mesmo instante. Uma forma comum é o "full jitter":</p>
@@ -324,7 +324,7 @@ bronze/ptax/moeda=GBP/data=2026-10-24/cotacoes.jsonl</code></pre>
 
       <section class="content-block" id="s11">
         <h2>11. Preparação do ambiente</h2>
-        <p>O roteiro completo, com os comandos de verificação, está em <a href="../laboratorio/README.md"><code>laboratorio/README.md</code></a>. Os passos abaixo assumem o Codespace do repositório do grupo, o OpenCode configurado na Aula 01 e o MinIO no Railway já publicado.</p>
+        <p>O roteiro completo, com os comandos de verificação, está em <a href="../laboratorio/README.md"><code>laboratorio/README.md</code></a>. Os passos abaixo assumem o Codespace do repositório do grupo, o agente de código configurado na Aula 01 e o MinIO no Railway já publicado.</p>
         <ol class="steps">
           <li>Abra o Codespace do repositório do grupo e, na raiz, crie a pasta da aula: <code>mkdir -p aula_03_api_scraping/{docs/adr,specs,src,tests}</code>.</li>
           <li>Copie para essa pasta os arquivos de apoio de <code>laboratorio/</code> deste repositório: <code>docker-compose.yml</code>, <code>.env.example</code>, <code>requirements.txt</code> e <code>AGENTS.md</code>. Você pode baixá-los pelo GitHub ou clonar <code>afonsolelis/aulas_mackenzie</code> numa pasta temporária. Depois entre na pasta: <code>cd aula_03_api_scraping</code>.</li>
@@ -334,17 +334,17 @@ bronze/ptax/moeda=GBP/data=2026-10-24/cotacoes.jsonl</code></pre>
           <li>Crie os buckets usando as credenciais que já estão dentro do contêiner, sem digitar a senha: <code>docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" &amp;&amp; mc mb --ignore-existing local/raw local/bronze'</code>.</li>
           <li>Crie o ambiente Python: <code>python3 -m venv .venv</code>, <code>source .venv/bin/activate</code> e <code>pip install -r requirements.txt</code>.</li>
           <li>Confirme o acesso às fontes antes de escrever qualquer prompt: <code>curl -sI https://books.toscrape.com/ | head -5</code> e a consulta da seção 5.1.</li>
-          <li>Abra o agente na pasta da aula com <code>opencode</code> e confirme o modelo com <code>/models</code>. Trabalhe um prompt por vez: no plano gratuito da OpenRouter o limite é de 20 requisições por minuto e 50 por dia para contas com menos de US$ 10 em créditos comprados, e cada prompt consome várias requisições. Se aparecer 429, espere e repita.</li>
+          <li>Abra o agente de código de sua preferência na pasta da aula (por exemplo, <code>claude</code>). No Claude Code, crie antes um <code>CLAUDE.md</code> que importe as regras: <code>echo "@AGENTS.md" &gt; CLAUDE.md</code>. Outros agentes leem o <code>AGENTS.md</code> diretamente ou aceitam o arquivo colado no contexto. Trabalhe um prompt por vez.</li>
         </ol>
         <div class="note">
           <strong>Segredos</strong>
-          <p>A chave da OpenRouter fica no campo seguro do <code>/connect</code>. As credenciais do MinIO ficam no <code>.env</code>, que não é versionado. Nenhuma delas entra em prompt, captura de tela, metadado de objeto ou manifesto. Se uma credencial aparecer num diff, pare, remova-a e gere outra.</p>
+          <p>Se o agente usar chave de API, ela fica no campo seguro do próprio agente ou fora do repositório. As credenciais do MinIO ficam no <code>.env</code>, que não é versionado. Nenhuma delas entra em prompt, captura de tela, metadado de objeto ou manifesto. Se uma credencial aparecer num diff, pare, remova-a e gere outra.</p>
         </div>
       </section>
 
       <section class="content-block" id="s12">
         <h2>12. Prática guiada em SDD: os sete prompts CREATE</h2>
-        <p>Os prompts abaixo são independentes e devem ser copiados por inteiro, um de cada vez, com o OpenCode aberto em <code>aula_03_api_scraping/</code>. Cada prompt termina pedindo que o agente pare. Entre um prompt e outro está o quadro "Revise antes de seguir": a revisão é o momento em que o grupo decide se o artefato está correto, e o agente não tem autoridade para pular essa etapa. Os fatos que aparecem nos prompts foram verificados em 03/10/2026; o próprio prompt pede que o agente os confirme antes de usá-los.</p>
+        <p>Os prompts abaixo são independentes e devem ser copiados por inteiro, um de cada vez, com o agente de código aberto em <code>aula_03_api_scraping/</code>. Cada prompt termina pedindo que o agente pare. Entre um prompt e outro está o quadro "Revise antes de seguir": a revisão é o momento em que o grupo decide se o artefato está correto, e o agente não tem autoridade para pular essa etapa. Os fatos que aparecem nos prompts foram verificados em 03/10/2026; o próprio prompt pede que o agente os confirme antes de usá-los.</p>
 
         <h3>12.1 Prompt 1 &middot; Persona</h3>
         <pre class="is-wrap"><code>[C] Personagem
@@ -824,7 +824,7 @@ EOF</code></pre>
 
       <section class="content-block" id="s16">
         <h2>16. Atividade em sala e entregável</h2>
-        <p>A atividade acontece no Codespace do repositório do grupo, com o OpenCode e o MinIO local, e termina com os objetos no MinIO do Railway. O professor conduz os prompts 1 a 5 e as primeiras tarefas do prompt 6 ao vivo; os grupos acompanham no próprio repositório e completam as tarefas restantes e o prompt 7.</p>
+        <p>A atividade acontece no Codespace do repositório do grupo, com o agente de código e o MinIO local, e termina com os objetos no MinIO do Railway. O professor conduz os prompts 1 a 5 e as primeiras tarefas do prompt 6 ao vivo; os grupos acompanham no próprio repositório e completam as tarefas restantes e o prompt 7.</p>
         <ol class="steps">
           <li>9h30: preparação do ambiente (seção 11) com MinIO local saudável e buckets criados.</li>
           <li>Prompts 1 e 2, com revisão em grupo de cada artefato antes de seguir.</li>

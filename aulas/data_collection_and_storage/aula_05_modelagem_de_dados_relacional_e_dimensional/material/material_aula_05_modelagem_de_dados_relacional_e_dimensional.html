@@ -59,7 +59,7 @@
       <!-- ============================ 1 ============================ -->
       <section class="content-block" id="s1">
         <h2>1. Onde estamos e o problema da aula</h2>
-        <p>Na <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> o grupo montou o ambiente (Codespace, OpenCode com OpenRouter, conta no Railway e MinIO publicado) e adotou a convenção SDD que todas as aulas seguem: persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM, sempre com prompts no formato CREATE. Na <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> o grupo coletou páginas de books.toscrape.com e a cotação PTAX da libra pela API do Banco Central. Na <a href="../../aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Aula 04</a> esse material bruto virou um lakehouse no MinIO: bronze com o que chegou, silver em Parquet tipado e uma primeira gold, tudo lido pelo DuckDB com schema on read.</p>
+        <p>Na <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> o grupo montou o ambiente (Codespace, agente de código, conta no Railway e MinIO publicado) e adotou a convenção SDD que todas as aulas seguem: persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM, sempre com prompts no formato CREATE. Na <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> o grupo coletou páginas de books.toscrape.com e a cotação PTAX da libra pela API do Banco Central. Na <a href="../../aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Aula 04</a> esse material bruto virou um lakehouse no MinIO: bronze com o que chegou, silver em Parquet tipado e uma primeira gold, tudo lido pelo DuckDB com schema on read.</p>
         <p>O silver resolve um problema: os dados estão tipados, deduplicados e legíveis. Ele não resolve dois outros. O primeiro é operacional. Se um aplicativo de alerta de preço precisa saber o preço atual de um livro, ninguém garante, no Parquet, que exista um único livro com aquele identificador, que toda observação aponte para um livro existente ou que uma categoria não apareça escrita de três formas. O segundo é analítico. A pergunta "qual o preço médio em reais por categoria e mês" exige juntar preços, livros, categorias e cotações, decidir qual cotação vale num sábado sem PTAX e decidir se um livro reclassificado em novembro conta como da categoria antiga ou nova em outubro.</p>
         <p>Cada problema pede um modelo. A modelagem relacional organiza os dados para que o banco imponha as regras de consistência em cada escrita. A modelagem dimensional organiza os dados para que perguntas de negócio sejam respondidas com poucas junções e com o histórico preservado. A aula constrói os dois sobre o mesmo silver e compara a mesma pergunta nos dois.</p>
         <div class="note">
@@ -488,11 +488,11 @@ openssl rand -base64 24   # cole em MINIO_ROOT_PASSWORD</code></pre></li>
 docker compose exec -T postgres psql -U livraria -d livraria -v ON_ERROR_STOP=1 -f /sql/relacional/001_schema.sql
 docker compose exec -T postgres psql -U livraria -d livraria -v ON_ERROR_STOP=1 -f /sql/relacional/001_schema.sql
 docker compose exec -T postgres psql -U livraria -d livraria -c '\dt livraria.*'</code></pre></li>
-          <li>Abra o OpenCode na pasta da aula: <code>opencode</code>. Confira com <code>/models</code> que o modelo é <code>openrouter/openrouter/free</code>. Se não aparecer, declare-o em <code>opencode.json</code> como na Aula 01.</li>
+          <li>Abra o agente de código de sua preferência na pasta da aula (por exemplo, <code>claude</code>). No Claude Code, crie antes um <code>CLAUDE.md</code> que importe as regras: <code>echo "@AGENTS.md" &gt; CLAUDE.md</code>. Outros agentes leem o <code>AGENTS.md</code> diretamente ou aceitam o arquivo colado no contexto.</li>
         </ol>
         <div class="note">
-          <strong>Limite dos modelos gratuitos</strong>
-          <p>A OpenRouter limita os modelos gratuitos a 20 requisições por minuto e a 50 por dia para contas que compraram menos de US$ 10 em créditos (1.000 por dia a partir de US$ 10). Um prompt de agente consome várias requisições. Trabalhe um prompt por vez; diante de erro 429, espere e repita.</p>
+          <strong>Um prompt por vez</strong>
+          <p>Trabalhe um prompt por vez e revise o resultado antes do próximo. Nenhuma chave de API do agente entra em arquivo versionado.</p>
         </div>
       </section>
 
@@ -526,7 +526,7 @@ docker run --rm -i postgres:16 psql "$DATABASE_PUBLIC_URL" -c '\dt livraria.*'</
       <!-- ============================ 19 ============================ -->
       <section class="content-block" id="s19">
         <h2>19. Prática guiada: os sete prompts CREATE</h2>
-        <p>Os prompts seguem a sequência SDD da Aula 01 e o formato CREATE: Personagem, Pedido, Exemplos, Ajustes, Tipo de saída e Extras. Copie cada bloco inteiro para o OpenCode, aberto em <code>aula_05_modelagem/</code>. Depois de cada um, responda às perguntas de "Revise antes de seguir" lendo os arquivos gerados. É nessa revisão que o grupo aceita, corrige ou recusa o que o agente propôs.</p>
+        <p>Os prompts seguem a sequência SDD da Aula 01 e o formato CREATE: Personagem, Pedido, Exemplos, Ajustes, Tipo de saída e Extras. Copie cada bloco inteiro para o agente de código, aberto em <code>aula_05_modelagem/</code>. Depois de cada um, responda às perguntas de "Revise antes de seguir" lendo os arquivos gerados. É nessa revisão que o grupo aceita, corrige ou recusa o que o agente propôs.</p>
 
         <h3>Prompt 1 · Persona</h3>
         <pre class="is-wrap"><code>[C] Personagem
@@ -566,7 +566,7 @@ Escreva docs/01_objetivos_negocio.md a partir de docs/00_persona.md. Inclua:
 1. Objetivos de negócio (OBJ-01, OBJ-02...) ligados a cada persona.
 2. Métricas de sucesso verificáveis para cada objetivo.
 3. Drivers de negócio que afetam a arquitetura: histórico de categoria preservado para análise, consistência do estado atual, reexecução segura do pipeline diário, custo.
-4. Restrições conhecidas: trial do Railway com crédito único de US$ 5 por até 30 dias, 1 GB de RAM e até 5 serviços por projeto; MinIO e Postgres no mesmo projeto; egress cobrado no TCP Proxy do Postgres; PTAX sem publicação em sábados, domingos e feriados; modelos gratuitos da OpenRouter com 20 requisições por minuto.
+4. Restrições conhecidas: trial do Railway com crédito único de US$ 5 por até 30 dias, 1 GB de RAM e até 5 serviços por projeto; MinIO e Postgres no mesmo projeto; egress cobrado no TCP Proxy do Postgres; PTAX sem publicação em sábados, domingos e feriados.
 5. Fora de escopo desta aula.
 
 [E] Exemplos
@@ -887,7 +887,7 @@ SET VARIABLE gold_prefix = 's3://gold/dimensional/';</code></pre></li>
         </ul>
         <div class="note">
           <strong>Orientação final para a atividade prática</strong>
-          <p>Antes de encerrar, peça ao OpenCode: <code>Compare specs/spec.md com docs/evidencias/. Liste cada RF e RNF com a evidência que o comprova ou "sem evidência". Não edite nada.</code> Resolva as lacunas que couberem no tempo e registre as demais no <code>atam.md</code> como riscos aceitos, com o motivo.</p>
+          <p>Antes de encerrar, peça ao agente: <code>Compare specs/spec.md com docs/evidencias/. Liste cada RF e RNF com a evidência que o comprova ou "sem evidência". Não edite nada.</code> Resolva as lacunas que couberem no tempo e registre as demais no <code>atam.md</code> como riscos aceitos, com o motivo.</p>
           <p>O modelo dimensional desta aula é a base sobre a qual as próximas aulas acrescentam fluxo contínuo (Aula 06) e validação com contratos e testes integrados (Aula 07). Mantenha os nomes de tabela e o grão estáveis: eles serão referenciados.</p>
         </div>
       </section>

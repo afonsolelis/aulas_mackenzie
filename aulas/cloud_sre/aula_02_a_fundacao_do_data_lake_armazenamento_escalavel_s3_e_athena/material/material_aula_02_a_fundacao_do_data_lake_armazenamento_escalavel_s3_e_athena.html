@@ -105,7 +105,7 @@
           do SEBoK (systems thinking, propriedades emergentes, System of Systems), o loop Spec-Driven Development
           e abrimos uma pesquisa em grupo sobre guias de especificação (IEEE 830, Volere, EARS, Gherkin/BDD, ARC42,
           GitHub Spec Kit). A prática instala o ambiente de desenvolvimento definitivo do curso: GitHub Codespace
-          com OpenCode e Gemini CLI, cria o repositório <code>olist-sre-pipeline</code>, monta a estrutura de pastas
+          com o agente de código de preferência do aluno, cria o repositório <code>olist-sre-pipeline</code>, monta a estrutura de pastas
           do projeto e registra a primeira versão de <code>spec/00_problem.md</code>.
         </p>
         <p class="summary">
@@ -146,8 +146,8 @@
         <ul>
           <li><strong>19h00 &ndash; 20h30 (Teoria, 90 min):</strong> por que modelar antes de codar, SWEBOK,
             SEBoK, aplicação ao Olist, loop SDD, regras da pesquisa em grupo.</li>
-          <li><strong>20h30 &ndash; 22h00 (Prática, 90 min):</strong> Codespace, instalação do OpenCode e Gemini
-            CLI, criação do repositório <code>olist-sre-pipeline</code>, rascunho de <code>spec/00_problem.md</code>,
+          <li><strong>20h30 &ndash; 22h00 (Prática, 90 min):</strong> Codespace, abertura do agente de código
+            escolhido, criação do repositório <code>olist-sre-pipeline</code>, rascunho de <code>spec/00_problem.md</code>,
             primeiro commit.</li>
         </ul>
       </section>
@@ -351,7 +351,7 @@
           <li><strong>Controle de versão e CI</strong> — GitHub.</li>
           <li><strong>Plataforma de execução</strong> — AWS (EC2 app, EC2 data, rede, storage).</li>
           <li><strong>Observabilidade</strong> — CloudWatch (SRE) e Grafana (negócio).</li>
-          <li><strong>Agentes de IA</strong> — OpenCode e Gemini CLI.</li>
+          <li><strong>Agentes de IA</strong> — o agente de código ou a IA de preferência de cada aluno (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot).</li>
         </ul>
         <p>
           Cada subsistema é mantido por um fornecedor ou equipe distinta, tem seu próprio ciclo de vida e pode falhar
@@ -493,9 +493,9 @@
           </li>
         </ol>
         <blockquote class="tip">
-          <strong>Prática desta aula:</strong> ao fim do laboratório, rode o prompt de validação com
-          <code>opencode</code> e depois com <code>gemini</code>. Compare as duas saídas em voz alta com
-          seu grupo. A discrepância entre elas é material de estudo — não uma falha.
+          <strong>Prática desta aula:</strong> ao fim do laboratório, rode o prompt de validação no seu
+          agente de código e compare a saída com a de um colega que usa outra ferramenta. Discutam as duas
+          respostas em voz alta com o grupo. A discrepância entre elas é material de estudo, e não uma falha.
         </blockquote>
 
         <h3>Pesquisa em grupo sobre guias de especificação</h3>
@@ -651,7 +651,7 @@
         <p>
           Este case é o <strong>norte</strong> do curso. Ao final da Aula 08, o dashboard está no ar, com SLOs
           declarados, testado sob chaos e defendido via ATAM. Toda decisão de modelagem que você tomar em diálogo
-          com as IAs (OpenCode e Gemini) nesta aula &mdash; e em todas as aulas seguintes &mdash; deve ser
+          com a IA que você escolheu nesta aula &mdash; e em todas as aulas seguintes &mdash; deve ser
           rastreada até as oito perguntas de negócio acima e até os quatro SLOs deste bloco.
         </p>
         <p>
@@ -670,7 +670,7 @@
         <p>
           A prática desta aula é leve de infraestrutura AWS e pesada de fundação. Não subimos EC2 nem CloudFormation
           hoje — isso começa na Aula 04. O que entregamos hoje é o ambiente de desenvolvimento definitivo do curso:
-          um GitHub Codespace com OpenCode e Gemini CLI, um repositório GitHub com a estrutura de pastas do roadmap
+          um GitHub Codespace com o agente de código de sua preferência, um repositório GitHub com a estrutura de pastas do roadmap
           e a primeira versão de <code>spec/00_problem.md</code>.
         </p>
 
@@ -700,30 +700,17 @@ git --version    # esperado: 2.40+</pre>
 git config --global user.name  "Seu Nome"
 git config --global init.defaultBranch main</pre>
 
-        <h3>Passo 3 &mdash; Instalar OpenCode e Gemini CLI</h3>
+        <h3>Passo 3 &mdash; Abrir o agente de código</h3>
         <p>
-          Ambas são ferramentas de linha de comando gratuitas que levam um agente de IA para dentro do terminal.
-          O aluno comparará saídas entre as duas ao longo do curso — é parte do exercício de Professional Practice.
+          Use o agente de código ou a IA de sua preferência, por exemplo Claude Code, Codex CLI, Gemini CLI,
+          OpenCode com o provedor que quiser, Cursor ou Copilot. Siga a instalação indicada na documentação da
+          ferramenta escolhida e abra o agente na pasta do projeto. O arquivo <code>AGENTS.md</code> com as regras
+          do repositório entra na Aula 03; no Claude Code, ele passa a ser lido com <code>echo "@AGENTS.md" &gt; CLAUDE.md</code>.
         </p>
-        <pre># OpenCode — agente CLI open-source multi-provider
-npm i -g opencode-ai@latest
-opencode --version
-
-# Gemini CLI — agente oficial do Google (gratuito com conta Google pessoal)
-npm i -g @google/gemini-cli
-gemini --version</pre>
-        <p>
-          Primeiras execuções pedirão autenticação via navegador. Basta seguir o fluxo OAuth apresentado no terminal
-          e autorizar o acesso.
-        </p>
-        <pre># Autentica e abre sessão interativa
-opencode
-
-# Em outro terminal, autentica e abre sessão interativa
-gemini</pre>
+        <pre>claude   # ou o agente que você usa</pre>
         <div class="warning">
-          <strong>Atenção:</strong> em ambiente Codespace, o login abre um link local (<code>localhost:&lt;port&gt;</code>).
-          O VS Code Web detecta a porta e oferece um botão <em>Open in Browser</em>. Aceite para concluir o OAuth.
+          <strong>Atenção:</strong> nenhuma chave de API vai para o Git. Se o login abrir um link local
+          (<code>localhost:&lt;port&gt;</code>), o VS Code Web detecta a porta e oferece um botão <em>Open in Browser</em>.
         </div>
 
         <h3>Passo 4 &mdash; Criar a estrutura de pastas do projeto</h3>
@@ -805,21 +792,17 @@ git push origin main</pre>
 
         <h3>Passo 7 &mdash; Validar que a IA consome a spec</h3>
         <p>
-          Este é o exercício de fechamento do laboratório. Peça para as duas IAs lerem a spec e produzirem crítica.
-          A comparação de saídas é tão valiosa quanto cada saída isolada.
+          Este é o exercício de fechamento do laboratório. Peça ao agente que leia a spec e produza crítica.
+          Depois compare a resposta com a de um colega que usa outra ferramenta; a comparação de saídas é tão
+          valiosa quanto cada saída isolada.
         </p>
-        <pre>opencode
+        <pre>claude   # ou o agente que você usa
 
 &gt; Leia spec/00_problem.md e liste:
 &gt; 1) tres riscos que eu nao mencionei
 &gt; 2) duas propriedades emergentes que precisam
 &gt;    ser tornadas mensuraveis na Aula 03
-&gt; 3) uma ambiguidade grave no texto
-
-# Em outro terminal, repita com Gemini
-gemini
-
-&gt; Mesmo prompt acima.</pre>
+&gt; 3) uma ambiguidade grave no texto</pre>
         <p>
           Compare as duas respostas. Elas divergem? Concordam? Qual critica melhor? Esta comparação sistemática
           vira hábito de qualidade nas próximas aulas.
@@ -830,8 +813,8 @@ gemini
           <ul>
             <li>Repositório <code>olist-sre-pipeline</code> existe no GitHub com estrutura de pastas completa.</li>
             <li><code>spec/00_problem.md</code> versionado e não vazio.</li>
-            <li>OpenCode e Gemini CLI respondem no terminal e conseguem ler a spec.</li>
-            <li>Aluno tem ao menos uma saída de cada IA analisando a spec.</li>
+            <li>O agente de código escolhido responde no terminal e consegue ler a spec.</li>
+            <li>Aluno tem a saída do seu agente analisando a spec e a comparou com a de um colega.</li>
           </ul>
         </div>
       </section>
@@ -882,7 +865,7 @@ gemini
       const stages = [
         { n: '01', label: 'Conceito',   sub: 'framework da aula' },
         { n: '02', label: 'Spec',       sub: 'spec/XX_*.md' },
-        { n: '03', label: 'Geracao',    sub: 'OpenCode / Gemini' },
+        { n: '03', label: 'Geracao',    sub: 'agente do aluno' },
         { n: '04', label: 'Revisao',    sub: 'aluno critica' },
         { n: '05', label: 'Testes',     sub: 'pytest' },
         { n: '06', label: 'Deploy',     sub: 'CloudFormation / SSM' },

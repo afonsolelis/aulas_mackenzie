@@ -17,7 +17,7 @@ O código dos três processos (simulador, transformador e armazenador) não est�
 | `.env.example` | Variáveis do RabbitMQ, do ClickHouse, do lote e do simulador |
 | `requirements.txt` | `pika`, `clickhouse-connect`, `python-dotenv`, `pytest` |
 | `Dockerfile` | Imagem única dos processos Python; o processo é escolhido pela variável `PROCESSO` |
-| `AGENTS.md` | Regras para o OpenCode: escopo, comandos permitidos, segredos, gates |
+| `AGENTS.md` | Regras para o agente de código: escopo, comandos permitidos, segredos, gates |
 | `.gitignore` | Impede que `.env`, `.venv/` e caches entrem no Git |
 
 Validação feita no preparo da aula: `docker compose config` sem erros; os dois serviços sobem `healthy`; `rabbitmq-diagnostics -q ping` responde `Ping succeeded`; `curl http://localhost:8123/ping` responde `Ok.`; a DDL é aplicada pelo `docker-entrypoint-initdb.d`; o mesmo lote inserido duas vezes com o mesmo `insert_deduplication_token` resulta em uma única cópia; uma mensagem rejeitada com `basic_nack(requeue=False)` chega à DLQ com o cabeçalho `x-death`; as oito consultas de `consultas_analiticas.sql` executam; `scripts/aplicar_ddl.py` roda duas vezes sem erro; o `Dockerfile` constrói e falha com mensagem clara se `PROCESSO` não for definido.
@@ -25,10 +25,10 @@ Validação feita no preparo da aula: `docker compose config` sem erros; os dois
 ## Pré-requisitos (feitos na Aula 01)
 
 - Codespace aberto no repositório do grupo.
-- OpenCode instalado e conectado à OpenRouter com o modelo `openrouter/free` (no OpenCode, `openrouter/openrouter/free`).
+- Agente de código de sua preferência (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot) lendo o `AGENTS.md`.
 - Railway CLI instalada e autenticada (`railway login --browserless`).
 
-Os modelos gratuitos da OpenRouter aceitam 20 requisições por minuto e 50 por dia para contas que compraram menos de US$ 10 em créditos. Uma sessão do agente consome várias requisições por prompt. Rode um prompt por vez; se aparecer erro 429, espere e repita.
+Rode um prompt por vez e revise antes do próximo. Nenhuma chave de API entra no Git.
 
 ## Etapa 1. Criar a pasta da aula no repositório do grupo
 
@@ -92,10 +92,10 @@ python -c "import pika, clickhouse_connect; print(pika.__version__, clickhouse_c
 
 ## Etapa 4. Prompts 1 a 5 (persona, objetivos, spec, plano, tarefas)
 
-Abra o OpenCode em um terminal dentro de `aula_06_streaming_iot/` e mantenha um segundo terminal para os comandos.
+Abra o agente de código em um terminal dentro de `aula_06_streaming_iot/` e mantenha um segundo terminal para os comandos. No Claude Code, crie antes um `CLAUDE.md` que importe as regras: `echo "@AGENTS.md" > CLAUDE.md`. Outros agentes leem o `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto.
 
 ```bash
-opencode
+claude            # ou o agente que você usa
 ```
 
 Cole os prompts 1 a 5 do material, um por vez. Depois de cada um, responda o quadro "Revise antes de seguir" antes de colar o próximo. Ao final:

@@ -57,7 +57,7 @@
       <section class="content-block" id="s1">
         <h2>1. Onde a Aula 01 nos deixou</h2>
         <p>A Aula 01 definiu o método que esta aula usa sem repetir. Antes de qualquer código, o grupo escreve persona, objetivos de negócio, especificação, plano e tarefas; só então implementa, uma tarefa por vez e com testes, e fecha com uma validação ATAM que confronta a arquitetura com cenários de qualidade. Todo pedido ao agente segue o formato CREATE, com as seções <code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code> e <code>[E] Extras</code>.</p>
-        <p>O ambiente também já existe: um Codespace aberto no repositório do grupo, o OpenCode conectado à OpenRouter com o modelo <code>openrouter/free</code> (no OpenCode, <code>openrouter/openrouter/free</code>) e a CLI do Railway autenticada. O MinIO das aulas anteriores não participa deste projeto. Se algum item faltar, volte ao <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">material da Aula 01</a> antes de continuar.</p>
+        <p>O ambiente também já existe: um Codespace aberto no repositório do grupo, um agente de código de sua preferência lendo o <code>AGENTS.md</code> e a CLI do Railway autenticada. O MinIO das aulas anteriores não participa deste projeto. Se algum item faltar, volte ao <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">material da Aula 01</a> antes de continuar.</p>
         <p>Até aqui, a disciplina coletou dados por pull: um processo acorda, chama uma API ou uma página, grava o resultado e dorme até a próxima execução. Nesta aula a direção se inverte. Os dados chegam por push, continuamente, e o pipeline precisa absorvê-los no ritmo em que são produzidos, sem saber quando virá o próximo.</p>
         <div class="note">
           <strong>Resultado esperado ao fim da aula</strong>
@@ -369,7 +369,7 @@ python -c "import pika, clickhouse_connect; print(pika.__version__, clickhouse_c
           <div class="method-step"><strong>Implementação</strong><span>Prompt 6: uma tarefa por vez, funções puras primeiro.</span></div>
           <div class="method-step"><strong>ATAM</strong><span>Prompt 7: falhas provocadas, ADRs, evidências.</span></div>
         </div>
-        <p>Todos os prompts carregam as mesmas regras: não inventar números nem SLAs (marcar "hipótese, validação pendente"), separar fato, lacuna e suposição, preservar os IDs, não pôr segredos em arquivo versionado, mostrar o plano antes de editar e parar ao fim da etapa. Copie cada prompt por inteiro e rode um por vez, por causa do limite de requisições da OpenRouter (20 por minuto; 50 por dia para contas que compraram menos de US$ 10 em créditos). Se aparecer erro 429, espere e repita.</p>
+        <p>Todos os prompts carregam as mesmas regras: não inventar números nem SLAs (marcar "hipótese, validação pendente"), separar fato, lacuna e suposição, preservar os IDs, não pôr segredos em arquivo versionado, mostrar o plano antes de editar e parar ao fim da etapa. Copie cada prompt por inteiro e rode um por vez, revisando o resultado antes do próximo.</p>
         <p>Neste projeto, a ordem das tarefas tem uma razão técnica. Validação, normalização, enriquecimento e montagem de lote são funções puras: recebem dados e devolvem dados, sem RabbitMQ nem ClickHouse. Elas são testadas primeiro, com <code>pytest</code>, e só depois ligadas ao broker e ao banco. Assim, quando o pipeline integrado falhar, o grupo já sabe que a regra de negócio está certa e procura o erro na integração.</p>
       </section>
 
@@ -847,7 +847,7 @@ Contagem física pode exceder a lógica até o merge. Consultas de média usam F
       <!-- 21 -->
       <section class="content-block" id="s21">
         <h2>21. Atividade em sala e entregável</h2>
-        <p>A atividade acontece no Codespace do repositório do grupo, com o OpenCode e o Railway, no ritmo da demonstração do professor. O grupo reproduz cada etapa logo depois de vê-la projetada.</p>
+        <p>A atividade acontece no Codespace do repositório do grupo, com o agente de código e o Railway, no ritmo da demonstração do professor. O grupo reproduz cada etapa logo depois de vê-la projetada.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Horário</th><th>Etapa</th><th>Gate</th></tr></thead>
           <tbody>
@@ -871,7 +871,7 @@ Contagem física pode exceder a lógica até o merge. Consultas de média usam F
             <li>Nenhum <code>.env</code> nem senha no histórico do Git.</li>
           </ul>
         </div>
-        <p>Antes de encerrar, peça ao OpenCode: <code>Revise specs/spec.md contra src/ e tests/. Liste requisitos sem teste e testes sem requisito, sem editar nada.</code> Corrija o que aparecer, rode os testes de novo e faça o commit da pasta.</p>
+        <p>Antes de encerrar, peça ao agente: <code>Revise specs/spec.md contra src/ e tests/. Liste requisitos sem teste e testes sem requisito, sem editar nada.</code> Corrija o que aparecer, rode os testes de novo e faça o commit da pasta.</p>
       </section>
 
     </article>

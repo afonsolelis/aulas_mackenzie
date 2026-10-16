@@ -38,7 +38,7 @@ Cada aula produz **um artefato de spec** (conceitual) e **um incremento do proje
 ### Ambiente de desenvolvimento
 
 - **GitHub Codespaces** — dev environment padrão para todos os alunos.
-- **IAs no Codespace**: OpenCode (CLI estilo Claude Code) e Gemini CLI como defaults gratuitos. Copilot como opcional. Comparar saídas entre IAs é exercício natural da trilha SDD.
+- **IAs no Codespace**: cada aluno usa o agente de código ou a IA de sua preferência (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot). Comparar saídas entre IAs é exercício natural da trilha SDD.
 
 ### Spec-Driven Development
 
@@ -60,7 +60,7 @@ Cada aula produz **um artefato de spec** (conceitual) e **um incremento do proje
 ### Arquitetura-alvo
 
 ```
-Codespace (dev + IA OpenCode/Gemini)
+Codespace (dev + agente de código do aluno)
        │ git push
        ▼
 CloudFormation stacks
@@ -128,7 +128,7 @@ olist-sre-pipeline/
 **Conceitual:** SWEBOK (Quality, Models & Methods, Professional Practice) + SEBoK (systems thinking, propriedades emergentes, system of systems).
 **Pesquisa dos alunos:** guias de especificação — cada grupo apresenta 1 guia.
 **Artefato de spec:** `spec/00_problem.md` + template de spec adotado pela turma.
-**Engenharia:** bootstrap do Codespace, instalação de OpenCode e Gemini CLI, criação do repositório do projeto, primeiro commit.
+**Engenharia:** bootstrap do Codespace, abertura do agente de código escolhido pelo aluno, criação do repositório do projeto, primeiro commit.
 **Saída verificável:** repo inicializado, IA respondendo no terminal, `00_problem.md` descrevendo o problema SRE do Olist.
 
 ### Aula 03 — 30/04/2026 — RNFs como contrato
@@ -173,7 +173,7 @@ olist-sre-pipeline/
 
 1. **Conceito** — aula expositiva introduz o framework da semana.
 2. **Spec** — aluno escreve/atualiza o artefato `spec/XX_*.md`.
-3. **Geração** — aluno invoca OpenCode ou Gemini CLI passando o spec como contexto.
+3. **Geração** — aluno invoca o agente de código de sua preferência passando o spec como contexto.
 4. **Revisão** — aluno lê o código gerado, identifica divergências, ajusta.
 5. **Testes** — suite pytest roda localmente e no Codespace.
 6. **Deploy** — `aws cloudformation update-stack` ou push direto via `scp`/`aws ssm`.

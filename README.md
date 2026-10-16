@@ -8,7 +8,7 @@ Repositório centralizador de disciplinas e materiais do **MBA em Engenharia de 
 2. **Data Collection and Storage** ([pages/home_data_collection.html](pages/home_data_collection.html))
 3. **Data Visualization** ([pages/home_data_visualization.html](pages/home_data_visualization.html))
 
-Data Collection and Storage não usa AWS: as aulas rodam no GitHub Codespaces (ou na máquina do aluno) com Docker, OpenCode + OpenRouter (modelo `openrouter/free`) e publicação no Railway, sempre em Spec-Driven Development. Os roteiros de laboratório ficam em `aulas/data_collection_and_storage/<aula>/laboratorio/README.md`.
+Data Collection and Storage não usa AWS: as aulas rodam no GitHub Codespaces (ou na máquina do aluno) com Docker, o agente de código de preferência de cada aluno e publicação no Railway, sempre em Spec-Driven Development. Os roteiros de laboratório ficam em `aulas/data_collection_and_storage/<aula>/laboratorio/README.md`.
 
 ## Laboratório da Aula 03 — Codespaces, D3 e IA
 

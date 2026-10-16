@@ -2,7 +2,7 @@
 
 [Abrir no GitHub Codespaces](https://codespaces.new/afonsolelis/aulas_mackenzie?quickstart=1)
 
-Esta prática usa o OpenCode Zen no terminal para construir um pipeline reproduzível. A IA propõe o código; o grupo inspeciona o diff, executa cada etapa e valida a evidência. Os quatro Excels, com as nove tabelas distribuídas em abas, permanecem imutáveis.
+Esta prática usa o agente de código de sua preferência no terminal para construir um pipeline reproduzível. A IA propõe o código; o grupo inspeciona o diff, executa cada etapa e valida a evidência. Os quatro Excels, com as nove tabelas distribuídas em abas, permanecem imutáveis.
 
 ## Resultado esperado
 
@@ -27,28 +27,19 @@ laboratorio/
     └── dashboard_duckdb.html
 ```
 
-## 1. Configurar OpenCode Zen
+## 1. Abrir o agente de código
 
-No terminal do Codespace:
+Use o agente de código ou a IA de sua preferência (por exemplo Claude Code, Codex CLI, Gemini CLI, OpenCode com o provedor que quiser, Cursor ou Copilot). No terminal do Codespace:
 
 ```bash
-npm install -g opencode-ai
-opencode --version
 cd aulas/data_visualization/aula_04_do_excel_ao_olap_com_sqlite_duckdb_e_ia/laboratorio
-opencode
+claude   # ou o agente que você usa
 ```
 
-Dentro da interface do OpenCode:
+1. Peça: `Leia ../../../../AGENTS.md e README.md. Resuma os gates sem editar arquivos.`
+2. Mantenha o agente aberto e use um segundo terminal para executar os comandos do laboratório.
 
-1. Digite `/connect`.
-2. Selecione **OpenCode Zen**.
-3. Abra a autenticação indicada, adicione créditos e copie a API key.
-4. Cole a chave somente no campo seguro.
-5. Digite `/models` e escolha um modelo disponível.
-6. Peça: `Leia ../../../../AGENTS.md e README.md. Resuma os gates sem editar arquivos.`
-7. Mantenha o OpenCode aberto e use um segundo terminal para executar os comandos do laboratório.
-
-Nunca registre a chave em prompt, `.env`, HTML, captura de tela ou commit. Consulte a [documentação oficial do OpenCode](https://opencode.ai/docs) e do [OpenCode Zen](https://opencode.ai/docs/zen).
+Nunca registre chave de API em prompt, `.env`, HTML, captura de tela ou commit.
 
 ## 2. Preparar os arquivos e o Python
 
@@ -76,7 +67,7 @@ O contrato de origem está em [`../dados/manifesto_olist.json`](../dados/manifes
 | `olist_sellers` | 3.095 |
 | `product_category_name_translation` | 71 |
 
-## 3. Construir com o OpenCode
+## 3. Construir com o agente de código
 
 Execute um prompt por vez. Inspecione o diff antes de autorizar a execução.
 
@@ -209,8 +200,7 @@ O laboratório termina quando a pasta `saida/` pode ser reconstruída integralme
 
 ## Diagnóstico
 
-- `opencode: command not found`: feche e abra o terminal depois de `npm install -g opencode-ai` e execute `npm prefix -g` para confirmar o prefixo global.
-- Zen sem modelos: confirme a conexão em `/connect`, os créditos da conta e depois execute `/models` novamente.
+- Agente não encontrado no terminal: confirme a instalação seguindo a documentação do agente escolhido, feche e abra o terminal e tente de novo.
 - `No module named openpyxl` ou `duckdb`: execute `source .venv/bin/activate` e reinstale `requirements.txt`.
 - `sqlite3: command not found`: execute **Codespaces: Rebuild Container**; o dev container instala o cliente SQLite na criação.
 - Falha ao instalar a extensão `sqlite` no DuckDB: confirme a conexão de rede do Codespace e repita a etapa. A extensão é obtida do repositório oficial na primeira execução.

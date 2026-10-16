@@ -1,6 +1,6 @@
 # AGENTS.md · aula_07_validacao_testes
 
-Regras para o agente de código (OpenCode) nesta pasta. Copie para `aula_07_validacao_testes/AGENTS.md` no repositório do grupo e ajuste os nomes de pasta se forem diferentes.
+Regras para o agente de código nesta pasta, qualquer que seja o agente escolhido pelo grupo (Claude Code, Codex CLI, OpenCode ou outro). Copie para `aula_07_validacao_testes/AGENTS.md` no repositório do grupo e ajuste os nomes de pasta se forem diferentes.
 
 ## Escopo
 

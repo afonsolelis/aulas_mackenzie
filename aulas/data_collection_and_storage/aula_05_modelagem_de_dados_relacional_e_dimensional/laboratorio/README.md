@@ -90,7 +90,7 @@ Alternativa para console interativo: `railway connect` abre `psql` direto (exige
 
 ## Passo 3 · Prompts SDD
 
-Siga os sete prompts CREATE do material, um por vez, com o OpenCode aberto em `aula_05_modelagem/`. Depois de cada um, responda ao quadro "Revise antes de seguir" antes do próximo. Os modelos gratuitos têm limite de 20 requisições por minuto e de 50 por dia para contas com menos de US$ 10 comprados: um prompt por vez.
+Siga os sete prompts CREATE do material, um por vez, com o agente de código de sua preferência aberto em `aula_05_modelagem/`. No Claude Code, crie antes um `CLAUDE.md` que importe as regras: `echo "@AGENTS.md" > CLAUDE.md`. Outros agentes leem o `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto. Depois de cada prompt, responda ao quadro "Revise antes de seguir" antes do próximo.
 
 ## Passo 4 · Gates de aceite
 

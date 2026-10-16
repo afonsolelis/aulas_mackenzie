@@ -32,7 +32,7 @@ A seguir, a proposta para as 8 aulas do minicurso:
 -   **Conteúdo do Material:**
     -   Aprofundamento sobre a história da IA no desenvolvimento de software.
     -   Glossário de termos (LLM, prompt engineering, RAG, agentes).
-    -   **Prática:** Setup do ambiente de desenvolvimento com `opencode-ai` e `gemini-cli` no Codespaces.
+    -   **Prática:** Setup do ambiente de desenvolvimento no Codespaces com o agente de código de preferência do aluno (por exemplo Claude Code, Codex CLI, Gemini CLI ou OpenCode).
 
 ---
 
