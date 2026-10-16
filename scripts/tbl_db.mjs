@@ -6,7 +6,12 @@ const env = fs.readFileSync(envPath, 'utf8');
 const match = env.match(/^\s*SUPABASE_DB_URL\s*=\s*(.+)\s*$/m);
 if (!match) throw new Error('SUPABASE_DB_URL ausente no arquivo de ambiente.');
 const connectionString = match[1].trim().replace(/^(['"])(.*)\1$/, '$2');
-const SLUG = 'mack-dv-a06-2026-2';
+// Parâmetros opcionais: --sala <slug> --seed <arquivo em supabase/> --token-env <VAR>.
+// Sem eles, o script opera o TBL da Aula 06 de Data Visualization.
+const arg = (nome, padrao) => { const i = process.argv.indexOf(nome); return i > -1 ? process.argv[i + 1] : padrao; };
+const SLUG = arg('--sala', 'mack-dv-a06-2026-2');
+const SEED = arg('--seed', 'tbl_seed_aula_06_data_visualization.sql');
+const TOKEN_ENV = arg('--token-env', 'TBL_HOST_TOKEN');
 const client = new pg.Client({ connectionString, connectionTimeoutMillis: 15000 });
 try {
   await client.connect();
@@ -14,14 +19,14 @@ try {
     // O token do professor não fica no SQL versionado: o seed traz um marcador
     // e o valor real vem do .env, que o Git ignora. TBL e quiz são do mesmo
     // professor na mesma aula, então TBL_HOST_TOKEN é opcional.
-    const tokenMatch = env.match(/^\s*TBL_HOST_TOKEN\s*=\s*(.+)\s*$/m)
+    const tokenMatch = env.match(new RegExp('^\\s*' + TOKEN_ENV + '\\s*=\\s*(.+)\\s*$', 'm'))
       || env.match(/^\s*QUIZ_HOST_TOKEN\s*=\s*(.+)\s*$/m);
-    if (!tokenMatch) throw new Error('TBL_HOST_TOKEN (ou QUIZ_HOST_TOKEN) ausente no arquivo de ambiente.');
+    if (!tokenMatch) throw new Error(TOKEN_ENV + ' (ou QUIZ_HOST_TOKEN) ausente no arquivo de ambiente.');
     const hostToken = tokenMatch[1].trim().replace(/^(['"])(.*)\1$/, '$2');
     if (!/^[A-Za-z0-9_-]{4,64}$/.test(hostToken)) {
       throw new Error('Token do professor fora do formato aceito.');
     }
-    const seed = fs.readFileSync(new URL('../supabase/tbl_seed_aula_06_data_visualization.sql', import.meta.url), 'utf8')
+    const seed = fs.readFileSync(new URL('../supabase/' + SEED, import.meta.url), 'utf8')
       .replaceAll('__TBL_HOST_TOKEN__', hostToken);
     await client.query(seed);
   }

@@ -44,12 +44,12 @@
             </ul>
           </article>
           <article class="deck-card">
-            <h3>10h30 &ndash; 12h10 &middot; Prática em SDD</h3>
+            <h3>10h30 &ndash; 12h10 &middot; Prática e TBL</h3>
             <ul>
               <li>MinIO local com docker compose</li>
               <li>Prompts 1 a 5 no agente de código, com revisão</li>
-              <li>Primeiras tarefas com teste</li>
-              <li>O que fica para a semana: Railway e ATAM</li>
+              <li>11h30: TBL sobre a arquitetura com MinIO</li>
+              <li>Na semana: tarefas, Railway e ATAM</li>
             </ul>
           </article>
         </div>
@@ -787,7 +787,7 @@ cp .env.example .env            # troque a senha: openssl rand -base64 24
 docker compose up -d &amp;&amp; docker compose ps -a
 docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
 python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -r requirements.txt
-echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou: opencode</code></pre>
+echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou o agente que você usa</code></pre>
       </div>
     </div>
 
@@ -805,7 +805,7 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou: opencode</code></pre
           <div class="method-step"><strong>6</strong><span>Implementação, uma tarefa por vez</span></div>
           <div class="method-step"><strong>7</strong><span>ATAM com evidência medida</span></div>
         </div>
-        <p class="deck-note">Um prompt por vez, no Claude Code ou no OpenCode. A revisão entre um prompt e o próximo é onde o grupo pega o erro do agente antes que ele contamine a etapa seguinte.</p>
+        <p class="deck-note">Um prompt por vez, no agente de código de preferência do grupo. A revisão entre um prompt e o próximo é onde o grupo pega o erro do agente antes que ele contamine a etapa seguinte.</p>
       </div>
     </div>
 
@@ -967,13 +967,48 @@ docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
 
-    <!-- 48. Até 12h10 -->
+    <!-- 48. TBL: o caso -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Team-Based Learning &middot; 11h30</span>
+          <h2 class="deck-title">Três decisões sobre a arquitetura com MinIO</h2>
+          <p class="deck-summary">A turma revisa a arquitetura da demonstração antes que o bucket acumule meses de dado. Cada alternativa é uma tática com ganho e custo declarados.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Questão 1 &middot; Durabilidade</h3><p style="margin:0;">Um nó, um volume e um histórico que a API não devolve. Onde a raw mora daqui para a frente?</p></article>
+          <article class="deck-card"><h3>Questão 2 &middot; Política de escrita</h3><p style="margin:0;">Retry, 502 do proxy e disparo duplo. Traz um dado novo: uma semana do coletor no Railway.</p></article>
+          <article class="deck-card"><h3>Questão 3 &middot; Arquivo não estruturado</h3><p style="margin:0;">Os lotes TXT dos caminhões chegam pelo SFTP. Como entram no lake?</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 49. TBL: o ciclo -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">TBL &middot; Como funciona cada questão</span>
+          <h2 class="deck-title">Cinco etapas em nove minutos por questão</h2>
+          <p class="deck-summary">Entre pelo QR projetado. As quatro táticas ficam na tela em todas as etapas, com o placar dentro de cada cartão.</p>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>1 &middot; Decida &middot; 3 min</strong><span>Escolha uma tática e escreva o que precisa ser verdade para ela funcionar.</span></div>
+          <div class="quality-gate"><strong>2 &middot; Discuta &middot; 4 min</strong><span>Distribuição e justificativas aparecem sem nome. Defenda primeiro o custo da sua escolha.</span></div>
+          <div class="quality-gate"><strong>3 &middot; Dado novo</strong><span>Na questão 2, uma evidência nova é liberada nesta etapa. Ela muda o critério, não as alternativas.</span></div>
+          <div class="quality-gate"><strong>4 &middot; Decida outra vez &middot; 2 min</strong><span>Mantenha ou troque a escolha; manter também conta como decisão.</span></div>
+          <div class="quality-gate"><strong>5 &middot; Síntese</strong><span>As duas distribuições lado a lado e quem mudou de quê para quê.</span></div>
+          <div class="quality-gate"><strong>Regra</strong><span>Justificativa entre 10 e 240 caracteres. Sem ela a decisão não registra.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 50. Até 12h10 -->
     <div class="slide">
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Fechamento</span>
           <h2 class="deck-title">O que precisa existir às 12h10</h2>
-          <p class="deck-summary">A prática tem 1h40. O que não couber segue durante a semana, com o material e o roteiro do laboratório.</p>
+          <p class="deck-summary">A prática tem 1h, seguida de 30 minutos de TBL. O que não couber segue durante a semana, com o material e o roteiro do laboratório.</p>
         </div>
         <div class="deck-columns">
           <div class="deck-panel">
@@ -981,13 +1016,13 @@ docker compose exec minio mc du railway/raw</code></pre>
             <ul>
               <li>Pasta <code>aula_02_coleta_json/</code>, MinIO local no ar, ambiente Python</li>
               <li>Prompts 1 a 5 executados, revisados e commitados</li>
-              <li>Primeiras tarefas (estrutura, chave, metadados) com teste verde</li>
+              <li>Decisões do TBL anotadas para os ADRs do grupo</li>
             </ul>
           </div>
           <div class="deck-panel">
             <strong>Na semana, até a Aula 03 (24/10)</strong>
             <ul>
-              <li>Tarefas restantes, uma por vez</li>
+              <li>Tarefas do <code>tasks.md</code>, uma por vez, com teste verde</li>
               <li>Gates locais e execução no Railway</li>
               <li>Prompt 7, ATAM com evidência e ADRs</li>
             </ul>
@@ -996,7 +1031,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
 
-    <!-- 49. Entregável -->
+    <!-- 51. Entregável -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -1036,6 +1071,8 @@ docker compose exec minio mc du railway/raw</code></pre>
       <a href="../../../../index.html" class="back-home">Hub</a>
       <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
       <a href="../material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html" class="material-link">Material</a>
+      <a href="../tbl/tbl_aula_02.html" class="material-link">TBL</a>
+      <a href="../tbl/painel_aula_02.html" class="material-link">Área do professor</a>
     </div>
     <div class="nav-wrapper">
       <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>

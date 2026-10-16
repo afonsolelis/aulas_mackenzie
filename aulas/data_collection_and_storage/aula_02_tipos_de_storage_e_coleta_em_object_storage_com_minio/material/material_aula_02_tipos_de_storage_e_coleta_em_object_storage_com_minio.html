@@ -51,7 +51,7 @@
       <section class="content-block" id="s1">
         <h2>1. Onde a Aula 01 nos deixou</h2>
         <p>A Aula 01 definiu o método e o ambiente que esta aula usa sem repetir. O método é o Spec-Driven Development: antes de qualquer código, o grupo escreve persona, objetivos de negócio, especificação, plano e tarefas; só então implementa, tarefa a tarefa e com testes, e fecha com uma validação ATAM que confronta a arquitetura com cenários de qualidade. Todo pedido ao agente segue o formato CREATE, com as seções <code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code> e <code>[E] Extras</code>.</p>
-        <p>O ambiente também já existe: um Codespace aberto no repositório do grupo, um agente de código no terminal (Claude Code, que a maioria dos grupos usa, ou o OpenCode configurado na Aula 01) e um MinIO publicado no Railway, com volume em <code>/data</code> e domínio público para a porta 9000 (a API compatível com S3). Se algum desses itens faltar, volte ao <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">material da Aula 01</a> antes de continuar.</p>
+        <p>O ambiente também já existe: um Codespace aberto no repositório do grupo, um agente de código de preferência do grupo no terminal (Claude Code, Codex CLI, Gemini CLI, OpenCode ou outro) e um MinIO publicado no Railway, com volume em <code>/data</code> e domínio público para a porta 9000 (a API compatível com S3). Se algum desses itens faltar, volte ao <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">material da Aula 01</a> antes de continuar.</p>
         <div class="note">
           <strong>Resultado esperado ao fim da aula</strong>
           <p>Uma pasta <code>aula_02_coleta_json/</code> no repositório do grupo com o esqueleto SDD preenchido, um coletor em Python com testes passando, objetos JSON gravados no bucket <code>raw</code> do MinIO do Railway com chaves particionadas e metadados de coleta, e um <code>docs/atam.md</code> com cenários e evidências.</p>
@@ -65,8 +65,9 @@
             <tr><td>9h15 &ndash; 9h40</td><td>Teoria 3</td><td>Object storage por dentro: chaves, listagem, metadados, consistência, versionamento (seção 4).</td></tr>
             <tr><td>9h40 &ndash; 10h10</td><td>Teoria 4</td><td>Telemetria de caminhões em TXT: file contra object storage, por que MinIO, storage e data lake, schema on read e on write, lake, lakehouse e warehouse (seção 5).</td></tr>
             <tr><td>10h10 &ndash; 10h30</td><td>Teoria 5</td><td>Desenho da camada raw e a fonte Open-Meteo (seções 6 e 7).</td></tr>
-            <tr><td>10h30 &ndash; 11h50</td><td>Prática em SDD</td><td>Ambiente, prompts 1 a 5 revisados, primeiras tarefas implementadas (seções 8 a 11).</td></tr>
-            <tr><td>11h50 &ndash; 12h10</td><td>Fechamento</td><td>Conferência do que existe às 12h10 e do que fica para a semana (seção 15).</td></tr>
+            <tr><td>10h30 &ndash; 11h30</td><td>Prática em SDD</td><td>Ambiente e prompts 1 a 5 revisados, acompanhando a demonstração (seções 8 a 11).</td></tr>
+            <tr><td>11h30 &ndash; 12h00</td><td>TBL</td><td>Três decisões sobre a arquitetura com MinIO montada na demonstração (seção 15.1).</td></tr>
+            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>Conferência do que existe às 12h10 e do que fica para a semana (seção 15).</td></tr>
           </tbody>
         </table></div>
         <p>A teoria ocupa duas horas porque as decisões desta aula (tipo de storage, chave, formato, idempotência, procedência) são as que as Aulas 03 e 04 herdam, e todas elas dependem de separar um storage de um data lake. A prática fica com 1h40 e termina, em sala, com os prompts 1 a 5 revisados e as primeiras tarefas implementadas; o restante do laboratório segue durante a semana, como a seção 15 detalha.</p>
@@ -521,9 +522,8 @@ python -c "import requests, boto3, pytest, responses; print('ok')"</code></pre>
 
         <h3>8.4 Agente de código na pasta do projeto</h3>
         <pre><code>cd aula_02_coleta_json
-claude            # Claude Code
-# ou: opencode    # OpenCode, configurado na Aula 01</code></pre>
-        <p>Abra o agente dentro de <code>aula_02_coleta_json/</code>, para que ele enxergue o <code>AGENTS.md</code> e a estrutura de pastas. O Claude Code lê instruções de um arquivo <code>CLAUDE.md</code>; para não manter dois arquivos, crie um que importe o <code>AGENTS.md</code>:</p>
+claude            # ou o agente que você usa</code></pre>
+        <p>Abra o agente dentro de <code>aula_02_coleta_json/</code>, para que ele enxergue o <code>AGENTS.md</code> e a estrutura de pastas. Cada grupo usa o agente que preferir; o importante é que ele leia o <code>AGENTS.md</code>. Codex CLI e OpenCode o leem diretamente. O Claude Code lê instruções de um arquivo <code>CLAUDE.md</code>; para não manter dois arquivos, crie um que importe o <code>AGENTS.md</code>:</p>
         <pre><code>echo "@AGENTS.md" &gt; CLAUDE.md
 git add CLAUDE.md</code></pre>
         <p>Qualquer agente de código no terminal serve, desde que leia o <code>AGENTS.md</code> e mostre o plano antes de editar. Trabalhe um prompt por vez: a revisão entre um prompt e o próximo é o ponto em que o grupo pega o erro do agente antes que ele contamine a etapa seguinte.</p>
@@ -926,13 +926,13 @@ set -a; source .env; set +a   # volta ao ambiente local</code></pre>
       <!-- 15 -->
       <section class="content-block" id="s15">
         <h2>15. Atividade em sala e entregável</h2>
-        <p>Depois das duas horas de teoria, a prática vai das 10h30 às 12h10. O professor constrói o projeto ao vivo, prompt a prompt, e cada grupo reproduz no próprio Codespace com o agente de código que usa (Claude Code ou OpenCode). O ritmo é seguir a demonstração até o prompt 5 junto com a turma e então implementar as primeiras tarefas no ritmo do grupo, com o professor circulando entre os grupos. O que não couber na sala continua durante a semana, com o material e o roteiro do laboratório.</p>
+        <p>Depois das duas horas de teoria, a prática vai das 10h30 às 12h10. O professor constrói o projeto ao vivo, prompt a prompt, e cada grupo reproduz no próprio Codespace com o agente de código de sua preferência. O ritmo é seguir a demonstração até o prompt 5 junto com a turma, das 10h30 às 11h30. Das 11h30 às 12h00, a turma faz o TBL sobre a arquitetura que a demonstração montou (seção 15.1), e os últimos dez minutos conferem o que existe e o que fica para a semana. O que não couber na sala continua durante a semana, com o material e o roteiro do laboratório.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Precisa existir às 12h10</th><th>Fica para a semana (até a Aula 03, 24/10/2026)</th></tr></thead>
           <tbody>
             <tr><td>Pasta <code>aula_02_coleta_json/</code> com os cinco arquivos de apoio, MinIO local no ar e ambiente Python instalado.</td><td>Tarefas restantes do <code>tasks.md</code>, uma por vez, com <code>pytest</code> verde a cada uma.</td></tr>
             <tr><td>Prompts 1 a 5 executados, revisados e commitados: persona, objetivos, <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code>.</td><td>Execução contra o MinIO local com os gates da seção 11 e contra o MinIO do Railway (seção 12).</td></tr>
-            <tr><td>Primeiras tarefas (estrutura, chave e metadados) implementadas com o prompt 6 e teste passando.</td><td>Prompt 7 (ATAM) com as saídas de <code>mc</code> coladas como evidência, e os ADRs.</td></tr>
+            <tr><td>As três decisões do TBL anotadas, com a justificativa do grupo, para virar ADR.</td><td>Prompt 7 (ATAM) com as saídas de <code>mc</code> coladas como evidência, e os ADRs que registram as decisões do TBL.</td></tr>
           </tbody>
         </table></div>
         <ol class="steps">
@@ -957,6 +957,24 @@ git diff --staged -- . ':!.env.example' | grep -nE "SECRET_KEY=|PASSWORD=|ACCESS
           </ul>
           <p>A Aula 03 grava outras fontes no mesmo MinIO, e a Aula 04 lê estes objetos para construir as camadas bronze, silver e gold. Mantenha o bucket e as credenciais do Railway.</p>
         </div>
+
+        <h3>15.1 TBL: três decisões sobre a arquitetura com MinIO</h3>
+        <p>Às 11h30, depois da demonstração, a turma revisa a arquitetura montada pela manhã num Team-Based Learning. O caso é o próprio coletor: MinIO local para desenvolver, MinIO de um nó no Railway para a coleta contínua, bucket <code>raw</code> com chave particionada, <code>HEAD</code> antes do <code>PUT</code>, metadados de procedência e manifesto. São três questões, cada uma com quatro táticas de ganho e custo declarados, e nenhuma delas é a correta.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Questão</th><th>O que se decide</th><th>Blocos que ela retoma</th></tr></thead>
+          <tbody>
+            <tr><td>1. Durabilidade da camada bruta</td><td>Onde a raw mora, sabendo que um nó e um volume guardam um histórico que a API não devolve.</td><td>Blocos 2 e 3: tipos de storage, garantias do object storage, versionamento.</td></tr>
+            <tr><td>2. Política de escrita</td><td>Primeira ou última gravação da hora, deduplicação posterior ou <code>PUT</code> condicional, diante do 502 do proxy e de disparos duplos. Traz um dado novo na discussão.</td><td>Bloco 5: idempotência, procedência e risco residual.</td></tr>
+            <tr><td>3. Arquivo não estruturado</td><td>Como os lotes TXT da telemetria dos caminhões entram na arquitetura.</td><td>Bloco 4: file contra object storage, storage contra data lake, schema on read e on write.</td></tr>
+          </tbody>
+        </table></div>
+        <ol class="steps">
+          <li>Abra a <a href="../tbl/tbl_aula_02.html">sala do TBL</a> pelo QR projetado e entre com o nome que o professor vai ver.</li>
+          <li>Em cada questão, decida sozinho em três minutos e escreva o que precisa ser verdade para a sua tática funcionar.</li>
+          <li>Na discussão, defenda primeiro o custo da sua escolha. As justificativas da turma aparecem sem nome.</li>
+          <li>Decida outra vez. Manter a escolha também é uma decisão e precisa de justificativa.</li>
+          <li>Depois da aula, registre as três decisões do grupo como ADRs em <code>docs/adr/</code> e leve a questão 2 para o cenário C-02 do <code>docs/atam.md</code>.</li>
+        </ol>
       </section>
 
     </article>
