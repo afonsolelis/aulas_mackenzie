@@ -13,6 +13,7 @@
       <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
       <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
       <a href="../laboratorio/README.md">Roteiro do laboratório</a>
+      <a href="../quiz/quiz_aula_07.html">Quiz da aula</a>
       <a href="../slides/slide_aula_07_validacao_com_pydantic_e_testes_integrados.html">Ver Slide &rarr;</a>
     </div>
 
@@ -21,7 +22,7 @@
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
       <h1>Aula 07 &middot; Validação com Pydantic e Testes Integrados</h1>
       <p class="meta">Aula 07 &middot; 28/11/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>Os pipelines das Aulas 03 e 06 coletam e gravam dados, mas aceitam qualquer coisa que chegue. Nesta aula, cada grupo escreve contratos Pydantic para o livro extraído do HTML, para a cotação PTAX e para a leitura de sensor IoT, desvia os registros inválidos para quarentena no MinIO e para uma DLQ no RabbitMQ e protege tudo com uma suíte de testes em três camadas: unidade, contrato com respostas HTTP gravadas (VCR) e integração com serviços reais em contêiner (Testcontainers). O trabalho segue a mesma sequência SDD da Aula 01, agora com uma especificação de qualidade.</p>
+      <p>Os pipelines das Aulas 03 e 06 coletam e gravam dados, mas aceitam qualquer coisa que chegue. Nesta aula, cada grupo escreve contratos Pydantic para o livro extraído do HTML, para a cotação PTAX e para a leitura de sensor IoT, desvia os registros inválidos para quarentena no MinIO e para uma DLQ no RabbitMQ e protege tudo com uma suíte de testes em três camadas: unidade, contrato com respostas HTTP gravadas (VCR) e integração com serviços reais em contêiner (Testcontainers). O trabalho segue a mesma sequência SDD da Aula 01, agora com uma especificação de qualidade. As duas primeiras horas são de teoria, em cinco blocos que usam a estufa da Aula 06 como cenário condutor e medem o que cada decisão custa: o desvio que um sensor rotulado errado provoca na média, a taxa de rejeição de um lote com defeitos conhecidos, o tempo de validar uma leitura, o custo de cada camada da pirâmide de testes e o efeito do escopo das fixtures. Depois vêm uma hora de prática em SDD e um quiz sobre as Aulas 06 e 07.</p>
     </header>
 
     <article class="material">
@@ -66,6 +67,21 @@
           <strong>Resultado esperado da aula</strong>
           <p>Ao final, a pasta <code>aula_07_validacao_testes/</code> do repositório do grupo contém o esqueleto SDD, três contratos Pydantic com JSON Schema publicado, quarentena no MinIO, DLQ no RabbitMQ, uma suíte de testes verde em três camadas, um relatório de rejeições e um <code>docs/atam.md</code> com os seis cenários da seção 14.</p>
         </div>
+        <h3>1.1 Agenda</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Horário</th><th>Bloco</th><th>Conteúdo</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 8h50</td><td>Teoria 1</td><td>O problema, o cenário da estufa e os três pontos de validação; quanto um sensor rotulado errado desloca a média (seções 1 e 2).</td></tr>
+            <tr><td>8h50 &ndash; 9h15</td><td>Teoria 2</td><td>Contrato de dados, quarentena, DLQ ou falha do lote, métricas de qualidade; um lote com defeitos conhecidos (seções 3 a 5).</td></tr>
+            <tr><td>9h15 &ndash; 9h45</td><td>Teoria 3</td><td>Pydantic v2 aplicado aos contratos; quanto custa validar uma leitura (seção 6).</td></tr>
+            <tr><td>9h45 &ndash; 10h10</td><td>Teoria 4</td><td>Pirâmide de testes e respostas HTTP gravadas em cassetes; quanto custa um teste em cada camada (seções 7 e 8).</td></tr>
+            <tr><td>10h10 &ndash; 10h30</td><td>Teoria 5</td><td>Testcontainers, custo de subida, Docker indisponível e CI; escopo da fixture e tempo da suíte (seções 9 e 10).</td></tr>
+            <tr><td>10h30 &ndash; 11h30</td><td>Prática em SDD</td><td>Preparação, exemplo de referência e prompts 1 a 5 revisados, acompanhando a demonstração (seções 11 a 13).</td></tr>
+            <tr><td>11h30 &ndash; 12h00</td><td>Quiz</td><td>Dez perguntas sobre as Aulas 06 e 07, com placar e explicação a cada resposta (seção 15.1).</td></tr>
+            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>Conferência do que existe às 12h10 e do que fica para a semana (seção 15).</td></tr>
+          </tbody>
+        </table></div>
+        <p>A teoria ocupa duas horas porque as decisões desta aula (onde validar, o que fazer com o inválido, quão estrito ser com cada produtor, em que camada testar) são as que o projeto final herda na Aula 08. A prática fica com uma hora em sala e termina com os prompts 1 a 5 revisados; o prompt 6, com contratos, quarentena, DLQ e testes, e o prompt 7, com a validação ATAM, seguem durante a semana com este material e o roteiro do laboratório.</p>
       </section>
 
       <!-- 2 -->
@@ -88,6 +104,28 @@
         <div class="note">
           <strong>Regra da aula</strong>
           <p>Nenhum registro chega à camada de escrita sem passar por um contrato, e nenhuma rejeição desaparece sem registro. Essas duas frases viram, na especificação, os requisitos RNF-01 (validade) e RNF-02 (rastreabilidade).</p>
+        </div>
+        <h3>2.4 O cenário condutor da aula</h3>
+        <p>Os exemplos dos cinco blocos usam o mesmo caso: a cooperativa de mudas da Aula 06, que mede temperatura e umidade em três estufas e numa sala de germinação. São doze sensores publicando uma leitura por segundo, o que soma 12 &times; 86.400 = 1.036.800 mensagens por dia. Dois sensores antigos medem em Fahrenheit, e o transformador da Aula 06 converte com (F &minus; 32) &times; 5 / 9 quando a mensagem traz <code>unidade_temperatura: "F"</code>. A técnica agrícola decide ventilação e rega olhando a média de cada estufa no ClickHouse. Os livros e a cotação PTAX da Aula 03 aparecem como segunda e terceira fontes, porque o método (contrato, quarentena, teste) é o mesmo para as três.</p>
+        <h3>2.5 Exemplo numérico: um sensor rotulado errado</h3>
+        <div class="note">
+          <strong>Exemplo numérico 1. A média da estufa com um rótulo trocado</strong>
+          <p>Hipótese do exemplo: os três sensores da estufa A estão em 24,6 °C. O <code>estufa-a-03</code> é um dos antigos, mede em Fahrenheit e, depois de uma atualização de firmware, passou a rotular a leitura como <code>C</code>. Ele publica 76,28 (o valor em F de 24,6 °C) com <code>unidade_temperatura: "C"</code>, e o transformador grava 76,28 em <code>temperatura_c</code>.</p>
+          <p>A média da estufa passa de (24,6 + 24,6 + 24,6) / 3 = 24,6 °C para (24,6 + 24,6 + 76,28) / 3 = 125,48 / 3 = 41,83 °C, um desvio de 17,23 °C. Em um dia, o sensor grava 86.400 linhas erradas, 8,3 % das 1.036.800 da cooperativa. Nenhuma consulta falha, porque 76,28 é um <code>Float32</code> válido.</p>
+          <p>A faixa física de &minus;10 a 60 °C (hipótese da seção 3) recusa 76,28. Ela não recusa todo rótulo trocado: um valor em F só cai dentro da faixa se for no máximo 60, o que corresponde a uma temperatura real de até 15,6 °C. Com o exemplo de referência da seção 13, executado em 16/10/2026, a mensagem com 59 rotulada como <code>C</code> foi aceita como 59,0 °C. Numa estufa aquecida a faixa pega o defeito; numa madrugada fria, não. A evidência autoriza concluir que a faixa reduz o risco e que só o cadastro com a unidade esperada de cada <code>device_id</code> o elimina.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>Para cada defeito, indique em qual dos três pontos ele deveria ser barrado: (a) o preço <code>Â£51.77</code> extraído do HTML; (b) a <code>dataHoraCotacao</code> da PTAX sem fuso; (c) uma conversão de Fahrenheit para Celsius que troca 5/9 por 9/5 no transformador; (d) a mesma leitura gravada duas vezes porque o armazenador caiu entre o INSERT e o ack. Um deles não é defeito de contrato. Qual, e que mecanismo da Aula 06 o trata?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 1</strong>
+          <ul>
+            <li>Gravar com fidelidade um dado errado entrega o erro a quem consulta, com aparência de dado confiável.</li>
+            <li>Um sensor em doze com a unidade trocada desloca a média da estufa em 17 °C sem que nenhuma consulta falhe.</li>
+            <li>O tipo sozinho não detecta unidade errada; a faixa física e o cadastro do sensor detectam casos diferentes.</li>
+            <li>Borda de entrada, passagem entre camadas e gate antes da escrita respondem a perguntas diferentes; validar na borda separa o defeito da fonte do defeito do nosso código.</li>
+          </ul>
         </div>
       </section>
 
@@ -167,6 +205,33 @@ ch.basic_nack(delivery_tag=metodo.delivery_tag, requeue=False)</code></pre>
         </table></div>
         <p>Cada métrica precisa de numerador e denominador explícitos. "Validade de 98 %" sem o denominador não permite saber se foram 49 de 50 livros ou 98.000 de 100.000 leituras, e as duas situações pedem respostas diferentes. A chave de unicidade também precisa de definição: para livros, o <code>upc</code> (chave natural definida na Aula 03); para PTAX, a combinação de moeda, data e <code>tipoBoletim</code> (a API devolve um boletim de abertura, intermediários e o de fechamento no mesmo dia); para sensores, <code>event_id</code> na mensagem e <code>device_id</code> mais <code>medido_em</code> na tabela, que é a chave de ordenação do <code>ReplacingMergeTree</code> da Aula 06.</p>
         <p>Metas numéricas (por exemplo, validade mínima de 99 %) não entram na spec como fato. O grupo mede uma linha de base nesta aula, registra no relatório de rejeições e só então propõe a meta, marcada como hipótese até ser confirmada com a persona.</p>
+        <h3>5.1 Exemplo numérico: um lote com defeitos conhecidos</h3>
+        <div class="note">
+          <strong>Exemplo numérico 2. Validade, rejeição e unicidade medidas</strong>
+          <p>Para ver as métricas com números, montou-se um lote de 1.005 mensagens com defeitos plantados e passou-se o lote pela função <code>validar_lote</code> do exemplo de referência (seção 13), em 16/10/2026, com Pydantic 2.13.5. O lote tinha 970 leituras válidas de doze sensores, 30 defeitos conhecidos (10 leituras de 76,28 rotuladas como <code>C</code>, 5 com umidade 104, 5 com o campo <code>bateria</code>, 5 de um sensor fora do cadastro, 3 corpos que não são JSON e 2 com <code>medido_em</code> sem fuso) e 5 reentregas, cópias exatas de leituras válidas, como as que o RabbitMQ devolve quando o consumidor cai antes do ack.</p>
+          <p>Resultado: 975 aceitas e 30 rejeitadas, com os motivos <code>temperatura_fora_da_faixa</code> (10), <code>umidade_fora_da_faixa</code> (5), <code>campo_desconhecido</code> (5), <code>sensor_desconhecido</code> (5), <code>json_invalido</code> (3) e <code>tipo_invalido</code> (2). Cada defeito caiu no motivo esperado, e cada rejeição levou posição e payload. A validade é 975 / 1.005 = 97,0 %, e a taxa de rejeição, 30 / 1.005 = 3,0 %. Entre as 975 aceitas há 970 <code>event_id</code> distintos, então a unicidade é 970 / 975 = 99,5 %.</p>
+          <p>Duas leituras saem da conta. Com um limite de rejeição de 5 % (hipótese a validar na spec), o lote segue, e as 30 rejeitadas vão para a DLQ; se o simulador mudar de formato e todas as mensagens falharem, a taxa vai a 100 % e o lote falha em vez de gravar zero linhas como se fosse uma execução normal. E as cinco reentregas passaram no contrato, porque uma duplicata é um registro válido repetido: quem a trata é a chave de deduplicação da Aula 06 (token por lote e ReplacingMergeTree por <code>device_id</code> e <code>medido_em</code>), e a métrica que a revela é a unicidade.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>Escolha entre quarentena, DLQ e falhar o lote, e diga o que precisa ser verdade para a escolha funcionar: (a) 3 de 1.000 livros com <code>Â£</code> no preço numa coleta noturna; (b) 1.000 de 1.000 cotações sem <code>cotacaoVenda</code>; (c) uma leitura com <code>unidade_temperatura: "K"</code> no meio do fluxo; (d) o simulador passou a enviar o campo <code>bateria</code> em todas as mensagens.</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 2</strong>
+          <ul>
+            <li>O contrato fixa estrutura, semântica, versão e publicação; o tipo de dado cobre só a estrutura.</li>
+            <li>Quarentena e DLQ preservam os registros válidos; o limite de taxa de rejeição impede que uma quebra total passe por execução normal.</li>
+            <li>Só a publicação em <code>iot.dlx</code> com <code>x-motivo</code> diz qual regra falhou; o <code>nack</code> deixa apenas <code>reason: rejected</code>.</li>
+            <li>Toda métrica tem numerador e denominador: 97,0 % de validade são 975 de 1.005 mensagens.</li>
+            <li>Duplicata é um registro válido repetido; a unicidade mede o que a deduplicação da Aula 06 precisa resolver.</li>
+          </ul>
+        </div>
+        <h3>5.2 Para saber mais</h3>
+        <ul>
+          <li>Wang, R. Y.; Strong, D. M. Beyond Accuracy: What Data Quality Means to Data Consumers. <em>Journal of Management Information Systems</em>, v. 12, n. 4, p. 5&ndash;33, 1996: as dimensões de qualidade vistas pelo consumidor do dado, origem de métricas como completude e atualidade.</li>
+          <li>Jones, A. <em>Driving Data Quality with Data Contracts</em>. Packt, 2023: o contrato de dados como acordo entre produtor e consumidor, com versão e responsável.</li>
+          <li>RabbitMQ. <a href="https://www.rabbitmq.com/docs/dlx" target="_blank" rel="noopener noreferrer">Dead Letter Exchanges</a>: quando uma mensagem é encaminhada para a DLX e o que o cabeçalho <code>x-death</code> registra.</li>
+        </ul>
       </section>
 
       <!-- 6 -->
@@ -324,6 +389,41 @@ ListaPtax = TypeAdapter(list[CotacaoPtax])</code></pre>
           </tbody>
         </table></div>
         <p>Modelos de linguagem gratuitos misturam as duas versões com frequência, porque a v1 domina o código público antigo. O <code>AGENTS.md</code> da aula proíbe a API v1, e a revisão do diff deve procurar esses nomes.</p>
+        <h3>6.9 Exemplo numérico: quanto custa validar</h3>
+        <div class="note">
+          <strong>Exemplo numérico 3. Tempo de validação por leitura</strong>
+          <p>Uma objeção comum ao contrato na borda do streaming é o custo: validar cada mensagem atrasaria o transformador. Para medir, geraram-se 100.000 mensagens válidas no formato da Aula 06 e mediu-se cada operação cinco vezes, tomando a mediana, em duas rodadas, num notebook com Intel i5-1345U, Python 3.12.3 e Pydantic 2.13.5, em 16/10/2026.</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Operação por mensagem</th><th>Mediana medida (duas rodadas)</th></tr></thead>
+            <tbody>
+              <tr><td><code>json.loads</code>, sem validação</td><td>10 a 17 µs</td></tr>
+              <tr><td><code>LeituraBruta.model_validate_json</code>, leitura e validação</td><td>15 a 19 µs</td></tr>
+              <tr><td><code>validar_lote</code>, com cadastro e <code>normalizar()</code></td><td>49 a 59 µs</td></tr>
+            </tbody>
+          </table></div>
+          <p>Com doze sensores a uma leitura por segundo, a função completa consome 12 &times; 60 µs = 0,72 ms de CPU por segundo, menos de 0,1 % de um núcleo. No dia inteiro, 1.036.800 &times; 60 µs dão cerca de 62 s de CPU. No pico do cenário ATAM da Aula 06, com <code>SENSORES=200</code>, seriam 12 ms por segundo. A comparação com <code>json.loads</code> mostra que ler e validar com o Pydantic custa a mesma ordem de grandeza que só ler o JSON, já que o núcleo em Rust faz as duas coisas numa passagem.</p>
+          <p>O que a medição autoriza: nesta carga, o INSERT em lote no ClickHouse e o ack no RabbitMQ pesam mais que o contrato. A variação entre rodadas (15 e 19 µs) vem de um notebook com outras tarefas abertas, e os números não se transferem para o contêiner do Railway, que tem outra CPU; o grupo que quiser usar o valor no ATAM deve medir no próprio ambiente.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>Escolha modo (lax ou strict) e tratamento de campo desconhecido (<code>forbid</code> ou <code>ignore</code>) para cada contrato e diga o que acontece no dia em que o produtor mudar: (a) o livro extraído do HTML, em que todo valor chega como texto; (b) a cotação PTAX, cujo produtor é o BCB; (c) a leitura do simulador, produzida pelo grupo em JSON tipado; (d) a <code>LeituraNormalizada</code>, montada pelo próprio código antes do INSERT.</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 3</strong>
+          <ul>
+            <li><code>Annotated</code> e <code>Field</code> declaram as restrições; validadores <code>mode="before"</code> absorvem o formato da fonte, e o <code>Field</code> confere o resultado.</li>
+            <li>Lax onde a fonte só entrega texto; strict onde o grupo controla o produtor.</li>
+            <li><code>extra="forbid"</code> para produtor do grupo; <code>extra="ignore"</code> com teste de contrato separado para produtor externo.</li>
+            <li><code>ValidationError</code> traz todos os erros do registro; o <code>type</code> é a chave de contagem do relatório.</li>
+            <li>Validar custou de 15 a 19 µs por leitura neste notebook, a mesma ordem de ler o JSON. A API v1 fica fora do código da aula.</li>
+          </ul>
+        </div>
+        <h3>6.10 Para saber mais</h3>
+        <ul>
+          <li>Pydantic. <a href="https://docs.pydantic.dev/latest/concepts/strict_mode/" target="_blank" rel="noopener noreferrer">Strict Mode</a>: as regras de conversão do modo lax e do modo strict, por tipo.</li>
+          <li>Pydantic. <a href="https://docs.pydantic.dev/latest/concepts/validators/" target="_blank" rel="noopener noreferrer">Validators</a>: validadores de campo e de modelo, modos <code>before</code>, <code>after</code> e <code>wrap</code> e contexto de validação.</li>
+          <li>Pydantic. <a href="https://docs.pydantic.dev/latest/migration/" target="_blank" rel="noopener noreferrer">Migration Guide</a>: a correspondência entre os nomes da versão 1 e da versão 2.</li>
+        </ul>
       </section>
 
       <!-- 7 -->
@@ -404,6 +504,31 @@ def test_ptax_nao_trouxe_campo_novo():
           <li>Mantenha um teste de contrato "ao vivo", marcado com <code>@pytest.mark.ao_vivo</code> e executado com <code>--record-mode=all</code> num job agendado, separado da suíte do PR. Ele falha quando a fonte muda, sem bloquear o trabalho diário.</li>
           <li>Revise o diff do YAML na regravação: a mudança de formato aparece ali antes de aparecer na produção.</li>
         </ul>
+        <h3>8.5 Exemplo numérico: quanto custa um teste em cada camada</h3>
+        <div class="note">
+          <strong>Exemplo numérico 4. Tempo por camada da pirâmide</strong>
+          <p>Os tempos vêm do exemplo de referência e do teste da PTAX, medidos pelo professor em 03/10/2026 (seções 8.2 e 13); a parte de unidade foi executada de novo em 16/10/2026. Os nove testes de unidade do exemplo (três funções, com os casos parametrizados contados à parte) rodaram em 0,11 s em 03/10 e em 0,15 s em 16/10, este último incluindo a coleta dos testes: cerca de 12 ms por teste. O teste de contrato da PTAX levou 0,36 s gravando o cassete pela rede e 0,09 s reproduzindo com <code>--block-network</code>, quatro vezes menos. O teste de integração com o MinIO pagou 1,59 s só de setup do contêiner, e a suíte inteira, com unidade e integração, fechou em 1,86 s.</p>
+          <p>A conta que orienta a suíte: 1,59 s / 12 ms &asymp; 130. Uma única subida de contêiner custa o mesmo que cerca de 130 testes de unidade. Por isso cada regra do contrato, com seu caso válido e seu caso inválido, fica na base, e a integração prova só o que a base não alcança: que o bucket existe, que a fila foi declarada com a DLX, que a DDL tem as colunas que o código usa e que a credencial funciona. A medição é de uma máquina com as imagens já baixadas; no Codespace, o primeiro <code>docker pull</code> não entra na conta e pode levar mais que a suíte.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>Em qual camada da pirâmide fica cada teste, e por quê: (a) o validador de preço recusa <code>Â£50.10</code> e explica a causa; (b) os cinco boletins da PTAX de 02/10/2026 cabem em <code>CotacaoPtax</code>; (c) <code>leituras.brutas</code> foi declarada com <code>x-dead-letter-exchange</code>; (d) uma leitura em Fahrenheit publicada pelo simulador chega a <code>iot.leituras</code> em Celsius.</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 4</strong>
+          <ul>
+            <li>Em pipelines de dados, a pirâmide ganha uma camada própria: o teste de contrato contra a fonte que o grupo não controla.</li>
+            <li>O cassete grava a resposta real uma vez e reproduz sem rede; o modo <code>none</code> impede chamada acidental.</li>
+            <li>O cassete congela a fonte no dia da gravação: teste ao vivo agendado, idade máxima e revisão do diff do YAML compensam.</li>
+            <li>Uma subida de contêiner custa cerca de 130 testes de unidade; a base da pirâmide fica larga e o topo, estreito.</li>
+          </ul>
+        </div>
+        <h3>8.6 Para saber mais</h3>
+        <ul>
+          <li>Fowler, M. <a href="https://martinfowler.com/bliki/TestPyramid.html" target="_blank" rel="noopener noreferrer">TestPyramid</a>, 2012: a origem da metáfora e o argumento de custo.</li>
+          <li>Vocke, H. <a href="https://martinfowler.com/articles/practical-test-pyramid.html" target="_blank" rel="noopener noreferrer">The Practical Test Pyramid</a>, 2018: testes de unidade, de integração e de contrato com exemplos de código.</li>
+          <li><a href="https://vcrpy.readthedocs.io/" target="_blank" rel="noopener noreferrer">Documentação do vcrpy</a> e <a href="https://github.com/kiwicom/pytest-recording" target="_blank" rel="noopener noreferrer">pytest-recording</a>: modos de gravação, filtros de cabeçalho e <code>--block-network</code>.</li>
+        </ul>
       </section>
 
       <!-- 9 -->
@@ -465,6 +590,12 @@ pytestmark = [
     pytest.mark.skipif(not docker_disponivel(), reason="Docker indisponível neste ambiente"),
 ]</code></pre>
         <p>Com <code>DOCKER_HOST</code> apontando para um socket inexistente, a execução de 03/10/2026 terminou com 9 testes aprovados e 1 pulado, com o motivo exibido por <code>pytest -rs</code>. Pular protege o desenvolvimento local; no CI, um teste pulado não pode passar despercebido, e o job de integração deve falhar se nenhum teste de integração rodou. No Codespace, a imagem universal traz Docker; se <code>docker run --rm hello-world</code> falhar, reconstrua o contêiner (Command Palette, "Codespaces: Rebuild Container"). Em ambientes que não permitem o contêiner auxiliar de limpeza do Testcontainers (Ryuk), a variável <code>TESTCONTAINERS_RYUK_DISABLED=true</code> o desativa; nesse caso, contêineres de execuções interrompidas precisam ser removidos à mão com <code>docker ps</code> e <code>docker rm -f</code>.</p>
+        <h3>9.6 Exemplo numérico: escopo da fixture e tempo da suíte</h3>
+        <div class="note">
+          <strong>Exemplo numérico 5. Quantas vezes o contêiner sobe</strong>
+          <p>Hipótese do exemplo: o grupo escreveu dez testes de integração que usam o ClickHouse. Com as subidas medidas na seção 9.4, a fixture de escopo <code>function</code> sobe o contêiner dez vezes, 10 &times; 5,9 s = 59 s antes de qualquer teste executar; a de escopo <code>session</code> sobe uma vez, 5,9 s. Com MinIO, RabbitMQ e ClickHouse em escopo <code>session</code>, a execução paga 1,6 + 4,8 + 5,9 = 12,3 s de subida, independentemente do número de testes. O tempo dos próprios testes fica fora da conta.</p>
+          <p>A economia tem preço. Com o contêiner compartilhado, um teste que cria o bucket <code>raw</code> ou consome uma fila altera o estado que o próximo encontra, e a falha passa a depender da ordem de execução. Nomes próprios por teste (prefixo com o nome do teste, fila com sufixo aleatório) e uma fixture de limpeza de escopo <code>function</code> devolvem o isolamento sem pagar a subida de novo.</p>
+        </div>
       </section>
 
       <!-- 10 -->
@@ -496,6 +627,25 @@ jobs:
       - name: Integração (Testcontainers)
         run: pytest tests/integration -m integracao -q --durations=10</code></pre>
         <p>O workflow é extensão da aula e não faz parte do entregável mínimo. Ele foi escrito a partir da documentação das actions citadas e não foi executado no repositório de um grupo; o primeiro grupo que ativá-lo deve registrar o tempo do job no <code>docs/atam.md</code>, como evidência do cenário "suíte lenta demais para o CI".</p>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>O grupo chegou a 30 testes de integração, todos com fixture de escopo <code>function</code>, e o job do CI passou de dez minutos. Quais fixtures podem subir para <code>session</code>, e o que cada teste precisa nomear para não interferir no seguinte? Quais desses 30 testes provam algo que um teste de unidade não prova? Que número entra no cenário ATAM "suíte lenta demais para o CI", e como ele é medido?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 5</strong>
+          <ul>
+            <li>O Testcontainers sobe o serviço real, espera a prontidão e remove tudo no fim, no notebook e no CI.</li>
+            <li>Toda imagem tem tag fixa, a mesma do <code>docker-compose.yml</code> da aula correspondente.</li>
+            <li>O escopo <code>session</code> reduz 59 s para 5,9 s no exemplo; o isolamento passa a depender de nomes próprios e limpeza.</li>
+            <li>Docker ausente pula a integração com motivo; no CI, integração não executada é falha.</li>
+          </ul>
+        </div>
+        <h3>10.1 Para saber mais</h3>
+        <ul>
+          <li><a href="https://testcontainers-python.readthedocs.io/" target="_blank" rel="noopener noreferrer">Documentação do testcontainers-python</a>: módulos, estratégias de espera e o contêiner de limpeza Ryuk.</li>
+          <li>pytest. <a href="https://docs.pytest.org/en/stable/how-to/fixtures.html" target="_blank" rel="noopener noreferrer">How to use fixtures</a>: escopos, ordem de criação e finalização das fixtures.</li>
+          <li>Reis, J.; Housley, M. <em>Fundamentals of Data Engineering</em>. O'Reilly, 2022: testes e qualidade de dados como parte do ciclo de vida da engenharia de dados.</li>
+        </ul>
       </section>
 
       <!-- 11 -->
@@ -985,18 +1135,28 @@ Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revi
       <!-- 15 -->
       <section class="content-block" id="s15">
         <h2>15. Atividade em sala e entregável</h2>
-        <p>A atividade acontece em sala, no Codespace do repositório do grupo, acompanhando a construção ao vivo feita pelo professor. O grupo reproduz cada etapa com os prompts da seção 12, revisa o artefato antes de seguir e executa os testes no próprio terminal: a resposta do agente dizendo que o teste passou não conta como evidência.</p>
+        <p>Depois das duas horas de teoria, a prática vai das 10h30 às 11h30, no Codespace do repositório do grupo, acompanhando a construção ao vivo feita pelo professor. O grupo reproduz cada etapa com os prompts da seção 12, revisa o artefato antes de seguir e executa os testes no próprio terminal: a resposta do agente dizendo que o teste passou não conta como evidência. Das 11h30 às 12h00, a turma faz o quiz da seção 15.1, e os últimos dez minutos conferem o que existe e o que fica para a semana.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Horário</th><th>Etapa</th><th>Saída</th></tr></thead>
           <tbody>
-            <tr><td>9h30 &ndash; 9h45</td><td>Preparação (seção 11) e exemplo de referência (seção 13)</td><td>Docker respondendo, dependências instaladas, exemplo verde</td></tr>
-            <tr><td>9h45 &ndash; 10h30</td><td>Prompts 1 a 5</td><td>persona, objetivos, spec, plan e tasks revisados</td></tr>
-            <tr><td>10h30 &ndash; 11h40</td><td>Prompt 6, uma tarefa por vez</td><td>contratos, quarentena, DLQ e testes nas três camadas</td></tr>
-            <tr><td>11h40 &ndash; 12h10</td><td>Prompt 7 e conferência final</td><td>atam.md, ADRs e relatório de rejeições</td></tr>
+            <tr><td>10h30 &ndash; 10h45</td><td>Preparação (seção 11) e exemplo de referência (seção 13)</td><td>Docker respondendo, dependências instaladas, exemplo verde</td></tr>
+            <tr><td>10h45 &ndash; 11h30</td><td>Prompts 1 a 5, com a demonstração</td><td>persona, objetivos, spec, plan e tasks revisados e commitados</td></tr>
+            <tr><td>11h30 &ndash; 12h00</td><td>Quiz (seção 15.1)</td><td>temas errados anotados para revisão</td></tr>
+            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>lista do que existe e do que fica para a semana</td></tr>
+            <tr><td>Na semana, até a Aula 08 (05/12/2026)</td><td>Prompt 6, uma tarefa por vez, e prompt 7</td><td>contratos, quarentena, DLQ, testes nas três camadas, <code>atam.md</code>, ADRs e relatório de rejeições</td></tr>
           </tbody>
         </table></div>
-        <h3>15.1 Entregável</h3>
-        <p>Pasta <code>aula_07_validacao_testes/</code> no repositório do grupo, com:</p>
+        <h3>15.1 Quiz: dez perguntas sobre as Aulas 06 e 07</h3>
+        <p>Às 11h30, a turma responde um quiz ao vivo. São dez perguntas de quatro alternativas, com 90 segundos cada. As três primeiras retomam a Aula 06 (entrega at-least-once e deduplicação, DLQ com motivo, INSERT em lote no ClickHouse); as quatro seguintes tratam dos contratos e do Pydantic (faixa física e unidade, lax e strict, campo desconhecido, erros por registro); as três últimas, dos testes (relógio fixo pelo contexto, cassete desatualizado, Testcontainers na pirâmide). A pergunta 10 vale o dobro.</p>
+        <ol class="steps">
+          <li>Abra o <a href="../quiz/quiz_aula_07.html">quiz da Aula 07</a> pelo QR projetado e escolha o nome que vai aparecer no placar.</li>
+          <li>Mantenha a aba aberta enquanto a pergunta estiver no ar: trocar de aba ou de aplicativo conta um strike e zera os pontos daquela pergunta.</li>
+          <li>Responda dentro dos 90 segundos. Acerto mais rápido vale mais, e a escolha não pode ser trocada depois de registrada.</li>
+          <li>Na revelação, leia a explicação projetada. No fim, a página lista os temas que você errou e a seção deste material que os trata.</li>
+          <li>Depois da aula, o professor publica o banco com as perguntas, o gabarito e o desempenho da turma por tema, sem nomes.</li>
+        </ol>
+        <h3>15.2 Entregável</h3>
+        <p>Pasta <code>aula_07_validacao_testes/</code> no repositório do grupo, até a Aula 08 (05/12/2026), com:</p>
         <ol class="steps">
           <li>Esqueleto SDD completo: <code>AGENTS.md</code>, <code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code>, <code>specs/spec.md</code>, <code>specs/plan.md</code>, <code>specs/tasks.md</code>.</li>
           <li>Contratos Pydantic de livro, cotação PTAX e leitura de sensor em <code>src/contratos/</code>, com o JSON Schema de cada um em <code>docs/contratos/</code>.</li>
@@ -1005,7 +1165,7 @@ Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revi
           <li><code>docs/relatorio_rejeicoes.md</code> gerado de uma execução real, com contagens por fonte, campo e tipo de erro e as quatro métricas com numerador e denominador.</li>
           <li><code>docs/atam.md</code> com os seis cenários da seção 14 e os ADRs em <code>docs/adr/</code>.</li>
         </ol>
-        <h3>15.2 Conferência antes do commit</h3>
+        <h3>15.3 Conferência antes do commit</h3>
         <pre><code>cd aula_07_validacao_testes
 pytest tests/unit tests/contract -q --block-network
 pytest tests/integration -m integracao -q --durations=10

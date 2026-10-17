@@ -21,7 +21,7 @@
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
       <h1>Aula 05 — Modelagem de Dados Relacional e Dimensional</h1>
       <p class="meta">Aula 05 &middot; 07/11/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>O silver da Aula 04 guarda livros, preços e cotações como foram coletados. Nesta aula, os mesmos dados ganham dois modelos: um relacional normalizado, publicado num PostgreSQL no Railway para consultas operacionais com integridade garantida pelo banco, e um dimensional em esquema estrela, montado em DuckDB e gravado na camada gold do MinIO para responder perguntas analíticas. Os dois são construídos ao vivo em Spec-Driven Development, com os sete prompts CREATE deste material.</p>
+      <p>O silver da Aula 04 guarda livros, preços e cotações como foram coletados. Nesta aula, os mesmos dados ganham dois modelos: um relacional normalizado, publicado num PostgreSQL no Railway para consultas operacionais com integridade garantida pelo banco, e um dimensional em esquema estrela, montado em DuckDB e gravado na camada gold do MinIO para responder perguntas analíticas. Os dois são construídos ao vivo em Spec-Driven Development, com os sete prompts CREATE deste material. A teoria ocupa as duas primeiras horas, em cinco blocos, cada um com um exemplo numérico medido numa base sintética, uma pausa para reflexão e os pontos-chave; a prática começa às 10h30, e um quiz de dez perguntas fecha a manhã às 11h30.</p>
     </header>
 
     <article class="material">
@@ -51,7 +51,7 @@
           <li><a href="#s20">Execução e gates de validação</a></li>
           <li><a href="#s21">Cenários ATAM da aula</a></li>
           <li><a href="#s22">Custo no Railway e encerramento</a></li>
-          <li><a href="#s23">Atividade em sala e entregável</a></li>
+          <li><a href="#s23">Atividade em sala, quiz e entregável</a></li>
           <li><a href="#s24">Referências</a></li>
         </ol>
       </section>
@@ -66,7 +66,40 @@
           <strong>Resultado esperado ao fim da aula</strong>
           <p>Uma pasta <code>aula_05_modelagem/</code> no repositório do grupo, com o esqueleto SDD completo, o diagrama ER e o esquema estrela em Mermaid, DDLs versionados, um Postgres no Railway carregado a partir do silver, a gold dimensional gravada no MinIO e o <code>docs/atam.md</code> com os seis cenários da seção 21.</p>
         </div>
-        <h3>Contrato do silver usado nos exemplos</h3>
+        <h3>1.1 Agenda</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Horário</th><th>Bloco</th><th>Conteúdo</th></tr></thead>
+          <tbody>
+          <tr><td>8h30 &ndash; 8h50</td><td>Teoria 1</td><td>Do lakehouse ao modelo: retomada da Aula 04, cenário condutor, OLTP e OLAP, busca por chave contra agregação medida (seções 1 e 2).</td></tr>
+          <tr><td>8h50 &ndash; 9h15</td><td>Teoria 2</td><td>Entidades, cardinalidade, níveis do modelo, chaves e normalização até a 3FN, com a linha plana medida (seções 3 a 6).</td></tr>
+          <tr><td>9h15 &ndash; 9h35</td><td>Teoria 3</td><td>Constraints, índices, diagrama ER e carga idempotente, com o índice por período medido (seções 7 e 8).</td></tr>
+          <tr><td>9h35 &ndash; 10h05</td><td>Teoria 4</td><td>Por que a análise pede outro modelo, os quatro passos de Kimball, matriz de barramento, tipos de fato e de medida (seções 9 a 11).</td></tr>
+          <tr><td>10h05 &ndash; 10h30</td><td>Teoria 5</td><td>Dimensão de data com papéis, estrela e floco de neve, SCD, dimensões degeneradas e conformadas, a mesma pergunta nos dois modelos (seções 12 a 16).</td></tr>
+          <tr><td>10h30 &ndash; 11h30</td><td>Prática em SDD</td><td>Pasta da aula, Postgres local com o DDL aplicado duas vezes e prompts 1 a 5 revisados, acompanhando a demonstração (seções 17 a 19).</td></tr>
+          <tr><td>11h30 &ndash; 12h00</td><td>Quiz</td><td>Dez perguntas sobre a Aula 04 e os cinco blocos (seção 23.1).</td></tr>
+          <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>Conferência do que existe às 12h10 e do que fica para a semana (seção 23).</td></tr>
+          </tbody>
+        </table></div>
+        <p>A teoria ocupa duas horas porque as decisões desta aula (o que identifica um livro, qual o grão da fato, qual cotação vale no sábado, que categoria conta no passado) são herdadas pelas Aulas 06 e 07, e cada uma delas depende de separar o trabalho operacional do analítico. A prática fica com uma hora em sala e termina com os prompts 1 a 5 revisados e o DDL aplicado localmente; Railway, carga e validação ATAM seguem durante a semana, como a seção 23 detalha.</p>
+
+        <h3>1.2 Retomada da Aula 04: onde o modelo entra no medalhão</h3>
+        <p>A Aula 04 organizou os buckets do grupo em quatro camadas, cada uma com um contrato. A modelagem desta aula lê só a silver e escreve só na gold do MinIO e num Postgres que fica fora do lake.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Camada</th><th>Contrato da Aula 04</th><th>Papel nesta aula</th></tr></thead>
+          <tbody>
+          <tr><td>raw</td><td>bytes como a fonte entregou; nunca alterado</td><td>fora da modelagem; serve para refazer a extração</td></tr>
+          <tr><td>bronze</td><td>JSON Lines, um registro por linha, ainda sem tipos garantidos</td><td>fora da modelagem</td></tr>
+          <tr><td>silver</td><td>Parquet tipado, deduplicado, com <code>arquivo_origem</code> e um contrato por tabela</td><td>entrada das duas trilhas</td></tr>
+          <tr><td>gold</td><td>no grão da pergunta de negócio, pronta para consumo</td><td>esquema estrela gravado em Parquet</td></tr>
+          </tbody>
+        </table></div>
+        <p>Duas propriedades da Aula 04 sustentam as escolhas de hoje. O Parquet é colunar: o rodapé informa onde cada coluna está, e o leitor baixa só as colunas que a consulta usa (projeção) e pula row groups pelas estatísticas de mínimo e máximo (predicate pushdown). O DuckDB roda dentro do processo que o chama e lê e escreve no MinIO pela extensão <code>httpfs</code>. Por isso a trilha dimensional monta a estrela no DuckDB e publica a gold como arquivos; a trilha relacional precisa de outra coisa, um banco que recuse escritas inválidas, e por isso vai para o PostgreSQL.</p>
+
+        <h3>1.3 Cenário condutor e base dos exemplos</h3>
+        <p>Toda a teoria é medida contra o mesmo caso que a prática constrói: uma livraria que revende em reais livros de books.toscrape.com e acompanha, todos os dias, o preço em libras de cada livro e a PTAX da libra. O site tem 1.000 livros em 50 categorias, e o scraper grava uma observação por livro e dia: 30.000 observações por mês e 365.000 num ano. A PTAX sai em cinco boletins por dia útil (abertura, três intermediários e fechamento, como a Aula 03 mostrou para 02/10/2026) e não sai em sábado, domingo e feriado.</p>
+        <p>Os exemplos numéricos 1 a 5 foram medidos na preparação da aula numa base sintética com esse contrato: 1.000 livros, 50 categorias, uma observação por livro e dia de 01/01 a 31/12/2026 (365.000 linhas) e 1.305 boletins PTAX em dias de semana. A base foi gerada no DuckDB 1.5 e carregada num PostgreSQL 16 em Docker com o DDL <code>sql/relacional/001_schema.sql</code> do laboratório, num notebook com processador Intel Core i5 de 13ª geração. Os tempos são a mediana de nove execuções depois de uma de aquecimento, em duas rodadas; a tabela de cada exemplo mostra o intervalo entre as rodadas. Os preços e as cotações da base são aleatórios: servem para contar linhas, bytes e tempos, e não para tirar conclusões sobre o mercado de livros. O exemplo numérico 6 vem da validação do laboratório, também com dados sintéticos.</p>
+
+        <h3>1.4 Contrato do silver usado nos exemplos</h3>
         <p>Os exemplos e os SQLs do laboratório assumem o contrato abaixo. O silver do seu grupo pode ter outros nomes de coluna. O prompt de implementação manda o agente ler o schema real antes de qualquer código, e a adaptação acontece num único lugar: as views de staging.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Conjunto</th><th>Caminho assumido</th><th>Colunas</th></tr></thead>
@@ -94,6 +127,40 @@
           </tbody>
         </table></div>
         <p>O mecanismo por trás da diferença está no armazenamento. O PostgreSQL guarda cada linha inteira numa página e usa índices B-tree para localizar poucas linhas rapidamente. O DuckDB processa colunas em vetores, então uma média sobre <code>preco_gbp</code> lê só essa coluna e as chaves de junção. Isso não autoriza dizer que um motor é melhor que o outro em geral: o cenário CEN-05 pede que o grupo meça a mesma consulta nos dois, com o volume que tem, e registre o resultado como evidência daquela carga.</p>
+        <h3>2.1 Exemplo numérico: busca por chave e agregação, medidas</h3>
+        <div class="note">
+          <strong>Exemplo numérico 1. O mesmo dado em dois motores</strong>
+          <p>Sobre as 365.000 observações da base sintética, duas consultas rodaram nos dois motores. A primeira é operacional: o preço mais recente de um livro, dado o UPC. A segunda é analítica: preço médio e livros observados por categoria e mês, com 600 linhas de resultado (50 categorias por 12 meses). Tempos em milissegundos:</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Consulta</th><th>PostgreSQL 16 (Docker, conexão local)</th><th>DuckDB 1.5 (no processo Python)</th></tr></thead>
+            <tbody>
+            <tr><td>Preço atual de um UPC</td><td>0,6 a 0,8</td><td>2,8 a 3,5</td></tr>
+            <tr><td>Preço médio por categoria e mês</td><td>675 a 697</td><td>28 a 40</td></tr>
+            </tbody>
+          </table></div>
+          <p>Na busca por chave, o Postgres respondeu de 3 a 6 vezes mais rápido, mesmo pagando a ida e volta da conexão local: o índice de <code>uq_livro_upc</code> leva ao livro e a PK de <code>observacao_preco</code> leva às linhas dele. Na agregação, o DuckDB respondeu de 17 a 25 vezes mais rápido, porque lê só as colunas da consulta em vetores, enquanto o Postgres percorre linhas inteiras de 365.000 observações.</p>
+          <p>O que a evidência autoriza é limitado: nesta base, nesta máquina e nestas duas consultas, cada motor favoreceu o padrão de acesso para o qual foi desenhado. Não autoriza escolher um motor para tudo, nem prever o tempo com o volume real do grupo. Esse é o papel do cenário CEN-05, que pede a mesma medida no ambiente do grupo, registrada com data e volume.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>A livraria faz quatro pedidos: avisar quando o livro de um UPC cair abaixo de £20; refletir hoje que o site moveu um livro de Fiction para Mystery; mostrar o preço médio em reais por categoria e mês para decidir a margem; e contar quantos livros ficaram sem estoque por semana em cada categoria. Para cada um, diga se o trabalho é OLTP ou OLAP, qual motor da aula o atende e qual linha do exemplo numérico 1 sustenta a escolha.</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 1</strong>
+          <ul>
+            <li>A silver resolve tipo e duplicata; integridade operacional e histórico analítico continuam sem dono.</li>
+            <li>OLTP grava poucas linhas por operação, com consistência; OLAP lê muitas linhas e poucas colunas.</li>
+            <li>Medido na base sintética: a busca por chave favoreceu o Postgres (3 a 6 vezes) e a agregação favoreceu o DuckDB (17 a 25 vezes).</li>
+            <li>O modelo relacional vai para um Postgres fora do lake; a estrela vai para a gold do MinIO.</li>
+          </ul>
+        </div>
+        <h3>2.2 Para saber mais</h3>
+        <ul>
+          <li>Kleppmann, M. <em>Designing Data-Intensive Applications</em>. O'Reilly, 2017, capítulo 3: processamento transacional e analítico e armazenamento orientado a colunas.</li>
+          <li>Stonebraker, M. et al. C-Store: A Column-oriented DBMS. VLDB, 2005: o argumento do armazenamento por coluna para consultas analíticas.</li>
+          <li>Raasveldt, M.; Mühleisen, H. DuckDB: an Embeddable Analytical Database. SIGMOD, 2019: o motor analítico que roda dentro do processo.</li>
+          <li>Armbrust, M. et al. <a href="https://www.cidrdb.org/cidr2021/papers/cidr2021_paper17.pdf" target="_blank" rel="noopener noreferrer">Lakehouse: A New Generation of Open Platforms that Unify Data Warehousing and Advanced Analytics</a>. CIDR, 2021: a arquitetura que a Aula 04 montou.</li>
+        </ul>
       </section>
 
       <!-- ============================ 3 ============================ -->
@@ -179,6 +246,41 @@
           </tbody>
         </table></div>
         <p>A normalização tem custo na leitura: a pergunta analítica passa a exigir quatro tabelas. Esse custo é aceitável no OLTP, onde a prioridade é a escrita consistente, e é justamente o que o modelo dimensional da parte B reorganiza.</p>
+        <h3>6.4 Exemplo numérico: linha plana contra 3FN, medida</h3>
+        <div class="note">
+          <strong>Exemplo numérico 2. Espaço e atualização nos dois desenhos</strong>
+          <p>Com os 30 dias de novembro da base sintética, a mesma informação foi gravada nos dois desenhos do PostgreSQL 16. A linha plana tem as colunas da tabela do início desta seção mais <code>coletado_em</code> e <code>arquivo_origem</code>; a versão em 3FN usa as tabelas do DDL do laboratório. O tamanho é o de <code>pg_relation_size</code>, só a tabela, sem índices.</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Medida</th><th>Linha plana</th><th>3FN</th></tr></thead>
+            <tbody>
+            <tr><td>Linhas</td><td>30.000</td><td>30.000 observações, 1.000 livros, 50 categorias e 110 boletins PTAX (30/10 a 30/11)</td></tr>
+            <tr><td>Bytes</td><td>7.340.032 (7,0 MiB)</td><td>3.923.968 (3,7 MiB)</td></tr>
+            <tr><td>Reclassificar um livro</td><td><code>UPDATE</code> em 30 linhas</td><td><code>UPDATE</code> em 1 linha de <code>livro</code></td></tr>
+            </tbody>
+          </table></div>
+          <p>A linha plana ocupou 1,9 vez o espaço da versão normalizada, porque repete título, trilha, categoria, texto de disponibilidade e cotação em cada dia de coleta. A diferença de espaço é o efeito menos importante. Cada valor repetido é um lugar a mais que uma atualização precisa alcançar: reclassificar o livro exigiu 30 alterações na plana e 1 na 3FN, e um <code>UPDATE</code> interrompido no meio deixaria a plana com duas categorias para o mesmo UPC. A 3FN elimina essa possibilidade pela estrutura, sem depender de quem escreve a carga.</p>
+          <p>A proporção muda com o tamanho dos textos e com o período: com um ano de coleta, a plana repetiria cada título 365 vezes. O resultado vale para este contrato e estes 30 dias.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>O modelo assume 1 : N entre categoria e livro porque books.toscrape.com atribui uma categoria a cada livro. Suponha que o site passe a permitir duas. O que muda na cardinalidade, e em qual tabela? Que tabela associativa aparece, e qual é a chave dela? Que consulta no silver de hoje verificaria a premissa? E o resultado do exemplo numérico 2 mudaria a favor de qual desenho?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 2</strong>
+          <ul>
+            <li>Entidade, atributo, relacionamento e cardinalidade vêm antes de qualquer DDL, e o conceitual não pode ser pulado.</li>
+            <li>URL e título são atributos; o UPC é a chave natural, com <code>UNIQUE</code>; <code>livro_id</code> é a chave substituta que as FKs referenciam.</li>
+            <li>1FN pede valores atômicos; 2FN, dependência da chave inteira; 3FN, nenhuma dependência transitiva.</li>
+            <li>Medido: a linha plana ocupou 1,9 vez o espaço, e reclassificar um livro exigiu 30 atualizações contra 1.</li>
+          </ul>
+        </div>
+        <h3>6.5 Para saber mais</h3>
+        <ul>
+          <li>Codd, E. F. A Relational Model of Data for Large Shared Data Banks. <em>Communications of the ACM</em>, v. 13, n. 6, 1970: o modelo relacional e a primeira normalização.</li>
+          <li>Chen, P. P. The Entity-Relationship Model: Toward a Unified View of Data. <em>ACM Transactions on Database Systems</em>, v. 1, n. 1, 1976: a origem do diagrama ER.</li>
+          <li>Kent, W. A Simple Guide to Five Normal Forms in Relational Database Theory. <em>Communications of the ACM</em>, v. 26, n. 2, 1983: as formas normais com exemplos curtos.</li>
+          <li>Elmasri, R.; Navathe, S. B. <em>Fundamentals of Database Systems</em>. 7. ed. Pearson, 2016, capítulos 14 e 15: dependências funcionais e normalização.</li>
+        </ul>
       </section>
 
       <!-- ============================ 7 ============================ -->
@@ -252,6 +354,41 @@ erDiagram
     }
 ```</code></pre>
         <p>A coluna <code>arquivo_origem</code> guarda o caminho do Parquet do silver que gerou a linha. Ela não participa de nenhuma regra de negócio, mas permite responder, meses depois, de onde veio um preço suspeito.</p>
+        <h3>8.1 Exemplo numérico: índice por período e escritas recusadas</h3>
+        <div class="note">
+          <strong>Exemplo numérico 3. O que um índice e duas constraints fazem, medido</strong>
+          <p>Com as 365.000 observações carregadas pelo DDL do laboratório, a consulta "quantas observações e qual o preço médio em outubro" (31.000 linhas) rodou com e sem <code>ix_observacao_data</code>. O plano veio de <code>EXPLAIN</code>; os tempos estão em milissegundos.</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Situação</th><th>Plano do PostgreSQL</th><th>Tempo</th></tr></thead>
+            <tbody>
+            <tr><td>Outubro, com <code>ix_observacao_data</code></td><td>Index Scan pelo índice de data</td><td>5,2 a 9,6</td></tr>
+            <tr><td>Outubro, sem o índice</td><td>varredura paralela da tabela inteira</td><td>15,3 a 23,3</td></tr>
+            <tr><td>Histórico de um livro (365 linhas)</td><td>Bitmap Heap Scan pela PK</td><td>1,2</td></tr>
+            </tbody>
+          </table></div>
+          <p>Sem o índice, o Postgres leu as 365.000 linhas para devolver 31.000; com ele, foi direto ao intervalo de datas, e a consulta ficou entre 2 e 3 vezes mais rápida. A PK, que começa por <code>livro_id</code>, atendeu bem ao histórico de um livro e não ajudou na consulta por período. O índice ocupa 2.695.168 bytes (2,6 MiB) ao lado dos 46.268.416 bytes (44 MiB) da tabela e é atualizado a cada <code>INSERT</code>, por isso cada índice extra precisa de uma consulta real que o justifique.</p>
+          <p>Na mesma base, duas escritas de teste foram recusadas pelo banco. Uma observação com <code>livro_id</code> 999999 violou <code>fk_observacao_livro</code>. Reinserir as 1.000 observações de 07/11 sem <code>ON CONFLICT</code> violou <code>pk_observacao_preco</code>. Nenhuma linha entrou nos dois casos, independentemente do código que tentou a escrita.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>O aplicativo de alerta consulta, a cada hora, os livros cujo preço de hoje ficou abaixo do de ontem. A PK <code>(livro_id, data_coleta)</code> atende essa consulta? <code>ix_observacao_data</code> basta, ou falta outra coluna? Quanto cada índice novo custa na carga diária de 1.000 linhas, e como medir? Onde a decisão fica registrada: <code>plan.md</code>, ADR ou <code>atam.md</code>?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 3</strong>
+          <ul>
+            <li>PK, FK, UNIQUE e CHECK no DDL protegem o dado de qualquer código de carga, inclusive o que um agente reescrever.</li>
+            <li>O Postgres cria índice para PK e UNIQUE, mas não para FK; <code>ix_livro_categoria</code> e <code>ix_observacao_data</code> são decisões explícitas.</li>
+            <li>Medido: o índice por data levou a consulta de outubro de 15 a 23 ms para 5 a 10 ms e ocupa 2,6 MiB.</li>
+            <li><code>INSERT ... ON CONFLICT</code> sobre a PK torna segura a reexecução do mesmo dia; o diagrama ER em Mermaid usa os mesmos nomes do DDL.</li>
+          </ul>
+        </div>
+        <h3>8.2 Para saber mais</h3>
+        <ul>
+          <li>PostgreSQL. <a href="https://www.postgresql.org/docs/16/ddl-constraints.html" target="_blank" rel="noopener noreferrer">Constraints</a>: PK, FK, UNIQUE e CHECK, com as ações <code>ON DELETE</code>.</li>
+          <li>PostgreSQL. <a href="https://www.postgresql.org/docs/16/indexes.html" target="_blank" rel="noopener noreferrer">Indexes</a> e <a href="https://www.postgresql.org/docs/16/using-explain.html" target="_blank" rel="noopener noreferrer">Using EXPLAIN</a>: como ler o plano que o exemplo 3 mostra.</li>
+          <li>PostgreSQL. <a href="https://www.postgresql.org/docs/16/sql-insert.html" target="_blank" rel="noopener noreferrer">INSERT ... ON CONFLICT</a>.</li>
+          <li>Mermaid. <a href="https://mermaid.js.org/syntax/entityRelationshipDiagram.html" target="_blank" rel="noopener noreferrer">Entity Relationship Diagrams</a>.</li>
+        </ul>
       </section>
 
       <!-- ============================ 9 ============================ -->
@@ -308,6 +445,41 @@ erDiagram
           </tbody>
         </table></div>
         <p>Somar o estoque de 30 dias dá um número 30 vezes maior que qualquer estoque real. A consulta Q7 de <code>007_consultas.sql</code> mostra o tratamento: soma por dia, depois média e último valor entre dias.</p>
+        <h3>11.3 Exemplo numérico: somas erradas por grão e por medida</h3>
+        <div class="note">
+          <strong>Exemplo numérico 4. Três erros de agregação, contados</strong>
+          <p>A <code>fato_preco_diario</code> de novembro da base sintética tem 1.000 livros por 30 dias, 30.000 linhas. Três operações comuns foram executadas no DuckDB:</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Operação</th><th>Resultado</th><th>Leitura</th></tr></thead>
+            <tbody>
+            <tr><td><code>SUM(qtd_estoque)</code> nos 30 dias</td><td>330.243</td><td>cerca de 30 vezes o estoque de qualquer dia</td></tr>
+            <tr><td>Soma no dia 30; média das somas diárias</td><td>11.109; 11.008</td><td>agregação correta de uma medida semiaditiva</td></tr>
+            <tr><td>Coleta de 07/11 gravada duas vezes, sem PK na fato</td><td>2.000 linhas no dia; estoque 21.952 em vez de 10.976</td><td>o grão misturado dobra o dia inteiro</td></tr>
+            <tr><td>Junção com <code>fato_cotacao_diaria</code> só pelo mês</td><td>630.000 linhas</td><td>cada preço repetido 21 vezes, uma por dia útil com cotação</td></tr>
+            </tbody>
+          </table></div>
+          <p>As três somas erradas passam em qualquer teste que só verifique se a consulta roda. A primeira trata uma medida semiaditiva como aditiva. A segunda acontece quando a fato aceita duas linhas para o mesmo livro e dia, o que a PK <code>(data_coleta_sk, livro_sk)</code> da fato impede. A terceira é o fanout: duas fatos de grãos diferentes juntadas por um atributo comum multiplicam as linhas de uma pelo número de linhas da outra.</p>
+          <p>A correção é a mesma nos três casos: declarar o grão na chave da fato, documentar a classe de cada medida e, para comparar duas fatos, agregar cada uma no grão comum (o <code>ano_mes</code> da <code>dim_data</code> conformada) antes de juntá-las, como faz a consulta Q8 do laboratório.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>Para cada pedido, diga se ele cabe na <code>fato_preco_diario</code> ou pede outra fato, e com qual grão: o preço de cada livro de Poetry em 15/10; quantas vezes o scraper leu cada livro, inclusive duas no mesmo dia; quando cada livro ficou sem estoque pela primeira vez; a cotação média de venda em novembro ao lado do preço médio. Qual deles produziria fanout se fosse resolvido com uma junção direta?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 4</strong>
+          <ul>
+            <li>Processo, grão, dimensões e fatos, nesta ordem; o grão é declarado antes das colunas.</li>
+            <li>A matriz de barramento mostra quais dimensões precisam ser conformadas entre fatos.</li>
+            <li>Transacional, snapshot periódico e snapshot acumulado têm grãos diferentes e não dividem a mesma tabela.</li>
+            <li>Medido: somar estoque em 30 dias multiplicou o valor por 30; juntar duas fatos só pelo mês multiplicou as linhas por 21.</li>
+          </ul>
+        </div>
+        <h3>11.4 Para saber mais</h3>
+        <ul>
+          <li>Kimball Group. <a href="https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/kimball-techniques/dimensional-modeling-techniques/" target="_blank" rel="noopener noreferrer">Dimensional Modeling Techniques</a>: processo, grão, tipos de fato, medidas e bus matrix.</li>
+          <li>Kimball, R.; Ross, M. <em>The Data Warehouse Toolkit</em>. 3. ed. Wiley, 2013, capítulos 2 e 3: as técnicas e o processo de quatro passos aplicado ao varejo.</li>
+          <li>Adamson, C. <em>Star Schema: The Complete Reference</em>. McGraw-Hill, 2010: grão, medidas não aditivas e o problema de juntar fatos diferentes.</li>
+        </ul>
       </section>
 
       <!-- ============================ 12 ============================ -->
@@ -320,6 +492,19 @@ JOIN gold.dim_livro d ON d.upc = s.upc AND s.data_coleta BETWEEN d.valido_de AND
 ...
 ASOF LEFT JOIN cot ON s.data_coleta &gt;= cot.data_cotacao;</code></pre>
         <p>Feriados nacionais não estão na <code>dim_data</code> do laboratório. Incluí-los exige uma fonte de calendário que o grupo precisa escolher e citar; até lá, a coluna fica fora e a lacuna vai para o <code>spec.md</code>.</p>
+        <h3>12.1 Exemplo numérico: dias sem PTAX em novembro</h3>
+        <div class="note">
+          <strong>Exemplo numérico 5. Novembro de 2026 tem 11 dias sem PTAX</strong>
+          <p>Novembro de 2026 começa num domingo: tem 9 dias de fim de semana e dois feriados nacionais em dia útil, 02/11 (Finados) e 20/11 (Consciência Negra). Sobram 19 dias com fechamento PTAX para 30 dias de coleta. Na base sintética, com esses 19 fechamentos e o de 30/10, a junção da cotação foi feita de duas formas no DuckDB:</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Junção da cotação</th><th>Observações sem cotação</th><th>Observação</th></tr></thead>
+            <tbody>
+            <tr><td>Igualdade de data</td><td>11.000 de 30.000</td><td>uma por livro em cada dia sem PTAX</td></tr>
+            <tr><td>ASOF, último fechamento até a coleta</td><td>0</td><td>a cotação mais antiga usada tinha 3 dias</td></tr>
+            </tbody>
+          </table></div>
+          <p>A junção por igualdade deixou 37% das observações sem preço em reais, e uma média calculada sobre ela ignoraria os fins de semana sem aviso. O ASOF resolveu todas, e os 3 dias de defasagem máxima aparecem em 02/11, que usa o fechamento de sexta-feira, 30/10. O resultado depende de a staging incluir um fechamento anterior ao primeiro dia carregado: sem o de 30/10, 01/11 e 02/11 ficariam sem cotação. Por isso a fato grava <code>data_cotacao_sk</code>, e a regra entra no <code>spec.md</code> com o calendário de feriados declarado como hipótese até o grupo escolher uma fonte.</p>
+        </div>
       </section>
 
       <!-- ============================ 13 ============================ -->
@@ -465,13 +650,38 @@ ORDER BY mes, categoria;</code></pre>
             <tr><td>Resultado</td><td colspan="2">igual quando nenhum livro mudou de categoria no período; diferente quando mudou, e a diferença é a resposta à pergunta "qual história queremos contar"</td></tr>
           </tbody>
         </table></div>
-        <p>Na validação com dados sintéticos (1.000 livros, 14 dias, um livro reclassificado em 03/11), a estrela mostrou, em novembro, 250 livros em Fiction e 251 em Mystery: o livro reclassificado conta nas duas categorias, porque foi observado em Fiction nos dias 1 e 2 e em Mystery a partir do dia 3. Na consulta relacional, o mesmo livro conta só em Mystery, inclusive em outubro. As duas leituras são válidas e respondem a perguntas diferentes; cabe ao grupo registrar qual delas a persona analítica faz.</p>
+        <h3>16.4 Exemplo numérico: um livro reclassificado, duas contagens</h3>
+        <div class="note">
+          <strong>Exemplo numérico 6. A mesma pergunta com e sem histórico</strong>
+          <p>Na validação do laboratório com dados sintéticos (1.000 livros, 14 dias, um livro reclassificado em 03/11), a estrela mostrou, em novembro, 250 livros em Fiction e 251 em Mystery: o livro reclassificado conta nas duas categorias, porque foi observado em Fiction nos dias 1 e 2 e em Mystery a partir do dia 3. Na consulta relacional, o mesmo livro conta só em Mystery, inclusive em outubro. As duas leituras são válidas e respondem a perguntas diferentes; cabe ao grupo registrar qual delas a persona analítica faz.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão e passagem para a prática</strong>
+          <p>Na estrela, o livro reclassificado conta em Fiction e em Mystery; no relacional, só em Mystery. Antes de abrir o agente de código, o grupo decide: qual leitura a persona usa para decidir a margem de revenda? Algum atributo tipo 2 de <code>dim_livro</code> deveria ser tipo 1 no seu domínio? Os fins de semana sem PTAX entram no <code>spec.md</code> como regra ou como risco? E onde cada decisão fica: <code>spec.md</code>, <code>plan.md</code> ou ADR? Daqui em diante, cada resposta vira requisito, tarefa, teste e cenário ATAM.</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 5</strong>
+          <ul>
+            <li><code>dim_data</code> é gerada, e a fato usa dois papéis dela: data da coleta e data da cotação.</li>
+            <li>Medido: a junção por igualdade deixou 11.000 de 30.000 observações sem cotação; o ASOF, nenhuma, com no máximo 3 dias de defasagem.</li>
+            <li>A estrela faz uma junção por contexto; o floco de neve economiza um espaço que, com mil livros, não pesa.</li>
+            <li>SCD tipo 2 preserva a categoria do dia, tipo 1 sobrescreve; dimensões degeneradas e conformadas completam o modelo.</li>
+            <li>A mesma pergunta dá respostas diferentes nos dois modelos quando há reclassificação, e as duas são válidas.</li>
+          </ul>
+        </div>
+        <h3>16.5 Para saber mais</h3>
+        <ul>
+          <li>Kimball, R.; Ross, M. <em>The Data Warehouse Toolkit</em>. 3. ed. Wiley, 2013, capítulo 5: os tipos de slowly changing dimension.</li>
+          <li>DuckDB. <a href="https://duckdb.org/docs/stable/guides/sql_features/asof_join" target="_blank" rel="noopener noreferrer">ASOF JOIN</a>: a junção pelo valor mais próximo anterior.</li>
+          <li>Banco Central do Brasil. <a href="https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/aplicacao#!/recursos" target="_blank" rel="noopener noreferrer">API PTAX (Olinda)</a>: boletins por dia útil.</li>
+          <li>Brasil. Lei 14.759, de 21 de dezembro de 2023: declara feriado nacional o Dia Nacional de Zumbi e da Consciência Negra, 20 de novembro.</li>
+        </ul>
       </section>
 
       <!-- ============================ 17 ============================ -->
       <section class="content-block" id="s17">
         <h2>17. Preparação do ambiente</h2>
-        <p>A prática acontece no Codespace do repositório do grupo, com os dados do silver produzidos na Aula 04. Se o silver do grupo estiver incompleto, gere dados sintéticos no formato do contrato da seção 1 para destravar a modelagem e registre a lacuna em <code>specs/spec.md</code>.</p>
+        <p>Em sala, a prática vai das 10h30 às 11h30. O professor constrói o projeto ao vivo, e cada grupo reproduz no próprio Codespace, com o agente de código de sua preferência, até o prompt 5 e o DDL aplicado duas vezes no Postgres local. Postgres no Railway (seção 18), prompts 6 e 7 e gates (seções 19 a 22) seguem durante a semana. A prática acontece no Codespace do repositório do grupo, com os dados do silver produzidos na Aula 04. Se o silver do grupo estiver incompleto, gere dados sintéticos no formato do contrato da seção 1 para destravar a modelagem e registre a lacuna em <code>specs/spec.md</code>.</p>
         <ol class="steps">
           <li>Abra o Codespace do repositório do grupo e confirme as ferramentas: <code>docker --version</code>, <code>python3 --version</code>, <code>node --version</code>.</li>
           <li>Crie a pasta da aula com o esqueleto SDD:
@@ -865,16 +1075,36 @@ SET VARIABLE gold_prefix = 's3://gold/dimensional/';</code></pre></li>
         <div class="table-scroll"><table>
           <thead><tr><th>Horário</th><th>Etapa</th><th>Saída verificável</th></tr></thead>
           <tbody>
-            <tr><td>8h30&ndash;9h00</td><td>modelagem relacional (seções 2 a 8)</td><td>ER do domínio desenhado em conjunto</td></tr>
-            <tr><td>9h00&ndash;9h30</td><td>modelagem dimensional (seções 9 a 16)</td><td>grão e estrela declarados</td></tr>
-            <tr><td>9h30&ndash;10h00</td><td>preparação, compose local e Postgres no Railway</td><td>DDL aplicado duas vezes, local e no Railway</td></tr>
-            <tr><td>10h00&ndash;10h45</td><td>prompts 1 a 5</td><td>persona, objetivos, spec, plan e tasks revisados</td></tr>
-            <tr><td>10h45&ndash;11h40</td><td>prompt 6, duas trilhas</td><td>Postgres carregado; gold no MinIO; testes verdes</td></tr>
-            <tr><td>11h40&ndash;12h00</td><td>prompt 7</td><td><code>atam.md</code> e três ADRs</td></tr>
-            <tr><td>12h00&ndash;12h10</td><td>gates e custo</td><td>evidências e consumo registrados</td></tr>
+          <tr><td>8h30&ndash;10h30</td><td>teoria em cinco blocos (seções 1 a 16)</td><td>respostas das cinco pausas anotadas para o <code>spec.md</code></td></tr>
+          <tr><td>10h30&ndash;10h50</td><td>preparação e compose local (seção 17)</td><td>DDL aplicado duas vezes no Postgres local, sem erro</td></tr>
+          <tr><td>10h50&ndash;11h30</td><td>prompts 1 a 5 (seção 19)</td><td>persona, objetivos, spec, plan e tasks revisados e commitados</td></tr>
+          <tr><td>11h30&ndash;12h00</td><td>quiz (seção 23.1)</td><td>placar e temas a retomar de cada aluno</td></tr>
+          <tr><td>12h00&ndash;12h10</td><td>fechamento</td><td>lista do que fica para a semana</td></tr>
+          <tr><td>na semana, até 14/11</td><td>Railway, prompts 6 e 7, gates e custo (seções 18 a 22)</td><td>Postgres carregado; gold no MinIO; testes verdes; <code>atam.md</code> e três ADRs</td></tr>
           </tbody>
         </table></div>
-        <h3>Entregável</h3>
+        <h3>23.1 Quiz: dez perguntas sobre os cinco blocos</h3>
+        <p>Às 11h30, depois da demonstração, a turma responde a um quiz ao vivo de dez perguntas, com cerca de 25 minutos de perguntas e explicações. As duas primeiras retomam a Aula 04 (medalhão, Parquet e DuckDB), e as outras oito cobrem os cinco blocos desta aula. Várias perguntas voltam aos números dos exemplos medidos; quem errar uma delas recebe, no fim, o tema e a seção deste material a retomar.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Perguntas</th><th>O que retomam</th><th>Seções</th></tr></thead>
+          <tbody>
+          <tr><td>1 e 2</td><td>medalhão, camada gold, Parquet colunar e DuckDB</td><td>Aula 04, seções 4 a 7; seção 1.2</td></tr>
+          <tr><td>3</td><td>OLTP, OLAP e o exemplo numérico 1</td><td>seção 2</td></tr>
+          <tr><td>4 e 5</td><td>normalização e chaves naturais e substitutas</td><td>seções 5 e 6</td></tr>
+          <tr><td>6 e 7</td><td>índice por período e carga idempotente</td><td>seções 7 e 8</td></tr>
+          <tr><td>8</td><td>medida semiaditiva</td><td>seção 11</td></tr>
+          <tr><td>9 e 10</td><td>ASOF com dois papéis da <code>dim_data</code> e SCD tipo 2 (vale o dobro)</td><td>seções 12, 14 e 16</td></tr>
+          </tbody>
+        </table></div>
+        <ol class="steps">
+          <li>Abra a <a href="../quiz/quiz_aula_05.html">sala do quiz</a> pelo QR projetado e escolha o nome que vai aparecer no placar.</li>
+          <li>Mantenha a aba aberta e a tela acesa. Sair da aba ou do aplicativo com uma pergunta aberta conta um strike e zera os pontos daquela pergunta.</li>
+          <li>Cada pergunta fica aberta por 90 segundos, com quatro alternativas e uma correta. Responder mais cedo rende mais pontos, e a pergunta 10 vale o dobro.</li>
+          <li>Na revelação, leia a explicação: ela retoma o mecanismo e, quando é o caso, o número medido que sustenta a resposta.</li>
+          <li>No fim, anote os temas que você errou e releia as seções indicadas antes de executar os prompts 6 e 7 durante a semana.</li>
+        </ol>
+        <p>O professor conduz a rodada pelo <a href="../quiz/painel_aula_05.html">painel</a>, que abre as perguntas, revela as respostas e gera o relatório por tema. Depois da aula, o banco com perguntas, gabarito e explicações é liberado na <a href="../quiz/banco_aula_05.html">página do banco</a>.</p>
+        <h3>23.2 Entregável</h3>
         <p>A pasta <code>aula_05_modelagem/</code> no repositório do grupo (o mesmo informado no formulário de grupo da disciplina), com:</p>
         <ul>
           <li>esqueleto SDD: <code>AGENTS.md</code>, <code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code>, <code>specs/spec.md</code>, <code>specs/plan.md</code>, <code>specs/tasks.md</code>;</li>
