@@ -213,7 +213,7 @@ values (
     {
       "letra":"D","titulo":"Disparo pelo coletor","tatica":"Execução por evento",
       "texto":"O coletor da Aula 02, ao terminar de gravar as seis respostas da hora, chama o job, ou o MinIO notifica a chegada de objetos novos. O cron sai.",
-      "ganho":"A gold fica pronta logo depois da coleta, sem o atraso fixo do minuto 15, e o job não roda quando não há dado novo.",
+      "ganho":"A gold fica pronta logo depois da coleta, sem o atraso fixo do minuto 15, e o job não roda quando não há coleta nova.",
       "custo":"Coletor e job ficam acoplados: se o coletor falhar, o job não roda, e um disparo duplo roda o job duas vezes ao mesmo tempo. A regra do cron que pula a execução sobreposta deixa de proteger."
     }
   ]'::jsonb
