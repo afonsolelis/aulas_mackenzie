@@ -96,9 +96,9 @@ try {
   };
 
   const votos = [
-    [[0, 'espelhar é barato e protege o histórico'], [3, 'risco declarado com gatilho de revisão']],
+    [[0, 'espelhar é barato e protege a prova da jornada'], [3, 'risco declarado com gatilho de revisão']],
     [[0, 'a primeira gravação mantém a idempotência'], [3, 'o PUT condicional fecha a corrida']],
-    [[1, 'o pouso no SFTP preserva a governança do lake'], [2, 'o painel precisa de SQL desde o primeiro dia']],
+    [[1, 'raw bruta e bronze depois preservam a prova'], [0, 'o painel precisa de registros desde o primeiro dia']],
   ];
   for (let q = 1; q <= 3; q++) {
     await acao('avancar');

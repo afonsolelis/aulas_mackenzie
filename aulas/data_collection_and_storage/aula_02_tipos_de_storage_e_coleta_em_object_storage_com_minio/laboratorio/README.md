@@ -1,8 +1,12 @@
-# Laboratório da Aula 02: coleta da Open-Meteo em JSON bruto no MinIO
+# Laboratório da Aula 02: coleta dos lotes de telemetria no MinIO
 
 Data Collection and Storage, MBA Engenharia de Dados, Mackenzie. Aula de 17/10/2026, 8h30 às 12h10.
 
 Este roteiro acompanha o material da aula (`../material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html`). O material traz a explicação e os sete prompts CREATE completos; aqui ficam os comandos, na ordem em que são executados.
+
+O caso é o da teoria: uma transportadora fictícia recebe do provedor de rastreamento por satélite, para cada caminhão, um lote TXT a cada 15 minutos, com linhas do tacógrafo, do GPS e do rádio em cinco formatos misturados. O provedor deixa os lotes numa pasta SFTP e não guarda histórico. Na aula, a pasta `pouso/` faz o papel do SFTP, e o `gerar_lotes.py` faz o papel do provedor.
+
+O que se constrói é um coletor que pega cada lote de `pouso/`, grava os bytes intactos no bucket `raw` do MinIO com a chave e os metadados do contrato, faz `HEAD` antes do `PUT`, registra a execução num manifesto JSON Lines e só apaga o arquivo do pouso depois de confirmar a gravação. É a alternativa "SFTP como pouso, bucket como destino" discutida no bloco 4.
 
 O código do coletor não está nesta pasta. Ele nasce durante a aula, pelos prompts, dentro do repositório do grupo.
 
@@ -11,12 +15,37 @@ O código do coletor não está nesta pasta. Ele nasce durante a aula, pelos pro
 | Arquivo | Para que serve |
 |---|---|
 | `docker-compose.yml` | MinIO local (imagem `ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z`) e um serviço que cria o bucket `raw` |
+| `gerar_lotes.py` | Simula o provedor: escreve os lotes TXT em `pouso/`. Só biblioteca padrão, determinístico |
 | `.env.example` | Variáveis do MinIO local e do coletor; vira `.env` e `.env.railway` |
-| `requirements.txt` | Dependências sugeridas: `requests`, `boto3`, `pytest`, `responses` |
+| `requirements.txt` | Dependências sugeridas: `boto3` e `pytest` |
 | `AGENTS.md` | Regras para o agente de código de preferência do grupo: escopo, comandos permitidos, segredos, gates |
-| `.gitignore` | Impede que `.env`, `.env.railway` e `.venv/` entrem no Git |
+| `.gitignore` | Impede que `.env`, `.env.railway`, `.venv/` e `pouso/` entrem no Git |
 
-O `docker-compose.yml` foi validado com `docker compose config` e executado de ponta a ponta (bucket criado, versionamento ligado, objeto gravado com metadados e lido com `mc stat`).
+O `docker-compose.yml`, o gerador e o fluxo completo (gerar, coletar, conferir chave, metadados e hash, coletar de novo) foram executados de ponta a ponta na preparação da aula, em 16/10/2026, com um coletor de referência do professor.
+
+## Contrato dos dados
+
+| Item | Valor |
+|---|---|
+| Arquivo no pouso | `pouso/CAM-XXXX_AAAAMMDDTHHMM.txt`, início da janela de 15 min no horário de Brasília |
+| Conteúdo | UTF-8, fim de linha `\n`, 15 linhas de posição (uma por minuto) e eventos, em cinco formatos |
+| Bucket | `raw` |
+| Chave | `telemetria/data=AAAA-MM-DD/hora=HH/caminhao=CAM-XXXX/lote_HHMM.txt`, com data, hora e HHMM do início da janela convertidos para UTC |
+| Bytes | gravados exatamente como estão no arquivo, sem reserializar nem trocar fim de linha |
+| Metadados (`x-amz-meta-*`, ASCII) | `fonte=provedor-satelite`, `recebido-em` (UTC ISO), `versao-coletor`, `sha256`, `caminhao`, `janela-inicio` (UTC ISO), `arquivo-origem` |
+| Idempotência | `HEAD` antes do `PUT`; chave existente com o mesmo `sha256` vira `ja_existia`; com `sha256` diferente vira `conflito_hash` e o arquivo fica no pouso |
+| Pouso | o arquivo só é apagado depois de `PUT` confirmado ou de `ja_existia` com o mesmo `sha256` |
+| Manifesto | `_manifestos/telemetria/data=AAAA-MM-DD/hora=HH/execucao_<AAAAMMDDTHHMMSSZ>.jsonl` (data e hora do início da execução, em UTC), uma linha por lote: `arquivo`, `chave`, `status` (`gravado`, `ja_existia`, `erro`, `conflito_hash`), `bytes`, `sha256`, `linhas`, `alertas` |
+
+Os cinco formatos de linha:
+
+```text
+CAM-0412|17/10/26 09:14:03|-23.5481,-46.6390|VEL 087|TAC MOT 03h12          formato 1, cerca de 72% das linhas
+#RADIO 09:14 MOTORISTA: parada posto km 214 BR-116                            formato 2, texto livre, só hora
+CAM-0412 17-10-2026 09:15:03 GPS -23.5502 -46.6411 v=85                       formato 3, cerca de 20%; firmware novo acrescenta " TEMP_BAU 04.2"
+ERR SAT SINAL FRACO                                                           formato 4, erro do enlace
+TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA                    formato 5, acima de 5h30 viola a Lei 13.103/2015
+```
 
 ## Pré-requisitos (feitos na Aula 01)
 
@@ -30,17 +59,17 @@ Rode um prompt por vez e revise a saída antes do próximo: é nessa revisão qu
 
 ```bash
 cd /workspaces/<repositorio-do-grupo>
-mkdir -p aula_02_coleta_json/{docs/adr,specs,src,tests}
-cd aula_02_coleta_json
+mkdir -p aula_02_coleta_telemetria/{docs/adr,specs,src,tests}
+cd aula_02_coleta_telemetria
 
 BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/data_collection_and_storage/aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/laboratorio
-for f in docker-compose.yml .env.example requirements.txt AGENTS.md .gitignore; do
+for f in docker-compose.yml .env.example requirements.txt AGENTS.md .gitignore gerar_lotes.py; do
   curl -fsSLO "$BASE/$f"
 done
 ls -la
 ```
 
-Gate: os cinco arquivos aparecem em `ls -la`.
+Gate: os seis arquivos aparecem em `ls -la`.
 
 ## Etapa 2. Subir o MinIO local
 
@@ -62,7 +91,7 @@ Gates:
 - `minio-init` termina com `Exited (0)` e o log mostra `Bucket created successfully` (ou nada a criar, se o bucket já existia).
 - `git status` não lista `.env`.
 
-Para usar o `mc` local, registre o alias dentro do próprio contêiner (a imagem já traz o `mc`):
+Para usar o `mc` local, registre o alias dentro do próprio contêiner (a imagem já traz o `mc`) e ligue o versionamento:
 
 ```bash
 docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
@@ -80,22 +109,33 @@ python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
-python -c "import requests, boto3, pytest, responses; print('ok')"
+python -c "import boto3, pytest; print('ok')"
 ```
 
-## Etapa 4. Conferir a fonte antes de escrever a spec
+## Etapa 4. Gerar lotes e olhar a fonte antes de escrever a spec
 
 ```bash
-curl -s "https://api.open-meteo.com/v1/forecast?latitude=-23.55&longitude=-46.63&hourly=temperature_2m,relative_humidity_2m&timezone=America/Sao_Paulo&forecast_days=1" | python -m json.tool | head -30
-
-curl -s -w "\nHTTP %{http_code}\n" "https://api.open-meteo.com/v1/forecast?latitude=-23.55&longitude=-46.63&hourly=temperatura"
+python gerar_lotes.py --inicio 2026-10-17T09:00
+ls pouso | head -4
+ls pouso | wc -l
+cat pouso/CAM-0451_20261017T0900.txt
+sha256sum pouso/CAM-0451_20261017T0900.txt
+grep -h '^TAC;' pouso/*.txt
 ```
 
-O segundo comando mostra o formato de erro da API: HTTP 400 com `{"error": true, "reason": "..."}`.
+Gates:
+
+- O gerador informa `80 lotes em pouso/ (20 caminhões x 4 janelas)` e média de 1.025 bytes por lote.
+- `ls pouso | wc -l` mostra 80.
+- O lote `CAM-0451_20261017T0900.txt` tem 983 bytes e `sha256` `6789b712602d1985d24df7b48370a1190da3db4e2576a74b07b5520d28601b12`. Com a mesma semente e o mesmo `--inicio`, todos os grupos obtêm os mesmos bytes; esse hash serve de teste de aceitação.
+
+Sem `--inicio`, o gerador usa a última hora completa (às 10h37, gera de 09:00 a 10:00). Outras opções: `--horas 24` gera um dia inteiro (1.920 lotes), `--caminhoes` muda o tamanho da frota e `--inicio 2027-03-02T08:00` gera lotes depois da data do firmware novo, com `TEMP_BAU` no formato 3. O horário do nome do arquivo e das linhas é o de Brasília; o coletor converte para UTC na chave (09:00 em Brasília vira `hora=12`).
+
+Não edite `gerar_lotes.py` nem os arquivos de `pouso/`: eles são a fonte, e o hash de aceitação depende deles.
 
 ## Etapa 5. Prompts SDD no agente de código
 
-Abra o agente dentro de `aula_02_coleta_json/`, para que ele enxergue o `AGENTS.md`:
+Abra o agente dentro de `aula_02_coleta_telemetria/`, para que ele enxergue o `AGENTS.md`:
 
 ```bash
 claude          # ou o agente que você usa
@@ -112,7 +152,7 @@ Execute os prompts do material, seção 10, um por vez. Depois de cada um, faça
 
 | Prompt | Artefato | Gate antes do próximo |
 |---|---|---|
-| 1. Persona | `docs/00_persona.md` | decisão, dor e frequência explícitas |
+| 1. Persona | `docs/00_persona.md` | decisão, dor e frequência explícitas para frota, jurídico e engenharia |
 | 2. Objetivos de negócio | `docs/01_objetivos_negocio.md` | métricas sem números inventados |
 | 3. Especificação | `specs/spec.md` | todo RF e RNF tem critério Dado/Quando/Então |
 | 4. Plano | `specs/plan.md` | C4 em Mermaid e escolhas ligadas a RF/RNF |
@@ -120,38 +160,66 @@ Execute os prompts do material, seção 10, um por vez. Depois de cada um, faça
 | 6. Implementação | `src/`, `tests/` | `python -m pytest -q` sem falhas, tarefa a tarefa |
 | 7. Validação ATAM | `docs/atam.md`, `docs/adr/` | cenários de seis partes com evidência |
 
+Em sala, a turma acompanha a demonstração até o prompt 5. Os prompts 6 e 7 e as etapas 6 e 7 seguem durante a semana.
+
 ## Etapa 6. Rodar contra o MinIO local
 
 ```bash
 set -a; source .env; set +a
 python -m pytest -q
-python -m src.coletor
-python -m src.coletor   # segunda vez na mesma hora: não pode criar objetos novos
 
-docker compose exec minio mc ls --recursive local/raw/open_meteo/
-docker compose exec -T minio mc find local/raw/open_meteo --name "*.json" | wc -l
-docker compose exec -T minio mc ls --recursive --versions local/raw/open_meteo/ | wc -l
+python gerar_lotes.py --inicio 2026-10-17T09:00
+python -m src.coletor
+ls pouso | wc -l                               # 0: tudo foi confirmado e apagado
+
+docker compose exec -T minio mc find local/raw/telemetria --name "*.txt" | wc -l
+docker compose exec -T minio mc ls --recursive --versions local/raw/telemetria/ | wc -l
+
+python gerar_lotes.py --inicio 2026-10-17T09:00   # o provedor reenvia os mesmos lotes
+python -m src.coletor
+ls pouso | wc -l
+docker compose exec -T minio mc find local/raw/telemetria --name "*.txt" | wc -l
+docker compose exec -T minio mc ls --recursive --versions local/raw/telemetria/ | wc -l
+docker compose exec minio mc ls --recursive local/raw/_manifestos/
 ```
 
 Gates:
 
-- O número de objetos `.json` é igual ao número de cidades vezes o número de horas coletadas.
-- A segunda execução na mesma hora não muda a contagem de objetos nem a de versões.
+- Depois da primeira execução, 80 objetos `.txt` e 80 versões em `telemetria/` (20 caminhões vezes 4 lotes por hora gerada), e `pouso/` vazio.
+- A segunda execução não cria objeto nem versão em `telemetria/`: as duas contagens continuam 80, `pouso/` fica vazio de novo e o manifesto dela tem 80 linhas `ja_existia`. O manifesto é um objeto novo por execução, fora de `telemetria/`.
+- Código de saída 0 nas duas execuções (`echo $?`).
 
-Inspecione um objeto (troque data, hora e cidade):
-
-```bash
-docker compose exec minio mc stat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json
-docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json | python -m json.tool | head -20
-```
-
-Confira o hash gravado nos metadados contra o conteúdo:
+Inspecione um objeto e confira o hash:
 
 ```bash
-docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json | sha256sum
+K=telemetria/data=2026-10-17/hora=12/caminhao=CAM-0451/lote_1200.txt
+docker compose exec minio mc stat local/raw/$K
+docker compose exec -T minio mc cat local/raw/$K | sha256sum
+docker compose exec -T minio mc cat local/raw/$K | head -5
 ```
 
-O valor precisa ser igual ao metadado de hash mostrado por `mc stat`.
+Gates:
+
+- `mc stat` mostra `X-Amz-Meta-Fonte: provedor-satelite`, `X-Amz-Meta-Recebido-Em`, `X-Amz-Meta-Versao-Coletor`, `X-Amz-Meta-Sha256`, `X-Amz-Meta-Caminhao: CAM-0451`, `X-Amz-Meta-Janela-Inicio: 2026-10-17T12:00:00Z` e `X-Amz-Meta-Arquivo-Origem: CAM-0451_20261017T0900.txt`.
+- O `sha256sum` do conteúdo é igual ao metadado e ao hash de aceitação da etapa 4.
+
+Teste os dois caminhos de falha:
+
+```bash
+# retransmissão com conteúdo diferente
+python gerar_lotes.py --inicio 2026-10-17T09:00 --caminhoes 1
+echo "linha que chegou atrasada" >> pouso/CAM-9840_20261017T0915.txt
+python -m src.coletor; echo "saida $?"         # diferente de zero
+ls pouso                                       # o lote alterado continua no pouso
+
+# MinIO fora do ar
+docker compose stop minio
+python -m src.coletor; echo "saida $?"         # diferente de zero, sem travar, depois das tentativas da spec
+ls pouso                                       # nada foi apagado
+docker compose start minio
+```
+
+O manifesto da primeira falha registra `conflito_hash` para o lote alterado e `ja_existia` para os outros. Decida o que fazer com o lote em conflito e registre no `docs/atam.md` (cenário C-07); para seguir, mova-o para fora de `pouso/`.
 
 ## Etapa 7. Rodar contra o MinIO do Railway
 
@@ -171,19 +239,22 @@ docker compose exec minio mc mb --ignore-existing railway/raw
 docker compose exec minio mc version enable railway/raw
 ```
 
-Rode o coletor apontando para o Railway:
+Rode o coletor local apontando para o Railway:
 
 ```bash
 set -a; source .env.railway; set +a
-python -m src.coletor
-python -m src.coletor
+python gerar_lotes.py --inicio 2026-10-17T09:00 && python -m src.coletor
+python gerar_lotes.py --inicio 2026-10-17T09:00 && python -m src.coletor
 
-docker compose exec minio mc ls --recursive railway/raw/open_meteo/
-docker compose exec -T minio mc find railway/raw/open_meteo --name "*.json" | wc -l
+docker compose exec minio mc ls --recursive railway/raw/telemetria/ | head
+docker compose exec -T minio mc find railway/raw/telemetria --name "*.txt" | wc -l
+docker compose exec -T minio mc ls --recursive --versions railway/raw/telemetria/ | wc -l
 docker compose exec minio mc du railway/raw
 ```
 
-Se aparecer erro 502 do proxy do Railway, o coletor deve tentar de novo com espera crescente e, por usar chave determinística, não pode duplicar objetos. Registre o que aconteceu no `docs/atam.md`.
+Gates: 80 objetos e 80 versões em `railway/raw/telemetria/` depois das duas execuções, e `pouso/` vazio. Para cada hora a mais gerada com `--inicio`, mais 80 objetos.
+
+Se aparecer erro 502 do proxy do Railway, o coletor deve tentar de novo com espera crescente; se as tentativas se esgotarem, o lote fica no pouso e a próxima execução tenta outra vez na mesma chave. Registre o que aconteceu no `docs/atam.md` (cenário C-03), com a contagem de versões.
 
 Volte ao ambiente local antes de continuar desenvolvendo:
 
@@ -193,12 +264,12 @@ set -a; source .env; set +a
 
 ## Etapa 8. Entrega
 
-Na pasta `aula_02_coleta_json/` do repositório do grupo:
+Na pasta `aula_02_coleta_telemetria/` do repositório do grupo, até a Aula 03 (24/10/2026):
 
-- `AGENTS.md`, `docs/00_persona.md`, `docs/01_objetivos_negocio.md`, `docs/atam.md`, `docs/adr/ADR-001-*.md`;
+- `AGENTS.md`, `docs/00_persona.md`, `docs/01_objetivos_negocio.md`, `docs/atam.md`, `docs/adr/ADR-001-*.md`, `docs/adr/ADR-002-*.md`;
 - `specs/spec.md`, `specs/plan.md`, `specs/tasks.md`;
 - `src/` com o coletor e `tests/` com testes passando;
-- objetos no bucket `raw` do MinIO do Railway, com a saída de `mc ls --recursive` e de `mc stat` de um objeto colada em `docs/atam.md` como evidência.
+- objetos no bucket `raw` do MinIO do Railway, com a saída de `mc ls --recursive`, das contagens e de `mc stat` de um objeto colada em `docs/atam.md` como evidência.
 
 Antes do commit:
 

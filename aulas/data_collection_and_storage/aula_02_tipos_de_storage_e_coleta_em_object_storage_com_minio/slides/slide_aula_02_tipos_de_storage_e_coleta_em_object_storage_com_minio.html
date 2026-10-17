@@ -19,7 +19,7 @@
           <h1 class="deck-title">Tipos de Storage e Coleta em Object Storage com MinIO</h1>
           <p class="deck-meta">Aula 02 &nbsp;&bull;&nbsp; 17/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Duas horas sobre bloco, arquivo, objeto e bancos, e sobre o que separa um storage de um data lake, com números medidos; depois, um coletor da Open-Meteo construído em SDD e gravando JSON bruto no MinIO.</p>
+          <p class="deck-subtitle">Duas horas sobre bloco, arquivo, objeto e bancos, e sobre o que separa um storage de um data lake, com números medidos; depois, um coletor de telemetria em SDD que grava o TXT bruto no MinIO.</p>
         </div>
       </div>
     </div>
@@ -40,13 +40,13 @@
               <li>Bloco 2: tipos de storage e latência medida</li>
               <li>Bloco 3: object storage por dentro</li>
               <li>Bloco 4: telemetria em TXT, file ou object storage, data lake e lakehouse</li>
-              <li>Bloco 5: camada raw e a fonte Open-Meteo</li>
+              <li>Bloco 5: camada raw dos lotes de telemetria</li>
             </ul>
           </article>
           <article class="deck-card">
             <h3>10h30 &ndash; 12h10 &middot; Prática e TBL</h3>
             <ul>
-              <li>MinIO local com docker compose</li>
+              <li>MinIO local e gerador de lotes</li>
               <li>Prompts 1 a 5 no agente de código, com revisão</li>
               <li>11h30: TBL sobre a arquitetura com MinIO</li>
               <li>Na semana: tarefas, Railway e ATAM</li>
@@ -61,12 +61,12 @@
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Bloco 1 &middot; Problema</span>
-          <h2 class="deck-title">O que a previsão dizia às 10h de terça?</h2>
-          <p class="deck-summary">A API de previsão devolve sempre a previsão vigente. Quem não gravou a resposta às 10h não consegue reconstruí-la depois.</p>
+          <h2 class="deck-title">O que o tacógrafo registrou às 9h41?</h2>
+          <p class="deck-summary">Meses depois, um processo trabalhista pergunta se o caminhão CAM-3126 passou de 5h30 de direção contínua em 17/10. O provedor não guarda histórico: sem o lote original, a transportadora não tem o que mostrar.</p>
         </div>
         <div class="deck-callout">
           <strong>Resultado observável da aula</strong>
-          <p style="margin:8px 0 0;">Seis capitais coletadas a cada hora, cada resposta gravada como JSON bruto no bucket <code>raw</code>, com chave previsível, metadados de origem e nenhuma duplicata quando o coletor roda de novo.</p>
+          <p style="margin:8px 0 0;">Vinte caminhões, quatro lotes TXT por hora cada. Cada lote sai da pasta de pouso para o bucket <code>raw</code> sem alterar um byte, com chave previsível, metadados de origem e hash, e nenhuma duplicata quando o coletor roda de novo.</p>
         </div>
       </div>
     </div>
@@ -95,23 +95,23 @@
         <div>
           <span class="deck-kicker">Bloco 1 &middot; Cenário condutor</span>
           <h2 class="deck-title">Dois números que voltam nos exemplos</h2>
-          <p class="deck-summary">Distribuidora de bebidas com centros em seis capitais guarda, a cada hora, a previsão de temperatura e umidade da Open-Meteo.</p>
+          <p class="deck-summary">Uma transportadora recebe por satélite, para cada caminhão, um lote TXT a cada 15 minutos com tacógrafo, GPS e rádio.</p>
         </div>
         <div class="deck-columns">
           <div class="deck-panel">
-            <strong>992 bytes por documento</strong>
+            <strong>1.018 bytes por lote</strong>
             <ul>
-              <li>Resposta para São Paulo, <code>forecast_days=1</code>, duas variáveis, medida em 14/10/2026</li>
-              <li>989 bytes em 03/10/2026</li>
-              <li>4.877 bytes com <code>forecast_days=7</code></li>
+              <li>Média de 1.920 lotes do gerador da aula, medida em 16/10/2026</li>
+              <li>Entre 917 e 1.169 bytes</li>
+              <li>16,3 linhas por lote, em cinco formatos</li>
             </ul>
           </div>
           <div class="deck-panel">
-            <strong>144 documentos por dia</strong>
+            <strong>1.920 lotes por dia</strong>
             <ul>
-              <li>6 capitais vezes 24 horas</li>
-              <li>144 chamadas por dia, contra limite de 10.000</li>
-              <li>Um objeto por cidade e hora</li>
+              <li>20 caminhões vezes 4 lotes por hora</li>
+              <li>80 lotes por hora, 24 horas</li>
+              <li>Um objeto por caminhão e janela de 15 min</li>
             </ul>
           </div>
         </div>
@@ -131,7 +131,7 @@
           <tbody>
             <tr><td>Mídia física</td><td>RAM, SSD, disco: cada degrau é mais barato por byte e mais lento por acesso</td><td>volume do Railway em <code>/data</code></td></tr>
             <tr><td>Rede</td><td>toda requisição paga ida e volta, cabeçalhos, assinatura e proxy</td><td>cada <code>PUT</code> e <code>HEAD</code>; o 502 esporádico</td></tr>
-            <tr><td>Serialização</td><td>texto (JSON, CSV) ou binário (Parquet, Avro)</td><td>JSON gravado tal como chegou</td></tr>
+            <tr><td>Serialização</td><td>texto (JSON, CSV) ou binário (Parquet, Avro)</td><td>TXT gravado tal como chegou</td></tr>
             <tr><td>Compressão</td><td>menos bytes em troca de CPU; colunas comprimem melhor</td><td>nenhuma na raw; colunar na Aula 04</td></tr>
           </tbody>
         </table>
@@ -147,17 +147,17 @@
           <h2 class="deck-title">Quanto o bucket cresce em um semestre</h2>
         </div>
         <table class="deck-table">
-          <thead><tr><th>Período</th><th>Objetos</th><th>Conteúdo (992 B cada)</th><th>Em disco (6,6 KB cada, medido)</th></tr></thead>
+          <thead><tr><th>Período</th><th>Objetos</th><th>Conteúdo (1.018 B cada)</th><th>Em disco (7,0 KB cada, medido)</th></tr></thead>
           <tbody>
-            <tr><td>1 dia</td><td>144</td><td>140 KiB</td><td>0,9 MB</td></tr>
-            <tr><td>30 dias</td><td>4.320</td><td>4,1 MiB</td><td>28 MB</td></tr>
-            <tr><td>até a Aula 08 (49 dias)</td><td>7.056</td><td>6,7 MiB</td><td>47 MB</td></tr>
-            <tr><td>1 ano</td><td>52.560</td><td>49,7 MiB</td><td>346 MB</td></tr>
+            <tr><td>1 dia</td><td>1.920</td><td>2,0 MB</td><td>13,5 MB</td></tr>
+            <tr><td>30 dias</td><td>57.600</td><td>58,7 MB</td><td>404 MB</td></tr>
+            <tr><td>até a Aula 08 (49 dias)</td><td>94.080</td><td>95,8 MB</td><td>660 MB</td></tr>
+            <tr><td>1 ano</td><td>700.800</td><td>714 MB</td><td>4,9 GB</td></tr>
           </tbody>
         </table>
         <div class="deck-callout">
           <strong>O que a medição mostra</strong>
-          <p style="margin:8px 0 0;">144 objetos de 992 B ocuparam 949.392 B no volume do MinIO local (<code>du -sb</code> no contêiner): o arquivo de metadados por objeto custa mais que o conteúdo. Para objetos pequenos, a contagem pesa mais que os bytes. Preço do volume só com fonte e data.</p>
+          <p style="margin:8px 0 0;">1.920 lotes com 1.955.463 B de conteúdo ocuparam 13.460.999 B no volume do MinIO local (<code>du -sb</code> no contêiner): diretório e metadados por objeto custam mais que o conteúdo. Para objetos pequenos, a contagem pesa mais que os bytes. Preço do volume só com fonte e data.</p>
         </div>
       </div>
     </div>
@@ -172,9 +172,9 @@
         <ol class="deck-steps">
           <li>Onde, com que nome, em que formato, com que procedência e o que acontece ao repetir: cinco decisões caras de mudar.</li>
           <li>Todo storage combina mídia, rede, serialização e compressão.</li>
-          <li>Para objetos de 1 KB, o custo é dominado pelo número de objetos. Por isso um documento por cidade e hora, e não um por variável.</li>
+          <li>Para objetos de 1 KB, o custo é dominado pelo número de objetos. Por isso um objeto por lote de 15 minutos, e não um por linha.</li>
         </ol>
-        <p class="deck-note">Pergunta de passagem: qual unidade de acesso corresponde ao dado da distribuidora? O bloco 2 responde.</p>
+        <p class="deck-note">Pergunta de passagem: qual unidade de acesso corresponde ao lote do satélite? O bloco 2 responde.</p>
       </div>
     </div>
 
@@ -252,9 +252,9 @@
           <h2 class="deck-title">Relacional, chave-valor, documento e colunar</h2>
         </div>
         <div class="deck-grid">
-          <article class="deck-card"><h3>Relacional</h3><p>Tabelas com esquema, chaves e ACID. Atualiza a linha, garante tudo ou nada. Esquema rígido: campo novo na API exige migração. Aula 05.</p></article>
+          <article class="deck-card"><h3>Relacional</h3><p>Tabelas com esquema, chaves e ACID. Atualiza a linha, garante tudo ou nada. Esquema rígido: campo novo do firmware exige migração. Aula 05.</p></article>
           <article class="deck-card"><h3>Chave-valor</h3><p>Redis, Valkey, etcd: um valor por chave, latência muito baixa. Cache, sessão, contadores. Sem consulta analítica ampla.</p></article>
-          <article class="deck-card"><h3>Documento</h3><p>MongoDB, Couchbase: JSON flexível com consulta por campo. Receberia o JSON da Open-Meteo, mas cobraria por recursos que a raw não usa.</p></article>
+          <article class="deck-card"><h3>Documento</h3><p>MongoDB, Couchbase: JSON flexível com consulta por campo. Só receberia o lote depois de um parser, e cobraria por recursos que a raw não usa.</p></article>
           <article class="deck-card"><h3>Colunar</h3><p>ClickHouse, DuckDB, Parquet: coluna junta, compressão alta, leitura seletiva. Escrita linha a linha cara; esquema conhecido. Aulas 04 e 06.</p></article>
         </div>
       </div>
@@ -286,18 +286,18 @@
         <div>
           <span class="deck-kicker">Bloco 2 &middot; Exemplo numérico 2</span>
           <h2 class="deck-title">Latência medida: objeto contra arquivo local</h2>
-          <p class="deck-summary">Mesma máquina, 144 documentos de 992 B, mediana em milissegundos. MinIO local em Docker via <code>boto3</code>; arquivos com <code>fsync</code>.</p>
+          <p class="deck-summary">Mesma máquina, 1.920 lotes de 1.018 B em média, mediana em milissegundos. MinIO local em Docker via <code>boto3</code>; arquivos com <code>fsync</code>.</p>
         </div>
         <table class="deck-table">
           <thead><tr><th>Operação</th><th>Object storage</th><th>Arquivo local</th></tr></thead>
           <tbody>
-            <tr><td>Gravar um documento</td><td>3,97 (<code>PUT</code> com 7 metadados)</td><td>0,48</td></tr>
-            <tr><td>Ler um documento</td><td>1,90 (<code>GET</code>)</td><td>0,01</td></tr>
-            <tr><td>Saber se existe</td><td>1,39 inexistente; 1,77 existente (<code>HEAD</code>)</td><td>não medido</td></tr>
-            <tr><td>Listar 144 documentos</td><td>12 a 27</td><td>não medido</td></tr>
+            <tr><td>Gravar um lote</td><td>4,56 (<code>PUT</code> com 7 metadados)</td><td>0,53</td></tr>
+            <tr><td>Ler um lote</td><td>2,95 (<code>GET</code>)</td><td>0,01</td></tr>
+            <tr><td>Saber se existe</td><td>2,29 inexistente; 2,73 existente (<code>HEAD</code>)</td><td>não medido</td></tr>
+            <tr><td>Listar um dia (1.920 chaves)</td><td>214 (2 páginas)</td><td>não medido</td></tr>
           </tbody>
         </table>
-        <p class="deck-note">De 8 a 100 vezes por operação, sem rede. Um dia inteiro de coleta (144 <code>HEAD</code> + 144 <code>PUT</code>) custa 0,8 s: poucas operações grandes. Objeto perde quando o padrão é o oposto, milhares de leituras pontuais por segundo.</p>
+        <p class="deck-note">De 9 a mais de 300 vezes por operação, sem rede. Mesmo assim, o coletor gravou um dia inteiro (1.920 <code>HEAD</code> + 1.920 <code>PUT</code>) em 11,7 s. Objeto perde quando o padrão é o oposto, milhares de leituras pontuais por segundo.</p>
       </div>
     </div>
 
@@ -306,7 +306,7 @@
       <div class="deck-shell">
         <div>
           <span class="deck-kicker">Bloco 2 &middot; Escolha</span>
-          <h2 class="deck-title">Por que objeto para a resposta bruta da API</h2>
+          <h2 class="deck-title">Por que objeto para o lote bruto</h2>
         </div>
         <div class="deck-columns">
           <div class="deck-panel">
@@ -320,13 +320,13 @@
             </ul>
           </div>
           <div class="deck-panel">
-            <strong>Respostas para a Open-Meteo</strong>
+            <strong>Respostas para os lotes do satélite</strong>
             <ul>
-              <li>Um documento JSON por cidade e hora</li>
+              <li>Um arquivo TXT por caminhão e janela</li>
               <li>Grava uma vez, lê muitas</li>
               <li>Leitura em lote nas Aulas 04 e 05</li>
-              <li>Pode mudar; sem esquema na escrita</li>
-              <li>Cresce toda hora; custo por GB pesa</li>
+              <li>Muda com o firmware; sem esquema na escrita</li>
+              <li>Cresce a cada 15 min; a contagem pesa</li>
             </ul>
           </div>
         </div>
@@ -338,14 +338,14 @@
       <div class="deck-shell is-dense" style="gap:16px;">
         <div>
           <span class="deck-kicker">Bloco 2 &middot; Pausa para reflexão</span>
-          <h2 class="deck-title">Classifique quatro dados da distribuidora</h2>
+          <h2 class="deck-title">Classifique quatro dados da transportadora</h2>
           <p class="deck-summary">Responda às cinco perguntas e escolha um tipo da tabela para cada dado.</p>
         </div>
         <div class="deck-grid">
-          <article class="deck-card"><h3>Previsão horária</h3><p>JSON de 992 B, gravado uma vez por cidade e hora, lido em lote depois.</p></article>
-          <article class="deck-card"><h3>Estoque do centro</h3><p>Uma linha por produto e centro, atualizada a cada venda, consultada por chave.</p></article>
-          <article class="deck-card"><h3>Carrinho no aplicativo</h3><p>Vive minutos, muda a cada clique, some ao fechar o pedido.</p></article>
-          <article class="deck-card"><h3>Vendas por categoria e mês</h3><p>Agregação sobre milhões de itens, consultada pelo planejamento.</p></article>
+          <article class="deck-card"><h3>Última posição do caminhão</h3><p>Sobrescrita a cada minuto, consultada por chave pela tela da central.</p></article>
+          <article class="deck-card"><h3>Viagens e notas fiscais</h3><p>Uma linha por entrega, com cliente e status, alterada até a baixa.</p></article>
+          <article class="deck-card"><h3>Foto do canhoto assinado</h3><p>Imagem gravada uma vez por entrega, aberta só numa disputa.</p></article>
+          <article class="deck-card"><h3>Velocidade média por rodovia</h3><p>Agregação mensal sobre milhões de posições, lida pela diretoria.</p></article>
         </div>
       </div>
     </div>
@@ -377,12 +377,12 @@
         <table class="deck-table">
           <thead><tr><th>Listagem</th><th>Prefixo</th><th>Chaves</th><th>Requisições</th></tr></thead>
           <tbody>
-            <tr><td>Um ano inteiro</td><td><code>open_meteo/</code></td><td>52.560</td><td>53</td></tr>
-            <tr><td>Um dia</td><td><code>open_meteo/data=2026-10-17/</code></td><td>144</td><td>1 (12 a 27 ms medidos)</td></tr>
-            <tr><td>Uma hora</td><td><code>open_meteo/data=2026-10-17/hora=12/</code></td><td>6</td><td>1</td></tr>
+            <tr><td>Um ano inteiro</td><td><code>telemetria/</code></td><td>700.800</td><td>701</td></tr>
+            <tr><td>Um dia</td><td><code>telemetria/data=2026-10-17/</code></td><td>1.920</td><td>2 (214 ms medidos)</td></tr>
+            <tr><td>Uma hora</td><td><code>telemetria/data=2026-10-17/hora=12/</code></td><td>80</td><td>1 (14,6 ms medidos)</td></tr>
           </tbody>
         </table>
-        <p class="deck-note">A partição na chave transforma 53 páginas em uma. É o mesmo mecanismo que o DuckDB usa na Aula 04 para ler só as partições filtradas.</p>
+        <p class="deck-note">A partição na chave transforma 701 páginas em duas, ou em uma. É o mesmo mecanismo que o DuckDB usa na Aula 04 para ler só as partições filtradas.</p>
       </div>
     </div>
 
@@ -396,7 +396,7 @@
         </div>
         <ol class="deck-steps">
           <li><strong>2 KB de metadados de usuário</strong> dentro de um cabeçalho de <code>PUT</code> de até 8 KB. Guarde procedência, não dado.</li>
-          <li><strong>US-ASCII nos valores</strong> pela API REST; fora disso o valor é recodificado. <code>sao_paulo</code>, não <code>São Paulo</code>.</li>
+          <li><strong>US-ASCII nos valores</strong> pela API REST; fora disso o valor é recodificado. <code>CAM-0412</code> cabe; o texto do rádio, com acento, não.</li>
           <li><strong>Metadado não muda depois do <code>PUT</code></strong>; só copiando o objeto. Decida os metadados antes da primeira gravação.</li>
           <li><strong>Sem trava entre escritores:</strong> dois <code>PUT</code> na mesma chave, vence o carimbo mais recente. Atomicidade por chave, nunca entre chaves.</li>
         </ol>
@@ -450,7 +450,7 @@
           </div>
         </div>
         <pre class="is-compact" style="flex-shrink:0;"><code>mc version enable local/raw
-mc ls --recursive --versions local/raw/open_meteo/
+mc ls --recursive --versions local/raw/telemetria/
 mc ilm rule add --noncurrent-expire-days 7 local/raw</code></pre>
       </div>
     </div>
@@ -476,9 +476,9 @@ mc ilm rule add --noncurrent-expire-days 7 local/raw</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Bloco 4 &middot; Cenário</span>
-          <h2 class="deck-title">Telemetria de caminhões chegando em TXT</h2>
-          <p class="deck-summary">Tacógrafo, GPS e rádio de cada caminhão chegam via satélite, em lotes de texto sem formato fixo.</p>
+          <span class="deck-kicker">Bloco 4 &middot; O lote por dentro</span>
+          <h2 class="deck-title">Cinco formatos no mesmo lote</h2>
+          <p class="deck-summary">Cada equipamento e cada versão de firmware escreve de um jeito, e o provedor junta tudo no mesmo arquivo.</p>
         </div>
         <pre class="is-compact" style="flex-shrink:0;"><code>CAM-0412|17/10/26 09:14:03|-23.5481,-46.6390|VEL 087|TAC MOT 03h12
 #RADIO 09:14 MOTORISTA: parada posto km 214 BR-116
@@ -500,13 +500,13 @@ TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA</code></pre>
           <thead><tr><th>Critério</th><th>File storage (disco, NFS, SFTP)</th><th>Object storage (S3, MinIO)</th></tr></thead>
           <tbody>
             <tr><td>Como o lote chega</td><td>cópia para pasta; aceita acrescentar ao arquivo</td><td><code>PUT</code> HTTP do lote inteiro; sem acrescentar</td></tr>
-            <tr><td>Latência medida (bloco 2)</td><td>0,48 ms grava, 0,01 ms lê</td><td>3,97 ms grava, 1,90 ms lê</td></tr>
+            <tr><td>Latência medida (bloco 2)</td><td>0,53 ms grava, 0,01 ms lê</td><td>4,56 ms grava, 2,95 ms lê</td></tr>
             <tr><td>Procedência</td><td>nome, data de modificação, permissão</td><td>até 2 KB de metadados por objeto</td></tr>
             <tr><td>Versão e retenção</td><td>fora do sistema, por script</td><td>versionamento e ciclo de vida nativos</td></tr>
             <tr><td>Quem lê e escala</td><td>quem monta o volume; um volume por servidor</td><td>qualquer motor com API S3; cresce sem redimensionar</td></tr>
           </tbody>
         </table>
-        <p class="deck-note">Se o provedor só entrega por SFTP, a pasta vira pouso temporário e o lote segue para o bucket.</p>
+        <p class="deck-note">Se o provedor só entrega por SFTP, a pasta vira pouso temporário e o lote segue para o bucket. É o que a prática constrói.</p>
       </div>
     </div>
 
@@ -532,17 +532,17 @@ TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA</code></pre>
         <div>
           <span class="deck-kicker">Bloco 4 &middot; Exemplo numérico 4</span>
           <h2 class="deck-title">Quanto a frota gera, numa hipótese</h2>
-          <p class="deck-summary">Hipótese: 500 caminhões, uma linha por minuto, cerca de 120 bytes por linha, um lote por caminhão a cada 15 minutos.</p>
+          <p class="deck-summary">Hipótese: 500 caminhões, um lote por caminhão a cada 15 minutos, com o tamanho médio medido no gerador (1.018 bytes).</p>
         </div>
         <table class="deck-table">
           <thead><tr><th>Período</th><th>Lotes (objetos)</th><th>Conteúdo</th><th>Listar tudo</th></tr></thead>
           <tbody>
-            <tr><td>1 hora</td><td>2.000</td><td>3,6 MB</td><td>2 requisições</td></tr>
-            <tr><td>1 dia</td><td>48.000</td><td>86,4 MB</td><td>48 requisições</td></tr>
-            <tr><td>1 ano</td><td>17,52 milhões</td><td>31,5 GB</td><td>17.520 requisições</td></tr>
+            <tr><td>1 hora</td><td>2.000</td><td>2,0 MB</td><td>2 requisições</td></tr>
+            <tr><td>1 dia</td><td>48.000</td><td>48,9 MB</td><td>48 requisições</td></tr>
+            <tr><td>1 ano</td><td>17,52 milhões</td><td>17,8 GB</td><td>17.520 requisições</td></tr>
           </tbody>
         </table>
-        <p class="deck-note">Com chave por data e hora, ler uma hora da frota custa 2 listagens e 2.000 <code>GET</code>: cerca de 3,8 s com a mediana do bloco 2. Sem convenção, achar essa hora exige abrir tudo: cerca de 9 h.</p>
+        <p class="deck-note">Com chave por data e hora, ler uma hora da frota custa 2 listagens e 2.000 <code>GET</code>: cerca de 5,9 s com a mediana do bloco 2. Sem convenção, achar essa hora exige abrir tudo: cerca de 14 h.</p>
       </div>
     </div>
 
@@ -647,7 +647,7 @@ TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA</code></pre>
           <li>MinIO dá a API S3 no Codespace e no Railway; o custo é operar o serviço e não ter redundância.</li>
           <li>Storage guarda bytes. Data lake acrescenta chave convencionada, procedência, imutabilidade, acesso e retenção.</li>
           <li>Schema on read preserva o TXT e permite reprocessar; schema on write rejeita o que não cabe.</li>
-          <li>O bloco 5 aplica as mesmas regras à coleta da Open-Meteo que o grupo constrói hoje.</li>
+          <li>O bloco 5 aplica essas regras ao coletor de lotes que o grupo constrói hoje.</li>
         </ol>
       </div>
     </div>
@@ -657,62 +657,62 @@ TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA</code></pre>
       <div class="deck-shell is-dense" style="gap:16px; padding-top:32px;">
         <div>
           <span class="deck-kicker">Bloco 5 &middot; Camada raw</span>
-          <h2 class="deck-title">Chave particionada no estilo Hive</h2>
-          <p class="deck-summary">A chave diz a fonte, o dia e a hora da coleta e a cidade. DuckDB e Spark leem <code>data</code> e <code>hora</code> como colunas.</p>
+          <h2 class="deck-title">Chave particionada pela janela, em UTC</h2>
+          <p class="deck-summary">A chave diz a fonte, o dia, a hora e o caminhão da janela. DuckDB e Spark leem <code>data</code>, <code>hora</code> e <code>caminhao</code> como colunas.</p>
         </div>
-        <pre class="is-compact" style="flex-shrink:0;"><code>bucket: raw
-open_meteo/data=2026-10-17/hora=12/sao_paulo.json
-open_meteo/data=2026-10-17/hora=12/manaus.json
-_manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</code></pre>
+        <pre class="is-compact" style="flex-shrink:0;"><code>pouso/CAM-0451_20261017T0900.txt          # janela das 09:00, horário de Brasília
+bucket: raw
+telemetria/data=2026-10-17/hora=12/caminhao=CAM-0451/lote_1200.txt
+_manifestos/telemetria/data=2026-10-17/hora=12/execucao_20261017T121502Z.jsonl</code></pre>
         <div class="deck-callout">
           <strong>Decisões embutidas</strong>
-          <p style="margin:8px 0 0;">Partição pelo momento da coleta, em UTC. Cidade como identificador ASCII estável. Data antes de cidade porque a Aula 04 lê por período; quem lê por cidade inverteria. Manifesto em JSON Lines fora do prefixo de dados.</p>
+          <p style="margin:8px 0 0;">Partição pelo início da janela convertido para UTC, e não pela hora de chegada: lote atrasado cai na hora a que pertence. Data antes de caminhão porque a Aula 04 lê por período. Manifesto em JSON Lines fora do prefixo de dados.</p>
         </div>
       </div>
     </div>
 
-    <!-- 33. Formatos -->
+    <!-- 33. Bytes e manifesto -->
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 5 &middot; Formatos</span>
-          <h2 class="deck-title">JSON para o dado, JSON Lines para o manifesto</h2>
+          <h2 class="deck-title">Bytes do lote e manifesto em JSON Lines</h2>
         </div>
         <div class="deck-columns">
           <div class="deck-panel">
-            <strong>JSON, um documento por objeto</strong>
+            <strong>TXT, um lote por objeto</strong>
             <ul>
-              <li>Preserva a resposta exatamente como a API enviou</li>
-              <li>Grava <code>response.content</code>, nunca <code>json.dumps(response.json())</code></li>
-              <li>Reserializar muda espaços e ordem e invalida o hash</li>
+              <li>Grava os bytes lidos do arquivo, sem decodificar nem recodificar</li>
+              <li>Sem trocar fim de linha nem normalizar acento</li>
+              <li>Qualquer alteração muda o <code>sha256</code> e enfraquece a prova</li>
             </ul>
           </div>
           <div class="deck-panel">
-            <strong>JSON Lines, uma linha por cidade</strong>
+            <strong>JSON Lines, uma linha por lote</strong>
             <ul>
-              <li>Um manifesto por execução, acrescentado linha a linha</li>
-              <li>Status <code>gravado</code>, <code>ja_existia</code>, <code>erro</code> e alertas</li>
-              <li>Schema da fonte mudou: grava o bruto e registra <code>alerta_schema</code></li>
+              <li>Um manifesto por execução</li>
+              <li>Status <code>gravado</code>, <code>ja_existia</code>, <code>erro</code>, <code>conflito_hash</code></li>
+              <li>Bytes, <code>sha256</code>, linhas e alertas do tacógrafo</li>
             </ul>
           </div>
         </div>
-        <p class="deck-note">Parquet não entra na raw: exige esquema na escrita e reorganiza por coluna. Entra na Aula 04, lendo os JSON de hoje.</p>
+        <p class="deck-note">Parser e Parquet ficam fora da raw: interpretar as linhas é trabalho da bronze e da silver, na Aula 04, lendo os lotes de hoje.</p>
       </div>
     </div>
 
     <!-- 34. Imutabilidade, idempotência, procedência -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 5 &middot; Camada raw</span>
           <h2 class="deck-title">Imutabilidade, idempotência e procedência</h2>
         </div>
         <ol class="deck-steps">
-          <li><strong>Imutável:</strong> grava os bytes recebidos, sem limpar, renomear ou reserializar. Correção é objeto novo ou outra camada.</li>
-          <li><strong>Idempotente:</strong> chave determinística e <code>HEAD</code> antes do <code>PUT</code>. Se a chave existe, não grava e registra <code>ja_existia</code>. A primeira gravação da hora vale.</li>
-          <li><strong>Rastreável:</strong> <code>fonte</code>, <code>coletado-em</code>, <code>versao-coletor</code>, <code>sha256</code>, cidade e coordenada pedida. A API devolve a coordenada da grade, diferente da pedida.</li>
+          <li><strong>Imutável:</strong> o lote gravado não muda. Retransmissão com outro conteúdo vira <code>conflito_hash</code> e fica no pouso para alguém decidir.</li>
+          <li><strong>Idempotente:</strong> chave determinística e <code>HEAD</code> antes do <code>PUT</code>. Chave existente com o mesmo <code>sha256</code> vira <code>ja_existia</code>.</li>
+          <li><strong>Rastreável:</strong> <code>fonte</code>, <code>recebido-em</code>, <code>versao-coletor</code>, <code>sha256</code>, <code>caminhao</code>, <code>janela-inicio</code>, <code>arquivo-origem</code>.</li>
         </ol>
-        <p class="deck-note">Por que importa no Railway: o proxy devolve 502 esporádico. Com chave determinística, repetir é seguro; com chave por horário em segundos, cada retry duplica.</p>
+        <p class="deck-note">O pouso só perde o arquivo depois de <code>PUT</code> confirmado ou de <code>ja_existia</code> com o mesmo hash. Um 502 do proxy do Railway deixa o lote no pouso, e a próxima execução tenta de novo na mesma chave.</p>
       </div>
     </div>
 
@@ -722,19 +722,19 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
         <div>
           <span class="deck-kicker">Bloco 5 &middot; Exemplo numérico 5</span>
           <h2 class="deck-title">Coleta repetida nas mesmas chaves, medida</h2>
-          <p class="deck-summary">Um dia de coleta (144 documentos) gravado duas vezes, com os tempos do bloco 2.</p>
+          <p class="deck-summary">Uma hora da frota da aula (80 lotes) coletada duas vezes no MinIO local; mediana de três repetições.</p>
         </div>
         <table class="deck-table">
-          <thead><tr><th>Execução</th><th>Chave determinística + <code>HEAD</code></th><th>Chave com horário em segundos</th></tr></thead>
+          <thead><tr><th>Execução</th><th>Chave determinística + <code>HEAD</code></th><th>Chave com instante da recepção</th></tr></thead>
           <tbody>
-            <tr><td>Primeira passada (24 horas)</td><td>144 <code>HEAD</code> (0,22 s) + 144 <code>PUT</code> (0,60 s); 144 objetos</td><td>144 <code>PUT</code>; 144 objetos</td></tr>
-            <tr><td>Segunda passada, mesmas horas</td><td>144 <code>HEAD</code> (0,27 s), 0 <code>PUT</code>; 144 objetos, 144 <code>ja_existia</code></td><td>mais 144 <code>PUT</code>; 288 objetos</td></tr>
+            <tr><td>Primeira passada</td><td>80 <code>HEAD</code> + 80 <code>PUT</code> em 0,51 s; 80 objetos</td><td>80 <code>PUT</code>; 80 objetos</td></tr>
+            <tr><td>Provedor reenvia os mesmos lotes</td><td>80 <code>HEAD</code>, 0 <code>PUT</code>, em 0,21 s; 80 objetos, 80 <code>ja_existia</code></td><td>mais 80 <code>PUT</code>; 160 objetos</td></tr>
             <tr><td>Evidência no ATAM (C-02)</td><td>contagem de objetos e versões igual antes e depois</td><td>nenhum teste unitário percebe</td></tr>
           </tbody>
         </table>
         <div class="deck-callout">
-          <strong>O caso que a política não cobre</strong>
-          <p style="margin:8px 0 0;"><code>PUT</code> chegou, resposta se perdeu no proxy, cliente repetiu: mesma chave, mesmos bytes, segunda versão idêntica com o mesmo ETag. O dado não duplica, a contagem de versões cresce. Risco a registrar com <code>mc ls --versions</code>. Execuções simultâneas: S3 não trava, o último carimbo vence.</p>
+          <strong>O que a política não cobre</strong>
+          <p style="margin:8px 0 0;">Um dia inteiro (1.920 lotes) levou 11,7 s e, repetido, 6,1 s. Se o <code>PUT</code> chega e a resposta se perde no proxy, o retry grava uma segunda versão idêntica, com o mesmo ETag. Execuções simultâneas: S3 não trava, o último carimbo vence.</p>
         </div>
       </div>
     </div>
@@ -744,14 +744,15 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 5 &middot; A fonte</span>
-          <h2 class="deck-title">API de previsão da Open-Meteo, sem chave</h2>
-          <p class="deck-summary">Uso não comercial: menos de 10.000 chamadas por dia, 5.000 por hora, 600 por minuto; licença CC BY 4.0. Seis capitais por hora somam 144 chamadas por dia.</p>
+          <h2 class="deck-title">O provedor por satélite e o gerador da aula</h2>
+          <p class="deck-summary">Não há API pública de telemetria. O <code>gerar_lotes.py</code> escreve em <code>pouso/</code> o que o provedor deixaria no SFTP. Mesma semente e mesmo início, mesmos bytes em qualquer máquina.</p>
         </div>
-        <pre class="is-wrap"><code>curl -s "https://api.open-meteo.com/v1/forecast?latitude=-23.55&amp;longitude=-46.63&amp;hourly=temperature_2m,relative_humidity_2m&amp;timezone=America/Sao_Paulo&amp;forecast_days=1"
-
-# parâmetro inválido: HTTP 400 com {"error": true, "reason": "..."}
-# resposta traz a coordenada da grade: -23.514938, -46.610504
-# hourly.time com 24 posições; 992 bytes em 14/10/2026</code></pre>
+        <pre class="is-compact" style="flex-shrink:0;"><code>python gerar_lotes.py --inicio 2026-10-17T09:00
+# 80 lotes em pouso/ (20 caminhões x 4 janelas), média 1025 bytes por lote
+sha256sum pouso/CAM-0451_20261017T0900.txt
+# 6789b712602d1985...  983 bytes: o mesmo hash para toda a turma
+python gerar_lotes.py --inicio 2027-03-02T08:00
+# depois do firmware novo: parte da frota acrescenta TEMP_BAU ao formato 3</code></pre>
       </div>
     </div>
 
@@ -760,14 +761,14 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 5 &middot; Pausa e passagem para a prática</span>
-          <h2 class="deck-title">E se a distribuidora pedir sete dias de previsão?</h2>
-          <p class="deck-summary">Em janeiro, <code>forecast_days=1</code> vira <code>forecast_days=7</code>. O que muda na chave, nos metadados, no manifesto e no bucket? Qual decisão precisa de ADR novo?</p>
+          <h2 class="deck-title">E se o provedor passar a lotes de uma hora?</h2>
+          <p class="deck-summary">Em março, o lote de 15 minutos vira um lote por hora. O que muda na chave, nos metadados, no manifesto e no bucket? Qual decisão precisa de ADR novo?</p>
         </div>
         <ol class="deck-steps">
-          <li>A chave <code>fonte/data=/hora=/cidade.json</code>, em UTC, faz a partição que as próximas aulas leem.</li>
-          <li>JSON preserva o documento; JSON Lines registra a execução; Parquet fica para a transformação.</li>
-          <li>Chave determinística e <code>HEAD</code> antes do <code>PUT</code> tornam a repetição segura; execução simultânea fica como risco.</li>
-          <li>Sete metadados dizem de onde, quando, por qual versão e com que pedido o dado veio.</li>
+          <li>A chave <code>telemetria/data=/hora=/caminhao=/lote_HHMM.txt</code>, pela janela em UTC, faz a partição que as próximas aulas leem.</li>
+          <li>Os bytes do lote seguem intactos; JSON Lines registra a execução; parser e Parquet ficam para a Aula 04.</li>
+          <li><code>HEAD</code> antes do <code>PUT</code>, comparação de hash e remoção do pouso só depois da confirmação tornam a repetição segura.</li>
+          <li>Sete metadados dizem de onde, quando, por qual versão e de que arquivo o lote veio.</li>
         </ol>
         <p class="deck-note">Daqui em diante, cada decisão vira um requisito, uma tarefa, um teste e um cenário ATAM no projeto do grupo.</p>
       </div>
@@ -778,15 +779,16 @@ _manifestos/open_meteo/data=2026-10-17/hora=12/execucao_20261017T120431Z.jsonl</
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Etapa 0 &middot; Ambiente</span>
-          <h2 class="deck-title">MinIO local e pasta do projeto</h2>
-          <p class="deck-summary">Codespace, agente de código e MinIO do Railway vêm da Aula 01. Aqui entra o MinIO local para desenvolver.</p>
+          <h2 class="deck-title">MinIO local, gerador e pasta do projeto</h2>
+          <p class="deck-summary">Codespace, agente de código e MinIO do Railway vêm da Aula 01. Aqui entram o MinIO local e os lotes no pouso.</p>
         </div>
-        <pre class="is-compact"><code>mkdir -p aula_02_coleta_json/{docs/adr,specs,src,tests} &amp;&amp; cd aula_02_coleta_json
-# baixe docker-compose.yml, .env.example, requirements.txt, AGENTS.md, .gitignore (roteiro)
+        <pre class="is-compact" style="flex-shrink:0;"><code>mkdir -p aula_02_coleta_telemetria/{docs/adr,specs,src,tests} &amp;&amp; cd aula_02_coleta_telemetria
+# baixe docker-compose.yml, .env.example, requirements.txt, AGENTS.md, .gitignore, gerar_lotes.py
 cp .env.example .env            # troque a senha: openssl rand -base64 24
 docker compose up -d &amp;&amp; docker compose ps -a
 docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
 python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -r requirements.txt
+python gerar_lotes.py --inicio 2026-10-17T09:00 &amp;&amp; ls pouso | wc -l     # 80
 echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou o agente que você usa</code></pre>
       </div>
     </div>
@@ -815,14 +817,14 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou o agente que você us
         <div>
           <span class="deck-kicker">Prompts 1 e 2</span>
           <h2 class="deck-title">Persona e objetivos antes de qualquer código</h2>
-          <p class="deck-summary">Cenário fictício: distribuidora de bebidas com centros em seis capitais quer comparar previsão e vendas de bebidas geladas.</p>
+          <p class="deck-summary">Cenário fictício: a coordenação de frota e o jurídico da transportadora precisam provar, meses depois, o que o tacógrafo de cada caminhão registrou.</p>
         </div>
         <div class="deck-columns">
           <div class="deck-panel">
             <strong>docs/00_persona.md</strong>
             <ul>
-              <li>Decisão que a persona toma</li>
-              <li>Dor e frequência de uso</li>
+              <li>Frota, jurídico e quem mantém o coletor</li>
+              <li>Decisão, dor e frequência de uso</li>
               <li>Fatos, lacunas, suposições</li>
             </ul>
           </div>
@@ -845,13 +847,13 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou o agente que você us
           <span class="deck-kicker">Prompt 3 &middot; specs/spec.md</span>
           <h2 class="deck-title">Requisito com critério que um teste confirma</h2>
         </div>
-        <pre><code>RF-03 Chave determinística
-Dado uma coleta de São Paulo iniciada em 17/10/2026 às 12:20 UTC,
+        <pre style="flex-shrink:0;"><code>RF-03 Chave determinística pela janela
+Dado o lote pouso/CAM-0451_20261017T0900.txt (janela das 09:00 em Brasília),
 Quando o coletor calcula a chave do objeto,
-Então a chave é open_meteo/data=2026-10-17/hora=12/sao_paulo.json,
-E uma nova execução às 12:50 UTC do mesmo dia calcula a mesma chave.
-Verificação: teste unitário de função pura com horário fixo.</code></pre>
-        <p class="deck-note">Revise: todo RF tem verificação? O retry exclui HTTP 400? Tentativas e esperas estão marcadas como hipótese?</p>
+Então a chave é telemetria/data=2026-10-17/hora=12/caminhao=CAM-0451/lote_1200.txt,
+E o mesmo lote processado em qualquer outro momento calcula a mesma chave.
+Verificação: teste unitário de função pura, sem relógio.</code></pre>
+        <p class="deck-note">Revise: todo RF tem verificação? O arquivo só sai do pouso depois da confirmação? Tentativas e esperas estão marcadas como hipótese?</p>
       </div>
     </div>
 
@@ -865,10 +867,10 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
         <table class="deck-table">
           <thead><tr><th>Escolha</th><th>Alternativa</th><th>Justificativa</th></tr></thead>
           <tbody>
-            <tr><td>Uma requisição por cidade</td><td>Seis coordenadas numa requisição</td><td>falha de uma cidade não derruba as outras</td></tr>
-            <tr><td>Partição em UTC</td><td>America/Sao_Paulo</td><td>sem ambiguidade de fuso; local fica nos metadados</td></tr>
+            <tr><td>Um objeto por lote</td><td>Concatenar os lotes da hora</td><td>preserva o arquivo do provedor e o hash</td></tr>
+            <tr><td>Partição pela janela, em UTC</td><td>Pela hora de chegada</td><td>lote atrasado cai na hora certa; sem fuso ambíguo</td></tr>
             <tr><td><code>boto3</code> com path style</td><td>SDK <code>minio</code></td><td>mesma API para local e Railway</td></tr>
-            <tr><td>Armazenamento falso nos testes</td><td>MinIO real em todo teste</td><td>teste unitário sem rede</td></tr>
+            <tr><td>Pasta temporária e armazenamento falso nos testes</td><td>MinIO real em todo teste</td><td>teste unitário sem rede</td></tr>
           </tbody>
         </table>
       </div>
@@ -885,7 +887,7 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
           <li><strong>Plano:</strong> o agente mostra arquivos e funções; o grupo confirma.</li>
           <li><strong>Teste primeiro:</strong> <code>python -m pytest -q</code> falha.</li>
           <li><strong>Mínimo para passar:</strong> e roda de novo.</li>
-          <li><strong>Diff:</strong> só arquivos da tarefa, sem segredo, sem reserializar o JSON.</li>
+          <li><strong>Diff:</strong> só arquivos da tarefa, sem segredo, sem alterar os bytes do lote.</li>
           <li><strong>Para:</strong> marca a tarefa em <code>tasks.md</code> e espera.</li>
         </ol>
       </div>
@@ -898,14 +900,16 @@ Verificação: teste unitário de função pura com horário fixo.</code></pre>
           <span class="deck-kicker">Verificação local</span>
           <h2 class="deck-title">Rodar duas vezes e contar objetos</h2>
         </div>
-        <pre class="is-compact"><code>set -a; source .env; set +a
+        <pre class="is-compact" style="flex-shrink:0;"><code>set -a; source .env; set +a
 python -m pytest -q
-python -m src.coletor &amp;&amp; python -m src.coletor
-docker compose exec -T minio mc find local/raw/open_meteo --name "*.json" | wc -l
-docker compose exec -T minio mc ls --recursive --versions local/raw/open_meteo/ | wc -l
-docker compose exec minio mc stat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json
-docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12/sao_paulo.json | sha256sum</code></pre>
-        <p class="deck-note">Contagens iguais antes e depois da segunda execução. Hash do conteúdo igual ao metadado <code>sha256</code>.</p>
+python gerar_lotes.py --inicio 2026-10-17T09:00 &amp;&amp; python -m src.coletor &amp;&amp; ls pouso | wc -l
+python gerar_lotes.py --inicio 2026-10-17T09:00 &amp;&amp; python -m src.coletor   # reenvio
+docker compose exec -T minio mc find local/raw/telemetria --name "*.txt" | wc -l
+docker compose exec -T minio mc ls --recursive --versions local/raw/telemetria/ | wc -l
+K=telemetria/data=2026-10-17/hora=12/caminhao=CAM-0451/lote_1200.txt
+docker compose exec minio mc stat local/raw/$K
+docker compose exec -T minio mc cat local/raw/$K | sha256sum</code></pre>
+        <p class="deck-note">80 objetos e 80 versões, iguais antes e depois do reenvio; pouso vazio; o <code>sha256</code> do conteúdo confere com o metadado e com o gerador.</p>
       </div>
     </div>
 
@@ -915,14 +919,15 @@ docker compose exec -T minio mc cat local/raw/open_meteo/data=2026-10-17/hora=12
         <div>
           <span class="deck-kicker">MinIO do Railway</span>
           <h2 class="deck-title">Mesmo coletor apontado para o Railway</h2>
-          <p class="deck-summary"><code>.env.railway</code> fora do Git; o <code>mc</code> pede as chaves de forma interativa.</p>
+          <p class="deck-summary">O coletor roda no Codespace com <code>.env.railway</code>, fora do Git; o <code>mc</code> pede as chaves de forma interativa.</p>
         </div>
-        <pre><code>docker compose exec minio mc alias set railway https://&lt;dominio-da-porta-9000&gt;
+        <pre style="flex-shrink:0;"><code>docker compose exec minio mc alias set railway https://&lt;dominio-da-porta-9000&gt;
 docker compose exec minio mc mb --ignore-existing railway/raw
 docker compose exec minio mc version enable railway/raw
 set -a; source .env.railway; set +a
-python -m src.coletor &amp;&amp; python -m src.coletor
-docker compose exec -T minio mc find railway/raw/open_meteo --name "*.json" | wc -l
+python gerar_lotes.py --inicio 2026-10-17T09:00 &amp;&amp; python -m src.coletor
+python gerar_lotes.py --inicio 2026-10-17T09:00 &amp;&amp; python -m src.coletor
+docker compose exec -T minio mc find railway/raw/telemetria --name "*.txt" | wc -l
 docker compose exec minio mc du railway/raw</code></pre>
       </div>
     </div>
@@ -937,13 +942,13 @@ docker compose exec minio mc du railway/raw</code></pre>
         <table class="deck-table">
           <thead><tr><th>Cenário</th><th>Resposta esperada</th><th>Evidência</th></tr></thead>
           <tbody>
-            <tr><td>C-01 API fora do ar</td><td>retry; erro no manifesto; outras cidades seguem</td><td>teste com 503 simulado</td></tr>
-            <tr><td>C-02 duas execuções na mesma hora</td><td>nenhum objeto ou versão nova</td><td><code>mc ls --versions</code></td></tr>
-            <tr><td>C-03 502 do Railway</td><td>retry na mesma chave</td><td>log do coletor</td></tr>
+            <tr><td>C-01 MinIO fora do ar</td><td>lotes ficam no pouso; erro no manifesto; saída diferente de zero</td><td><code>docker compose stop minio</code></td></tr>
+            <tr><td>C-02 mesmos lotes coletados duas vezes</td><td>nenhum objeto ou versão nova; <code>ja_existia</code></td><td><code>mc ls --versions</code></td></tr>
+            <tr><td>C-03 502 do Railway</td><td>retry na mesma chave; lote no pouso se esgotar</td><td>log do coletor</td></tr>
             <tr><td>C-04 bucket contra crédito</td><td>crescimento estimado com tamanho medido</td><td><code>mc du</code></td></tr>
-            <tr><td>C-05 schema da API muda</td><td>grava o bruto; alerta no manifesto</td><td>teste com payload alterado</td></tr>
+            <tr><td>C-05 firmware novo (<code>TEMP_BAU</code>)</td><td>lote gravado intacto; nada rejeitado</td><td>teste com lote de 2027</td></tr>
             <tr><td>C-06 credencial no diff</td><td>commit bloqueado pela revisão</td><td><code>git diff --staged</code></td></tr>
-            <tr><td>C-07 execuções simultâneas</td><td>risco residual registrado</td><td>ADR-002</td></tr>
+            <tr><td>C-07 reenvio com outro conteúdo</td><td><code>conflito_hash</code>; original preservado</td><td>teste com lote alterado</td></tr>
           </tbody>
         </table>
       </div>
@@ -958,9 +963,9 @@ docker compose exec minio mc du railway/raw</code></pre>
         </div>
         <div class="quality-gates">
           <div class="quality-gate"><strong>Testes</strong><span><code>python -m pytest -q</code> sem falhas, sem rede nos unitários.</span></div>
-          <div class="quality-gate"><strong>Idempotência</strong><span>Segunda execução na mesma hora não muda objetos nem versões.</span></div>
-          <div class="quality-gate"><strong>Procedência</strong><span><code>mc stat</code> mostra os metadados; hash confere.</span></div>
-          <div class="quality-gate"><strong>Railway</strong><span>Objetos no bucket <code>raw</code> remoto, com contagem esperada.</span></div>
+          <div class="quality-gate"><strong>Idempotência</strong><span>Reenvio dos mesmos lotes não muda objetos nem versões; pouso vazio.</span></div>
+          <div class="quality-gate"><strong>Procedência</strong><span><code>mc stat</code> mostra os sete metadados; hash confere.</span></div>
+          <div class="quality-gate"><strong>Railway</strong><span>80 objetos por hora gerada no bucket <code>raw</code> remoto.</span></div>
           <div class="quality-gate"><strong>Segredos</strong><span><code>.env</code> e <code>.env.railway</code> fora do diff.</span></div>
           <div class="quality-gate"><strong>ATAM</strong><span>Cenários de seis partes com saída de <code>mc</code> colada.</span></div>
         </div>
@@ -973,12 +978,12 @@ docker compose exec minio mc du railway/raw</code></pre>
         <div>
           <span class="deck-kicker">Team-Based Learning &middot; 11h30</span>
           <h2 class="deck-title">Três decisões sobre a arquitetura com MinIO</h2>
-          <p class="deck-summary">A turma revisa a arquitetura da demonstração antes que o bucket acumule meses de dado. Cada alternativa é uma tática com ganho e custo declarados.</p>
+          <p class="deck-summary">A turma revisa a arquitetura da demonstração antes que o bucket acumule meses de lotes. Cada alternativa é uma tática com ganho e custo declarados.</p>
         </div>
         <div class="deck-grid">
-          <article class="deck-card"><h3>Questão 1 &middot; Durabilidade</h3><p style="margin:0;">Um nó, um volume e um histórico que a API não devolve. Onde a raw mora daqui para a frente?</p></article>
-          <article class="deck-card"><h3>Questão 2 &middot; Política de escrita</h3><p style="margin:0;">Retry, 502 do proxy e disparo duplo. Traz um dado novo: uma semana do coletor no Railway.</p></article>
-          <article class="deck-card"><h3>Questão 3 &middot; Arquivo não estruturado</h3><p style="margin:0;">Os lotes TXT dos caminhões chegam pelo SFTP. Como entram no lake?</p></article>
+          <article class="deck-card"><h3>Questão 1 &middot; Durabilidade</h3><p style="margin:0;">Um nó, um volume e lotes que o provedor não reenvia. Onde a raw mora?</p></article>
+          <article class="deck-card"><h3>Questão 2 &middot; Política de escrita</h3><p style="margin:0;">502 do proxy, disparo duplo e retransmissão com outro conteúdo. Traz um dado novo.</p></article>
+          <article class="deck-card"><h3>Questão 3 &middot; Linhas sem formato</h3><p style="margin:0;">Cinco formatos e o <code>TEMP_BAU</code> do firmware novo. Quando interpretar o TXT?</p></article>
         </div>
       </div>
     </div>
@@ -1014,7 +1019,7 @@ docker compose exec minio mc du railway/raw</code></pre>
           <div class="deck-panel">
             <strong>Em sala, até 12h10</strong>
             <ul>
-              <li>Pasta <code>aula_02_coleta_json/</code>, MinIO local no ar, ambiente Python</li>
+              <li>Pasta <code>aula_02_coleta_telemetria/</code>, MinIO local no ar, lotes no pouso</li>
               <li>Prompts 1 a 5 executados, revisados e commitados</li>
               <li>Decisões do TBL anotadas para os ADRs do grupo</li>
             </ul>
@@ -1036,7 +1041,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Entregável</span>
-          <h2 class="deck-title">Pasta aula_02_coleta_json no repositório do grupo</h2>
+          <h2 class="deck-title">Pasta aula_02_coleta_telemetria do grupo</h2>
         </div>
         <div class="deck-columns">
           <div class="deck-panel">
@@ -1052,7 +1057,7 @@ docker compose exec minio mc du railway/raw</code></pre>
             <strong>Execução</strong>
             <ul>
               <li><code>src/</code> e <code>tests/</code> passando</li>
-              <li>Objetos no bucket <code>raw</code> do Railway</li>
+              <li>Lotes no bucket <code>raw</code> do Railway</li>
               <li>Chaves particionadas e metadados</li>
               <li>Bucket mantido para as Aulas 03 e 04</li>
             </ul>

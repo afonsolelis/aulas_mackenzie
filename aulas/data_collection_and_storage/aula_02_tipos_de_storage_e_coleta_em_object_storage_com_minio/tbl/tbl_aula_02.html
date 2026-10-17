@@ -336,7 +336,7 @@
       a + (q.trajetos || []).filter(x => x.de !== x.para).reduce((b, x) => b + x.pessoas, 0), 0);
     return `<div class="bloco destaque"><span class="selo">Fechamento</span>
         <h2 style="margin-top:10px">Três decisões sobre a camada bruta</h2>
-        <p>A primeira questão tratou de onde a raw mora e do que se perde com o volume; a segunda, da política de escrita quando a rede não confirma a gravação; a terceira, de como um arquivo sem formato entra no lake. Foram ${totalMudancas} ${totalMudancas === 1 ? 'mudança' : 'mudanças'} de decisão. Cada tática escolhida protege um atributo de qualidade e expõe outro, e essa troca vira um ADR e um cenário ATAM no projeto do grupo.</p></div>
+        <p>A primeira questão tratou de onde a raw mora e do que se perde com o volume; a segunda, da política de escrita quando a rede não confirma a gravação; a terceira, de quando e onde interpretar um arquivo sem formato. Foram ${totalMudancas} ${totalMudancas === 1 ? 'mudança' : 'mudanças'} de decisão. Cada tática escolhida protege um atributo de qualidade e expõe outro, e essa troca vira um ADR e um cenário ATAM no projeto do grupo.</p></div>
       ${blocos}`;
   }
 

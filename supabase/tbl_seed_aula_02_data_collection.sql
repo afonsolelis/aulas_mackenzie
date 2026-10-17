@@ -3,17 +3,22 @@
 -- Caso: O coletor que a demonstração colocou no ar
 --
 -- Três questões sobre a arquitetura que a demonstração da manhã montou
--- (coletor da Open-Meteo, MinIO local em Docker e MinIO de um nó no
--- Railway, bucket raw com chave particionada, HEAD antes do PUT,
--- metadados de procedência e manifesto em JSON Lines):
---   1. Durabilidade da camada bruta  — um nó, um volume, um histórico que
---      a API não devolve. Retoma os blocos 2 e 3 (tipos de storage,
---      garantias do object storage, versionamento).
---   2. Política de escrita           — retry, 502 do proxy e disparo
---      duplo. Retoma o bloco 5 (idempotência e procedência).
---   3. Arquivo não estruturado       — os lotes TXT da telemetria dos
---      caminhões. Retoma o bloco 4 (file contra object storage, storage
---      contra data lake, schema on read e on write).
+-- (coletor dos lotes TXT de telemetria de caminhões: pasta de pouso no
+-- papel do SFTP do provedor por satélite, MinIO local em Docker e MinIO
+-- de um nó no Railway, bucket raw com chave particionada pela janela em
+-- UTC, HEAD antes do PUT, metadados de procedência com sha256, manifesto
+-- em JSON Lines e remoção do pouso só depois da confirmação):
+--   1. Durabilidade da camada bruta  — um nó, um volume, lotes que o
+--      provedor não reenvia e que servem de prova de jornada. Retoma os
+--      blocos 2 e 3 (tipos de storage, garantias do object storage,
+--      versionamento).
+--   2. Política de escrita           — 502 do proxy, disparo duplo e
+--      retransmissão com conteúdo diferente. Retoma o bloco 5
+--      (idempotência, imutabilidade e procedência).
+--   3. Linhas sem formato            — cinco formatos, texto livre e o
+--      TEMP_BAU do firmware novo: quando e onde interpretar o TXT.
+--      Retoma o bloco 4 (storage contra data lake, schema on read e on
+--      write, lake e lakehouse).
 --
 -- Cada questão traz quatro táticas com ganho e custo declarados, e
 -- nenhuma é correta: o que se mede é o deslocamento entre a decisão
@@ -21,7 +26,8 @@
 --
 -- A questão 2 traz um dado novo, liberado só quando a discussão é aberta:
 -- uma semana do coletor no Railway, em cenário construído para a
--- discussão e coerente com as medições da preparação da aula.
+-- discussão e coerente com as medições da preparação da aula
+-- (16/10/2026, MinIO RELEASE.2025-10-15T17-29-55Z).
 --
 -- Usa as tabelas e RPCs hubtbl_* já instaladas no Supabase compartilhado.
 -- NÃO execute hubtbl-schema.sql nem hubtbl-funcoes.sql.
@@ -63,20 +69,20 @@ insert into hubtbl_casos (session_slug, caso_titulo, caso_texto, contexto)
 values (
   'mack-dcs-a02-2026-2',
   'O coletor que a demonstração colocou no ar',
-  'A demonstração desta manhã montou a camada bruta da distribuidora de bebidas. Um coletor em Python chama a Open-Meteo a cada hora para seis capitais e grava cada resposta como JSON no bucket raw do MinIO. No Codespace, o MinIO roda em Docker para desenvolver; na coleta contínua, roda no Railway, como um único serviço com um volume montado em /data.
+  'A demonstração desta manhã montou a camada bruta da transportadora. O provedor de rastreamento por satélite entrega, para cada caminhão, um lote TXT a cada 15 minutos, com linhas do tacógrafo, do GPS e do rádio em cinco formatos misturados, e não guarda histórico. Um coletor em Python lê os lotes da pasta de pouso, que faz o papel do SFTP do provedor, e grava cada um, sem alterar um byte, no bucket raw do MinIO. No Codespace, o MinIO roda em Docker para desenvolver; na coleta contínua, roda no Railway, como um único serviço com um volume montado em /data.
 
-As decisões já tomadas são estas: chave open_meteo/data=AAAA-MM-DD/hora=HH/cidade.json, em UTC; HEAD antes do PUT, de modo que a primeira gravação da hora vale; sete metadados de procedência por objeto; um manifesto em JSON Lines por execução; versionamento ligado no bucket. A API compatível com S3 permite levar o mesmo código para outro provedor trocando o endpoint e as credenciais.
+As decisões já tomadas são estas: chave telemetria/data=AAAA-MM-DD/hora=HH/caminhao=CAM-XXXX/lote_HHMM.txt, com o início da janela em UTC; HEAD antes do PUT, de modo que a primeira gravação da janela vale; sete metadados de procedência por objeto, entre eles o sha256 do lote; um manifesto em JSON Lines por execução; versionamento ligado no bucket; e o arquivo só sai do pouso depois de a gravação ser confirmada. A API compatível com S3 permite levar o mesmo código para outro provedor trocando o endpoint e as credenciais.
 
-A preparação da aula mediu 992 bytes por resposta, cerca de 6,6 KB em disco por objeto no MinIO local, e medianas de 3,97 ms por PUT e 1,90 ms por GET, sem rede. O proxy do Railway devolve 502 de forma esporádica, e um 502 não prova que o PUT falhou. O sistema de arquivos do volume do Railway não foi verificado, e a garantia de consistência do MinIO depende dele.
+A preparação da aula mediu 1.018 bytes por lote, cerca de 7,0 KB em disco por objeto no MinIO local, e medianas de 4,56 ms por PUT e 2,95 ms por GET, sem rede. O proxy do Railway devolve 502 de forma esporádica, e um 502 não prova que o PUT falhou. O sistema de arquivos do volume do Railway não foi verificado, e a garantia de consistência do MinIO depende dele.
 
-A partir da Aula 03, o mesmo bucket recebe novas fontes; na Aula 04, ele vira a origem do lakehouse. Em janeiro, a distribuidora quer incorporar a telemetria dos caminhões de entrega, que chega por satélite em lotes TXT sem formato fixo. As três questões revisam a arquitetura antes que ela acumule meses de dado. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.',
+O lote é prova de jornada: a linha de alerta do tacógrafo acima de 5h30 de direção contínua pode ser cobrada numa fiscalização ou num processo trabalhista meses depois. Na Aula 04, a raw vira a origem do lakehouse. As três questões revisam a arquitetura antes que ela acumule meses de lotes. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.',
   '[
-    {"rotulo":"Coleta","valor":"144 objetos por dia","nota":"6 capitais × 24 horas"},
-    {"rotulo":"Em disco","valor":"6,6 KB por objeto","nota":"992 B de conteúdo · medido no MinIO local"},
-    {"rotulo":"PUT mediano","valor":"3,97 ms","nota":"MinIO local, sem rede"},
+    {"rotulo":"Frota em sala","valor":"80 lotes por hora","nota":"20 caminhões × 4 janelas · 1.920 por dia"},
+    {"rotulo":"Em disco","valor":"7,0 KB por objeto","nota":"1,0 KB de conteúdo · medido no MinIO local"},
+    {"rotulo":"PUT mediano","valor":"4,56 ms","nota":"MinIO local, sem rede"},
     {"rotulo":"MinIO no Railway","valor":"1 nó, 1 volume","nota":"sem redundância · sistema de arquivos não verificado"},
     {"rotulo":"Proxy do Railway","valor":"502 esporádico","nota":"o PUT pode ter chegado mesmo assim"},
-    {"rotulo":"Quem lê depois","valor":"Aulas 03, 04 e 05","nota":"a raw é o original de todas as camadas"}
+    {"rotulo":"Valor do lote","valor":"prova de jornada","nota":"alerta acima de 5h30 · Lei 13.103/2015"}
   ]'::jsonb
 )
 on conflict (session_slug) do update set
@@ -91,14 +97,14 @@ insert into hubtbl_questoes (session_slug, ordem, categoria, titulo, pergunta, a
 values (
   'mack-dcs-a02-2026-2', 1,
   'Durabilidade da camada bruta',
-  'Um nó, um volume, um histórico',
-  'A raw guarda o que a Open-Meteo não devolve mais: a previsão de uma hora que já passou. Hoje ela vive em um MinIO de um nó, num único volume do Railway, e a perda desse volume apaga o histórico. Que decisão o grupo toma sobre onde a camada bruta mora daqui para a frente?',
+  'Um nó, um volume, a prova da jornada',
+  'A raw guarda o que o provedor não entrega de novo: o lote original de cada janela, que pode ser a única prova de uma jornada numa fiscalização ou num processo trabalhista. Hoje ela vive em um MinIO de um nó, num único volume do Railway, e a perda desse volume apaga essa prova. Que decisão o grupo toma sobre onde a camada bruta mora daqui para a frente?',
   '[
     {
       "letra":"A","titulo":"Manter o nó e espelhar todo dia","tatica":"Cópia para um segundo destino",
       "texto":"O MinIO de um nó continua como está, e um job diário copia o bucket raw com mc mirror para um segundo destino, em outro provedor, com a data da última cópia registrada no manifesto.",
       "ganho":"Elimina a perda total do histórico com pouco código e sem mudar o coletor. O espelho usa a mesma API S3, e restaurar é copiar de volta.",
-      "custo":"Dobra o armazenamento e cria um segundo serviço para operar. O espelho fica até 24 horas atrasado, e uma gravação errada é copiada para lá do mesmo jeito que uma correta."
+      "custo":"Dobra o armazenamento e cria um segundo serviço para operar. Os lotes do dia ainda não espelhados ficam expostos por até 24 horas, e uma gravação errada é copiada do mesmo jeito que uma correta."
     },
     {
       "letra":"B","titulo":"Levar a raw para o Amazon S3","tatica":"Armazenamento gerenciado",
@@ -114,9 +120,9 @@ values (
     },
     {
       "letra":"D","titulo":"Aceitar o risco e declarar","tatica":"Risco registrado com gatilho",
-      "texto":"A arquitetura fica como está. O ATAM registra o cenário de perda do volume, o histórico que ele apagaria e o gatilho de revisão: quando a raw passar a sustentar uma decisão de negócio, a durabilidade muda.",
+      "texto":"A arquitetura fica como está. O ATAM registra o cenário de perda do volume, os lotes que ele apagaria e o gatilho de revisão: quando a coleta sair do piloto de 20 caminhões para a frota inteira, a durabilidade muda.",
       "ganho":"Custo zero agora, e a decisão fica escrita, com condição de revisão. A API S3 mantém a mudança barata quando o gatilho disparar.",
-      "custo":"Se o volume se perder antes do gatilho, o que se perde é justamente o que nenhuma API devolve: as previsões passadas. Declarar o risco não o reduz."
+      "custo":"Se o volume se perder antes do gatilho, perde-se justamente o que o provedor não reenvia: os lotes originais. Declarar o risco não o reduz, e um processo sobre uma jornada do piloto fica sem prova."
     }
   ]'::jsonb
 )
@@ -134,42 +140,43 @@ values (
   'mack-dcs-a02-2026-2', 2,
   'Política de escrita',
   'Quando o 502 não quer dizer falha',
-  'O coletor usa chave determinística e HEAD antes do PUT: a primeira gravação da hora vale. Com retries atravessando o proxy do Railway e um agendador que pode disparar duas vezes, que política de escrita o grupo adota para a raw?',
+  'O coletor usa chave determinística pela janela e HEAD antes do PUT: a primeira gravação da janela vale, e o lote só sai do pouso depois da confirmação. Com retries atravessando o proxy do Railway, um agendador que pode disparar duas vezes e um provedor que às vezes retransmite um lote, que política de escrita o grupo adota para a raw?',
   '[
     {
-      "letra":"A","titulo":"A primeira gravação da hora vale","tatica":"Manter HEAD antes do PUT",
-      "texto":"A política continua: se a chave existe, o coletor não grava e registra ja_existia no manifesto. Retry e reexecução ficam seguros enquanto houver uma execução por vez.",
-      "ganho":"Simples, idempotente e testável com um armazenamento falso. A contagem de objetos e de versões antes e depois de reexecutar é a evidência do cenário C-02.",
-      "custo":"Uma primeira resposta ruim fica valendo para sempre. Duas execuções simultâneas passam juntas pelo HEAD e gravam duas versões, e a política não percebe."
+      "letra":"A","titulo":"A primeira gravação da janela vale","tatica":"Manter HEAD antes do PUT",
+      "texto":"A política continua: se a chave existe com o mesmo sha256, o coletor não grava e registra ja_existia; com sha256 diferente, registra conflito_hash e deixa o arquivo no pouso para uma pessoa decidir.",
+      "ganho":"Simples, idempotente e testável com um armazenamento falso. A contagem de objetos e de versões antes e depois de reexecutar é a evidência do cenário C-02, e nada que serve de prova é sobrescrito.",
+      "custo":"Uma retransmissão corrigida fica parada no pouso até alguém agir. Duas execuções simultâneas passam juntas pelo HEAD e gravam duas versões, e a política não percebe."
     },
     {
-      "letra":"B","titulo":"A última gravação da hora vale","tatica":"PUT sempre, versões guardam o resto",
+      "letra":"B","titulo":"A última gravação da janela vale","tatica":"PUT sempre, versões guardam o resto",
       "texto":"O coletor grava sempre na mesma chave, sem HEAD. O versionamento guarda as gravações anteriores, e quem lê usa a versão mais recente.",
-      "ganho":"A raw fica sempre com a resposta mais nova da hora, nenhuma gravação se perde e o coletor fica mais curto, sem a requisição extra.",
-      "custo":"A contagem de versões deixa de detectar repetição indevida, porque toda execução cria uma. O bucket cresce a cada retry, e a leitura precisa escolher versão."
+      "ganho":"A raw fica com a retransmissão mais nova de cada janela, nenhuma gravação se perde e o coletor fica mais curto, sem a requisição extra.",
+      "custo":"A contagem de versões deixa de detectar repetição indevida, porque toda execução cria uma. Quem lê precisa escolher versão, e a prova passa a depender de qual versão foi lida."
     },
     {
-      "letra":"C","titulo":"Gravar tudo e deduplicar depois","tatica":"Chave com o instante da coleta",
-      "texto":"A chave ganha o instante da coleta em segundos, e cada execução grava um objeto novo. A regra de qual resposta vale para a hora passa para a Aula 04, na leitura da raw.",
-      "ganho":"Nada se perde e nenhuma decisão fica escondida no coletor: todas as respostas, inclusive as repetidas, ficam disponíveis para auditoria.",
-      "custo":"Duplicata vira regra, e o bucket dobra a cada reexecução. A camada seguinte carrega uma lógica que nenhum teste unitário do coletor cobre."
+      "letra":"C","titulo":"Gravar tudo e deduplicar depois","tatica":"Chave com o instante da recepção",
+      "texto":"A chave ganha o instante da recepção em segundos, e cada execução grava um objeto novo. A regra de qual lote vale para a janela passa para a Aula 04, na leitura da raw.",
+      "ganho":"Nada se perde e nenhuma decisão fica escondida no coletor: todas as transmissões, inclusive as repetidas e as corrigidas, ficam disponíveis para auditoria.",
+      "custo":"Duplicata vira regra, e o bucket cresce a cada reexecução e a cada retransmissão. A camada seguinte carrega uma lógica que nenhum teste unitário do coletor cobre."
     },
     {
       "letra":"D","titulo":"Gravação condicional no servidor","tatica":"PUT com If-None-Match",
-      "texto":"O HEAD sai, e o PUT passa a ser condicional: o servidor só grava se a chave não existir, numa única operação. O S3 aceita esse cabeçalho; no MinIO da versão usada, o suporte precisa ser testado antes.",
-      "ganho":"Fecha a janela entre o HEAD e o PUT, inclusive com execuções simultâneas, e economiza uma requisição por objeto.",
+      "texto":"O HEAD sai, e o PUT passa a ser condicional: o servidor só grava se a chave não existir, numa única operação; se recusar, o coletor compara o hash. O S3 aceita esse cabeçalho; no MinIO da versão usada, o suporte precisa ser testado antes.",
+      "ganho":"Fecha a janela entre o HEAD e o PUT, inclusive com execuções simultâneas, e economiza uma requisição por lote gravado.",
       "custo":"Depende de suporte do servidor que ainda não foi verificado no Railway. Se o MinIO local e o remoto se comportarem diferente, o teste passa num ambiente e falha no outro."
     }
   ]'::jsonb,
   '{
     "titulo":"Uma semana do coletor no Railway",
-    "texto":"O grupo deixou o coletor rodando de hora em hora por sete dias e cruzou o manifesto, o log do coletor e a listagem de versões do bucket. Os números são de um cenário construído para a discussão, coerente com as medições da preparação da aula.",
+    "texto":"O grupo deixou o coletor rodando de 15 em 15 minutos por sete dias, com o gerador da aula no papel do provedor, e cruzou o manifesto, o log do coletor e a listagem de versões do bucket. Os números são de um cenário construído para a discussão, coerente com as medições da preparação da aula.",
     "evidencias":[
-      "As 168 execuções agendadas deveriam gerar 1.008 objetos, e a listagem mostra 1.008 chaves.",
-      "O proxy devolveu 502 em 11 PUT. Em 3 deles o objeto já estava gravado, e o retry criou uma segunda versão idêntica, com o mesmo ETag.",
-      "Depois de um redeploy, o agendador disparou duas execuções no mesmo minuto. Em 2 cidades, as duas passaram pelo HEAD antes de qualquer PUT e gravaram duas versões que diferem só no campo generationtime_ms, o que muda o hash.",
-      "Em uma hora, a resposta para Manaus veio com HTTP 200 e todos os valores de temperatura nulos. Pela política atual, é ela que vale para aquela hora.",
-      "A Aula 04 vai ler a raw por período e espera exatamente uma resposta por cidade e hora."
+      "As 672 execuções agendadas receberam 13.440 lotes (20 caminhões × 4 por hora × 168 horas), e a listagem mostra 13.440 chaves em telemetria/.",
+      "O proxy devolveu 502 em 37 PUT. Em 9 deles o objeto já estava gravado, e o retry criou uma segunda versão idêntica, com o mesmo ETag.",
+      "Depois de um redeploy, o agendador disparou duas execuções no mesmo minuto. Em 6 lotes, as duas passaram pelo HEAD antes de qualquer PUT e gravaram duas versões com os mesmos bytes; só o metadado recebido-em difere.",
+      "O provedor retransmitiu 4 lotes com uma linha a mais, que o satélite tinha atrasado. Os 4 ficaram no pouso como conflito_hash, e ninguém olhou a pasta durante a semana.",
+      "Um desses 4 lotes traz um alerta de direção contínua acima de 5h30 que não está na versão gravada na raw.",
+      "A Aula 04 vai ler a raw por período e espera exatamente um lote por caminhão e janela."
     ],
     "pergunta":"Diante do que a semana registrou, qual política permanece? Declare se a sua escolha anterior sobrevive a este dado e por quê."
   }'::jsonb
@@ -180,38 +187,38 @@ on conflict (session_slug, ordem) do update set
   dado_novo = excluded.dado_novo;
 
 -- ---------------------------------------------------------------------
--- Questão 3 — Arquivo não estruturado
+-- Questão 3 — Linhas sem formato e o firmware novo
 -- ---------------------------------------------------------------------
 insert into hubtbl_questoes (session_slug, ordem, categoria, titulo, pergunta, alternativas)
 values (
   'mack-dcs-a02-2026-2', 3,
   'Arquivo não estruturado',
-  'Os lotes TXT dos caminhões',
-  'Em janeiro, os lotes TXT da telemetria passam a chegar pelo SFTP do provedor, cerca de 48 mil por dia na hipótese do bloco 4, com datas em formatos diferentes, texto livre e linhas de erro. Como esse dado entra na arquitetura que a demonstração montou?',
+  'Linhas sem formato e o firmware novo',
+  'Cada lote mistura cinco formatos de linha, texto livre do rádio e erros do enlace, cerca de 16 linhas por lote. Em março, parte da frota recebe um firmware que acrescenta TEMP_BAU, a temperatura do baú, ao fim das linhas do formato 3. Hoje a raw guarda o lote intacto e ninguém interpreta as linhas. Quando e onde o grupo passa a interpretar esse texto?',
   '[
     {
-      "letra":"A","titulo":"A pasta do SFTP como repositório","tatica":"File storage definitivo",
-      "texto":"Os lotes ficam no volume do servidor SFTP, organizados em pastas por data. Quem precisa do dado lê por montagem do volume ou copia os arquivos.",
-      "ganho":"Nenhum serviço novo, latência de arquivo local e o formato que o provedor já entrega. Acrescentar linhas a um lote aberto funciona sem adaptação.",
-      "custo":"Sem metadados de procedência nem versões, num volume de um servidor só. DuckDB e ClickHouse não leem por API S3, e a retenção legal fica num script. É storage, sem as regras de um lake."
+      "letra":"A","titulo":"Parser na coleta, só registros","tatica":"Schema on write no coletor",
+      "texto":"O coletor interpreta cada linha antes de gravar e envia ao bucket um JSON Lines com os campos tipados dos formatos conhecidos. O TXT original é descartado depois da gravação.",
+      "ganho":"Uma única etapa, campos tipados desde o primeiro dia e leitura imediata pelo DuckDB, sem uma camada de arquivos brutos para manter.",
+      "custo":"Linha fora dos cinco formatos se perde, e o TEMP_BAU some até alguém mudar o parser. Sem o original, um defeito do parser não se corrige, e a prova numa fiscalização depende do que o parser entendeu."
     },
     {
-      "letra":"B","titulo":"SFTP como pouso, bucket como destino","tatica":"Pouso temporário e raw no MinIO",
-      "texto":"Um processo move cada lote para telemetria/data=/hora=/caminhao= no bucket raw, com metadados de origem e hash, e só apaga o arquivo da pasta depois de confirmar a gravação.",
-      "ganho":"A telemetria ganha a mesma governança da Open-Meteo: original preservado, schema on read e reprocessamento quando o parser mudar.",
-      "custo":"Mais um processo para operar e monitorar, com uma janela em que o lote existe nos dois lugares. 48 mil objetos por dia pesam na listagem e na sobrecarga de cerca de 5,6 KB por objeto."
+      "letra":"B","titulo":"Raw bruta e bronze depois","tatica":"Schema on read com extrator separado",
+      "texto":"A raw continua com o TXT intacto. Um extrator versionado lê a raw e grava a bronze em JSON Lines, uma linha por registro, com o formato reconhecido, o lote de origem e as linhas que não reconheceu.",
+      "ganho":"O original fica como prova, o TEMP_BAU entra no histórico inteiro quando o extrator aprender a lê-lo, e um defeito se corrige reprocessando a raw.",
+      "custo":"Dois componentes para operar, o dado guardado em duas camadas e um atraso entre a chegada e a leitura. Alguém precisa acompanhar as linhas não reconhecidas, ou elas viram um depósito sem dono."
     },
     {
-      "letra":"C","titulo":"Parsear na chegada e guardar só registros","tatica":"Schema on write num Postgres",
-      "texto":"Um parser lê cada lote assim que ele chega e grava apenas os registros tipados numa tabela do Postgres. O TXT é descartado depois da carga.",
-      "ganho":"SQL imediato, tipos garantidos e um painel rápido desde o primeiro dia, sem uma camada de arquivos para manter.",
-      "custo":"Linha fora do formato é rejeitada, e um campo novo do firmware se perde até alguém migrar a tabela. Sem o original, um defeito do parser não se corrige, e a prova numa fiscalização depende dele."
+      "letra":"C","titulo":"Raw bruta e parser em cada leitura","tatica":"Schema on read sem camada intermediária",
+      "texto":"Nada além da raw. Cada consulta da Aula 04 aplica um parser, em SQL ou em Python, direto sobre os TXT do bucket.",
+      "ganho":"Nenhum componente novo, e mudar o parser é mudar a consulta: o TEMP_BAU aparece no histórico inteiro na próxima leitura.",
+      "custo":"Cada leitor escreve e mantém o seu parser, e duas consultas podem discordar sobre o mesmo lote. Interpretar 1.920 arquivos por dia de dado a cada consulta custa mais que ler registros prontos."
     },
     {
-      "letra":"D","titulo":"Lote por hora na raw e bronze imediato","tatica":"Agregar na chegada e extrair cedo",
-      "texto":"Os lotes de cada caminhão são concatenados por hora antes de ir à raw, com a lista dos arquivos originais no manifesto, e um extrator grava em seguida o bronze em JSON Lines.",
-      "ganho":"Divide o número de objetos e a sobrecarga por quatro, e o bronze dá leitura imediata sem descartar o texto original.",
-      "custo":"Agregar exige esperar a hora fechar e cria mais um passo que pode falhar no meio. O lote do provedor deixa de existir como objeto próprio, e dois componentes passam a exigir manutenção desde o primeiro mês."
+      "letra":"D","titulo":"Parser na coleta e TXT preservado","tatica":"Raw e bronze na mesma execução",
+      "texto":"O coletor grava o TXT na raw, como hoje, e na mesma execução grava a bronze em JSON Lines. Se o parser falhar, o lote vai para a raw mesmo assim e o erro entra no manifesto.",
+      "ganho":"Leitura imediata sem perder o original, e reprocessar a bronze a partir da raw continua possível.",
+      "custo":"O coletor fica maior e passa a depender de código que muda a cada firmware. Um defeito no parser atrasa a execução que só precisava mover arquivos, e o pouso pode acumular lotes."
     }
   ]'::jsonb
 )
