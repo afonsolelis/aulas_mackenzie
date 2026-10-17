@@ -105,7 +105,7 @@
             <tr><td>Segurança e LGPD</td><td>Quem acessa, com qual credencial, e onde o segredo fica?</td><td>Repositório público no GitHub: nenhuma senha pode ser versionada.</td></tr>
           </tbody>
         </table></div>
-        <p>Idempotência merece atenção desde já, porque ela é a condição para tentar de novo com segurança. Se o coletor da Aula 02 grava cada resposta numa chave determinada pela data e pela hora da coleta (<code>raw/open_meteo/data=2026-10-17/hora=09/sao_paulo.json</code>), repetir a gravação depois de um 502 sobrescreve o mesmo objeto. Se a chave incluísse o instante da tentativa, cada repetição criaria um arquivo novo e a contagem de registros ficaria errada sem que nenhum erro aparecesse.</p>
+        <p>Idempotência merece atenção desde já, porque ela é a condição para tentar de novo com segurança. Se o coletor da Aula 02 grava cada lote de telemetria numa chave determinada pela data, pela hora e pelo caminhão (<code>raw/telemetria/data=2026-10-17/hora=12/caminhao=CAM-0412/lote_1200.txt</code>), repetir a gravação depois de um 502 sobrescreve o mesmo objeto. Se a chave incluísse o instante da tentativa, cada repetição criaria um arquivo novo e a contagem de registros ficaria errada sem que nenhum erro aparecesse.</p>
 
         <h3>3.3 Decisões arquiteturais e trade-offs</h3>
         <p>Toda decisão arquitetural compra um atributo pagando com outro. O trabalho do arquiteto é tornar esse preço visível antes que ele seja cobrado. A tabela abaixo mostra três decisões do projeto MinIO e o que cada uma custa.</p>
