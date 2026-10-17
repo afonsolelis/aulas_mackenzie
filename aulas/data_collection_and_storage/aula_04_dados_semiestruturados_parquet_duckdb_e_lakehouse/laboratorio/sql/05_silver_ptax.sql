@@ -1,5 +1,5 @@
 -- Aula 04 · Silver: boletins PTAX tipados, um por linha, sem repetição.
--- Uso: python sql/rodar_sql.py sql/04_silver_ptax.sql
+-- Uso: python sql/rodar_sql.py sql/05_silver_ptax.sql
 -- Fonte: bronze da Aula 03, s3://bronze/ptax/moeda=GBP/data=D/cotacoes.jsonl,
 --   com moeda, dataHoraCotacao, tipoBoletim, cotacaoCompra, cotacaoVenda.
 -- Coletas de dias diferentes podem repetir o mesmo boletim. A silver é pequena:

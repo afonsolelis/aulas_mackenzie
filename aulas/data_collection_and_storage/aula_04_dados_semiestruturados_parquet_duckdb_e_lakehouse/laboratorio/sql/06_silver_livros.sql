@@ -1,5 +1,5 @@
 -- Aula 04 · Silver: livros tipados e deduplicados, uma partição por data de coleta.
--- Uso: python sql/rodar_sql.py sql/05_silver_livros.sql --var DATA=2026-10-24
+-- Uso: python sql/rodar_sql.py sql/06_silver_livros.sql --var DATA=2026-10-24
 -- Fonte: bronze da Aula 03, s3://bronze/books_toscrape/data=D/livros.jsonl,
 --   extraído das páginas de detalhe; chave natural upc.
 -- Contrato combinado com a Aula 05: s3://silver/livros/data_coleta=D/ com upc, url, titulo,

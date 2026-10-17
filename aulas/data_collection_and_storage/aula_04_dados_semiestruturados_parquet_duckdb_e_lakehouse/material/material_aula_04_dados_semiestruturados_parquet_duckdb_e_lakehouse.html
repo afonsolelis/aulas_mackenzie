@@ -21,7 +21,7 @@
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
       <h1>Aula 04 — Dados Semiestruturados, Parquet, DuckDB e Lakehouse</h1>
       <p class="meta">Aula 04 &middot; 31/10/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p class="summary">As duas primeiras horas, em cinco blocos, organizam o que a prática vai exigir: onde está o esquema de um dado semiestruturado e quem o aplica; quanto ocupam e quanto custam para ler os formatos CSV, JSON, JSON Lines e Parquet, com números medidos na preparação; como o data lake, o lakehouse e o data warehouse vistos na Aula 02 viram os quatro buckets do grupo; quantas requisições o DuckDB gasta para ler o MinIO; e as decisões de desenho do job, do fuso ao cron. O restante da aula constrói ao vivo, em Spec-Driven Development, um lakehouse sobre os buckets <code>raw</code> e <code>bronze</code> que as Aulas 02 e 03 alimentaram: o DuckDB lê o JSON e o JSON Lines direto do MinIO, grava Parquet tipado na camada silver e tabelas de consumo na gold. O job roda primeiro no Codespace e depois no Railway, como serviço com cron. A manhã termina com um TBL sobre essa arquitetura.</p>
+      <p class="summary">As duas primeiras horas, em cinco blocos, organizam o que a prática vai exigir: onde está o esquema de um dado semiestruturado e quem o aplica; quanto ocupam e quanto custam para ler os formatos CSV, JSON, JSON Lines e Parquet, com números medidos na preparação; como o data lake, o lakehouse e o data warehouse vistos na Aula 02 viram os quatro buckets do grupo; quantas requisições o DuckDB gasta para ler o MinIO; e as decisões de desenho do job, do fuso ao cron. O restante da aula constrói ao vivo, em Spec-Driven Development, um lakehouse sobre os buckets <code>raw</code> e <code>bronze</code> que as Aulas 02 e 03 alimentaram: o DuckDB lê direto do MinIO os lotes TXT de telemetria de caminhões e o JSON Lines dos livros e da PTAX, extrai a telemetria para o bronze, grava Parquet tipado na camada silver e tabelas de consumo na gold. O job roda primeiro no Codespace e depois no Railway, como serviço com cron. A manhã termina com um TBL sobre essa arquitetura.</p>
     </header>
 
     <article class="material">
@@ -51,12 +51,12 @@
       <!-- 1 -->
       <section class="content-block" id="s1">
         <h2>1. Onde as Aulas 02 e 03 nos deixaram</h2>
-        <p>Três semanas de coleta deixaram o bucket <code>raw</code> do MinIO do grupo cheio de arquivos que ninguém consulta. A <a href="../../aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Aula 02</a> gravou, a cada hora, a resposta da Open-Meteo para seis capitais, com a chave <code>open_meteo/data=AAAA-MM-DD/hora=HH/&lt;cidade&gt;.json</code> e um manifesto de execução em JSON Lines em <code>_manifestos/open_meteo/</code>. A <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> gravou no <code>raw</code> as páginas de listagem e de detalhe do books.toscrape.com e a resposta da API PTAX do Banco Central, e extraiu delas dois arquivos em JSON Lines no bucket <code>bronze</code>: <code>bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl</code>, um livro por linha com o UPC como chave, e <code>bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl</code>, um boletim da cotação da libra por linha. A conversão de libras para reais ficou para esta aula.</p>
-        <p>Esses arquivos preservam o que as fontes entregaram, e por isso servem para reconstruir qualquer análise. Também por isso respondem mal a perguntas simples. Para saber a temperatura média prevista para Manaus num dia, é preciso abrir as respostas de todas as coletas daquele dia, extrair a lista de horários, decidir qual coleta vale para cada hora e calcular a média. Para saber quanto custa em reais um livro numa coleta de sábado, é preciso cruzar o preço em libras com o último boletim de fechamento da PTAX, que não é publicada em fim de semana. A Aula 04 constrói as camadas que fazem esse trabalho uma vez, de forma reproduzível, e publicam o resultado em tabelas prontas para consumo.</p>
+        <p>Três semanas de coleta deixaram o bucket <code>raw</code> do MinIO do grupo cheio de arquivos que ninguém consulta. A <a href="../../aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html">Aula 02</a> gravou a telemetria da transportadora: para cada caminhão, um lote TXT a cada 15 minutos, com linhas de tacógrafo, GPS e rádio em cinco formatos diferentes, produzido pelo gerador sintético do laboratório daquela aula. A chave é <code>telemetria/data=AAAA-MM-DD/hora=HH/caminhao=CAM-XXXX/lote_HHMM.txt</code>, com data, hora e minuto do início da janela em UTC, e cada execução do coletor deixa um manifesto em JSON Lines em <code>_manifestos/telemetria/</code>. A <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> gravou no <code>raw</code> as páginas de listagem e de detalhe do books.toscrape.com e a resposta da API PTAX do Banco Central, e extraiu delas dois arquivos em JSON Lines no bucket <code>bronze</code>: <code>bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl</code>, um livro por linha com o UPC como chave, e <code>bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl</code>, um boletim da cotação da libra por linha. A conversão de libras para reais ficou para esta aula.</p>
+        <p>Esses arquivos preservam o que as fontes entregaram, e por isso servem para reconstruir qualquer análise. Também por isso respondem mal a perguntas simples. Para saber quantas horas um caminhão dirigiu num dia e se passou do limite de 5h30 de direção contínua, é preciso abrir os 96 lotes daquele caminhão, separar as posições das mensagens de rádio, dos erros do enlace e dos alertas do tacógrafo, converter três formatos de horário de Brasília para um instante comum, descartar as posições retransmitidas e só então somar. Para saber quanto custa em reais um livro numa coleta de sábado, é preciso cruzar o preço em libras com o último boletim de fechamento da PTAX, que não é publicada em fim de semana. A Aula 04 constrói as camadas que fazem esse trabalho uma vez, de forma reproduzível, e publicam o resultado em tabelas prontas para consumo.</p>
         <p>O método e o ambiente vêm da <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a>: Spec-Driven Development com prompts no formato CREATE (<code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code>, <code>[E] Extras</code>), agente de código de preferência de cada aluno, Codespace no repositório do grupo e MinIO publicado no Railway com domínio público para a porta 9000. Se algum desses itens faltar, volte à Aula 01 antes de continuar.</p>
         <div class="note">
           <strong>Resultado esperado ao fim da aula</strong>
-          <p>Uma pasta <code>aula_04_lakehouse/</code> no repositório do grupo com o esqueleto SDD preenchido; um job em Python com DuckDB, com testes passando, que lê o bronze e grava silver e gold no MinIO; a imagem do job publicada no Railway como serviço com cron; e um <code>docs/atam.md</code> com seis cenários de qualidade e medidas feitas sobre os dados do grupo.</p>
+          <p>Uma pasta <code>aula_04_lakehouse/</code> no repositório do grupo com o esqueleto SDD preenchido; um job em Python com DuckDB, com testes passando, que lê o raw e o bronze e grava o bronze da telemetria, a silver e a gold no MinIO; a imagem do job publicada no Railway como serviço com cron; e um <code>docs/atam.md</code> com seis cenários de qualidade e medidas feitas sobre os dados do grupo.</p>
         </div>
         <h3>1.1 Agenda</h3>
         <div class="table-scroll"><table>
@@ -75,9 +75,15 @@
         <p>A teoria ocupa duas horas porque cada decisão do job (formato, camada, leitor, nome do objeto, janela de leitura, agendamento) depende de entender onde o esquema é aplicado e quanto cada leitura custa. Cada bloco termina com um exemplo numérico, uma pausa para reflexão e os pontos-chave. A prática fica com uma hora em sala e termina com os prompts 1 a 5 revisados; o prompt 6, a medição, o deploy com cron e o ATAM seguem durante a semana, até a Aula 05 (07/11/2026), como a seção 16 detalha.</p>
 
         <h3>1.2 O cenário condutor da aula</h3>
-        <p>Toda a teoria desta aula é medida contra o caso que a prática constrói. A distribuidora de bebidas da Aula 02 quer a temperatura média prevista por capital e por dia, para comparar com as vendas. O monitor de preços da Aula 03 quer o preço de cada livro em reais, por dia, com a cotação usada. Os dois já têm dado no MinIO, e nenhum dos dois consegue a resposta sem abrir arquivos à mão.</p>
-        <p>Três números do raw do clima reaparecem em todos os exemplos numéricos. Uma resposta da Open-Meteo para uma capital, com <code>forecast_days=1</code> e duas variáveis, teve entre 987 e 991 bytes nas seis chamadas feitas em 16/10/2026 (a Aula 02 registrou 992 bytes em 14/10/2026). Cada resposta traz as 24 horas do dia, no horário de Brasília, em listas paralelas dentro de <code>hourly</code>. O coletor grava 144 respostas por dia: seis capitais vezes 24 coletas.</p>
-        <p>Para medir sem depender do bucket de um grupo, a preparação montou uma réplica de uma semana do raw. As seis respostas reais de 16/10/2026 serviram de molde para 1.008 arquivos (7 dias &times; 24 horas &times; 6 capitais), gravados com a chave da Aula 02 (<code>data=</code> e <code>hora=</code> em UTC, de 24/10 a 30/10/2026), com temperatura e umidade perturbadas ao acaso em até 1,5 °C e 5 pontos percentuais. A réplica é sintética nos valores e real na forma: os 1.008 arquivos somam 1.002.528 bytes, cerca de 995 bytes por arquivo. Todas as medidas desta aula usam <code>duckdb==1.5.6</code> numa única máquina e valem para esse volume; o grupo repete as medidas com os próprios dados na seção 12.</p>
+        <p>Toda a teoria desta aula é medida contra o caso que a prática constrói. A transportadora da Aula 02 quer saber, por caminhão e por dia, quantas horas de direção houve, quantas vezes o tacógrafo acusou direção contínua acima de 5h30 (o limite da Lei 13.103/2015), qual foi a velocidade média em movimento e quantos quilômetros o caminhão rodou. O monitor de preços da Aula 03 quer o preço de cada livro em reais, por dia, com a cotação usada. Os dois já têm dado no MinIO, e nenhum dos dois consegue a resposta sem abrir arquivos à mão.</p>
+        <p>Três números do raw da telemetria reaparecem em todos os exemplos numéricos. Um lote tem cerca de 1 KB (média de 1.019 bytes nos 1.920 lotes de 27/10/2026, entre 916 e 1.158). Cada lote traz 15 posições, uma por minuto, misturadas a eventos esporádicos, num total de cerca de 16,3 linhas, e as linhas seguem cinco formatos:</p>
+        <pre class="is-wrap"><code>CAM-0412|17/10/26 09:14:03|-23.5481,-46.6390|VEL 087|TAC MOT 03h12     (1) posição
+#RADIO 09:14 MOTORISTA: parada posto km 214 BR-116                      (2) rádio, só com a hora
+CAM-0412 17-10-2026 09:15:03 GPS -23.5502 -46.6411 v=85 TEMP_BAU 04.2   (3) posição, firmware novo
+ERR SAT SINAL FRACO                                                     (4) erro do enlace
+TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA              (5) alerta do tacógrafo</code></pre>
+        <p>O terceiro número é o volume: o coletor grava 1.920 lotes por dia, 20 caminhões vezes 96 janelas de 15 minutos, com a chave <code>data=</code> e <code>hora=</code> em UTC. A hipótese de escala da teoria é a de 500 caminhões, que dariam 48.000 lotes por dia.</p>
+        <p>Para medir sem depender do bucket de um grupo, a preparação gerou sete dias de lotes (24/10 a 30/10/2026, no horário de Brasília) para 20 caminhões com o <code>gerar_lotes.py</code> da Aula 02 (<code>--caminhoes 20 --seed 42 --firmware-novo 2026-10-28</code>; a data do firmware foi antecipada para que o campo novo aparecesse dentro da semana, já que o padrão do gerador é 2027-03-01) e os carregou num MinIO local com a chave e os metadados do contrato. São 13.440 objetos e 13.779.255 bytes. Dois defeitos foram inseridos de propósito no caminhão <code>CAM-0451</code>, para que quarentena e deduplicação tivessem o que mostrar: o lote das 11h15 de 27/10 (horário de Brasília) foi cortado no meio da última linha, e duas posições foram repetidas no começo do lote seguinte, como faria um provedor que reenvia o último minuto. Os valores são sintéticos e a forma segue o contrato. Todas as medidas desta aula usam <code>duckdb==1.5.6</code> numa única máquina e valem para esse volume; o grupo repete as medidas com os próprios dados na seção 12.</p>
       </section>
 
       <!-- 2 -->
@@ -88,19 +94,19 @@
           <thead><tr><th>Tipo</th><th>Exemplos concretos</th><th>Onde está o esquema</th><th>O que se extrai e com que ferramenta</th></tr></thead>
           <tbody>
             <tr><td>Estruturado</td><td>tabela de um banco relacional; CSV exportado com cabeçalho estável; planilha com uma linha por registro</td><td>fora do dado, declarado antes da gravação (DDL, cabeçalho combinado)</td><td>linhas e colunas já tipadas; SQL lê direto</td></tr>
-            <tr><td>Semiestruturado</td><td>JSON da Open-Meteo e da PTAX; HTML do books.toscrape.com; logs de aplicação; XML de nota fiscal</td><td>dentro do dado, nas chaves, tags e padrões de linha; pode variar de um registro para outro</td><td>campos aninhados, listas, atributos; leitor JSON com inferência, parser HTML, expressão regular para logs</td></tr>
+            <tr><td>Semiestruturado</td><td>JSON da PTAX; HTML do books.toscrape.com; lotes TXT de telemetria e logs de aplicação; XML de nota fiscal</td><td>dentro do dado, nas chaves, tags e padrões de linha; pode variar de um registro para outro</td><td>campos aninhados, listas, atributos; leitor JSON com inferência, parser HTML, expressão regular para linhas de texto</td></tr>
             <tr><td>Não estruturado</td><td>foto de produto; PDF digitalizado; áudio de atendimento; vídeo de câmera</td><td>não existe no conteúdo; só nos metadados do arquivo</td><td>texto por OCR ou transcrição, rótulos por modelo de visão, e os metadados (tamanho, data, autor)</td></tr>
           </tbody>
         </table></div>
-        <p>O JSON da Open-Meteo é semiestruturado no sentido mais direto: cada resposta traz as próprias chaves (<code>latitude</code>, <code>timezone</code>, <code>hourly</code>), e dentro de <code>hourly</code> há listas paralelas, uma de horários e uma para cada variável pedida. Um leitor de JSON consegue inferir esse esquema olhando o arquivo. A resposta da PTAX tem um envelope OData, com os boletins dentro da lista <code>value</code>.</p>
-        <p>O HTML ocupa um lugar intermediário. Ele tem marcação, e um navegador sabe exatamente o que é um parágrafo ou um link. Mas o esquema que interessa ao negócio (título do livro, preço) não está declarado em lugar nenhum: depende de convenções daquela página, como a classe <code>price_color</code> no elemento do preço. Por isso o HTML precisa de um extrator escrito e testado para aquele site, e esse extrator quebra quando o site muda. A distinção tem consequência prática: o JSON entra no lakehouse com uma consulta SQL; o HTML precisa de um parser com teste sobre um arquivo salvo. Na disciplina, esse parser foi escrito na Aula 03, e o resultado dele é o JSON Lines do bucket <code>bronze</code>.</p>
+        <p>O JSON da PTAX é semiestruturado no sentido mais direto: cada resposta traz as próprias chaves, com os boletins dentro da lista <code>value</code> de um envelope OData, e um leitor de JSON consegue inferir esse esquema olhando o arquivo. O lote TXT da telemetria fica na outra ponta do mesmo grupo. Não há chave nem cabeçalho: o esquema está no padrão de cada linha, como o <code>|</code> que separa caminhão, horário, coordenadas, <code>VEL</code> e <code>TAC MOT</code> no formato 1, ou o <code>;</code> do alerta do tacógrafo. Cinco padrões convivem no mesmo arquivo, a linha de rádio não diz de que caminhão nem de que dia é, e a de erro do enlace não diz nada além do erro. Nenhum leitor genérico infere isso; a extração depende de uma expressão regular por formato, escrita a partir do contrato e testada contra lotes reais.</p>
+        <p>O HTML ocupa um lugar intermediário. Ele tem marcação, e um navegador sabe exatamente o que é um parágrafo ou um link. Mas o esquema que interessa ao negócio (título do livro, preço) não está declarado em lugar nenhum: depende de convenções daquela página, como a classe <code>price_color</code> no elemento do preço. Por isso o HTML precisa de um extrator escrito e testado para aquele site, e esse extrator quebra quando o site muda. A distinção tem consequência prática: o JSON entra no lakehouse com uma consulta SQL; o HTML e o TXT da telemetria precisam de um extrator com teste sobre um arquivo salvo. Na disciplina, o parser do HTML foi escrito na Aula 03, e o resultado dele é o JSON Lines do bucket <code>bronze</code>. O extrator da telemetria é escrito nesta aula, em SQL do DuckDB, e grava também no bronze.</p>
         <p>Dados não estruturados não aparecem no projeto desta disciplina, mas o raciocínio é o mesmo: guardar o arquivo original no object storage, extrair o que for possível para uma tabela (texto, rótulos, metadados) e manter na tabela o caminho do arquivo de onde a informação saiu.</p>
       </section>
 
       <!-- 3 -->
       <section class="content-block" id="s3">
         <h2>3. Schema on write e schema on read</h2>
-        <p>Os dois termos descrevem em que momento o esquema é imposto ao dado. No schema on write, a estrutura é declarada antes, e a gravação rejeita o que não se encaixa. É o modelo de um banco relacional: <code>CREATE TABLE</code> primeiro, <code>INSERT</code> depois, e um campo inesperado causa erro na carga. No schema on read, o dado é gravado como chegou, e quem lê declara ou infere a estrutura no momento da consulta. É o modelo do bucket <code>raw</code>: o coletor da Aula 02 grava os bytes recebidos sem conhecer os campos.</p>
+        <p>Os dois termos descrevem em que momento o esquema é imposto ao dado. No schema on write, a estrutura é declarada antes, e a gravação rejeita o que não se encaixa. É o modelo de um banco relacional: <code>CREATE TABLE</code> primeiro, <code>INSERT</code> depois, e um campo inesperado causa erro na carga. No schema on read, o dado é gravado como chegou, e quem lê declara ou infere a estrutura no momento da consulta. É o modelo do bucket <code>raw</code>: o coletor da Aula 02 grava os bytes do lote sem abrir nenhuma linha.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Critério</th><th>Schema on write</th><th>Schema on read</th></tr></thead>
           <tbody>
@@ -111,20 +117,20 @@
             <tr><td>Quem responde pela qualidade</td><td>quem grava</td><td>cada leitor, o que gera interpretações divergentes</td></tr>
           </tbody>
         </table></div>
-        <p>O lakehouse desta aula usa os dois, em camadas diferentes. O <code>raw</code> e o <code>bronze</code> ficam em schema on read, porque a coleta não deve parar quando a Open-Meteo acrescenta um campo. A silver aplica o esquema uma vez: lê o bruto, converte tipos, descarta o que não está no contrato e grava Parquet, que carrega os tipos dentro do arquivo. Daí em diante, quem lê a silver não precisa inferir nada. A escolha transfere a interpretação, que no schema on read puro ficaria espalhada entre os leitores, para um único job versionado e testado.</p>
-        <p>Na preparação da aula, um JSON com um campo novo dentro de <code>hourly</code> foi acrescentado ao raw. O DuckDB passou a inferir o campo, com nulo nos arquivos antigos, e a silver continuou igual, porque o <code>SELECT</code> do job nomeia as colunas do contrato. O campo novo só chega à silver quando a spec mudar. Esse comportamento é o desejado, mas precisa ser escrito como requisito, ou um agente pode trocar a lista de colunas por <code>SELECT *</code> e mudar o contrato sem ninguém perceber.</p>
+        <p>O lakehouse desta aula usa os dois, em camadas diferentes. O <code>raw</code> e o <code>bronze</code> ficam em schema on read, porque a coleta não deve parar quando um caminhão recebe firmware novo e passa a mandar a temperatura do baú no fim da linha. O bronze da telemetria já separa os campos de cada linha, mas os guarda como texto, do jeito que vieram. A silver aplica o esquema uma vez: converte tipos, leva os horários para UTC, descarta o que não está no contrato e grava Parquet, que carrega os tipos dentro do arquivo. Daí em diante, quem lê a silver não precisa inferir nada. A escolha transfere a interpretação, que no schema on read puro ficaria espalhada entre os leitores, para um único job versionado e testado.</p>
+        <p>Os lotes da preparação mostram o caso. A partir de 28/10/2026, os seis caminhões com firmware novo passaram a acrescentar <code>TEMP_BAU nn.n</code> ao fim da linha do formato 3. A expressão regular do bronze trata esse trecho como opcional, então lotes antigos e novos continuam reconhecidos, e a silver ganha a coluna <code>temp_bau_c</code>, nula para quem não manda. Nos lotes de 28/10, 1.932 das 6.210 linhas do formato 3 traziam o campo, todas desses seis caminhões. Uma expressão escrita só com os lotes antigos, ancorada no <code>v=85</code> do fim da linha, reconheceu as outras 4.278 e mandaria as 1.932 para a quarentena: cerca de 22% das posições desses caminhões, que apareceriam na gold com menos horas de direção do que houve. Por isso a tolerância a campo novo precisa ser escrita como requisito, com um teste que use os dois tipos de linha.</p>
 
         <h3>3.1 Exemplo numérico: da resposta aninhada à linha da silver</h3>
         <div class="note">
-          <strong>Exemplo numérico 1. Quantas linhas o schema on read produz</strong>
-          <p>Uma resposta guarda 24 horários e 24 temperaturas em listas paralelas. Os dois <code>unnest</code> da seção 7.2 transformam cada resposta em 24 linhas. As 144 respostas de um dia viram 144 &times; 24 = 3.456 linhas, e foi esse o resultado na réplica: a partição <code>data=2026-10-27</code> desaninhada deu 3.456 linhas.</p>
-          <p>Quantas dessas linhas a pergunta do planejamento precisa? Seis capitais vezes 24 horas previstas: 144. Cada hora prevista de um dia local aparece em 24 coletas diferentes (das 3h UTC do dia D às 2h UTC de D+1), com valores que mudam à medida que a previsão se atualiza. Na réplica, o dia local 27/10 teve 3.456 linhas candidatas nas partições 27 e 28, e a silver com a coleta mais recente ficou com 144 linhas, 24 por capital. A proporção é de 24 para 1: 23 de cada 24 linhas lidas só existem para ser descartadas pela regra de deduplicação.</p>
-          <p>O mesmo bloco tem uma conta de fuso. O <code>coletado_em</code> <code>2026-10-03T09:31:12-03:00</code>, lido por inferência, virou <code>TIMESTAMP</code> 12:31:12 sem fuso, e depois de convertido para o horário de Brasília ficou três horas adiantado. Entre milhares de linhas, um erro assim escapa de uma conferência visual, porque todas as horas continuam plausíveis.</p>
-          <p>O que a conta autoriza: no raw do clima, o custo do schema on read cresce com o número de coletas, e não com o número de respostas úteis. Por isso a silver aplica o esquema e a deduplicação uma vez, e quem lê depois paga 144 linhas por dia, e não 3.456.</p>
+          <strong>Exemplo numérico 1. Do lote de texto à linha da silver</strong>
+          <p>O dia 27/10/2026 no horário de Brasília ocupa 1.920 lotes, das 03h UTC de 27/10 às 02h59 UTC de 28/10. Divididos em linhas, deram 31.286 linhas com conteúdo: 22.413 no formato 1, 6.388 no formato 3, 1.475 de rádio, 936 de erro do enlace, 73 alertas do tacógrafo e uma linha que nenhum formato explica, a última do lote truncado (<code>CAM-0451 27-10-2026 11</code>), que foi para a quarentena.</p>
+          <p>Quantas dessas linhas a pergunta da jornada precisa? Vinte caminhões vezes 1.440 minutos: 28.800 posições, mais os 73 alertas. O bronze reconheceu 28.801 posições, e a silver ficou com 28.799. As duas posições a mais do bronze eram as cópias inseridas: uma do minuto 14h59, repetida no lote das 15h00, que a deduplicação descartou; outra do minuto 23h59 de 26/10, que chega no lote das 00h00 de 27/10 e saiu pelo filtro de data local. A posição que falta para 28.800 estava no trecho cortado do lote truncado; a silver mostra 1.439 minutos para o <code>CAM-0451</code> nesse dia, e não inventa o que falta.</p>
+          <p>O mesmo bloco tem uma conta de fuso. A linha <code>CAM-0451|27/10/26 09:00:55|...</code> está no objeto <code>data=2026-10-27/hora=12/caminhao=CAM-0451/lote_1200.txt</code>: 9h em Brasília é 12h em UTC. No bronze dos livros, o <code>coletado_em</code> <code>2026-10-03T09:31:12-03:00</code>, lido por inferência, virou <code>TIMESTAMP</code> 12:31:12 sem fuso, e depois de convertido para o horário de Brasília ficou três horas adiantado. Entre milhares de linhas, um erro de três horas escapa de uma conferência visual, porque todas as horas continuam plausíveis.</p>
+          <p>O que a conta autoriza: no raw da telemetria, quase toda linha é útil, e o custo do schema on read está em interpretar o texto. Cada leitura do raw repete a classificação de 31.286 linhas por cinco expressões regulares e a conversão de três formatos de horário; a silver faz isso uma vez, e quem lê depois recebe 28.799 posições já tipadas.</p>
         </div>
         <div class="note">
           <strong>Pausa para reflexão</strong>
-          <p>Amanhã a Open-Meteo passa a devolver <code>temperature_2m</code> com o nome <code>temp_2m</code>. Descreva o que acontece no coletor da Aula 02, no bucket <code>raw</code>, na leitura com <code>read_json_auto</code> de arquivos antigos e novos juntos, na silver do job e na gold. Em qual desses pontos o erro aparece primeiro, e quem percebe?</p>
+          <p>Amanhã o provedor troca, no formato 1, <code>VEL 087</code> por <code>VEL=087</code>. Descreva o que acontece no coletor da Aula 02, no bucket <code>raw</code>, na classificação das linhas do bronze, na silver de posições e na gold de jornada. Em qual desses pontos o erro aparece primeiro, e quem percebe?</p>
         </div>
         <div class="note">
           <strong>Pontos-chave do bloco 1</strong>
@@ -133,7 +139,7 @@
             <li>Schema on write recusa o que não cabe na carga; schema on read aceita tudo e leva o erro para a leitura.</li>
             <li>O lakehouse usa os dois: raw e bronze em schema on read, silver com esquema declarado num job versionado e testado.</li>
             <li>Inferência erra em silêncio, como no <code>coletado_em</code> três horas adiantado; campo do contrato se declara com <code>columns</code>.</li>
-            <li>No raw do clima, 3.456 linhas lidas por dia sustentam 144 linhas úteis.</li>
+            <li>No TXT, o esquema está no padrão da linha: cinco expressões regulares classificaram 31.285 das 31.286 linhas de um dia, e a que sobrou foi para a quarentena, com arquivo e número da linha.</li>
           </ul>
         </div>
 
@@ -141,6 +147,7 @@
         <ul>
           <li>Abiteboul, S. Querying Semi-Structured Data. ICDT, 1997: a caracterização do dado semiestruturado como dado que carrega o próprio esquema.</li>
           <li>DuckDB. <a href="https://duckdb.org/docs/stable/data/json/overview" target="_blank" rel="noopener noreferrer">Loading JSON</a>: os leitores <code>read_json</code> e <code>read_json_auto</code>, a inferência e a opção <code>columns</code>.</li>
+          <li>DuckDB. <a href="https://duckdb.org/docs/stable/guides/file_formats/read_file" target="_blank" rel="noopener noreferrer">Directly Reading Files</a>: <code>read_text</code> e <code>read_blob</code>, que entregam o arquivo inteiro como texto ou como bytes.</li>
           <li>Kleppmann, M. <em>Designing Data-Intensive Applications</em>. O'Reilly, 2017, capítulo 4: codificação e evolução de esquema entre quem grava e quem lê.</li>
         </ul>
       </section>
@@ -156,46 +163,47 @@
         <p>JSON representa um documento com objetos, listas, textos, números, booleanos e nulo. Preserva hierarquia, o que o torna o formato natural de respostas de API, e por isso o bronze da disciplina é JSON. O custo aparece na leitura analítica: para obter um campo, o leitor precisa percorrer o documento inteiro; as chaves se repetem em todo registro, o que ocupa espaço; e os tipos são poucos (não há data, nem distinção entre inteiro e decimal).</p>
 
         <h3>4.3 JSON Lines</h3>
-        <p>JSON Lines (também chamado NDJSON) guarda um documento JSON por linha. Duas propriedades decorrem disso: dá para acrescentar registros ao final sem reescrever o arquivo, e dá para ler em fluxo, linha a linha, sem carregar o arquivo inteiro. É o formato do manifesto de execução da Aula 02, com uma linha por cidade e o status da gravação, e do bucket <code>bronze</code> da Aula 03, com um livro ou um boletim PTAX por linha. Para o leitor do DuckDB, há uma terceira diferença prática: a opção <code>ignore_errors</code>, que pula registros malformados, só funciona com JSON Lines. Num JSON comum, um arquivo truncado derruba a leitura inteira, como a seção 8 mostra.</p>
+        <p>JSON Lines (também chamado NDJSON) guarda um documento JSON por linha. Duas propriedades decorrem disso: dá para acrescentar registros ao final sem reescrever o arquivo, e dá para ler em fluxo, linha a linha, sem carregar o arquivo inteiro. É o formato do manifesto de execução da Aula 02, com uma linha por lote e o status da gravação, do bucket <code>bronze</code> da Aula 03, com um livro ou um boletim PTAX por linha, e do bronze da telemetria que esta aula grava, com uma linha do TXT por registro. Para o leitor do DuckDB, há uma terceira diferença prática: a opção <code>ignore_errors</code>, que pula registros malformados, só funciona com JSON Lines. Num JSON comum, um arquivo truncado derruba a leitura inteira; a seção 8.4 mostra o equivalente no TXT.</p>
 
         <h3>4.4 Parquet por dentro</h3>
         <p>Parquet é um formato binário e colunar, projetado para leitura analítica. Um arquivo Parquet se organiza assim:</p>
         <ul>
           <li>Row groups: o arquivo é dividido em blocos de linhas. Cada row group pode ser lido ou pulado de forma independente.</li>
-          <li>Column chunks: dentro de cada row group, os valores de cada coluna ficam juntos, uma coluna depois da outra. Valores do mesmo tipo e de distribuição parecida ficam adjacentes, o que favorece codificações como dicionário (o texto <code>sao_paulo</code> repetido vira um número pequeno) e compressão (Snappy, ZSTD, GZIP).</li>
+          <li>Column chunks: dentro de cada row group, os valores de cada coluna ficam juntos, uma coluna depois da outra. Valores do mesmo tipo e de distribuição parecida ficam adjacentes, o que favorece codificações como dicionário (o texto <code>CAM-0451</code> repetido vira um número pequeno) e compressão (Snappy, ZSTD, GZIP).</li>
           <li>Estatísticas: para cada coluna em cada row group, o arquivo guarda contagem de nulos e os valores mínimo e máximo.</li>
           <li>Rodapé: no fim do arquivo ficam o esquema, com tipos explícitos (data, timestamp, decimal, inteiro de 32 ou 64 bits, texto, estruturas aninhadas), e a localização de cada row group e coluna. O leitor lê o rodapé primeiro e só então decide o que baixar.</li>
         </ul>
         <p>O arquivo é imutável: não se altera uma linha de um Parquet; reescreve-se o arquivo. Por isso Parquet combina com cargas em lote e combina mal com gravação registro a registro.</p>
 
         <h3>4.5 Projeção de colunas e predicate pushdown</h3>
-        <p>Essas duas otimizações explicam por que o Parquet lê menos bytes que o JSON para a mesma pergunta. A projeção de colunas acontece quando a consulta pede só algumas colunas: como cada coluna está gravada separada, o leitor baixa apenas os trechos dessas colunas e ignora o resto. O predicate pushdown acontece quando o filtro da consulta é levado até o leitor do arquivo: com <code>WHERE temperatura_c &gt; 30</code>, um row group cujo máximo de <code>temperatura_c</code> é 28 não precisa ser lido. Sobre object storage, as duas otimizações viram menos requisições HTTP com intervalo de bytes e menos bytes trafegados. No JSON, nenhuma das duas é possível: para saber se um registro passa no filtro, é preciso baixar e parsear o documento.</p>
-        <p>Existe uma terceira poda, que não depende do Parquet: a poda de partição. Quando os arquivos estão em caminhos no estilo Hive (<code>data=2026-10-30/</code>), o DuckDB transforma o trecho do caminho em coluna e, se a consulta filtra por ela, descarta arquivos inteiros antes de abri-los. Na preparação, um filtro em <code>data</code> sobre o JSON do raw fez o plano mostrar <code>Scanning Files: 21/23</code>, ou seja, dois arquivos fora da janela nem foram abertos. A poda depende das opções do leitor: o exemplo numérico 4 (seção 7.4) mostra que, com <code>union_by_name = true</code>, o DuckDB abre todos os arquivos do glob para ler o esquema, mesmo com o filtro em <code>data</code>.</p>
+        <p>Essas duas otimizações explicam por que o Parquet lê menos bytes que o JSON para a mesma pergunta. A projeção de colunas acontece quando a consulta pede só algumas colunas: como cada coluna está gravada separada, o leitor baixa apenas os trechos dessas colunas e ignora o resto. O predicate pushdown acontece quando o filtro da consulta é levado até o leitor do arquivo: com <code>WHERE velocidade_kmh &gt; 100</code>, um row group cujo máximo de <code>velocidade_kmh</code> é 96 não precisa ser lido. Sobre object storage, as duas otimizações viram menos requisições HTTP com intervalo de bytes e menos bytes trafegados. No JSON, nenhuma das duas é possível: para saber se um registro passa no filtro, é preciso baixar e parsear o documento.</p>
+        <p>Existe uma terceira poda, que não depende do Parquet: a poda de partição. Quando os arquivos estão em caminhos no estilo Hive (<code>data=2026-10-30/</code>), o DuckDB transforma o trecho do caminho em coluna e, se a consulta filtra por ela, descarta arquivos inteiros antes de abri-los. Na preparação, um filtro em <code>data</code> sobre o glob da semana inteira do raw da telemetria fez o plano mostrar <code>Scanning Files: 3840/13440</code>: só os lotes das duas datas pedidas foram abertos. A poda depende de onde o filtro está. O exemplo numérico 4 (seção 7.4) mostra que um filtro sobre a coluna <code>filename</code> não descarta nenhum arquivo, e que, mesmo com a poda funcionando, o glob amplo obriga o DuckDB a listar o bucket inteiro antes de descartar.</p>
 
         <h3>4.6 Medir em vez de citar</h3>
         <p>É comum ler que Parquet ocupa uma fração do JSON e que a leitura fica dezenas de vezes mais rápida. Esses números dependem do volume, do número de arquivos, da compressão e da consulta, e por isso a aula cita só o que mediu, com o volume e a data (seção 4.7), e pede ao grupo que meça os próprios dados na seção 12, com três instrumentos: <code>mc du</code> para os bytes de cada camada; <code>parquet_metadata</code> para ver row groups, compressão e estatísticas; e <code>EXPLAIN ANALYZE</code> para ver bytes lidos, requisições HTTP e tempo da mesma pergunta sobre JSON e sobre Parquet.</p>
         <p>Um aviso que a própria preparação mostrou: com poucos arquivos pequenos, o rodapé e os metadados do Parquet pesam, e a diferença de tamanho entre as camadas fica pequena. O ganho de leitura aparece no número de requisições e nos bytes baixados, antes de aparecer no tamanho total. Registre a medida com o volume e a data em que foi feita, e não generalize para volumes que não mediu.</p>
 
-        <h3>4.7 Exemplo numérico: uma semana do clima em quatro formatos</h3>
+        <h3>4.7 Exemplo numérico: uma semana de posições em quatro formatos</h3>
         <div class="note">
           <strong>Exemplo numérico 2. Tamanho e tempo de consulta por formato</strong>
-          <p>A réplica de uma semana (seção 1.2) foi desaninhada numa tabela de 24.192 linhas (1.008 respostas &times; 24 horas) com sete colunas: <code>cidade</code>, data e hora da coleta, <code>horario_local</code>, <code>temperatura_c</code>, <code>umidade_pct</code> e <code>arquivo_origem</code>. O DuckDB gravou a mesma tabela em cada formato, e a mesma consulta (média de temperatura por cidade nas linhas acima de 20 °C) foi executada sete vezes sobre cada arquivo, em disco local, cada vez numa conexão nova. A tabela traz a mediana.</p>
+          <p>As posições da semana de lotes da preparação (seção 1.2), já extraídas e deduplicadas, formam uma tabela de 201.599 linhas com as 13 colunas da silver de posições, entre elas <code>caminhao</code>, <code>instante_utc</code>, <code>latitude</code>, <code>longitude</code>, <code>velocidade_kmh</code> e <code>arquivo_origem</code>. O DuckDB gravou a mesma tabela em cada formato, e a mesma consulta (velocidade média por caminhão nas posições em movimento) foi executada sete vezes sobre cada arquivo, em disco local, cada vez numa conexão nova. A primeira linha faz a mesma pergunta direto sobre os 13.440 lotes TXT, com as expressões regulares a cada leitura. A tabela traz a mediana.</p>
         </div>
         <div class="table-scroll"><table>
           <thead><tr><th>Formato</th><th>Bytes</th><th>Vezes o Parquet ZSTD</th><th>Consulta (mediana)</th></tr></thead>
           <tbody>
-            <tr><td>CSV com cabeçalho</td><td>2.580.173</td><td>48</td><td>538 ms</td></tr>
-            <tr><td>JSON Lines</td><td>5.241.207</td><td>97</td><td>521 ms</td></tr>
-            <tr><td>Parquet com Snappy, o padrão do DuckDB</td><td>62.441</td><td>1,2</td><td>não medida</td></tr>
-            <tr><td>Parquet com ZSTD</td><td>54.020</td><td>1</td><td>12 ms</td></tr>
-            <tr><td>Parquet com ZSTD, sem <code>arquivo_origem</code></td><td>48.193</td><td>0,9</td><td>não medida</td></tr>
+            <tr><td>Lotes TXT originais (todas as linhas, 13.440 arquivos)</td><td>13.779.255</td><td>6,4</td><td>451 ms</td></tr>
+            <tr><td>CSV com cabeçalho</td><td>39.137.492</td><td>18,2</td><td>196 ms</td></tr>
+            <tr><td>JSON Lines</td><td>79.812.426</td><td>37</td><td>129 ms</td></tr>
+            <tr><td>Parquet com Snappy, o padrão do DuckDB</td><td>3.986.489</td><td>1,9</td><td>2,6 ms</td></tr>
+            <tr><td>Parquet com ZSTD</td><td>2.149.456</td><td>1</td><td>3,3 ms</td></tr>
+            <tr><td>Parquet com ZSTD, sem <code>arquivo_origem</code></td><td>2.080.592</td><td>0,97</td><td>não medida</td></tr>
           </tbody>
         </table></div>
-        <p>O JSON Lines é o maior porque repete os nomes das sete chaves em cada uma das 24.192 linhas. O CSV escreve os nomes uma vez, no cabeçalho, mas repete o texto de <code>arquivo_origem</code> e do horário em toda linha. O Parquet guarda cada coluna junta e codificada: a coluna <code>cidade</code>, com seis valores distintos, ocupou 153 bytes comprimidos para 24.192 linhas, por codificação de dicionário. A coluna <code>temperatura_c</code> ocupou 24.142 bytes, quase metade do arquivo, porque a réplica sorteou ruído em cada valor, e ruído não comprime. Com temperaturas reais, que variam pouco de uma hora para a outra, a coluna tende a comprimir mais; isso é hipótese, não medição. O rodapé registrou, para <code>temperatura_c</code>, mínimo 13,6 e máximo 38,5 no único row group do arquivo, e é essa estatística que o predicate pushdown consulta.</p>
-        <p>Dois cuidados delimitam a conclusão. A tabela compara a mesma informação já desaninhada; o raw original, com as listas aninhadas, ocupa 1.002.528 bytes, menos que o CSV e o JSON Lines desaninhados, porque não repete nada por linha. E o tempo foi medido em disco local, sem rede, incluindo a inferência de tipos do CSV e do JSON Lines; sobre o MinIO, a diferença passa a depender do número de requisições, que o exemplo numérico 4 mede. O que a medida sustenta: neste volume, o Parquet com ZSTD ocupou cerca de 1% do JSON Lines e respondeu à mesma pergunta cerca de 40 vezes mais rápido.</p>
+        <p>O TXT é compacto: não tem nome de campo, e cada posição cabe em cerca de 65 bytes. A tabela tipada é maior em texto porque acrescenta informação que o lote não tinha, como o caminho do objeto de origem (cerca de 75 caracteres por linha) e os instantes em ISO 8601 com fuso. O JSON Lines é o maior porque repete os nomes das 13 chaves em cada uma das 201.599 linhas. O Parquet guarda cada coluna junta e codificada: a coluna <code>caminhao</code>, com 20 valores distintos, ocupou 436 bytes comprimidos; <code>arquivo_origem</code>, com 1,1 MB de texto, ficou em 43.473 bytes, porque os mesmos caminhos se repetem por 15 linhas seguidas e o dicionário os guarda uma vez. As colunas mais pesadas foram <code>latitude</code>, <code>longitude</code> e <code>instante_utc</code>, com 530 a 575 KB cada, porque quase todo valor é diferente do anterior. O rodapé registrou, para <code>velocidade_kmh</code>, mínimo 0 e máximo 96 em cada um dos dois row groups, e é essa estatística que o predicate pushdown consulta.</p>
+        <p>Dois cuidados delimitam a conclusão. O tempo foi medido em disco local, sem rede, e inclui a inferência de tipos do CSV e do JSON Lines e as expressões regulares do TXT; sobre o MinIO, a diferença passa a depender do número de requisições, que o exemplo numérico 4 mede. E os valores são sintéticos: coordenadas reais de caminhões em rodovia tendem a variar de modo parecido de um minuto para o outro, mas a compressão das colunas de coordenada é hipótese a conferir com os dados do grupo. O que a medida sustenta: neste volume, o Parquet com ZSTD ocupou cerca de um sexto dos lotes TXT e 3% do JSON Lines, e respondeu à mesma pergunta mais de 100 vezes mais rápido que a leitura do TXT.</p>
         <div class="note">
           <strong>Pausa para reflexão</strong>
-          <p>Escolha CSV, JSON, JSON Lines ou Parquet para cada arquivo e justifique pelo padrão de escrita e de leitura: (a) o manifesto em que o coletor acrescenta uma linha a cada execução; (b) a silver de clima, lida pela gold a cada hora, duas ou três colunas por vez; (c) a lista de preços que o planejamento abre numa planilha uma vez por semana; (d) a resposta da API, guardada para reprocessamento quando a regra mudar.</p>
+          <p>Escolha CSV, JSON, JSON Lines ou Parquet para cada arquivo e justifique pelo padrão de escrita e de leitura: (a) o manifesto em que o coletor acrescenta uma linha a cada execução; (b) a silver de posições, lida pela gold a cada hora, duas ou três colunas por vez; (c) a lista de jornadas que o gestor da frota abre numa planilha uma vez por semana; (d) o lote como o provedor entregou, guardado para reprocessamento quando a regra de extração mudar.</p>
         </div>
         <div class="note">
           <strong>Pontos-chave do bloco 2</strong>
@@ -203,7 +211,7 @@
             <li>CSV não carrega tipos; JSON preserva hierarquia; JSON Lines aceita acréscimo no fim e leitura em fluxo.</li>
             <li>Parquet guarda colunas tipadas, codificadas e comprimidas, com mínimo e máximo por row group no rodapé.</li>
             <li>Projeção de colunas, predicate pushdown e poda de partição explicam por que o Parquet lê menos bytes.</li>
-            <li>Na réplica, 24.192 linhas ocuparam 5,2 MB em JSON Lines e 54 KB em Parquet com ZSTD, e a mesma consulta caiu de 521 ms para 12 ms.</li>
+            <li>Na semana da preparação, 201.599 posições ocuparam 79,8 MB em JSON Lines e 2,1 MB em Parquet com ZSTD, contra 13,8 MB dos lotes TXT, e a mesma consulta caiu de 451 ms no TXT para 3,3 ms no Parquet.</li>
             <li>Parquet é imutável e combina com escrita em lote; número citado sem volume, data e máquina não entra no ATAM.</li>
           </ul>
         </div>
@@ -221,10 +229,10 @@
       <!-- 5 -->
       <section class="content-block" id="s5">
         <h2>5. Data lake, data warehouse e lakehouse</h2>
-        <p>A Aula 02 apresentou esta comparação com o caso da telemetria de caminhões em TXT, junto com a diferença entre storage e data lake e entre schema on write e schema on read. Esta seção a retoma para o lakehouse que a prática constrói.</p>
-        <p>Um data warehouse é um banco analítico com esquema declarado, motor de consulta próprio e armazenamento gerenciado por ele. Carrega dados já limpos e modelados, responde rápido e oferece transações, mas cobra caro por guardar dado bruto e exige que o esquema seja definido antes da carga. A Aula 05 volta a esse modelo com o esquema estrela.</p>
-        <p>Um data lake é um repositório de arquivos em object storage, em qualquer formato, lidos em schema on read por qualquer motor que entenda o arquivo. Guarda barato e aceita tudo. O risco conhecido é virar um depósito de arquivos sem dono, sem contrato e sem garantia de que duas pessoas leiam o mesmo dado da mesma forma.</p>
-        <p>Um lakehouse tenta ficar com o armazenamento aberto do lake e com a disciplina de tabelas do warehouse. Os dados continuam em object storage, em formatos abertos como Parquet, legíveis por vários motores; mas as camadas a partir da silver têm esquema declarado, contrato e processo de atualização controlado.</p>
+        <p>A Aula 02 apresentou esta comparação com o caso da telemetria de caminhões em TXT, junto com a diferença entre storage e data lake e entre schema on write e schema on read. Esta seção a retoma com o mesmo caso, agora que os lotes já estão no bucket e a prática vai transformá-los em tabelas.</p>
+        <p>Um data warehouse é um banco analítico com esquema declarado, motor de consulta próprio e armazenamento gerenciado por ele. Carrega dados já limpos e modelados, responde rápido e oferece transações, mas cobra caro por guardar dado bruto e exige que o esquema seja definido antes da carga. A Aula 05 volta a esse modelo com o esquema estrela. Na transportadora, um warehouse guardaria a tabela de horas de direção por caminhão e por dia já calculada, com chave primária e permissões, mas não aceitaria o lote TXT como chegou: alguém precisaria extrair e tipar antes da carga, e a linha que não coubesse no esquema ficaria de fora.</p>
+        <p>Um data lake é um repositório de arquivos em object storage, em qualquer formato, lidos em schema on read por qualquer motor que entenda o arquivo. Guarda barato e aceita tudo. O risco conhecido é virar um depósito de arquivos sem dono, sem contrato e sem garantia de que duas pessoas leiam o mesmo dado da mesma forma. O bucket <code>raw</code> da Aula 02 é um data lake nesse sentido: 1.920 lotes por dia, guardados como chegaram, que qualquer pessoa pode abrir com <code>read_text</code>, e cada uma pode escrever a própria expressão regular, decidir sozinha o que fazer com a retransmissão e chegar a um total diferente de horas de direção.</p>
+        <p>Um lakehouse tenta ficar com o armazenamento aberto do lake e com a disciplina de tabelas do warehouse. Os dados continuam em object storage, em formatos abertos como Parquet, legíveis por vários motores; mas as camadas a partir da silver têm esquema declarado, contrato e processo de atualização controlado. Na telemetria, é o que esta aula monta: os lotes continuam no <code>raw</code>, a extração e a regra de deduplicação passam a existir num único job versionado, e a silver de posições e a gold de jornada ficam no mesmo MinIO, em Parquet, legíveis pelo DuckDB hoje e por outros motores depois.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Critério</th><th>Data lake</th><th>Data warehouse</th><th>Lakehouse</th></tr></thead>
           <tbody>
@@ -232,6 +240,7 @@
             <tr><td>Esquema</td><td>on read</td><td>on write</td><td>on read no bronze; declarado da silver em diante</td></tr>
             <tr><td>Motor de consulta</td><td>qualquer um que leia o arquivo</td><td>o do warehouse</td><td>vários motores sobre os mesmos arquivos</td></tr>
             <tr><td>Transações e histórico</td><td>não</td><td>sim</td><td>só com formato de tabela (Delta, Iceberg)</td></tr>
+            <tr><td>Na telemetria</td><td>lotes TXT no <code>raw</code>, cada leitor com a sua extração</td><td>tabela de jornada carregada já tipada; o lote bruto fica de fora</td><td>lotes no <code>raw</code>, extração no bronze, posições e jornada em Parquet com contrato</td></tr>
             <tr><td>Nesta disciplina</td><td>buckets <code>raw</code> e <code>bronze</code></td><td>Aula 05 (Postgres e esquema estrela)</td><td>buckets <code>raw</code>, <code>bronze</code>, <code>silver</code> e <code>gold</code> com DuckDB</td></tr>
           </tbody>
         </table></div>
@@ -243,44 +252,51 @@
         <h2>6. Arquitetura medalhão aplicada aos buckets do grupo</h2>
         <p>A arquitetura medalhão organiza o lakehouse em camadas de qualidade crescente. Os nomes vêm de metais, mas o que importa é o contrato de cada camada: o que entra, o que sai e o que se pode prometer sobre ela. A literatura e os fornecedores usam os nomes com significados um pouco diferentes; em alguns textos, bronze é a cópia do dado bruto. Nesta disciplina, a convenção é a dos quatro buckets criados na Aula 01:</p>
         <div class="method-flow">
-          <div class="method-step"><strong>Raw</strong><span>Bytes como a fonte entregou: JSON da API, HTML da página. Nunca alterado.</span></div>
+          <div class="method-step"><strong>Raw</strong><span>Bytes como a fonte entregou: lote TXT, JSON da API, HTML da página. Nunca alterado.</span></div>
           <div class="method-step"><strong>Bronze</strong><span>Extraído do raw em JSON Lines, um registro por linha, ainda sem tipos garantidos.</span></div>
           <div class="method-step"><strong>Silver</strong><span>Parquet tipado, deduplicado, com origem. Um contrato por tabela.</span></div>
           <div class="method-step"><strong>Gold</strong><span>No grão da pergunta de negócio. Pronto para consumo.</span></div>
         </div>
-        <p>O job desta aula lê <code>raw</code> e <code>bronze</code> e nunca os altera; escreve só em <code>silver</code> e <code>gold</code>. O clima não tem etapa bronze: o JSON da Open-Meteo já é semiestruturado o bastante para que a leitura com <code>read_json_auto</code> e <code>unnest</code> faça a extração na própria consulta da silver. Os livros têm: o HTML exige parser, e a Aula 03 já o executou, gravando o resultado no bronze. Manter o raw intocado ao lado do bronze custa armazenamento e, em troca, permite refazer a extração quando o parser tiver um defeito.</p>
+        <p>O job desta aula lê o <code>raw</code> e nunca o altera. No bronze, ele escreve só a telemetria: os lotes TXT precisam de um extrator, e o resultado (uma linha do TXT por registro, com os campos separados mas ainda como texto) fica em <code>bronze/telemetria/</code>, ao lado de <code>bronze/telemetria_quarentena/</code>, que guarda as linhas que nenhum formato explica. O bronze dos livros e da PTAX foi gravado pela Aula 03 e é somente leitura. Manter o raw intocado ao lado do bronze custa armazenamento e, em troca, permite refazer a extração quando o extrator tiver um defeito, como uma expressão regular que não previu o firmware novo.</p>
+        <p>A partição também muda de significado entre as camadas, e o nome mostra isso. No raw, <code>data=</code> e <code>hora=</code> são o início da janela em UTC, porque é assim que o coletor grava. Do bronze em diante, a partição é <code>data_local=</code>, o dia no horário de Brasília, porque é nesse dia que a jornada do motorista é contada. O dia local D ocupa as partições do raw das 03h UTC de D às 02h59 UTC de D+1.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Camada</th><th>Objeto</th><th>Grão</th><th>Colunas principais</th></tr></thead>
           <tbody>
-            <tr><td>Raw</td><td><code>raw/open_meteo/data=D/hora=H/&lt;cidade&gt;.json</code> (D e H em UTC)</td><td>uma resposta da API por cidade e coleta</td><td>como a API entregou</td></tr>
+            <tr><td>Raw</td><td><code>raw/telemetria/data=D/hora=H/caminhao=CAM-XXXX/lote_HHMM.txt</code> (D, H e HHMM em UTC, início da janela)</td><td>um lote de 15 minutos por caminhão</td><td>como o provedor entregou; metadados <code>x-amz-meta-*</code> da Aula 02</td></tr>
             <tr><td>Raw</td><td><code>raw/books_toscrape/data=D/livro=&lt;slug&gt;/detalhe.html</code>, <code>raw/ptax/moeda=GBP/data=D/*.json</code></td><td>uma página ou resposta por coleta</td><td>como a fonte entregou</td></tr>
+            <tr><td>Bronze</td><td><code>bronze/telemetria/data_local=D/linhas.jsonl</code> (D no horário de Brasília)</td><td>uma linha reconhecida do TXT</td><td><code>arquivo_origem</code>, <code>numero_linha</code>, <code>janela_utc</code>, <code>caminhao_arquivo</code>, <code>formato</code> (1 a 5) e os campos da linha como texto: <code>caminhao</code>, <code>data_hora_txt</code>, <code>latitude_txt</code>, <code>longitude_txt</code>, <code>velocidade_txt</code>, <code>tac_mot_txt</code>, <code>temp_bau_txt</code>, <code>duracao_txt</code>, <code>status_txt</code>, <code>texto</code></td></tr>
+            <tr><td>Bronze</td><td><code>bronze/telemetria_quarentena/data_local=D/nao_reconhecidas.jsonl</code></td><td>uma linha que nenhum formato explica</td><td><code>arquivo_origem</code>, <code>numero_linha</code>, <code>janela_utc</code>, <code>caminhao_arquivo</code> e a <code>linha</code> original</td></tr>
             <tr><td>Bronze</td><td><code>bronze/books_toscrape/data=D/livros.jsonl</code></td><td>livro por coleta</td><td><code>upc</code>, <code>url</code>, <code>titulo</code>, <code>categoria</code>, <code>avaliacao</code>, <code>preco_gbp</code>, <code>em_estoque</code>, <code>qtd_estoque</code>, <code>coletado_em</code></td></tr>
             <tr><td>Bronze</td><td><code>bronze/ptax/moeda=GBP/data=D/cotacoes.jsonl</code></td><td>boletim PTAX</td><td><code>moeda</code>, <code>dataHoraCotacao</code>, <code>tipoBoletim</code>, <code>cotacaoCompra</code>, <code>cotacaoVenda</code></td></tr>
-            <tr><td>Silver</td><td><code>silver/clima/data=D/clima.parquet</code></td><td>cidade e hora prevista, coleta mais recente</td><td><code>cidade</code>, <code>horario_local</code>, <code>temperatura_c</code>, <code>umidade_pct</code>, <code>data_coleta</code>, <code>hora_coleta</code>, <code>arquivo_origem</code>, <code>processado_em</code></td></tr>
+            <tr><td>Silver</td><td><code>silver/posicoes/data_local=D/posicoes.parquet</code></td><td>caminhão e minuto (UTC); entre cópias do mesmo minuto, a do lote mais recente</td><td><code>caminhao</code>, <code>minuto_utc</code>, <code>instante_utc</code> (TIMESTAMPTZ), <code>data_local</code>, <code>latitude</code>, <code>longitude</code>, <code>velocidade_kmh</code>, <code>direcao_continua_min</code> (só formato 1), <code>temp_bau_c</code> (só firmware novo), <code>formato</code>, <code>janela_utc</code>, <code>arquivo_origem</code>, <code>numero_linha</code>, <code>processado_em</code></td></tr>
+            <tr><td>Silver</td><td><code>silver/alertas_tacografo/data_local=D/alertas.parquet</code></td><td>caminhão e instante do alerta</td><td><code>caminhao</code>, <code>instante_utc</code>, <code>data_local</code>, <code>direcao_continua_min</code>, <code>acima_de_5h30</code>, <code>status</code>, <code>arquivo_origem</code>, <code>numero_linha</code>, <code>processado_em</code></td></tr>
             <tr><td>Silver</td><td><code>silver/livros/data_coleta=D/livros.parquet</code></td><td>livro (UPC) por dia de coleta</td><td><code>upc</code>, <code>url</code>, <code>titulo</code>, <code>categoria</code>, <code>avaliacao</code>, <code>preco_gbp</code>, <code>em_estoque</code>, <code>qtd_estoque</code>, <code>coletado_em</code>, <code>arquivo_origem</code>, <code>processado_em</code></td></tr>
             <tr><td>Silver</td><td><code>silver/ptax/ptax.parquet</code></td><td>boletim PTAX, sem repetição</td><td><code>moeda</code>, <code>data_hora_cotacao</code>, <code>tipo_boletim</code>, <code>cotacao_compra</code>, <code>cotacao_venda</code>, <code>arquivo_origem</code>, <code>processado_em</code></td></tr>
-            <tr><td>Gold</td><td><code>gold/clima_media_diaria/clima_media_diaria.parquet</code></td><td>cidade e dia</td><td><code>temperatura_media_c</code>, mínima, máxima, <code>horas_com_previsao</code></td></tr>
+            <tr><td>Gold</td><td><code>gold/jornada_caminhao_diaria/jornada_caminhao_diaria.parquet</code></td><td>caminhão e dia no horário de Brasília</td><td><code>minutos_com_posicao</code>, <code>horas_direcao</code>, <code>velocidade_media_kmh</code>, <code>km_aproximados</code>, <code>maior_direcao_continua_min</code>, <code>alertas_acima_5h30</code></td></tr>
             <tr><td>Gold</td><td><code>gold/livro_preco_brl_diario/livro_preco_brl_diario.parquet</code></td><td>livro e dia de coleta</td><td><code>upc</code>, <code>titulo</code>, <code>preco_gbp</code>, <code>data_ptax</code>, <code>ptax_venda_gbp_brl</code>, <code>preco_brl</code></td></tr>
           </tbody>
         </table></div>
         <p>Os contratos de <code>silver/livros</code> e <code>silver/ptax</code> foram combinados com a Aula 05, que os lê para montar o modelo relacional e o esquema estrela; por isso os nomes seguem <code>snake_case</code> e o UPC é a chave natural do livro. Confira com <code>mc ls</code> os prefixos que o grupo de fato gravou nas Aulas 02 e 03 e ajuste os caminhos se forem outros.</p>
-        <p>A coluna <code>arquivo_origem</code> é o mecanismo de rastreabilidade. Ela guarda o caminho completo do objeto lido, como <code>s3://raw/open_meteo/data=2026-10-30/hora=14/manaus.json</code> ou <code>s3://bronze/books_toscrape/data=2026-10-24/livros.jsonl</code>. Com ela, um número estranho na gold pode ser seguido até a silver e daí até o arquivo das Aulas 02 e 03. A coluna <code>processado_em</code> diz quando o job gerou a linha, o que separa um erro de coleta de um erro de transformação.</p>
+        <p>Cada camada da telemetria promete uma coisa diferente. O bronze promete que toda linha do lote está em algum lugar: reconhecida em <code>linhas.jsonl</code> ou na quarentena, sempre com arquivo e número da linha. Não promete tipo nem fuso: <code>data_hora_txt</code> guarda <code>27/10/26 09:00:55</code>, <code>27-10-2026 09:02:55</code> ou <code>20261027T000600</code>, conforme o formato. A silver promete tipo, instante em UTC, uma posição por caminhão e minuto e origem em toda linha. A gold promete o grão da pergunta: uma linha por caminhão e dia local, com horas de direção (minutos com velocidade acima de zero, divididos por 60), velocidade média em movimento, quilometragem aproximada (soma das velocidades de cada minuto dividida por 60) e alertas acima de 5h30. Rádio e erro do enlace ficam só no bronze, porque nenhuma pergunta desta aula os usa.</p>
+        <p>A coluna <code>arquivo_origem</code> é o mecanismo de rastreabilidade. Ela guarda o caminho completo do objeto lido, como <code>s3://raw/telemetria/data=2026-10-27/hora=14/caminhao=CAM-0451/lote_1415.txt</code> (com o <code>numero_linha</code> ao lado) ou <code>s3://bronze/books_toscrape/data=2026-10-24/livros.jsonl</code>. Com ela, um número estranho na gold pode ser seguido até a silver e daí até o arquivo das Aulas 02 e 03. A coluna <code>processado_em</code> diz quando o job gerou a linha, o que separa um erro de coleta de um erro de transformação.</p>
 
         <h3>6.1 Exemplo numérico: objetos e bytes por camada</h3>
         <div class="note">
           <strong>Exemplo numérico 3. O que cada camada guarda em um ano</strong>
-          <p>O raw do clima recebe 144 objetos por dia. A Aula 02 mediu cerca de 6,6 KB em disco por objeto no MinIO local, por causa do arquivo de metadados que acompanha cada objeto, e projetou 52.560 objetos e cerca de 346 MB de volume em um ano.</p>
-          <p>A silver de clima recebe um objeto por data. Na réplica, os seis objetos gerados (24/10 a 29/10/2026) tiveram entre 3.257 e 3.267 bytes, 19.576 bytes no total, com 144 linhas cada. Mantida essa média, um ano de silver seria 365 objetos e cerca de 1,2 MB de conteúdo; se a sobrecarga de cerca de 5,6 KB por objeto medida na Aula 02 se repetir, cerca de 3,2 MB em disco. As duas projeções são extrapolação, a confirmar com os dados do grupo. A gold de clima é um objeto só, recalculado a cada execução.</p>
+          <p>O raw da telemetria recebe 1.920 objetos por dia, com cerca de 1,96 MB de conteúdo (1.956.966 bytes em 27/10/2026). No MinIO local da preparação, os 13.440 lotes da semana ocuparam 93.948.087 bytes em disco (<code>du -sb</code> no volume), cerca de 7 KB por objeto para 1.025 bytes de conteúdo: cada objeto pequeno vira um diretório com um arquivo <code>xl.meta</code> de cerca de 1,8 KB, que guarda os metadados e o próprio conteúdo. Em um ano, seriam 700.800 objetos, cerca de 714 MB de conteúdo e 4,9 GB em disco.</p>
+          <p>O bronze recebe um objeto por dia, mais o da quarentena. O de 27/10 teve 13.052.116 bytes, quase sete vezes o TXT do mesmo dia, porque cada uma das 31.285 linhas reconhecidas repete os nomes das 15 chaves e o caminho do lote. A silver de posições recebe um objeto por dia, com 328.538 a 333.237 bytes na semana, e a de alertas, cerca de 3,4 KB. A gold de jornada é um objeto só, recalculado a cada execução: 3.257 bytes para 140 linhas (20 caminhões em 7 dias). As projeções anuais abaixo multiplicam a média medida por 365 e são extrapolação, a confirmar com os dados do grupo.</p>
         </div>
         <div class="table-scroll"><table>
           <thead><tr><th>Camada</th><th>Objetos por dia</th><th>Objetos em um ano</th><th>Bytes em um ano</th><th>Origem do número</th></tr></thead>
           <tbody>
-            <tr><td>Raw clima</td><td>144</td><td>52.560</td><td>cerca de 346 MB em disco</td><td>medido na Aula 02, projetado</td></tr>
-            <tr><td>Silver clima</td><td>1, substituído no reprocessamento</td><td>365</td><td>cerca de 1,2 MB de conteúdo; cerca de 3,2 MB em disco</td><td>medido na réplica, extrapolado</td></tr>
-            <tr><td>Gold clima</td><td>1, recalculado</td><td>1</td><td>não medido</td><td>&mdash;</td></tr>
+            <tr><td>Raw telemetria</td><td>1.920</td><td>700.800</td><td>cerca de 714 MB de conteúdo; cerca de 4,9 GB em disco</td><td>medido na semana da preparação, projetado</td></tr>
+            <tr><td>Bronze telemetria</td><td>1 (mais 1 de quarentena), substituído</td><td>365 (mais 365)</td><td>cerca de 4,8 GB</td><td>medido na semana, projetado</td></tr>
+            <tr><td>Silver posições</td><td>1, substituído no reprocessamento</td><td>365</td><td>cerca de 121 MB</td><td>medido na semana, projetado</td></tr>
+            <tr><td>Silver alertas</td><td>1, substituído</td><td>365</td><td>cerca de 1,3 MB</td><td>medido na semana, projetado</td></tr>
+            <tr><td>Gold jornada</td><td>1, recalculado</td><td>1</td><td>cresce 20 linhas por dia; não projetado</td><td>&mdash;</td></tr>
           </tbody>
         </table></div>
-        <p>A conta mostra o que a arquitetura medalhão troca. A silver tem 144 vezes menos objetos que o raw, ocupa cerca de cem vezes menos disco e responde à pergunta do planejamento. O raw continua guardado porque é o único lugar com as 24 versões de cada previsão e com os bytes que permitem refazer a silver quando a regra de deduplicação ou o parser mudarem. Guardar o raw indefinidamente é uma decisão de retenção, e o ATAM precisa dizer até quando ela vale (cenário de bronze e silver ocupando espaço, seção 11).</p>
+        <p>A conta mostra o que a arquitetura medalhão troca. A silver de posições tem 1.920 vezes menos objetos que o raw, ocupa cerca de 40 vezes menos disco e responde à pergunta da jornada. O raw continua guardado porque é o único lugar com os bytes que permitem refazer bronze e silver quando a expressão regular ou a regra de deduplicação mudarem, e porque é ele que a transportadora mostra numa fiscalização. A surpresa está no bronze: em JSON Lines, ele é a camada mais pesada, quase do tamanho do raw em disco e muito maior em conteúdo. Gravar o bronze em Parquet, ou não persistir o bronze e extrair do raw a cada execução, são alternativas com custo próprio, e a escolha vai para o ATAM (cenário de bronze e silver ocupando espaço, seção 11), assim como até quando guardar o raw.</p>
         <div class="note">
           <strong>Pausa para reflexão</strong>
           <p>Diga em que bucket fica cada artefato e por quê: (a) a resposta da PTAX como o Banco Central entregou, com o envelope <code>value</code>; (b) os boletins extraídos dessa resposta, um por linha, ainda sem tipos garantidos; (c) o preço de cada livro em libras, com tipo, UPC e arquivo de origem; (d) o preço de cada livro em reais por dia, com a cotação usada. Depois diga qual deles você apagaria primeiro se o volume enchesse, e o que perderia com isso.</p>
@@ -292,7 +308,7 @@
             <li>Na disciplina, raw guarda bytes, bronze o extraído em JSON Lines, silver o Parquet tipado com origem e gold o grão da pergunta de negócio.</li>
             <li><code>arquivo_origem</code> e <code>processado_em</code> levam qualquer número da gold de volta ao objeto bruto e separam erro de coleta de erro de transformação.</li>
             <li>Parquet gravado direto não forma tabela com transação e histórico; Delta Lake e Apache Iceberg acrescentam esse log de metadados.</li>
-            <li>A silver de clima tem 144 vezes menos objetos que o raw; o raw fica porque é o único com todas as versões de cada previsão.</li>
+            <li>A silver de posições tem 1.920 vezes menos objetos que o raw; o raw fica porque é o único com os bytes para refazer a extração, e o bronze em JSON Lines foi a camada mais pesada (13,1 MB por dia).</li>
           </ul>
         </div>
 
@@ -309,7 +325,7 @@
       <section class="content-block" id="s7">
         <h2>7. DuckDB como motor in-process sobre o MinIO</h2>
         <p>O DuckDB é um banco analítico que roda dentro do processo que o chama, como o SQLite, sem servidor separado. No Python, <code>import duckdb</code> já dá um motor colunar e vetorizado. Para esta aula, a propriedade que interessa é outra: o DuckDB lê e escreve arquivos em object storage como se fossem arquivos locais, por meio da extensão <code>httpfs</code>, que implementa a API compatível com S3. O MinIO fala essa API, e a documentação do DuckDB informa que o <code>httpfs</code> é testado com ele.</p>
-        <p>Um motor in-process combina com o job desta aula. O job sobe, abre uma conexão em memória, lê o bronze, grava silver e gold e termina, sem banco para administrar e sem estado entre execuções. O estado durável fica todo no object storage. A contrapartida também precisa ser dita: a memória disponível é a do contêiner (até 1 GB no trial do Railway), e o DuckDB não coordena duas execuções simultâneas gravando o mesmo objeto. A seção 8 trata disso.</p>
+        <p>Um motor in-process combina com o job desta aula. O job sobe, abre uma conexão em memória, lê o raw e o bronze, grava o bronze da telemetria, a silver e a gold e termina, sem banco para administrar e sem estado entre execuções. O estado durável fica todo no object storage. A contrapartida também precisa ser dita: a memória disponível é a do contêiner (até 1 GB no trial do Railway), e o DuckDB não coordena duas execuções simultâneas gravando o mesmo objeto. A seção 8 trata disso.</p>
 
         <h3>7.1 Secret S3 apontando para o MinIO</h3>
         <p>A sintaxe abaixo foi conferida na documentação oficial do DuckDB (página de suporte à API S3 da extensão <code>httpfs</code>) em 03/10/2026 e executada contra o MinIO local com <code>duckdb==1.5.6</code>:</p>
@@ -336,25 +352,32 @@ CREATE OR REPLACE TEMPORARY SECRET minio_lake (
         </table></div>
         <p>O secret é <code>TEMPORARY</code>: existe só na conexão aberta pelo job e não é gravado em disco. As credenciais vêm de variáveis de ambiente. No laboratório, o utilitário <code>sql/rodar_sql.py</code> lê <code>S3_ENDPOINT_URL</code> (com esquema, como na Aula 02), separa o host e a porta para <code>ENDPOINT</code> e deriva <code>USE_SSL</code> do esquema <code>http</code> ou <code>https</code>. Nenhum arquivo <code>.sql</code> contém senha.</p>
 
-        <h3>7.2 Leitura: JSON, JSON Lines, HTML e Parquet</h3>
-        <p><code>read_json_auto</code> (alias de <code>read_json</code>) infere o esquema a partir de uma amostra dos arquivos. Com <code>filename = true</code>, acrescenta a coluna com o caminho do arquivo, que vira a <code>arquivo_origem</code>. Com <code>hive_partitioning = true</code>, transforma <code>data=</code> e <code>hora=</code> do caminho em colunas. Com <code>union_by_name = true</code>, une arquivos com conjuntos de campos diferentes pelo nome.</p>
+        <h3>7.2 Leitura: TXT, JSON, JSON Lines, HTML e Parquet</h3>
+        <p>O lote TXT não tem esquema que um leitor genérico entenda. <code>read_text</code> devolve um registro por arquivo, com <code>filename</code>, <code>content</code> (o arquivo inteiro como texto), <code>size</code> e <code>last_modified</code>, e reconhece sozinho as partições no estilo Hive do caminho: no <code>DESCRIBE</code> da preparação, <code>caminhao</code>, <code>data</code> e <code>hora</code> apareceram como colunas. A extração acontece em três passos, todos em SQL. <code>string_split</code> com <code>unnest</code> transforma o arquivo em linhas, e <code>generate_subscripts</code> numera cada uma; uma expressão regular ancorada por formato decide a que formato a linha pertence; e <code>regexp_extract</code> com uma lista de nomes devolve os grupos capturados como um <code>STRUCT</code>, com campos vazios quando a linha não casa.</p>
         <pre><code>SELECT
-    regexp_extract(filename, '([^/]+)\.json$', 1) AS cidade,
-    data                                          AS data_coleta,
-    hora                                          AS hora_coleta,
-    unnest(hourly.time)                           AS horario_local,
-    unnest(hourly.temperature_2m)                 AS temperatura_c,
-    filename                                      AS arquivo_origem
-FROM read_json_auto('s3://raw/open_meteo/*/*/*.json',
-                    filename = true, hive_partitioning = true)
-LIMIT 12;</code></pre>
-        <p>O <code>DESCRIBE</code> dessa leitura, na preparação, mostrou <code>hourly</code> como <code>STRUCT("time" VARCHAR[], temperature_2m DOUBLE[], relative_humidity_2m BIGINT[])</code>, <code>data</code> como <code>DATE</code> e <code>hora</code> como <code>VARCHAR</code>. Dois <code>unnest</code> no mesmo <code>SELECT</code> percorrem as listas em paralelo: o primeiro horário com a primeira temperatura, e assim por diante. Um arquivo com 24 horas vira 24 linhas.</p>
-        <p>Para o manifesto em JSON Lines, o mesmo leitor serve, com o formato explícito:</p>
-        <pre><code>SELECT status, count(*) AS cidades
-FROM read_json_auto('s3://raw/_manifestos/open_meteo/*/*/*.jsonl',
+    filename                                                AS arquivo_origem,
+    unnest(string_split(content, chr(10)))                  AS linha,
+    generate_subscripts(string_split(content, chr(10)), 1)  AS numero_linha
+FROM read_text([
+    's3://raw/telemetria/data=2026-10-27/hora=0[3-9]/*/*.txt',
+    's3://raw/telemetria/data=2026-10-27/hora=1[0-9]/*/*.txt',
+    's3://raw/telemetria/data=2026-10-27/hora=2[0-3]/*/*.txt',
+    's3://raw/telemetria/data=2026-10-28/hora=0[0-2]/*/*.txt'
+]);
+
+-- formato 1, campos com nome
+regexp_extract(linha,
+  '^(CAM-[0-9]{4})\|([0-9]{2}/[0-9]{2}/[0-9]{2} [0-9:]{8})\|(-?[0-9.]+),(-?[0-9.]+)\|VEL ([0-9]{3})\|TAC MOT ([0-9]{2}h[0-9]{2})$',
+  ['caminhao', 'data_hora', 'lat', 'lon', 'vel', 'tac'])</code></pre>
+        <p>Os quatro globs da lista são o dia 27/10 no horário de Brasília, das 03h UTC de 27 às 02h59 UTC de 28; a seção 8.2 explica a conta. Dois detalhes da preparação valem para o grupo. Com uma lista de globs, as colunas do caminho chegaram como texto, e o <code>03_bronze_telemetria.sql</code> declara o tipo com <code>CAST</code>. E o <code>?</code>, que em glob local quer dizer um caractere qualquer, num caminho <code>s3://</code> é lido como início de query string e não encontra nada; classes como <code>0[3-9]</code> funcionam.</p>
+        <p>O âncora (<code>^</code> no começo e <code>$</code> no fim) é o que separa extração de palpite. A consulta exploratória do <code>01_raw_telemetria.sql</code> classifica só pelo começo da linha e serve para contar formatos; a do bronze exige que a linha inteira case, e é ela que manda para a quarentena a linha truncada <code>CAM-0451 27-10-2026 11</code>.</p>
+        <p>Para o manifesto em JSON Lines da Aula 02, <code>read_json_auto</code> serve, com o formato explícito:</p>
+        <pre><code>SELECT status, count(*) AS lotes, sum(linhas) AS linhas, sum(alertas) AS alertas
+FROM read_json_auto('s3://raw/_manifestos/telemetria/data=2026-10-27/*/*.jsonl',
                     format = 'newline_delimited')
 GROUP BY status;</code></pre>
-        <p>O HTML não tem esquema que um leitor genérico entenda. <code>read_text</code> devolve o conteúdo como texto, com nome e tamanho do arquivo. O arquivo <code>sql/02_raw_bronze_livros_ptax.sql</code> usa expressões regulares sobre a página de detalhe para mostrar de onde saem o UPC, o preço e a quantidade em estoque; na preparação, a página de <code>Sharp Objects</code> devolveu UPC <code>e00eb4fd7b871a48</code>, preço 47.82 e 20 unidades. Essa leitura serve para entender o mecanismo. A extração oficial é a do parser da Aula 03, com teste sobre página salva, e o resultado dela está no bronze.</p>
+        <p>O manifesto é particionado pela data e hora do início da execução do coletor, em UTC, e não pela janela dos lotes; a conferência entre manifesto e bucket precisa levar isso em conta.</p>
+        <p>O HTML também não tem esquema que um leitor genérico entenda. <code>read_text</code> devolve o conteúdo como texto, com nome e tamanho do arquivo. O arquivo <code>sql/02_raw_bronze_livros_ptax.sql</code> usa expressões regulares sobre a página de detalhe para mostrar de onde saem o UPC, o preço e a quantidade em estoque; na preparação, a página de <code>Sharp Objects</code> devolveu UPC <code>e00eb4fd7b871a48</code>, preço 47.82 e 20 unidades. Essa leitura serve para entender o mecanismo. A extração oficial é a do parser da Aula 03, com teste sobre página salva, e o resultado dela está no bronze.</p>
         <p>O bronze dos livros mostra um cuidado que a inferência automática não toma. Lido com <code>read_json_auto</code>, o campo <code>coletado_em</code>, gravado como <code>2026-10-03T09:31:12-03:00</code>, foi inferido como <code>TIMESTAMP</code> sem fuso, com o valor convertido para 12:31:12; convertido depois para <code>TIMESTAMPTZ</code> no fuso de Brasília, virou 12:31 em Brasília, três horas a mais. Por isso a silver declara o esquema na leitura, com <code>columns</code>, lê <code>coletado_em</code> como texto e só então converte:</p>
         <pre><code>FROM read_json(
     's3://bronze/books_toscrape/data=2026-10-24/*.jsonl',
@@ -366,11 +389,11 @@ GROUP BY status;</code></pre>
     })
 -- no SELECT: CAST(coletado_em AS TIMESTAMPTZ) respeita o deslocamento -03:00</code></pre>
         <p>Declarar <code>columns</code> também fixa o contrato na entrada: um campo extra, como o <code>chave_origem</code> opcional da Aula 03, é ignorado, e um campo do contrato ausente aparece como nulo, o que um teste da silver deve detectar.</p>
-        <p>Para Parquet, <code>read_parquet</code> com <code>hive_partitioning = true</code> lê a silver e permite a poda de partição:</p>
-        <pre><code>SELECT cidade, avg(temperatura_c)
-FROM read_parquet('s3://silver/clima/*/*.parquet', hive_partitioning = true)
-WHERE data = DATE '2026-10-30'
-GROUP BY cidade;</code></pre>
+        <p>O bronze da telemetria é lido do mesmo jeito: <code>04_silver_telemetria.sql</code> declara as 15 colunas, todas texto menos <code>numero_linha</code> e <code>formato</code>, e é na silver que nascem os tipos. Para Parquet, <code>read_parquet</code> lê os tipos do rodapé e reconhece a partição <code>data_local=</code> do caminho, o que permite a poda:</p>
+        <pre><code>SELECT caminhao, avg(velocidade_kmh)
+FROM read_parquet('s3://silver/posicoes/*/*.parquet')
+WHERE data_local = DATE '2026-10-27' AND velocidade_kmh &gt; 0
+GROUP BY caminhao;</code></pre>
 
         <h3>7.3 Escrita: COPY para o object storage</h3>
         <p>O <code>COPY ... TO 's3://...' (FORMAT parquet)</code> grava o resultado de uma consulta direto no MinIO. Com <code>PARTITION_BY (coluna)</code>, o DuckDB cria um diretório por valor no estilo Hive. A documentação de escritas particionadas descreve as opções <code>OVERWRITE_OR_IGNORE</code>, <code>OVERWRITE</code>, <code>APPEND</code> e <code>FILENAME_PATTERN</code>, e avisa que sobrescrita não é suportada em sistemas de arquivos remotos. A preparação testou o que acontece no MinIO:</p>
@@ -380,39 +403,41 @@ GROUP BY cidade;</code></pre>
             <tr><td><code>COPY ... TO 's3://silver/teste' (FORMAT parquet, PARTITION_BY (data))</code></td><td>erro: <code>Directory "s3://silver/teste" is not empty! Enable OVERWRITE option to overwrite files</code></td></tr>
             <tr><td>idem com <code>APPEND</code></td><td>grava um arquivo novo com nome UUID ao lado do anterior; as linhas passam a existir duas vezes</td></tr>
             <tr><td>idem com <code>OVERWRITE_OR_IGNORE</code></td><td>executou e substituiu <code>data_0.parquet</code>; arquivos antigos com outros nomes continuariam lá</td></tr>
-            <tr><td><code>COPY ... TO 's3://silver/clima/data=D/clima.parquet' (FORMAT parquet)</code></td><td>substitui o mesmo objeto; contagem de objetos e de linhas igual</td></tr>
+            <tr><td><code>COPY ... TO 's3://silver/posicoes/data_local=D/posicoes.parquet' (FORMAT parquet)</code></td><td>substitui o mesmo objeto; contagem de objetos e de linhas igual (repetido em 16/10/2026 com bronze, silver e gold da telemetria: 28 objetos com os mesmos nomes e tamanhos)</td></tr>
           </tbody>
         </table></div>
         <p>A conclusão para o projeto: a demonstração grava um objeto de nome fixo por data, montando o caminho da partição no próprio job, e não depende de opções de sobrescrita que a documentação declara não suportadas em destino remoto. O resultado observado com <code>OVERWRITE_OR_IGNORE</code> vale para esta versão e este teste, e não autoriza contar com ele.</p>
 
         <h3>7.4 Exemplo numérico: quantas requisições uma leitura gasta</h3>
         <div class="note">
-          <strong>Exemplo numérico 4. O mesmo dia lido de quatro formas</strong>
-          <p>A réplica e a silver gerada a partir dela foram copiadas para um MinIO local em Docker, com a mesma imagem do laboratório, e o DuckDB 1.5.6 leu os dados pelo <code>httpfs</code>. Cada consulta rodou com <code>EXPLAIN ANALYZE</code> numa conexão nova, e a tabela traz as linhas <code>HTTPFS HTTP Stats</code> e <code>Total Time</code> do plano. A pergunta é sempre a temperatura média de 27/10/2026.</p>
+          <strong>Exemplo numérico 4. O mesmo dia lido de seis formas</strong>
+          <p>A semana de lotes da preparação (13.440 objetos), o bronze e a silver gerados a partir dela ficaram num MinIO local em Docker, com a mesma imagem do laboratório, e o DuckDB 1.5.6 leu os dados pelo <code>httpfs</code>. A pergunta é sempre a velocidade média em movimento por caminhão no dia 27/10/2026 em Brasília. Cada consulta rodou três vezes com <code>EXPLAIN ANALYZE</code>, cada vez numa conexão nova; a tabela traz as linhas <code>HTTPFS HTTP Stats</code> e a mediana de <code>Total Time</code>.</p>
         </div>
         <div class="table-scroll"><table>
-          <thead><tr><th>Leitura</th><th>HEAD</th><th>GET</th><th>Bytes recebidos</th><th>Tempo total</th></tr></thead>
+          <thead><tr><th>Leitura</th><th>GET</th><th>Bytes recebidos</th><th>Tempo (mediana)</th></tr></thead>
           <tbody>
-            <tr><td>JSON do raw, glob <code>*/*/*.json</code> da semana, <code>hive_partitioning</code> e <code>union_by_name</code>, filtro em <code>data</code></td><td>1.008</td><td>1.010</td><td>1,1 MiB</td><td>2,25 s</td></tr>
-            <tr><td>Igual, sem <code>union_by_name</code></td><td>176</td><td>178</td><td>414 KiB</td><td>0,57 s</td></tr>
-            <tr><td>JSON do raw, caminho <code>data=2026-10-27/*/*.json</code></td><td>144</td><td>145</td><td>175 KiB</td><td>0,37 s</td></tr>
-            <tr><td>Parquet da silver, glob com filtro em <code>data</code> (<code>Scanning Files: 1/6</code>)</td><td>0</td><td>3</td><td>7,9 KiB</td><td>0,03 s</td></tr>
+            <tr><td>Lotes TXT, glob <code>*/*/*/*.txt</code> da semana, sem filtro de partição</td><td>13.454</td><td>16,5 MiB</td><td>14,8 s</td></tr>
+            <tr><td>Igual, com filtro em <code>filename</code></td><td>13.454</td><td>16,5 MiB</td><td>13,9 s</td></tr>
+            <tr><td>Igual, com filtro nas colunas <code>data</code> e <code>hora</code> do caminho</td><td>1.934</td><td>5,2 MiB</td><td>2,66 s</td></tr>
+            <tr><td>Lotes TXT, partições do dia local escritas no caminho (quatro globs)</td><td>1.924</td><td>2,5 MiB</td><td>2,07 s</td></tr>
+            <tr><td>Bronze do dia, um objeto JSON Lines</td><td>1 (e 1 <code>HEAD</code>)</td><td>12,4 MiB</td><td>0,042 s</td></tr>
+            <tr><td>Silver em Parquet, glob com filtro em <code>data_local</code> (<code>Scanning Files: 1/7</code>)</td><td>5</td><td>52,7 KiB</td><td>0,009 s</td></tr>
           </tbody>
         </table></div>
-        <p>O mesmo dia custou de 3 a 1.010 requisições conforme a leitura. Com <code>union_by_name = true</code>, o DuckDB precisou do esquema de todos os arquivos que o glob encontrou para unir os campos pelo nome, e abriu os 1.008 objetos da semana; o filtro em <code>data</code> descartou linhas, mas não evitou as requisições. Sem essa opção, a poda de partição reduziu a leitura a 176 <code>HEAD</code>: os 144 arquivos do dia e mais algumas dezenas, que atribuímos à amostra que a inferência lê para descobrir o esquema; essa atribuição é hipótese, porque o plano não a detalha. Com o caminho da partição escrito no glob, ficou um par <code>HEAD</code> e <code>GET</code> por arquivo. A silver respondeu com 3 <code>GET</code> e 7,9 KiB: um arquivo aberto de seis, o rodapé e as colunas pedidas.</p>
-        <p>Duas consequências para o job. A opção <code>union_by_name</code> protege contra arquivos com campos diferentes e cobra a leitura de todos os arquivos do glob; num raw com um ano de coleta, seriam 52.560 objetos por execução. O arquivo <code>sql/03_silver_clima.sql</code> do laboratório usa o glob da semana com essa opção, o que basta para os volumes da aula; o job do grupo deve fixar as partições D e D+1 no caminho ou justificar a opção no <code>plan.md</code>. A outra consequência é de escala: a medida foi feita sem rede, e no MinIO do Railway cada requisição atravessa o proxy público, com tempo por requisição maior, em valor que a preparação não mediu. Confira sempre a linha <code>HTTPFS HTTP Stats</code>, além de <code>Scanning Files</code>.</p>
+        <p>O mesmo dia custou de 5 a 13.454 requisições conforme a leitura. Sem filtro de partição, o DuckDB baixou os 13.440 lotes da semana e mais 14 páginas de listagem. O filtro sobre <code>filename</code> parece restringir a leitura, mas o DuckDB não o usa para descartar arquivos: a contagem de requisições foi a mesma. O filtro nas colunas <code>data</code> e <code>hora</code>, que o DuckDB tira do caminho no estilo Hive, descartou os lotes de fora do dia (1.920 baixados), mas o glob amplo ainda obrigou a listar o bucket inteiro: as 14 páginas de listagem respondem pela diferença de 2,7 MiB para a leitura com as partições no caminho. Com os quatro globs, o DuckDB listou só as partições do dia e baixou só os seus lotes. O bronze respondeu com uma requisição e a silver com cinco: um arquivo aberto de sete, o rodapé e as colunas pedidas.</p>
+        <p>Duas consequências para o job. A primeira é de escala: com o glob amplo, o número de listagens cresce com o bucket, e sem filtro de partição cresce também o número de lotes baixados; num raw com um ano de coleta, seriam 700.800 lotes por execução. A versão anterior do laboratório lia o raw com glob amplo e uma opção que obrigava o DuckDB a abrir todos os arquivos, e por isso o <code>03_bronze_telemetria.sql</code> escreve as partições no caminho. A segunda é de rede: a medida foi feita sem rede, e no MinIO do Railway cada requisição atravessa o proxy público, com tempo por requisição maior, em valor que a preparação não mediu. Durante as medições, as rajadas de cerca de 13 mil requisições seguidas chegaram a esgotar as conexões locais, e o DuckDB recebeu <code>Failure when receiving data from the peer</code>; com pausas entre as consultas, o erro não se repetiu. Confira sempre a linha <code>HTTPFS HTTP Stats</code>, além de <code>Scanning Files</code>.</p>
         <div class="note">
           <strong>Pausa para reflexão</strong>
-          <p>Um colega mostra o plano de uma consulta de um único dia com <code>#HEAD: 1008</code> e conclui que a poda de partição não funciona no MinIO. O que você conferiria antes de concordar (o glob, as opções do leitor, as linhas do plano), que mudança testaria primeiro, e o que essa mudança faria com o contrato da silver?</p>
+          <p>Um colega mostra o plano de uma consulta de um único dia com <code>#GET: 13454</code> e conclui que a poda de partição não funciona no MinIO. O que você conferiria antes de concordar (o glob, a coluna em que está o filtro, as linhas do plano), que mudança testaria primeiro, e como mostraria o efeito dela com uma medida?</p>
         </div>
         <div class="note">
           <strong>Pontos-chave do bloco 4</strong>
           <ul>
             <li>O DuckDB roda dentro do processo do job, sem servidor, e o estado durável fica todo no object storage.</li>
             <li>O secret S3 aponta para o MinIO com <code>ENDPOINT</code> sem esquema, <code>URL_STYLE 'path'</code> e <code>USE_SSL</code> conforme o endpoint.</li>
-            <li><code>read_json_auto</code> infere, <code>read_json</code> com <code>columns</code> declara e <code>read_parquet</code> lê os tipos do rodapé; <code>filename = true</code> dá o <code>arquivo_origem</code>.</li>
+            <li><code>read_text</code> entrega o lote como texto, <code>read_json</code> com <code>columns</code> declara o esquema e <code>read_parquet</code> lê os tipos do rodapé; o caminho do arquivo vira <code>arquivo_origem</code>.</li>
             <li><code>COPY</code> para um objeto de nome fixo por data manteve objetos e linhas no reprocessamento; <code>PARTITION_BY</code> falhou ou duplicou.</li>
-            <li>O mesmo dia custou 1.010 <code>GET</code> com <code>union_by_name</code> sobre a semana, 145 com o caminho da partição e 3 na silver em Parquet.</li>
+            <li>O mesmo dia custou 13.454 <code>GET</code> com o glob da semana sem poda, 1.924 com as partições do dia no caminho, 1 no bronze e 5 na silver em Parquet.</li>
           </ul>
         </div>
 
@@ -430,23 +455,27 @@ GROUP BY cidade;</code></pre>
         <h2>8. Decisões de desenho que a demonstração expõe</h2>
 
         <h3>8.1 Idempotência por objeto de nome fixo</h3>
-        <p>O job é reexecutado por vários motivos: o cron dispara de hora em hora, alguém roda à mão para conferir, um erro de rede força nova tentativa. Cada reexecução precisa deixar o mesmo estado que uma execução. Na silver, isso se obtém gravando cada data num único objeto de nome determinístico; reprocessar a data substitui o objeto. A silver da PTAX, pequena, é um objeto só, recalculado inteiro a cada execução. Na gold, as tabelas são pequenas e são recalculadas inteiras a partir da silver a cada execução, também em objeto de nome fixo. Como a gravação de um objeto no object storage é atômica, quem lê no meio da execução vê o objeto antigo ou o novo, nunca metade.</p>
+        <p>O job é reexecutado por vários motivos: o cron dispara de hora em hora, alguém roda à mão para conferir, um erro de rede força nova tentativa. Cada reexecução precisa deixar o mesmo estado que uma execução. No bronze da telemetria e na silver, isso se obtém gravando cada data num único objeto de nome determinístico; reprocessar a data substitui o objeto. A silver da PTAX, pequena, é um objeto só, recalculado inteiro a cada execução. Na gold, as tabelas são pequenas e são recalculadas inteiras a partir da silver a cada execução, também em objeto de nome fixo. Como a gravação de um objeto no object storage é atômica, quem lê no meio da execução vê o objeto antigo ou o novo, nunca metade.</p>
 
-        <h3>8.2 Partição em UTC, previsão no horário de Brasília</h3>
-        <p>A Aula 02 particiona o raw pela hora da coleta em UTC, e pede à Open-Meteo os horários no fuso <code>America/Sao_Paulo</code>, com um dia de previsão. A coleta das 1h UTC do dia 31 acontece às 22h do dia 30 em Brasília, e a resposta traz as 24 horas do dia 30. Se a silver do dia 30 lesse só a partição <code>data=2026-10-30</code>, perderia as coletas mais recentes das últimas horas do dia. Por isso a silver do dia D lê as partições D e D+1 e filtra pelo horário previsto. Na preparação, a silver do dia 30 escolheu a coleta da partição do dia 31, hora 01, como a mais recente, que é o comportamento correto.</p>
-        <pre><code>FROM read_json_auto('s3://raw/open_meteo/*/*/*.json',
-                    filename = true, hive_partitioning = true, union_by_name = true)
-WHERE data BETWEEN DATE '2026-10-30' AND DATE '2026-10-30' + INTERVAL 1 DAY</code></pre>
-        <p>O filtro na coluna de partição mantém a poda: os arquivos de outras datas não são abertos.</p>
+        <h3>8.2 Partição em UTC, linhas no horário de Brasília</h3>
+        <p>A Aula 02 particiona o raw pelo início da janela do lote convertido para UTC, e as linhas trazem o horário de Brasília. A jornada do motorista se conta no dia local, que vai das 0h às 23h59 em Brasília, ou seja, das 03h UTC de D às 02h59 UTC de D+1. Se o bronze do dia 30 lesse só a partição <code>data=2026-10-30</code>, perderia as últimas três horas do dia e levaria junto as três primeiras horas do dia 31 em UTC, que são as últimas do dia 29 em Brasília. Por isso o bronze do dia D lê as partições das 03h às 23h de D e das 00h às 02h de D+1, escritas no caminho:</p>
+        <pre><code>FROM read_text([
+    's3://raw/telemetria/data={{DATA}}/hora=0[3-9]/*/*.txt',
+    's3://raw/telemetria/data={{DATA}}/hora=1[0-9]/*/*.txt',
+    's3://raw/telemetria/data={{DATA}}/hora=2[0-3]/*/*.txt',
+    's3://raw/telemetria/data={{DATA_SEGUINTE}}/hora=0[0-2]/*/*.txt'
+])</code></pre>
+        <p><code>sql/rodar_sql.py</code> deriva <code>DATA_SEGUINTE</code> de <code>DATA</code>; no job, o Python faz a mesma conta. A versão anterior deste exemplo usava um glob sobre o bucket inteiro com filtro nas colunas da partição, e o exemplo numérico 4 mostra quanto isso custava. A silver ainda confere a data local de cada linha, porque um minuto reenviado pode trazer o horário de outro dia.</p>
 
-        <h3>8.3 Deduplicação: qual coleta vale</h3>
-        <p>Cada coleta horária devolve a previsão do dia inteiro, então a mesma hora prevista aparece em até 24 coletas, com valores que mudam à medida que a previsão é atualizada. A consulta 4 de <code>sql/01_raw_clima.sql</code> conta essas repetições. A silver precisa escolher uma: a proposta é a coleta mais recente, com <code>QUALIFY row_number() OVER (PARTITION BY cidade, horario_local ORDER BY data_coleta DESC, hora_coleta DESC) = 1</code>. Outra regra seria possível, como guardar todas as versões para avaliar a qualidade da previsão; é uma decisão de negócio, que pertence à spec e a um ADR.</p>
+        <h3>8.3 Deduplicação: qual cópia vale</h3>
+        <p>O contrato garante uma posição por minuto em cada lote, mas não garante que o provedor nunca reenvie um minuto. Na preparação, duas retransmissões foram inseridas de propósito: o último minuto de uma janela repetido no começo do lote seguinte, uma delas cruzando a meia-noite (23h59 de 26/10 no lote das 00h00 de 27/10). A consulta 5 de <code>sql/01_raw_telemetria.sql</code> lista essas cópias; com o gerador da Aula 02 sem alteração, a lista vem vazia, e esse resultado também vai para a spec. A silver fica com uma posição por caminhão e minuto, a do lote mais recente: <code>QUALIFY row_number() OVER (PARTITION BY caminhao, date_trunc('minute', instante_utc) ORDER BY janela_utc DESC, numero_linha DESC) = 1</code>. Outra regra seria possível, como guardar a primeira cópia ou guardar todas para medir a frequência de reenvio; é uma decisão que pertence à spec e a um ADR.</p>
 
-        <h3>8.4 Arquivo corrompido no raw ou no bronze</h3>
-        <p>Na preparação, um JSON truncado foi colocado na partição do dia. A leitura falhou com <code>Malformed JSON in file "s3://raw/open_meteo/data=2026-10-31/hora=12/sao_paulo.json", at byte 81</code>, e a opção <code>ignore_errors</code> foi recusada com a mensagem de que erros de parse só podem ser ignorados no formato <code>newline_delimited</code>. Um único arquivo ruim derruba o processamento da data inteira. No bronze, que é JSON Lines, <code>ignore_errors</code> pularia a linha ruim em silêncio, o que esconde o problema; a política precisa dizer se isso é aceitável. O job precisa de uma política: validar cada objeto antes (por exemplo, com <code>json.loads</code> em Python) e montar a lista de arquivos válidos para o DuckDB; registrar caminho e erro dos inválidos no resumo; e decidir se a execução termina com sucesso ou falha. A decisão vai para a spec e para um ADR.</p>
+        <h3>8.4 Lote corrompido no raw</h3>
+        <p>O TXT falha de dois jeitos diferentes, e a preparação testou os dois. O lote truncado no meio da última linha não derruba nada: <code>read_text</code> lê o arquivo, a linha <code>CAM-0451 27-10-2026 11</code> não casa com nenhuma expressão, vai para a quarentena com arquivo e número da linha, e o caminhão fica com 1.439 minutos no dia em vez de 1.440. O risco aqui é o silêncio: se ninguém olhar a quarentena, a falta de um minuto não aparece em lugar nenhum.</p>
+        <p>O segundo jeito é um byte fora do UTF-8. Um lote com <code>ã</code> gravado em Latin-1 numa mensagem de rádio fez a leitura do dia inteiro parar com <code>read_text: could not read content of file 's3://raw/telemetria/data=2026-10-31/hora=10/caminhao=CAM-1060/lote_1000.txt' as valid UTF-8 encoded text. You may want to use read_blob instead.</code> Um único lote ruim entre 1.920 derruba o processamento da data, o mesmo efeito que um JSON truncado teria no <code>read_json</code>. <code>read_blob</code> lê os bytes sem decodificar, e <code>try(decode(content))</code> devolve nulo para o arquivo inválido sem parar a consulta, o que permite montar a lista de lotes válidos; <code>decode(content, 'replace')</code> troca o byte ruim por <code>?</code> e segue. O job precisa de uma política: falhar a data, pular o lote e registrar, ler com substituição e marcar, ou outra. A decisão vai para a spec e para um ADR, e é a questão 2 do TBL.</p>
 
         <h3>8.5 Evolução de esquema</h3>
-        <p>Um campo novo no JSON entrou na inferência sem quebrar nada, como descrito na seção 3. Um campo removido ou renomeado é diferente: o <code>SELECT</code> da silver referencia o campo, e a leitura falha. O comportamento desejado nos dois casos precisa estar escrito. Uma proposta razoável é falhar com mensagem clara quando um campo do contrato some, e registrar como lacuna quando aparece um campo fora do contrato.</p>
+        <p>No TXT, evolução de esquema é mudança de padrão de linha. O <code>TEMP_BAU</code> do firmware novo entrou sem quebrar nada porque a expressão o trata como opcional, como descrito na seção 3. Um campo renomeado, como <code>VEL 087</code> virando <code>VEL=087</code>, não quebra a leitura: as linhas param de casar e vão para a quarentena, e a silver encolhe sem erro. O comportamento desejado precisa estar escrito. Uma proposta razoável é tratar como falha quando a fração de linhas em quarentena num dia passar de um limite (hipótese, validação pendente) e registrar como lacuna o padrão novo que apareceu, até a spec mudar.</p>
 
         <h3>8.6 Dockerfile com a extensão já instalada</h3>
         <p>O <code>INSTALL httpfs</code> baixa a extensão na primeira vez. Num contêiner que sobe a cada hora, isso seria um download por execução e uma dependência de rede a mais. O <code>Dockerfile</code> do laboratório instala a extensão durante o build, com o usuário que roda o job, e o job só faz <code>LOAD httpfs</code>. Na preparação, a imagem foi construída e executada contra o MinIO local: a extensão carregou a partir da imagem e o processo terminou com código 0.</p>
@@ -460,10 +489,10 @@ ASOF JOIN fechamento AS p ON l.data_coleta &gt;= p.data_ptax</code></pre>
         <h3>8.8 Exemplo numérico: o que o cron horário lê por dia</h3>
         <div class="note">
           <strong>Exemplo numérico 5. Leitura do job ao longo do semestre</strong>
-          <p>Hipótese de operação, a confirmar na spec do grupo: o job roda no minuto 15 de cada hora (<code>15 * * * *</code>, seção 13.1) e processa a data corrente no horário de Brasília, lendo as partições D e D+1 do raw do clima.</p>
-          <p>Com as partições no caminho, cada execução abre até 288 objetos (2 partições &times; 144), e as 24 execuções do dia somam até 6.912 objetos lidos, 48 vezes o que a coleta grava no mesmo dia. Pelo exemplo numérico 4, uma partição custou 145 <code>GET</code> e 0,37 s sem rede; duas partições, cerca de 290 <code>GET</code> e 0,74 s de leitura por execução, mais a escrita da silver e da gold. Em 30 dias, 720 execuções.</p>
-          <p>Com o glob sobre o raw inteiro e <code>union_by_name</code>, cada execução abre todos os objetos do bucket: 4.320 depois de 30 dias (103.680 por dia, com 24 execuções) e 52.560 depois de um ano (1.261.440 por dia). A medida local foi de 2,25 s para 1.008 objetos; se o tempo crescer na proporção do número de objetos, o que é hipótese, um ano de raw custaria cerca de 2 minutos só de leitura por execução, antes de somar o tempo de rede do Railway.</p>
-          <p>O que a conta autoriza: quando o glob fixa as partições, o custo de cada execução fica constante; quando não fixa, cresce com o bucket. Dentro de uma hora, 2 minutos ainda cabem; o risco está no crédito consumido por execução e na regra do Railway que pula a execução seguinte quando a anterior não terminou. A escolha vai para o <code>plan.md</code> e para os cenários de espaço e de job que não termina no ATAM.</p>
+          <p>Hipótese de operação, a confirmar na spec do grupo: o job roda no minuto 15 de cada hora (<code>15 * * * *</code>, seção 13.1) e processa o dia corrente no horário de Brasília, lendo os lotes do dia com as partições no caminho.</p>
+          <p>Com as partições no caminho, cada execução abre até 1.920 lotes, e as 24 execuções do dia somam até 46.080 lotes lidos, 24 vezes o que a coleta grava no mesmo dia. Pelo exemplo numérico 4, um dia completo custou 1.924 <code>GET</code> e 2,07 s sem rede; a extração inteira do bronze (<code>03</code>) levou de 2,6 s a 2,8 s por dia na preparação, e a silver (<code>04</code>), cerca de 0,3 s. Em 30 dias, 720 execuções.</p>
+          <p>Com o glob sobre o raw inteiro e sem filtro de partição, cada execução baixa todos os lotes do bucket: 57.600 depois de 30 dias e 700.800 depois de um ano. A medida local foi de 14,8 s para 13.440 lotes; se o tempo crescer na proporção do número de objetos, o que é hipótese, um ano de raw custaria cerca de 13 minutos só de leitura por execução, antes de somar o tempo de rede do Railway. Com o filtro nas colunas da partição, os lotes baixados ficam constantes, mas a listagem cresce: a semana pediu 14 páginas de listagem, o que sugere cerca de 700 páginas por execução depois de um ano (hipótese, contando mil chaves por página).</p>
+          <p>O que a conta autoriza: quando o caminho fixa as partições, o custo de cada execução fica constante; quando não fixa, cresce com o bucket. Treze minutos ainda cabem numa hora; o risco está no crédito consumido por execução e na regra do Railway que pula a execução seguinte quando a anterior não terminou. Com 500 caminhões, a hipótese de escala da teoria, um dia teria 48.000 lotes e a leitura de um dia passaria a ser o problema mesmo com as partições no caminho. A escolha vai para o <code>plan.md</code> e para os cenários de espaço e de job que não termina no ATAM.</p>
         </div>
         <div class="note">
           <strong>Pausa para reflexão</strong>
@@ -473,8 +502,8 @@ ASOF JOIN fechamento AS p ON l.data_coleta &gt;= p.data_ptax</code></pre>
           <strong>Pontos-chave do bloco 5</strong>
           <ul>
             <li>Cada data na silver é um objeto de nome fixo: reprocessar substitui, e quem lê vê o objeto antigo ou o novo, nunca metade.</li>
-            <li>O raw é particionado em UTC e a previsão está no horário de Brasília: a silver do dia D lê D e D+1 e filtra pelo horário previsto.</li>
-            <li>Qual coleta vale, o que fazer com arquivo inválido e qual cotação converte o preço são regras de negócio: vão para a spec, para um teste e para um ADR.</li>
+            <li>O raw é particionado em UTC e as linhas estão no horário de Brasília: o dia D local ocupa das 03h UTC de D às 02h59 UTC de D+1, e essas partições ficam escritas no caminho.</li>
+            <li>Qual cópia de um minuto vale, o que fazer com lote inválido e qual cotação converte o preço são regras de negócio: vão para a spec, para um teste e para um ADR.</li>
             <li>O cron do Railway roda em UTC, com intervalo mínimo de 5 minutos, e pula a execução quando a anterior ainda roda.</li>
             <li>Com o glob sobre o raw inteiro, o custo de cada execução cresce com o bucket; com as partições no caminho, fica constante.</li>
           </ul>
@@ -506,12 +535,12 @@ BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/da
 for f in docker-compose.yml .env.example requirements.txt AGENTS.md Dockerfile railway.json .gitignore; do
   curl -fsSLO "$BASE/$f"
 done
-for f in rodar_sql.py 01_raw_clima.sql 02_raw_bronze_livros_ptax.sql 03_silver_clima.sql 04_silver_ptax.sql 05_silver_livros.sql 06_gold.sql 07_parquet_inspecao.sql; do
+for f in rodar_sql.py 01_raw_telemetria.sql 02_raw_bronze_livros_ptax.sql 03_bronze_telemetria.sql 04_silver_telemetria.sql 05_silver_ptax.sql 06_silver_livros.sql 07_gold.sql 08_parquet_inspecao.sql; do
   curl -fsSL -o "sql/$f" "$BASE/sql/$f"
 done
 touch src/__init__.py
 ls -la . sql</code></pre>
-        <p>O <code>AGENTS.md</code> traz as regras específicas desta aula: os buckets <code>raw</code> e <code>bronze</code> são somente leitura, toda linha da silver tem <code>arquivo_origem</code>, a escrita não usa <code>APPEND</code> e o job precisa terminar. Leia e ajuste antes do primeiro prompt.</p>
+        <p>O <code>AGENTS.md</code> traz as regras específicas desta aula: o <code>raw</code> é somente leitura, no <code>bronze</code> o job escreve só nos prefixos da telemetria, a leitura do raw tem as partições do dia no caminho, linha não reconhecida vai para a quarentena, toda linha da silver tem <code>arquivo_origem</code>, a escrita não usa <code>APPEND</code> e o job precisa terminar. Leia e ajuste antes do primeiro prompt.</p>
 
         <h3>9.2 MinIO local com cópia do raw</h3>
         <p>O <code>docker-compose.yml</code> usa a mesma imagem e a mesma tag das aulas anteriores (<code>ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z</code>) e um serviço <code>minio-init</code> que cria os buckets <code>raw</code>, <code>bronze</code>, <code>silver</code> e <code>gold</code>, os mesmos da Aula 01. Se o MinIO da Aula 02 ainda estiver rodando no Codespace, pare-o antes, porque as portas são as mesmas.</p>
@@ -523,7 +552,7 @@ unset SENHA
 docker compose config -q &amp;&amp; echo "compose ok"
 docker compose up -d
 docker compose logs minio-init</code></pre>
-        <p>O desenvolvimento acontece sobre uma cópia do raw e do bronze do Railway. Assim, um erro do job durante o desenvolvimento não toca o dado de verdade, e o grupo trabalha com o volume e as irregularidades reais das três semanas de coleta. O alias <code>railway</code> sem chaves na linha de comando faz o <code>mc</code> pedir os valores de forma interativa:</p>
+        <p>O desenvolvimento acontece sobre uma cópia do raw e do bronze do Railway. Assim, um erro do job durante o desenvolvimento não toca o dado de verdade, e o grupo trabalha com o volume e as irregularidades reais das semanas de coleta. Se o raw do grupo não tiver um dia local completo de telemetria, gere mais lotes com o <code>gerar_lotes.py</code> da Aula 02 (por exemplo, <code>--inicio 2026-10-24T00:00 --horas 48</code>) e carregue-os com o coletor do grupo. O alias <code>railway</code> sem chaves na linha de comando faz o <code>mc</code> pedir os valores de forma interativa:</p>
         <pre><code>docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
 docker compose exec minio mc alias set railway https://&lt;dominio-da-porta-9000&gt;
 docker compose exec minio mc mirror railway/raw local/raw
@@ -540,13 +569,17 @@ python -m pip install -r requirements.txt
 python -c "import duckdb, boto3, bs4, pytest; print(duckdb.__version__)"</code></pre>
         <p>O <code>requirements.txt</code> fixa as versões usadas na preparação: <code>duckdb==1.5.6</code>, <code>boto3</code> para listar objetos e validar arquivos um a um, <code>pytest</code> e <code>pytz</code>, que o DuckDB exige para entregar valores <code>TIMESTAMPTZ</code> ao Python. O <code>beautifulsoup4</code> fica disponível caso o grupo precise refazer a extração do HTML.</p>
 
-        <h3>9.4 Schema on read no bronze, antes da spec</h3>
-        <p>Antes de pedir qualquer coisa ao agente, o grupo olha o dado. As duas consultas abaixo são as mesmas que o professor roda na projeção:</p>
-        <pre><code>python sql/rodar_sql.py sql/01_raw_clima.sql
-python sql/rodar_sql.py sql/02_raw_bronze_livros_ptax.sql</code></pre>
+        <h3>9.4 Schema on read no raw e no bronze, antes da spec</h3>
+        <p>Antes de pedir qualquer coisa ao agente, o grupo olha o dado. As consultas abaixo são as mesmas que o professor roda na projeção; escolha um dia local completo do raw do grupo:</p>
+        <pre><code>python sql/rodar_sql.py sql/01_raw_telemetria.sql --var DATA=2026-10-27
+python sql/rodar_sql.py sql/02_raw_bronze_livros_ptax.sql
+python sql/rodar_sql.py sql/03_bronze_telemetria.sql --var DATA=2026-10-27
+python sql/rodar_sql.py sql/04_silver_telemetria.sql --var DATA=2026-10-27</code></pre>
         <ol class="steps">
-          <li>Anote o tipo inferido de <code>hourly</code> e os campos da resposta.</li>
-          <li>Veja quantas vezes a mesma hora prevista se repete entre coletas (consulta 4 do primeiro arquivo).</li>
+          <li>Anote quantos lotes e quantas linhas o dia tem, e quantas linhas caem em cada um dos cinco formatos (consulta 3 do primeiro arquivo).</li>
+          <li>Veja que linhas nenhum formato explica e de que lote vieram (consulta 4, e a conferência final do <code>03</code>).</li>
+          <li>Veja se alguma posição aparece em mais de um lote (consulta 5) e quantas posições a silver descartou.</li>
+          <li>Compare a hora de um objeto (<code>hora=12</code>) com os horários das linhas dentro dele.</li>
           <li>Confira o resumo dos manifestos em JSON Lines: quantas gravações e quantos <code>ja_existia</code>.</li>
           <li>Veja o envelope <code>value</code> da PTAX no raw: na verificação de 02/10/2026, a resposta do dia trazia cinco boletins, de <code>Abertura</code> a <code>Fechamento PTAX</code>.</li>
           <li>Leia uma página de detalhe como texto e compare o UPC e o preço extraídos por expressão regular com a linha correspondente do bronze.</li>
@@ -558,8 +591,8 @@ python sql/rodar_sql.py sql/02_raw_bronze_livros_ptax.sql</code></pre>
       <!-- 10 -->
       <section class="content-block" id="s10">
         <h2>10. O projeto da aula em SDD</h2>
-        <p>O projeto continua os dois cenários fictícios das aulas anteriores. A distribuidora de bebidas da Aula 02 quer comparar a previsão de temperatura com as vendas de bebidas geladas em cada capital, e para isso precisa de uma tabela com a temperatura média diária por capital. O monitor de preços da Aula 03 quer acompanhar o preço em reais dos livros importados, o que exige combinar o preço em libras extraído do HTML com a cotação PTAX do dia.</p>
-        <p>O projeto desta aula entrega o job que constrói silver e gold a partir do raw e o publica no Railway com execução agendada. A sequência de prompts segue a convenção da disciplina:</p>
+        <p>O projeto continua os dois cenários fictícios das aulas anteriores. A transportadora da Aula 02 precisa conferir a jornada de cada caminhão: quantas horas de direção houve em cada dia, quantas vezes o tacógrafo acusou direção contínua acima de 5h30, que velocidade média o caminhão manteve em movimento e quantos quilômetros rodou. Para isso, precisa de uma tabela com uma linha por caminhão e por dia, montada a partir de lotes de texto em cinco formatos. O monitor de preços da Aula 03 quer acompanhar o preço em reais dos livros importados, o que exige combinar o preço em libras extraído do HTML com a cotação PTAX do dia.</p>
+        <p>O projeto desta aula entrega o job que constrói o bronze da telemetria, a silver e a gold a partir do raw e o publica no Railway com execução agendada. A sequência de prompts segue a convenção da disciplina:</p>
         <div class="method-flow">
           <div class="method-step"><strong>Persona e objetivos</strong><span>Prompts 1 e 2: quem consome a gold e como medir sucesso.</span></div>
           <div class="method-step"><strong>Especificação</strong><span>Prompt 3: contrato de cada tabela, RF e RNF com Dado/Quando/Então.</span></div>
@@ -580,10 +613,10 @@ Você é um analista de requisitos de dados que entrevista quem consome dados an
 
 [R] Pedido
 Crie o arquivo docs/00_persona.md descrevendo as personas que vão consumir as tabelas gold do lakehouse desta pasta (aula_04_lakehouse) e a persona que mantém o job. Contexto fornecido pelo professor (cenários fictícios das aulas anteriores):
-- Desde a Aula 02, o bucket raw do MinIO do grupo recebe a cada hora a previsão de temperatura e umidade de seis capitais (São Paulo, Rio de Janeiro, Brasília, Salvador, Manaus e Porto Alegre), coletada da Open-Meteo. Cenário: uma distribuidora de bebidas cuja equipe de planejamento quer comparar a previsão com as vendas de bebidas geladas e ajustar o estoque de cada centro de distribuição.
+- Desde a Aula 02, o bucket raw do MinIO do grupo recebe a telemetria de uma transportadora: para cada caminhão, um lote TXT a cada 15 minutos, com posições de GPS e tacógrafo, mensagens de rádio, erros do enlace por satélite e alertas de direção contínua, em cinco formatos de linha. Cenário: a gestão da frota quer conferir a jornada de cada caminhão (horas de direção por dia, alertas acima de 5h30 de direção contínua, que é o limite da Lei 13.103/2015) e acompanhar velocidade média e quilometragem para planejar manutenção.
 - Desde a Aula 03, o bucket raw recebe as páginas do books.toscrape.com e a resposta da PTAX da libra em reais (API do Banco Central), e o bucket bronze recebe a extração em JSON Lines: um livro por linha, com UPC, título, categoria e preço em libras, e um boletim PTAX por linha. Cenário: um monitor de preços de livros importados.
-- Nesta aula, o raw vira silver (Parquet tipado) e gold (tabelas prontas para consumo): temperatura média diária por capital e preço de cada livro em reais por dia.
-Se existir ../aula_02_coleta_json/docs/00_persona.md ou ../aula_03_api_scraping/docs/00_persona.md, leia e reaproveite as personas com os mesmos IDs, citando o caminho.
+- Nesta aula, a telemetria do raw é extraída para o bronze (JSON Lines), e o bronze vira silver (Parquet tipado) e gold (tabelas prontas para consumo): jornada diária por caminhão e preço de cada livro em reais por dia.
+Se existir ../aula_02_coleta_telemetria/docs/00_persona.md ou ../aula_03_api_scraping/docs/00_persona.md, leia e reaproveite as personas com os mesmos IDs, citando o caminho.
 
 [E] Exemplos
 Formato esperado de uma persona:
@@ -597,8 +630,8 @@ Formato esperado de uma persona:
 - Fato / suposição: separar em lista.
 
 [A] Ajustes
-- Crie no máximo três personas: P-01 consumidora da gold de clima, P-02 consumidora da gold de livros, P-03 engenheira de dados que mantém o job.
-- Para a P-03, descreva o que ela precisa para operar: saber se o job rodou, o que falhou, quanto tempo levou e de onde veio cada linha.
+- Crie no máximo três personas: P-01 consumidora da gold de jornada da frota, P-02 consumidora da gold de livros, P-03 engenheira de dados que mantém o job.
+- Para a P-03, descreva o que ela precisa para operar: saber se o job rodou, o que falhou, quanto tempo levou, quantas linhas foram para a quarentena e de que lote e linha veio cada registro.
 - Não invente números (volumes, frequência, metas). Quando precisar de um valor, escreva "hipótese, validação pendente".
 - Não proponha tecnologia, arquitetura nem código nesta etapa.
 - Termine com uma seção "Fatos, lacunas e suposições" e uma seção "Perguntas para o cliente".
@@ -618,21 +651,21 @@ Leia AGENTS.md antes de começar e siga as regras dele. Se faltar informação e
 Você é um gerente de produto de dados que transforma a dor de cada persona em objetivos mensuráveis, sem prometer o que não consegue medir.
 
 [R] Pedido
-Leia docs/00_persona.md e crie docs/01_objetivos_negocio.md com os objetivos do lakehouse desta pasta: tabelas gold de temperatura média diária por capital e de preço de livro em reais por dia, construídas a partir do bucket raw que as Aulas 02 e 03 alimentaram, atualizadas por um job agendado.
+Leia docs/00_persona.md e crie docs/01_objetivos_negocio.md com os objetivos do lakehouse desta pasta: tabelas gold de jornada diária por caminhão (horas de direção, alertas acima de 5h30, velocidade média e quilometragem aproximada) e de preço de livro em reais por dia, construídas a partir dos buckets raw e bronze que as Aulas 02 e 03 alimentaram, atualizadas por um job agendado.
 
 [E] Exemplos
 Formato esperado de um objetivo:
-## OBJ-01 Média diária de temperatura disponível para o planejamento
+## OBJ-01 Jornada diária de cada caminhão disponível para a gestão da frota
 - Persona: P-01.
-- Resultado esperado: para cada capital e cada dia com coleta, uma linha na gold com média, mínima e máxima da previsão mais recente.
-- Métrica de sucesso: percentual de pares (capital, dia) com linha na gold, sobre os pares com coleta no raw. Meta: hipótese, validação pendente.
-- Como medir: consulta comparando raw e gold, registrada em docs/atam.md.
+- Resultado esperado: para cada caminhão e cada dia (horário de Brasília) com lote no raw, uma linha na gold com horas de direção, alertas acima de 5h30, velocidade média em movimento e quilometragem aproximada.
+- Métrica de sucesso: percentual de pares (caminhão, dia) com linha na gold, sobre os pares com lote no raw; minutos com posição sobre 1.440 por par. Meta: hipótese, validação pendente.
+- Como medir: consulta comparando raw, quarentena e gold, registrada em docs/atam.md.
 
 [A] Ajustes
-- Um objetivo por necessidade das personas; inclua ao menos um objetivo da P-03 (operação: execução agendada, término, rastreabilidade).
+- Um objetivo por necessidade das personas; inclua ao menos um objetivo da P-03 (operação: execução agendada, término, rastreabilidade, linhas em quarentena).
 - Cada métrica diz como é medida (consulta, comando, log). Não invente metas numéricas; quando faltar, escreva "hipótese, validação pendente".
 - Liste os drivers de negócio (por que agora) e as restrições abaixo como "restrição fornecida pelo professor":
-  - os buckets raw e bronze são somente leitura para este job;
+  - o bucket raw é somente leitura para este job; no bronze, o job escreve só a telemetria (prefixos telemetria/ e telemetria_quarentena/), e o bronze dos livros e da PTAX é somente leitura;
   - o object storage é o MinIO publicado no Railway na Aula 01 (API compatível com S3), sem serviços de nuvem pública;
   - o job roda no Railway como serviço com cron; no trial, o crédito é único de US$ 5 por até 30 dias, com até 1 GB de RAM, vCPU compartilhada e até 5 serviços por projeto; depois vira plano Free com US$ 1/mês;
   - o cron do Railway usa UTC, exige pelo menos 5 minutos entre execuções e pula a execução seguinte se a anterior ainda estiver rodando.
@@ -654,44 +687,47 @@ Leia AGENTS.md. Se uma restrição conflitar com uma persona, registre o conflit
 Você é um engenheiro de dados que escreve especificações verificáveis: cada requisito vira um teste ou uma consulta que alguém consegue executar.
 
 [R] Pedido
-Leia docs/00_persona.md e docs/01_objetivos_negocio.md e crie specs/spec.md com os requisitos do job do lakehouse. Fatos observados no bronze (rodando sql/01_raw_clima.sql e sql/02_raw_bronze_livros_ptax.sql):
-- raw/open_meteo/data=AAAA-MM-DD/hora=HH/&lt;cidade&gt;.json: data e hora da coleta em UTC; o campo hourly tem listas paralelas time[], temperature_2m[], relative_humidity_2m[], com horários no fuso America/Sao_Paulo; cada coleta repete as 24 horas do dia.
-- raw/_manifestos/open_meteo/.../*.jsonl: manifesto da Aula 02 em JSON Lines.
+Leia docs/00_persona.md e docs/01_objetivos_negocio.md e crie specs/spec.md com os requisitos do job do lakehouse. Fatos observados no raw e no bronze (rodando sql/01_raw_telemetria.sql, sql/02_raw_bronze_livros_ptax.sql, sql/03_bronze_telemetria.sql e sql/04_silver_telemetria.sql):
+- raw/telemetria/data=AAAA-MM-DD/hora=HH/caminhao=CAM-XXXX/lote_HHMM.txt: um lote TXT por caminhão e janela de 15 minutos; data, hora e HHMM são o início da janela em UTC; as linhas estão no horário de Brasília; cada lote tem 15 posições (uma por minuto) e eventos esporádicos.
+- Cinco formatos de linha: (1) CAM-0412|17/10/26 09:14:03|-23.5481,-46.6390|VEL 087|TAC MOT 03h12; (2) #RADIO 09:14 texto livre, sem caminhão nem data; (3) CAM-0412 17-10-2026 09:15:03 GPS -23.5502 -46.6411 v=85, com " TEMP_BAU 04.2" opcional no fim (firmware novo); (4) ERR SAT SINAL FRACO, sem caminhão nem hora; (5) TAC;CAM-0977;20261017T091500;DIRECAO CONTINUA 05:31;ALERTA. Direção contínua acima de 05:30 viola a Lei 13.103/2015.
+- O dia D no horário de Brasília ocupa as partições das 03h UTC de D às 02h59 UTC de D+1.
+- Linhas que nenhum formato explica existem (exemplo: lote cortado no meio da última linha). Um lote com byte fora do UTF-8 faz read_text falhar para a leitura inteira.
+- raw/_manifestos/telemetria/data=AAAA-MM-DD/hora=HH/execucao_*.jsonl: manifesto da Aula 02 em JSON Lines, particionado pelo início da execução em UTC.
 - bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl: um livro por linha, extraído pela Aula 03 das páginas de detalhe, com upc, url, titulo, categoria, avaliacao, preco_gbp, em_estoque, qtd_estoque, coletado_em (ISO 8601 com deslocamento -03:00) e chave_origem opcional; a inferência automática transforma coletado_em em TIMESTAMP sem fuso.
 - bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl: um boletim por linha, com moeda, dataHoraCotacao (horário de Brasília), tipoBoletim, cotacaoCompra, cotacaoVenda; o fechamento se chama "Fechamento PTAX" (CotacaoMoedaDia) ou "Fechamento" (CotacaoMoedaPeriodo); não há boletim em fim de semana e feriado.
 - raw/books_toscrape/.../detalhe.html e raw/ptax/...: originais, usados só para auditoria.
 (Se os prefixos do grupo forem outros, use os reais e cite a saída do mc ls.)
 
 O spec.md precisa conter, no mínimo:
-1. Contrato de cada tabela silver e gold: caminho do objeto, grão em uma frase, colunas com tipo, nulidade e origem. Tabelas: silver/clima, silver/livros (s3://silver/livros/data_coleta=D/livros.parquet), silver/ptax (s3://silver/ptax/ptax.parquet), gold/clima_media_diaria, gold/livro_preco_brl_diario. Os contratos de silver/livros e silver/ptax foram combinados com a Aula 05 e são fixos: livros com upc, url, titulo, categoria, avaliacao, preco_gbp, em_estoque, qtd_estoque, coletado_em; ptax com moeda, data_hora_cotacao, tipo_boletim, cotacao_compra, cotacao_venda; as duas com arquivo_origem e processado_em a mais.
-2. RF para: leitura do bronze em schema on read; janela das partições D e D+1 para a silver de clima do dia D; deduplicação (coleta mais recente por cidade e hora prevista no clima; coleta mais recente por upc nos livros; boletim repetido entre arquivos na PTAX); leitura do bronze com esquema declarado e coletado_em convertido com o deslocamento; regra da cotação na gold de livros (último boletim de fechamento com data menor ou igual à da coleta, aceitando os rótulos "Fechamento PTAX" e "Fechamento"; sem nenhum fechamento anterior, a linha não é gerada e o fato é registrado); resumo de execução impresso no log (data processada, arquivos lidos, linhas por tabela, arquivos inválidos, duração).
-3. RNF para: idempotência (reprocessar a mesma data não muda objetos nem linhas); raw e bronze somente leitura; rastreabilidade (arquivo_origem e processado_em em toda linha da silver); término do processo com prazo máximo e código de saída; segredos só por variável de ambiente; evolução de esquema (campo novo não altera a silver; campo do contrato ausente gera erro claro); arquivo inválido no raw ou no bronze (política proposta: pular, registrar caminho e erro, e marcar a execução; decisão final no ATAM).
+1. Contrato de cada tabela bronze da telemetria, silver e gold: caminho do objeto, grão em uma frase, colunas com tipo, nulidade e origem. Tabelas: bronze/telemetria (s3://bronze/telemetria/data_local=D/linhas.jsonl, uma linha reconhecida do TXT, campos como texto), bronze/telemetria_quarentena (s3://bronze/telemetria_quarentena/data_local=D/nao_reconhecidas.jsonl), silver/posicoes (s3://silver/posicoes/data_local=D/posicoes.parquet), silver/alertas_tacografo (s3://silver/alertas_tacografo/data_local=D/alertas.parquet), silver/livros (s3://silver/livros/data_coleta=D/livros.parquet), silver/ptax (s3://silver/ptax/ptax.parquet), gold/jornada_caminhao_diaria, gold/livro_preco_brl_diario. Os contratos de silver/livros e silver/ptax foram combinados com a Aula 05 e são fixos: livros com upc, url, titulo, categoria, avaliacao, preco_gbp, em_estoque, qtd_estoque, coletado_em; ptax com moeda, data_hora_cotacao, tipo_boletim, cotacao_compra, cotacao_venda; as duas com arquivo_origem e processado_em a mais.
+2. RF para: leitura do raw em schema on read com as partições do dia local escritas no caminho; classificação das linhas nos cinco formatos e quarentena das não reconhecidas, com arquivo e número da linha; conversão dos três formatos de horário de Brasília para UTC; deduplicação (uma posição por caminhão e minuto, a do lote mais recente; coleta mais recente por upc nos livros; boletim repetido entre arquivos na PTAX); regras da gold de jornada (horas de direção = minutos com velocidade acima de zero divididos por 60; quilometragem aproximada = soma das velocidades de cada minuto dividida por 60; alerta acima de 05:30); leitura do bronze com esquema declarado e coletado_em convertido com o deslocamento; regra da cotação na gold de livros (último boletim de fechamento com data menor ou igual à da coleta, aceitando os rótulos "Fechamento PTAX" e "Fechamento"; sem nenhum fechamento anterior, a linha não é gerada e o fato é registrado); resumo de execução impresso no log (data processada, lotes lidos, linhas por formato, linhas em quarentena, linhas por tabela, arquivos inválidos, duração).
+3. RNF para: idempotência (reprocessar a mesma data não muda objetos nem linhas); raw somente leitura e bronze somente leitura fora dos prefixos da telemetria; rastreabilidade (arquivo_origem e processado_em em toda linha da silver, e numero_linha na telemetria); término do processo com prazo máximo e código de saída; segredos só por variável de ambiente; evolução de esquema (trecho opcional novo, como TEMP_BAU, não derruba a extração; padrão de linha renomeado aumenta a quarentena e precisa ser detectado); lote inválido no raw, como byte fora do UTF-8 (política proposta: identificar com read_blob, pular, registrar caminho e erro, e marcar a execução; decisão final no ATAM).
 
 [E] Exemplos
-RF-03 Silver de clima deduplicada
-Dado arquivos do raw com a mesma cidade e o mesmo horário previsto em coletas diferentes,
-Quando o job processa a data D,
-Então s3://silver/clima/data=D/clima.parquet tem uma linha por (cidade, horario_local), vinda da coleta mais recente, com arquivo_origem apontando para esse objeto.
+RF-03 Silver de posições deduplicada
+Dado dois lotes do raw com a mesma posição do mesmo caminhão no mesmo minuto,
+Quando o job processa o dia D,
+Então s3://silver/posicoes/data_local=D/posicoes.parquet tem uma linha por (caminhao, minuto_utc), vinda do lote mais recente, com arquivo_origem e numero_linha apontando para essa linha.
 
 RNF-01 Idempotência
 Dado que o job já processou a data D,
 Quando o job processa D de novo sem mudança no raw,
-Então a contagem de objetos em silver/ e gold/ e a contagem de linhas de cada tabela são iguais às da execução anterior.
+Então a contagem de objetos em bronze/telemetria/, silver/ e gold/ e a contagem de linhas de cada tabela são iguais às da execução anterior.
 
 [A] Ajustes
 - Todo RF e RNF tem critério Dado/Quando/Então verificável por teste, consulta ou comando.
 - IDs em sequência (RF-01, RF-02..., RNF-01...). Não use valores de prazo, volume ou latência sem a marca "hipótese, validação pendente".
 - Não escolha bibliotecas nem descreva módulos; isso é do plano.
-- Termine com "Fora de escopo" (inclua: formatos de tabela como Delta e Iceberg; painel; histórico de todas as versões da previsão) e "Fatos, lacunas e suposições".
+- Termine com "Fora de escopo" (inclua: formatos de tabela como Delta e Iceberg; painel; silver para rádio e erro do enlace; jornada por motorista, que os lotes não identificam) e "Fatos, lacunas e suposições".
 
 [T] Tipo de saída
 Um único arquivo Markdown, specs/spec.md. Contratos em tabelas Markdown. Mostre o conteúdo antes de gravar.
 
 [E] Extras
-Leia AGENTS.md e os dois arquivos de docs/. Se faltar uma regra de negócio (por exemplo, qual cotação usar), proponha e marque como suposição em vez de decidir em silêncio. Pare ao final desta etapa.</code></pre>
+Leia AGENTS.md e os dois arquivos de docs/. Se faltar uma regra de negócio (por exemplo, qual cópia de um minuto vale ou qual cotação usar), proponha e marque como suposição em vez de decidir em silêncio. Pare ao final desta etapa.</code></pre>
         <div class="note">
           <strong>Revise antes de seguir</strong>
-          <p>Cada tabela tem grão declarado em uma frase e colunas com tipo e origem? O RF da janela D e D+1 está escrito, ou a spec supõe que a partição do raw coincide com o dia da previsão? A regra da cotação cobre o dia sem boletim? O RNF de término diz o que acontece quando o prazo estoura? Algum número de prazo apareceu sem a marca de hipótese?</p>
+          <p>Cada tabela tem grão declarado em uma frase e colunas com tipo e origem? O RF do dia local está escrito, ou a spec supõe que a partição <code>data=</code> do raw coincide com o dia em Brasília? A quarentena tem contrato próprio? A regra da cotação cobre o dia sem boletim? O RNF de término diz o que acontece quando o prazo estoura? Algum número de prazo apareceu sem a marca de hipótese?</p>
         </div>
 
         <h3>Prompt 4. Plano e arquitetura</h3>
@@ -702,22 +738,22 @@ Você é um arquiteto de dados que liga cada escolha técnica a um requisito e d
 Leia specs/spec.md e crie specs/plan.md com a arquitetura do job do lakehouse.
 
 O plan.md precisa conter:
-1. Diagrama C4 de contexto em Mermaid: personas, job do lakehouse, MinIO (buckets raw, silver, gold), Railway (cron), fontes das Aulas 02 e 03 como sistemas externos já existentes.
-2. Diagrama C4 de contêineres em Mermaid: contêiner do job (Python + DuckDB in-process + extensão httpfs) e MinIO; componentes do job: configuração (variáveis de ambiente), validação de arquivos de entrada, transformação de clima (raw), transformação de livros (bronze), transformação de PTAX (bronze), escrita da silver, construção da gold, resumo de execução e prazo máximo.
-3. Diagrama de sequência em Mermaid de uma execução: ler variáveis, criar secret TEMPORARY, listar e validar objetos, gravar cada silver, reconstruir a gold, imprimir resumo, sair com código.
-4. Layout dos buckets: caminho de cada objeto silver e gold (s3://silver/clima/data=D/clima.parquet; s3://silver/livros/data_coleta=D/livros.parquet; s3://silver/ptax/ptax.parquet; um objeto por tabela na gold).
-5. Tabela de escolhas técnicas com: escolha, alternativa considerada, requisito que justifica. Considere ao menos: SQL do DuckDB ou pandas; COPY para objeto de nome fixo ou COPY com PARTITION_BY; read_json com columns declaradas ou read_json_auto com inferência; ASOF JOIN ou junção por data para a cotação; data a processar (variável DATA_PROCESSAMENTO; vazia = hoje e ontem no fuso America/Sao_Paulo); endpoint público https do MinIO ou rede privada do Railway (http://minio.railway.internal:9000, a testar).
+1. Diagrama C4 de contexto em Mermaid: personas, job do lakehouse, MinIO (buckets raw, bronze, silver, gold), Railway (cron), fontes das Aulas 02 e 03 como sistemas externos já existentes.
+2. Diagrama C4 de contêineres em Mermaid: contêiner do job (Python + DuckDB in-process + extensão httpfs) e MinIO; componentes do job: configuração (variáveis de ambiente), validação de lotes de entrada (UTF-8), extração da telemetria (raw para bronze, com quarentena), transformação de posições e alertas (bronze para silver), transformação de livros (bronze), transformação de PTAX (bronze), escrita da silver, construção da gold, resumo de execução e prazo máximo.
+3. Diagrama de sequência em Mermaid de uma execução: ler variáveis, criar secret TEMPORARY, listar e validar os lotes do dia local, gravar bronze e quarentena da telemetria, gravar cada silver, reconstruir a gold, imprimir resumo, sair com código.
+4. Layout dos buckets: caminho de cada objeto bronze, silver e gold (s3://bronze/telemetria/data_local=D/linhas.jsonl; s3://bronze/telemetria_quarentena/data_local=D/nao_reconhecidas.jsonl; s3://silver/posicoes/data_local=D/posicoes.parquet; s3://silver/alertas_tacografo/data_local=D/alertas.parquet; s3://silver/livros/data_coleta=D/livros.parquet; s3://silver/ptax/ptax.parquet; um objeto por tabela na gold).
+5. Tabela de escolhas técnicas com: escolha, alternativa considerada, requisito que justifica. Considere ao menos: SQL do DuckDB ou pandas; expressões regulares no SQL do DuckDB ou parser em Python para o TXT; partições do dia local escritas no caminho ou glob amplo com filtro; bronze da telemetria em JSON Lines ou em Parquet; COPY para objeto de nome fixo ou COPY com PARTITION_BY; read_json com columns declaradas ou read_json_auto com inferência; ASOF JOIN ou junção por data para a cotação; data a processar (variável DATA_PROCESSAMENTO; vazia = hoje e ontem no fuso America/Sao_Paulo); endpoint público https do MinIO ou rede privada do Railway (http://minio.railway.internal:9000, a testar).
 6. Ponto de entrada python -m src.job_lakehouse; Dockerfile e railway.json da pasta (cronSchedule em UTC, restartPolicyType NEVER).
 
 [E] Exemplos
 | Escolha | Alternativa | Requisito |
 |---|---|---|
-| COPY para s3://silver/clima/data=D/clima.parquet | COPY com PARTITION_BY e APPEND | RNF-01 (APPEND cria arquivo novo com UUID e duplica linhas, observado na preparação da aula) |
+| COPY para s3://silver/posicoes/data_local=D/posicoes.parquet | COPY com PARTITION_BY e APPEND | RNF-01 (APPEND cria arquivo novo com UUID e duplica linhas, observado na preparação da aula) |
 
 [A] Ajustes
 - Nenhuma escolha sem requisito; se não houver, escreva "sem requisito correspondente" e proponha remover.
-- O plano não altera raw nem bronze em nenhum passo.
-- Não escreva código; trechos de SQL de até 10 linhas são permitidos para fixar a regra de deduplicação e a janela de partições.
+- O plano não altera o raw em nenhum passo, nem os prefixos de livros e PTAX do bronze.
+- Não escreva código; trechos de SQL de até 10 linhas são permitidos para fixar a regra de deduplicação e a lista de partições do dia local.
 - Mesmos nomes de componentes no texto e nos diagramas.
 
 [T] Tipo de saída
@@ -738,16 +774,16 @@ Você é um líder técnico que quebra um plano em tarefas pequenas, cada uma co
 Leia specs/spec.md e specs/plan.md e crie specs/tasks.md com as tarefas de implementação do job do lakehouse, na ordem de execução.
 
 [E] Exemplos
-## T-04 Silver de clima
+## T-04 Silver de posições
 - Requisitos: RF-02, RF-03, RNF-01, RNF-05.
-- Entrega: função que grava s3://silver/clima/data=D/clima.parquet a partir das partições D e D+1 do raw.
-- Teste: tests/test_silver_clima.py com três JSON de exemplo em tests/fixtures/ (duas coletas da mesma cidade com valores diferentes e uma coleta de D+1 com horários de D); verifica uma linha por (cidade, horario_local), valor da coleta mais recente e arquivo_origem preenchido.
-- Pronto quando: python -m pytest -q tests/test_silver_clima.py passa.
+- Entrega: função que grava s3://silver/posicoes/data_local=D/posicoes.parquet a partir do bronze da telemetria do dia D.
+- Teste: tests/test_silver_posicoes.py com lotes TXT de exemplo em tests/fixtures/ (um lote no formato 1, um no formato 3 com TEMP_BAU, uma posição repetida no lote seguinte e um lote das 00h00 com a posição das 23h59 do dia anterior); verifica uma linha por (caminhao, minuto_utc), instante em UTC, posição do dia anterior fora e arquivo_origem e numero_linha preenchidos.
+- Pronto quando: python -m pytest -q tests/test_silver_posicoes.py passa.
 
 [A] Ajustes
 - Tarefas pequenas (uma função ou um arquivo por tarefa). Cada uma cita RF/RNF e um teste.
-- Inclua tarefas para: configuração e secret a partir de S3_ENDPOINT_URL; validação de arquivos com lista de inválidos; silver de clima; silver de PTAX; silver de livros (fixture: um livros.jsonl pequeno em tests/fixtures/, com um UPC repetido e coletado_em com deslocamento -03:00); gold de clima; gold de livros; resumo e prazo máximo; ponto de entrada; teste de integração contra o MinIO local (marcado para rodar só com docker compose ativo); Dockerfile e railway.json.
-- Fixtures de teste com dados pequenos e sem segredos. Inclua um JSON truncado e um JSON com campo novo.
+- Inclua tarefas para: configuração e secret a partir de S3_ENDPOINT_URL; lista de partições do dia local; validação de lotes com lista de inválidos; bronze e quarentena da telemetria; silver de posições; silver de alertas; silver de PTAX; silver de livros (fixture: um livros.jsonl pequeno em tests/fixtures/, com um UPC repetido e coletado_em com deslocamento -03:00); gold de jornada; gold de livros; resumo e prazo máximo; ponto de entrada; teste de integração contra o MinIO local (marcado para rodar só com docker compose ativo); Dockerfile e railway.json.
+- Fixtures de teste com dados pequenos e sem segredos. Inclua um lote truncado no meio de uma linha, um lote com byte fora do UTF-8 e lotes do formato 3 com e sem TEMP_BAU.
 - Não escreva código.
 
 [T] Tipo de saída
@@ -757,7 +793,7 @@ specs/tasks.md em Markdown, com uma seção por tarefa (T-01, T-02...). Ao final
 Leia AGENTS.md. Pare ao final desta etapa.</code></pre>
         <div class="note">
           <strong>Revise antes de seguir</strong>
-          <p>Todo RF e RNF aparece na tabela final? Há teste para o JSON truncado e para o campo novo? O teste de integração está separado dos unitários, para que <code>pytest</code> rode sem MinIO? A última tarefa leva a um contêiner que termina sozinho?</p>
+          <p>Todo RF e RNF aparece na tabela final? Há teste para o lote truncado, para o byte fora do UTF-8 e para o TEMP_BAU? O teste de integração está separado dos unitários, para que <code>pytest</code> rode sem MinIO? A última tarefa leva a um contêiner que termina sozinho?</p>
         </div>
 
         <h3>Prompt 6. Implementação tarefa a tarefa</h3>
@@ -769,14 +805,15 @@ Implemente a próxima tarefa pendente de specs/tasks.md (comece por T-01). Para 
 
 [E] Exemplos
 Formato esperado do resumo impresso pelo job ao terminar:
-job_lakehouse data=2026-10-30 arquivos_lidos=150 arquivos_invalidos=0 silver_clima=144 silver_ptax=5 silver_livros=20 gold_clima=6 gold_livros=20 duracao_s=4.2 status=ok
+job_lakehouse data=2026-10-30 lotes_lidos=1920 lotes_invalidos=0 linhas_quarentena=0 bronze_telemetria=31000 silver_posicoes=28800 silver_alertas=70 silver_ptax=5 silver_livros=20 gold_jornada=20 gold_livros=20 duracao_s=9.8 status=ok
 (valores ilustrativos; o job imprime os medidos.)
 
 [A] Ajustes
 - Credenciais só de variáveis de ambiente: S3_ENDPOINT_URL (com esquema), S3_ACCESS_KEY, S3_SECRET_KEY, S3_REGION. O secret do DuckDB é CREATE OR REPLACE TEMPORARY SECRET, TYPE s3, ENDPOINT com host:porta (sem esquema), URL_STYLE 'path', USE_SSL derivado do esquema da URL. Nunca grave valores reais em código, teste ou log.
 - No contêiner, use LOAD httpfs (a extensão é instalada no build); INSTALL só fora do contêiner.
-- Nunca escreva, mova ou apague objetos nos buckets raw e bronze.
-- Silver: COPY para objetos de nome fixo: s3://silver/clima/data=D/clima.parquet, s3://silver/livros/data_coleta=D/livros.parquet e s3://silver/ptax/ptax.parquet (este recalculado inteiro). Os nomes e colunas de silver/livros e silver/ptax são o contrato da Aula 05: não renomeie. Gold: um objeto por tabela, recalculado a partir da silver. Não use APPEND nem PARTITION_BY.
+- Nunca escreva, mova ou apague objetos no bucket raw. No bronze, escreva só em telemetria/ e telemetria_quarentena/.
+- Leia o raw da telemetria com as partições do dia local no caminho (03h a 23h UTC de D e 00h a 02h UTC de D+1), nunca com glob sobre o bucket inteiro.
+- Bronze e silver: COPY para objetos de nome fixo: s3://bronze/telemetria/data_local=D/linhas.jsonl, s3://bronze/telemetria_quarentena/data_local=D/nao_reconhecidas.jsonl, s3://silver/posicoes/data_local=D/posicoes.parquet, s3://silver/alertas_tacografo/data_local=D/alertas.parquet, s3://silver/livros/data_coleta=D/livros.parquet e s3://silver/ptax/ptax.parquet (este recalculado inteiro). Os nomes e colunas de silver/livros e silver/ptax são o contrato da Aula 05: não renomeie. Gold: um objeto por tabela, recalculado a partir da silver. Não use APPEND nem PARTITION_BY.
 - Ponto de entrada: python -m src.job_lakehouse. DATA_PROCESSAMENTO=AAAA-MM-DD processa essa data; vazio processa hoje e ontem no fuso America/Sao_Paulo.
 - Prazo máximo por variável JOB_TIMEOUT_SEGUNDOS (valor padrão: hipótese, validação pendente). Ao estourar, o job imprime o resumo parcial e sai com código diferente de 0.
 - Código de saída 0 só quando todas as tabelas da data foram gravadas.
@@ -789,7 +826,7 @@ Arquivos em src/ e tests/ da tarefa atual, specs/tasks.md atualizado e, na respo
 Leia AGENTS.md, specs/spec.md, specs/plan.md e os exemplos em sql/. Use os comandos permitidos do AGENTS.md. Peça autorização antes de rodar qualquer comando railway ou apagar objetos. Pare ao final de cada tarefa e aguarde "pode seguir".</code></pre>
         <div class="note">
           <strong>Revise antes de seguir (a cada tarefa)</strong>
-          <p>O teste foi escrito antes e falhou antes da implementação? O diff mexe só nos arquivos da tarefa? Há credencial, URL do Railway ou caminho absoluto no código? Alguma chamada escreve no bucket <code>raw</code>? Ao fim das tarefas de silver, rode o job duas vezes para a mesma data e compare <code>mc ls --recursive local/silver</code>.</p>
+          <p>O teste foi escrito antes e falhou antes da implementação? O diff mexe só nos arquivos da tarefa? Há credencial, URL do Railway ou caminho absoluto no código? Alguma chamada escreve no bucket <code>raw</code> ou nos prefixos de livros e PTAX do bronze? Ao fim das tarefas de silver, rode o job duas vezes para a mesma data e compare <code>mc ls --recursive local/silver</code>.</p>
         </div>
 
         <h3>Prompt 7. Validação ATAM</h3>
@@ -802,14 +839,14 @@ Leia docs/, specs/ e o código em src/ e crie docs/atam.md e os ADRs em docs/adr
 2. Utility tree: atributo, refinamento, cenário, com importância e dificuldade (alta, média, baixa) justificadas.
 3. Os seis cenários abaixo, cada um com as seis partes (fonte do estímulo, estímulo, ambiente, artefato, resposta, medida de resposta), a decisão de arquitetura relacionada e a evidência (comando executado e saída resumida) ou a marca "evidência pendente":
    a. reprocessamento idempotente da mesma data;
-   b. JSON com campo novo no bronze (evolução de esquema);
-   c. arquivo corrompido no bronze;
+   b. padrão de linha novo ou renomeado no TXT (evolução de esquema: TEMP_BAU, VEL=087);
+   c. lote corrompido no raw (linha truncada e byte fora do UTF-8);
    d. job concorrente: execução agendada e execução manual gravando a mesma data;
-   e. custo de armazenamento do dado em bronze e silver (medir com mc du por camada);
+   e. custo de armazenamento do dado em raw, bronze e silver (medir com mc du por camada; o bronze em JSON Lines foi a camada mais pesada na preparação);
    f. job que não termina e consome crédito do Railway.
 4. Pontos de sensibilidade, pontos de trade-off, riscos e não riscos.
 5. Matriz requisito → decisão → componente → evidência, com uma linha por RF e RNF, inclusive os sem cobertura.
-ADRs mínimos: ADR-001 objeto de nome fixo por data em vez de PARTITION_BY; ADR-002 janela de partições D e D+1; ADR-003 política para arquivo inválido no bronze.
+ADRs mínimos: ADR-001 objeto de nome fixo por data em vez de PARTITION_BY; ADR-002 partições do dia local escritas no caminho da leitura do raw; ADR-003 política para lote inválido e para a quarentena.
 
 [E] Exemplos
 Cenário (f) Job que não termina
@@ -822,7 +859,7 @@ Cenário (f) Job que não termina
 
 [A] Ajustes
 - Não invente medidas. Para (a), (b), (c) e (e), rode os comandos no MinIO local e cole a saída resumida. Para (d) e (f), descreva como testar e marque o que não foi testado.
-- Registre ao menos um trade-off nomeado (por exemplo: manter raw e bronze intocados custa armazenamento e permite reprocessar).
+- Registre ao menos um trade-off nomeado (por exemplo: guardar o bronze em JSON Lines custa armazenamento e facilita a inspeção; manter o raw intocado custa armazenamento e permite reprocessar).
 - Cada ADR tem: status, contexto, alternativas, decisão, consequências positivas e negativas, condição de revisão.
 
 [T] Tipo de saída
@@ -849,22 +886,24 @@ python -m pytest -q</code></pre>
           <li>Rode o job para uma data com coleta, duas vezes:</li>
         </ol>
         <pre><code>DATA_PROCESSAMENTO=2026-10-30 python -m src.job_lakehouse
-docker compose exec minio mc ls --recursive local/silver &gt; /tmp/silver_1.txt
+docker compose exec minio mc ls --recursive local/bronze/telemetria local/silver &gt; /tmp/silver_1.txt
 DATA_PROCESSAMENTO=2026-10-30 python -m src.job_lakehouse
-docker compose exec minio mc ls --recursive local/silver &gt; /tmp/silver_2.txt
+docker compose exec minio mc ls --recursive local/bronze/telemetria local/silver &gt; /tmp/silver_2.txt
 diff &lt;(awk '{print $NF}' /tmp/silver_1.txt) &lt;(awk '{print $NF}' /tmp/silver_2.txt) &amp;&amp; echo "mesmos objetos"</code></pre>
         <ol class="steps" start="3">
           <li>Confira contagens e origem com o utilitário do laboratório:</li>
         </ol>
-        <pre><code>python sql/rodar_sql.py sql/03_silver_clima.sql --var DATA=2026-10-30   # a consulta final confere a silver
-python sql/rodar_sql.py sql/06_gold.sql</code></pre>
-        <p>Gates: mesmos objetos nas duas listagens; 24 linhas por cidade na silver de clima quando a previsão do dia está completa; <code>arquivo_origem</code> sem nulos; o processo termina e imprime a duração.</p>
+        <pre><code>python sql/rodar_sql.py sql/03_bronze_telemetria.sql --var DATA=2026-10-30   # linhas por formato e quarentena
+python sql/rodar_sql.py sql/04_silver_telemetria.sql --var DATA=2026-10-30   # posições, minutos por caminhão, alertas
+python sql/rodar_sql.py sql/07_gold.sql</code></pre>
+        <p>Gates: mesmos objetos nas duas listagens; 1.440 minutos por caminhão na silver de posições quando os 96 lotes do dia estão completos, e cada minuto a menos explicado por uma linha da quarentena ou por um lote ausente; <code>arquivo_origem</code> sem nulos; o processo termina e imprime a duração. Na preparação, reprocessar 27/10/2026 deixou os 28 objetos de bronze, silver e gold com os mesmos nomes e tamanhos.</p>
 
         <h3>12.2 Medir camadas e leitura</h3>
-        <pre><code>docker compose exec minio mc du local/raw/open_meteo
-docker compose exec minio mc du local/silver/clima
-python sql/rodar_sql.py sql/07_parquet_inspecao.sql --var DATA=2026-10-30</code></pre>
-        <p>O arquivo <code>07_parquet_inspecao.sql</code> faz quatro coisas: lista row groups, compressão e estatísticas <code>stats_min</code> e <code>stats_max</code> de três colunas; mostra o esquema gravado no Parquet; roda <code>EXPLAIN ANALYZE</code> da mesma pergunta (média de temperatura acima de 20 °C por cidade) sobre o JSON e sobre o Parquet; e mostra o plano de uma contagem com filtro na partição. No plano, procure:</p>
+        <pre><code>docker compose exec minio mc du local/raw/telemetria
+docker compose exec minio mc du local/bronze/telemetria
+docker compose exec minio mc du local/silver/posicoes
+python sql/rodar_sql.py sql/08_parquet_inspecao.sql --var DATA=2026-10-30</code></pre>
+        <p>O arquivo <code>08_parquet_inspecao.sql</code> faz cinco coisas: lista row groups, compressão e estatísticas <code>stats_min</code> e <code>stats_max</code> de quatro colunas da silver de posições; mostra o esquema gravado no Parquet; roda <code>EXPLAIN ANALYZE</code> da mesma pergunta (velocidade média em movimento por caminhão no dia) sobre os lotes TXT, sobre o JSON Lines do bronze e sobre o Parquet da silver; mede a leitura do raw por um glob amplo com filtro de partição; e mostra o plano de uma contagem com filtro na partição da silver. No plano, procure:</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Linha do plano</th><th>O que indica</th></tr></thead>
           <tbody>
@@ -875,7 +914,7 @@ python sql/rodar_sql.py sql/07_parquet_inspecao.sql --var DATA=2026-10-30</code>
             <tr><td><code>Total Time</code></td><td>tempo da consulta naquela execução</td></tr>
           </tbody>
         </table></div>
-        <p>Na preparação, o JSON do raw gerou mais requisições <code>GET</code> do que arquivos lidos, porque a inferência de esquema também lê os arquivos. Rode cada consulta mais de uma vez: a conexão guarda em cache metadados já baixados, e a segunda execução pode mostrar menos requisições. Registre no <code>docs/atam.md</code> as medidas, a data, o número de arquivos e se a execução era a primeira ou a repetida.</p>
+        <p>Na preparação, a leitura do raw gerou mais requisições <code>GET</code> do que lotes lidos, porque a listagem das chaves também é feita com <code>GET</code>, mil chaves por página. Rode cada consulta mais de uma vez: a conexão guarda em cache metadados já baixados, e a segunda execução pode mostrar menos requisições. Registre no <code>docs/atam.md</code> as medidas, a data, o número de arquivos e se a execução era a primeira ou a repetida.</p>
 
         <h3>12.3 Testar a imagem do job</h3>
         <pre><code>docker build -t aula04-job .
@@ -960,14 +999,14 @@ docker compose exec minio mc ls --recursive railway/gold</code></pre>
             <tr><td>Medida de resposta</td><td>mesma lista de objetos em <code>mc ls --recursive local/silver</code> e mesma contagem de linhas por partição antes e depois</td></tr>
           </tbody>
         </table></div>
-        <p>Evidência da preparação: a silver de clima de 31/10/2026 tinha 24 linhas por cidade e um objeto (<code>clima/data=2026-10-31/clima.parquet</code>); depois de reexecutar <code>03_silver_clima.sql</code> para a mesma data, a listagem e as contagens ficaram iguais. Contraprova: o mesmo dado gravado com <code>PARTITION_BY</code> e <code>APPEND</code> passou a ter dois arquivos por partição.</p>
+        <p>Evidência da preparação: em 27/10/2026, o bronze tinha 31.285 linhas reconhecidas e uma em quarentena, e a silver de posições tinha 28.799 linhas num objeto (<code>posicoes/data_local=2026-10-27/posicoes.parquet</code>); depois de reexecutar <code>03_bronze_telemetria.sql</code>, <code>04_silver_telemetria.sql</code> e <code>07_gold.sql</code>, os 28 objetos de bronze, silver e gold mantiveram nomes e tamanhos, e as contagens ficaram iguais. Contraprova: o mesmo dado gravado com <code>PARTITION_BY</code> e <code>APPEND</code> passou a ter dois arquivos por partição.</p>
         <p>Ponto de sensibilidade: a idempotência depende de o nome do objeto ser função só da data. Se alguém acrescentar um carimbo de tempo ao nome, o reprocessamento passa a duplicar. Trade-off: reescrever a partição inteira a cada execução custa mais escrita do que acrescentar só o novo, e em troca dispensa controle de estado.</p>
 
         <h3>14.2 ADR-001 (resumo)</h3>
         <pre class="is-wrap"><code># ADR-001 Silver com um objeto de nome fixo por data
 Status: aceito em 31/10/2026.
 Contexto: RNF-01 exige que reprocessar a mesma data não mude objetos nem linhas. O DuckDB grava no MinIO com COPY; a documentação diz que sobrescrita não é suportada em sistemas remotos.
-Alternativas: (1) COPY com PARTITION_BY e APPEND: duplica linhas no reprocessamento (observado); (2) COPY com PARTITION_BY e OVERWRITE_OR_IGNORE: funcionou no teste com DuckDB 1.5.6, mas contraria a documentação e não remove arquivos antigos com outros nomes; (3) COPY para um objeto de nome fixo por data, como s3://silver/clima/data=D/clima.parquet e s3://silver/livros/data_coleta=D/livros.parquet.
+Alternativas: (1) COPY com PARTITION_BY e APPEND: duplica linhas no reprocessamento (observado); (2) COPY com PARTITION_BY e OVERWRITE_OR_IGNORE: funcionou no teste com DuckDB 1.5.6, mas contraria a documentação e não remove arquivos antigos com outros nomes; (3) COPY para um objeto de nome fixo por data, como s3://silver/posicoes/data_local=D/posicoes.parquet e s3://silver/livros/data_coleta=D/livros.parquet.
 Decisão: alternativa 3.
 Consequências: positiva: reprocessamento seguro e leitura atômica por objeto. Negativa: a partição inteira é reescrita a cada execução; uma data muito grande vira um único arquivo.
 Revisar quando: uma partição diária passar de um tamanho que o grupo definir no ATAM (hipótese, validação pendente) ou o projeto adotar Delta ou Iceberg.</code></pre>
@@ -976,10 +1015,10 @@ Revisar quando: uma partição diária passar de um tamanho que o grupo definir 
         <div class="table-scroll"><table>
           <thead><tr><th>Requisito</th><th>Decisão</th><th>Componente</th><th>Evidência</th></tr></thead>
           <tbody>
-            <tr><td>RF-03 deduplicação</td><td>coleta mais recente por cidade e hora prevista</td><td>transformação de clima</td><td>teste com duas coletas da mesma hora; 24 linhas por cidade na silver</td></tr>
+            <tr><td>RF-03 deduplicação</td><td>uma posição por caminhão e minuto, a do lote mais recente</td><td>transformação de posições e alertas</td><td>teste com o mesmo minuto em dois lotes; 28.801 posições no bronze e 28.799 na silver em 27/10</td></tr>
             <tr><td>RNF-01 idempotência</td><td>ADR-001</td><td>escrita da silver</td><td>listagens iguais antes e depois da reexecução</td></tr>
             <tr><td>RNF-05 rastreabilidade</td><td><code>arquivo_origem</code> e <code>processado_em</code> em toda linha</td><td>transformações da silver</td><td>consulta com <code>count(*) FILTER (WHERE arquivo_origem IS NULL) = 0</code></td></tr>
-            <tr><td>RNF de arquivo inválido</td><td>ADR-003</td><td>validação de arquivos</td><td>teste com JSON truncado; evidência no Railway pendente</td></tr>
+            <tr><td>RNF de lote inválido</td><td>ADR-003</td><td>validação de lotes e quarentena</td><td>teste com lote truncado e com byte fora do UTF-8; evidência no Railway pendente</td></tr>
           </tbody>
         </table></div>
       </section>
@@ -994,8 +1033,12 @@ Revisar quando: uma partição diária passar de um tamanho que o grupo definir 
             <tr><td>Funciona local e falha no Railway</td><td><code>USE_SSL false</code> com o domínio https</td><td>derivar <code>USE_SSL</code> do esquema de <code>S3_ENDPOINT_URL</code></td></tr>
             <tr><td><code>Directory ... is not empty</code> na segunda execução</td><td><code>COPY</code> com <code>PARTITION_BY</code> para destino que já existe</td><td>gravar objeto de nome fixo por data (seção 7.3)</td></tr>
             <tr><td>Linhas dobram a cada execução</td><td><code>APPEND</code> ou nome de arquivo com UUID ou carimbo de tempo</td><td>nome determinístico; conferir com <code>mc ls</code> antes e depois</td></tr>
-            <tr><td><code>Malformed JSON in file ...</code> derruba a data inteira</td><td>um objeto truncado no raw; <code>ignore_errors</code> só vale para JSON Lines</td><td>validar cada objeto antes e passar ao DuckDB só a lista de válidos</td></tr>
-            <tr><td>Silver do dia sem as últimas horas</td><td>leitura só da partição D, que está em UTC</td><td>janela D e D+1 com filtro pelo horário previsto (seção 8.2)</td></tr>
+            <tr><td><code>read_text: could not read content of file ... as valid UTF-8</code> derruba o dia inteiro</td><td>um lote com byte fora do UTF-8 no raw</td><td>identificar com <code>read_blob</code> e <code>try(decode(content))</code> e aplicar a política da spec (seção 8.4)</td></tr>
+            <tr><td>Silver do dia sem as últimas três horas, ou com três horas do dia anterior</td><td>leitura só da partição <code>data=D</code>, que está em UTC</td><td>partições das 03h UTC de D às 02h59 UTC de D+1 no caminho (seção 8.2)</td></tr>
+            <tr><td>Glob do raw não encontra nada com <code>hora=0?</code></td><td><code>?</code> num caminho <code>s3://</code> vira query string</td><td>usar classes, como <code>hora=0[3-9]</code></td></tr>
+            <tr><td>Leitura de um dia abre o bucket inteiro</td><td>glob amplo com filtro em <code>filename</code>, que não poda arquivos</td><td>partições no caminho, ou filtro nas colunas <code>data</code> e <code>hora</code> (exemplo numérico 4)</td></tr>
+            <tr><td>Caminhões somem da gold depois de uma atualização de firmware</td><td>expressão regular sem o trecho opcional novo; as linhas vão para a quarentena</td><td>conferir a quarentena a cada execução; tratar trecho novo como opcional (seção 8.5)</td></tr>
+            <tr><td><code>No function matches ... to_hours(VARCHAR)</code></td><td>com lista de globs, <code>data</code> e <code>hora</code> chegam como texto</td><td><code>CAST</code> explícito, como no <code>03_bronze_telemetria.sql</code></td></tr>
             <tr><td><code>coletado_em</code> três horas adiantado na silver</td><td>inferência converteu o horário com deslocamento para <code>TIMESTAMP</code> sem fuso</td><td>ler como texto com <code>columns</code> e converter com <code>CAST(... AS TIMESTAMPTZ)</code> (seção 7.2)</td></tr>
             <tr><td>Livros coletados no sábado sem preço em reais</td><td>junção por data com a PTAX, que não sai em fim de semana</td><td><code>ASOF JOIN</code> com o último fechamento (seção 8.7)</td></tr>
             <tr><td>Nenhum fechamento encontrado</td><td>filtro só por <code>Fechamento PTAX</code>, mas a fonte usou <code>Fechamento</code></td><td>aceitar os dois rótulos</td></tr>
@@ -1015,7 +1058,7 @@ Revisar quando: uma partição diária passar de um tamanho que o grupo definir 
         <div class="table-scroll"><table>
           <thead><tr><th>Precisa existir às 12h10</th><th>Fica para a semana (até a Aula 05, 07/11/2026)</th></tr></thead>
           <tbody>
-            <tr><td>Pasta <code>aula_04_lakehouse/</code> com os arquivos de apoio, MinIO local com cópia do raw e do bronze do Railway, ambiente Python e as duas consultas de schema on read executadas e anotadas (seção 9).</td><td>Prompt 6, tarefa a tarefa, até o job gravar silver e gold no MinIO local e passar no teste de reexecução, com as medidas da seção 12.</td></tr>
+            <tr><td>Pasta <code>aula_04_lakehouse/</code> com os arquivos de apoio, MinIO local com cópia do raw e do bronze do Railway, ambiente Python e as duas consultas de schema on read executadas e anotadas (seção 9).</td><td>Prompt 6, tarefa a tarefa, até o job gravar bronze da telemetria, silver e gold no MinIO local e passar no teste de reexecução, com as medidas da seção 12.</td></tr>
             <tr><td>Prompts 1 a 5 executados, revisados e commitados: persona, objetivos, <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code>.</td><td>Imagem testada localmente e job publicado no Railway com cron (seção 13).</td></tr>
             <tr><td>As três decisões do TBL anotadas, com a justificativa do grupo, para virar ADR.</td><td>Prompt 7 (ATAM) com as medidas coladas como evidência e os ADRs, incluindo os que registram as decisões do TBL.</td></tr>
           </tbody>
@@ -1024,7 +1067,7 @@ Revisar quando: uma partição diária passar de um tamanho que o grupo definir 
           <li>Prepare a pasta <code>aula_04_lakehouse/</code>, suba o MinIO local com a cópia do raw e do bronze, instale o ambiente Python e rode as duas consultas exploratórias (seção 9).</li>
           <li>Execute os prompts 1 a 5 no agente, um por vez, com a revisão de cada um. Faça commit ao fim de cada etapa revisada.</li>
           <li>Durante a semana, implemente as tarefas com o prompt 6, uma por vez, rodando <code>python -m pytest -q</code> a cada uma, até o job passar no teste de reexecução (seção 12).</li>
-          <li>Meça as camadas e as leituras com os dados do grupo (seção 12.2) e compare com os exemplos numéricos 2 e 4.</li>
+          <li>Meça as camadas e as leituras com os dados do grupo (seção 12.2) e compare com os exemplos numéricos 2, 3 e 4.</li>
           <li>Teste a imagem localmente e publique o job no Railway com cron (seção 13).</li>
           <li>Execute o prompt 7 com as medidas e registre os ADRs, inclusive os das decisões do TBL. O ATAM precisa estar pronto antes da Aula 05.</li>
         </ol>
@@ -1046,13 +1089,13 @@ git diff --staged -- . ':!.env.example' | grep -nE "SECRET_KEY=|PASSWORD=|ACCESS
           <p>Cada execução do cron consome crédito do Railway. O trial tem crédito único de US$ 5 e depois vira plano Free com US$ 1/mês, e os volumes de contas trial são apagados 30 dias após o fim dos créditos. Acompanhe o consumo no painel. Se o projeto final não usar o job, apague o serviço <code>lakehouse-job</code> ao fim da disciplina e exporte silver e gold com <code>mc mirror</code> antes que o volume do MinIO seja apagado.</p>
         </div>
         <h3>16.1 TBL: três decisões sobre o lakehouse da demonstração</h3>
-        <p>Às 11h30, depois da demonstração, a turma revisa num Team-Based Learning a arquitetura montada pela manhã. O caso é o próprio job: DuckDB dentro de um contêiner, lendo o raw e o bronze do MinIO, gravando a silver em Parquet com um objeto de nome fixo por data e a gold recalculada a cada execução, agendado pelo cron do Railway. São três questões, cada uma com quatro táticas de ganho e custo declarados, e nenhuma delas é a correta.</p>
+        <p>Às 11h30, depois da demonstração, a turma revisa num Team-Based Learning a arquitetura montada pela manhã. O caso é o próprio job: DuckDB dentro de um contêiner, lendo os lotes TXT da telemetria no raw e o bronze dos livros e da PTAX, gravando o bronze da telemetria com quarentena, a silver em Parquet com um objeto de nome fixo por data e a gold recalculada a cada execução, agendado pelo cron do Railway. São três questões, cada uma com quatro táticas de ganho e custo declarados, e nenhuma delas é a correta.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Questão</th><th>O que se decide</th><th>Blocos que ela retoma</th></tr></thead>
           <tbody>
             <tr><td>1. Formato da silver</td><td>Parquet solto com nome fixo, formato de tabela aberto (Iceberg ou Delta), arquivo de banco DuckDB ou tabela no Postgres da Aula 05.</td><td>Blocos 2 e 3: Parquet por dentro, lake, warehouse e lakehouse, transação e histórico.</td></tr>
-            <tr><td>2. Arquivo inválido no raw</td><td>Falhar a data, pular e seguir, isolar em quarentena ou isolar por fonte, diante de um JSON truncado. Traz um dado novo na discussão.</td><td>Blocos 1 e 5: schema on read, <code>Malformed JSON</code>, <code>ignore_errors</code>, deduplicação.</td></tr>
-            <tr><td>3. Agendamento e janela de leitura</td><td>Cron horário reprocessando a data, cron diário da data fechada, leitura incremental com estado ou disparo pelo coletor.</td><td>Blocos 4 e 5: requisições por leitura, regras do cron, idempotência.</td></tr>
+            <tr><td>2. Lote inválido no raw</td><td>Falhar o dia, validar e pular, pular com marca de completude na gold ou ler com substituição, diante de um lote com byte fora do UTF-8 que derruba o <code>read_text</code>. Traz um dado novo na discussão.</td><td>Blocos 1 e 5: schema on read no TXT, quarentena, <code>read_text</code> e <code>read_blob</code>, deduplicação.</td></tr>
+            <tr><td>3. Agendamento e janela de leitura</td><td>Cron horário reprocessando o dia local, cron diário do dia fechado, leitura incremental com estado ou disparo pelo coletor.</td><td>Blocos 4 e 5: requisições por leitura, regras do cron, idempotência.</td></tr>
           </tbody>
         </table></div>
         <ol class="steps">
@@ -1060,7 +1103,7 @@ git diff --staged -- . ':!.env.example' | grep -nE "SECRET_KEY=|PASSWORD=|ACCESS
           <li>Em cada questão, decida sozinho em três minutos e escreva o que precisa ser verdade para a sua tática funcionar.</li>
           <li>Na discussão, defenda primeiro o custo da sua escolha. As justificativas da turma aparecem sem nome.</li>
           <li>Decida outra vez. Manter a escolha também é uma decisão e precisa de justificativa.</li>
-          <li>Depois da aula, registre as três decisões do grupo como ADRs em <code>docs/adr/</code> e leve a questão 2 para o cenário de arquivo corrompido do <code>docs/atam.md</code>.</li>
+          <li>Depois da aula, registre as três decisões do grupo como ADRs em <code>docs/adr/</code> e leve a questão 2 para o cenário de lote corrompido do <code>docs/atam.md</code>.</li>
         </ol>
         <p>Links desta aula: <a href="../slides/slide_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">slides</a> &middot; <a href="../laboratorio/README.md">roteiro do laboratório</a> &middot; <a href="../tbl/tbl_aula_04.html">sala do TBL</a> &middot; <a href="../../../../pages/home_data_collection.html">home da disciplina</a> &middot; <a href="../../../../index.html">Hub</a>.</p>
       </section>
