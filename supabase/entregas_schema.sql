@@ -420,7 +420,7 @@ values (
   'Data Collection and Storage',
   'MBA Engenharia de Dados · 2026.2',
   'Entrega do projeto final',
-  'Um envio por grupo. Se precisar corrigir algo, envie de novo: vale o envio mais recente até o prazo. O repositório precisa ser público, e o professor avalia o último commit do ramo main até o prazo.',
+  'Entrega individual. Se precisar corrigir algo, envie de novo com o mesmo nome e a mesma coleção: vale o envio mais recente até o prazo. O repositório precisa ser público, e o professor avalia o último commit do ramo main até o prazo.',
   '2026-12-12 23:59:59-03'
 )
 on conflict (slug) do update set
@@ -449,5 +449,13 @@ select 'mack-dc-grupos-1', 'Data Collection and Storage', 'MBA Engenharia de Dad
        'Um envio por grupo, feito por um integrante. Para corrigir, envie de novo com o mesmo link do GitHub: vale o envio mais recente.',
        'mack-dc-grupos', 1
 where not exists (select 1 from entrega_formularios where serie = 'mack-dc-grupos');
+
+-- Data Collection 2026.2: o projeto passou a ser individual, com uma coleção
+-- Pokémon por aluno. O formulário envia "SIGLA · Nome" como rótulo do envio.
+update entrega_formularios
+   set titulo = 'Aluno, coleção e repositório',
+       instrucoes = 'Entrega individual: um envio por aluno, com a coleção escolhida até 24/10/2026. Para corrigir, envie de novo com o mesmo nome e a mesma coleção: vale o envio mais recente.',
+       max_integrantes = 1
+ where serie = 'mack-dc-grupos' and aberto;
 
 commit;

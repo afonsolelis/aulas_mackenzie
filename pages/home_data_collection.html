@@ -27,7 +27,7 @@
 
       <section class="content-block">
         <h2>Como a disciplina funciona</h2>
-        <p>Cada aula é uma demonstração prática completa. O professor constrói o projeto ao vivo e cada grupo reproduz o mesmo caminho no próprio repositório. O slide projeta o roteiro da aula, com contexto, passos, comandos e verificações; o material é o tutorial completo, com todos os prompts prontos para copiar. A parte conceitual ocupa a primeira hora, e das 9h30 às 12h10 a aula segue em prática guiada. A Aula 08 é reservada à mentoria e à entrega do projeto final.</p>
+        <p>Cada aula é uma demonstração prática completa. O professor constrói o projeto ao vivo e cada aluno reproduz o mesmo caminho no próprio repositório. O slide projeta o roteiro da aula, com contexto, passos, comandos e verificações; o material é o tutorial completo, com todos os prompts prontos para copiar. A parte conceitual ocupa a primeira hora, e das 9h30 às 12h10 a aula segue em prática guiada. A Aula 08 é reservada à mentoria e à entrega do projeto final.</p>
         <h2>Método de trabalho</h2>
         <p>Todas as aulas são construídas em Spec-Driven Development. Antes de qualquer código, o agente registra a persona, os objetivos de negócio, a especificação com requisitos verificáveis, o plano de arquitetura e a lista de tarefas; só então implementa, tarefa por tarefa, e a aula termina com a validação ATAM das decisões. Cada prompt segue o formato CREATE (personagem, pedido, exemplos, ajustes, tipo de saída e extras), e a Aula 01 apresenta esse método antes de ele ser usado nas demais.</p>
         <h2>Ambiente</h2>
@@ -136,7 +136,7 @@
           <span class="card-num">08</span>
           <h2>Aula 08</h2>
           <p><strong>05/12/2026</strong></p>
-          <p>Mentoria e Entrega do Projeto Final. Sem conteúdo novo: atendimento aos grupos e entrega do projeto integrado construído em SDD. Entrega até 12/12/2026, 23h59.</p>
+          <p>Mentoria e Entrega do Projeto Final. Sem conteúdo novo: atendimento individual e entrega do projeto integrado construído em SDD. Entrega até 12/12/2026, 23h59.</p>
           <div class="actions">
             <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/slides/slide_aula_08_mentoria_e_entrega_do_projeto_final.html">Slide</a>
             <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/material/material_aula_08_mentoria_e_entrega_do_projeto_final.html">Material</a>
@@ -146,14 +146,25 @@
 
         <article class="card">
           <span class="card-num">E</span>
-          <h2>Entrega</h2>
-          <p><strong>Grupo e repositório</strong></p>
-          <p>Um integrante envia pelo grupo: nome de até cinco integrantes e o link do repositório público no GitHub.</p>
+          <h2>Inscrição</h2>
+          <p><strong>Aluno, coleção e repositório</strong></p>
+          <p>Entrega individual. Cada aluno envia o próprio nome, a coleção escolhida para o projeto e o link do repositório público no GitHub, até 24/10/2026.</p>
           <div class="actions">
             <a class="button" href="entrega_grupo_data_collection.html">Formulário</a>
             <a class="button" href="area_professor.html?serie=mack-dc-grupos">Respostas do professor</a>
           </div>
         </article>
+      </section>
+
+      <section class="content-block" aria-labelledby="projeto-modulo-title">
+        <h2 id="projeto-modulo-title">Projeto do módulo</h2>
+        <p>A entrega final da disciplina é um pipeline de dados sobre cartas Pokémon tratadas como ativos de coleção. Cada aluno escolhe uma coleção lançada a partir de 2024, coleta todos os dias os produtos e os preços do TCGplayer, com a imagem de cada carta, e grava o resultado no data lake da turma, no MinIO publicado no Railway. Sobre esses dados, monta um lakehouse com DuckDB e Parquet, um modelo dimensional e um dashboard em Streamlit, ou outra biblioteca de frontend em Python, que usa a sua coleção e as dos colegas para responder a cinco perguntas iniciais de investimento.</p>
+        <p>A escolha da coleção vai até 24/10/2026, porque o histórico de preços começa no primeiro dia de coleta. Mentoria em 05/12/2026 e entrega até 12/12/2026, 23h59. A página do projeto traz as coleções disponíveis, as fontes, a estrutura do data lake, o contrato da silver, o modelo dimensional, as cinco perguntas e os entregáveis.</p>
+        <div class="actions">
+          <a class="button" href="projeto_data_collection.html">Ver direcionamentos do projeto</a>
+          <a class="button" href="https://minio-production-505d.up.railway.app" target="_blank" rel="noopener noreferrer">Console do MinIO da turma</a>
+          <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/entrega/entrega_projeto_final.html">Formulário de entrega</a>
+        </div>
       </section>
     </main>
   </body>

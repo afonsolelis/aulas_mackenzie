@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+    <title>Projeto do Módulo — Data Collection and Storage</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <div class="material-nav" style="margin-bottom: 2rem;">
+        <a href="home_data_collection.html">&larr; Data Collection and Storage</a>
+        <a href="../index.html">Hub de Disciplinas</a>
+        <a href="../professor.html">Professor Afonso</a>
+      </div>
+
+      <section class="hero" data-year="2026">
+        <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+        <span class="kicker">MBA Engenharia de Dados &middot; Data Collection and Storage &middot; Projeto do módulo</span>
+        <h1>Cartas Pokémon como Ativo de Coleção</h1>
+        <p>
+          Uma carta Pokémon lançada há dois anos pode valer hoje dez vezes o preço de uma caixa fechada da mesma coleção, ou quase nada. Quem compra para guardar precisa de dados para decidir o que guardar: preço ao longo do tempo, raridade, imagem da carta e comparação entre coleções. O projeto do módulo constrói essa base. Cada aluno escolhe uma coleção recente do Pokémon TCG, coleta os produtos e os preços do TCGplayer todos os dias, grava tudo no data lake da turma e monta um lakehouse com modelagem dimensional que alimenta um dashboard em Python.
+        </p>
+        <p>
+          O dashboard lê os dados do próprio aluno e os dos colegas. Uma coleção sozinha mostra quais cartas subiram; a turma inteira mostra se a coleção escolhida subiu mais ou menos que as outras. As cartas são tratadas como opções de investimento em colecionismo, e o dashboard precisa responder às cinco perguntas iniciais desta página.
+        </p>
+        <p class="meta">Projeto individual &middot; Escolha da coleção até 24/10/2026 &middot; Coleta diária até a entrega &middot; Mentoria em 05/12/2026 &middot; Entrega até 12/12/2026, 23h59</p>
+      </section>
+
+      <section class="content-block">
+        <h2>O que cada aluno constrói</h2>
+        <div class="method-flow">
+          <div class="method-step"><strong>Coleta</strong><span>Job agendado que busca, uma vez por dia, os produtos e os preços da coleção escolhida por API ou scraping permitido.</span></div>
+          <div class="method-step"><strong>Bruto</strong><span>Resposta original gravada sem alteração no MinIO da turma, com chave por coleção e data.</span></div>
+          <div class="method-step"><strong>Silver</strong><span>Parquet tipado e validado com Pydantic, seguindo o contrato comum da turma.</span></div>
+          <div class="method-step"><strong>Gold</strong><span>Modelo dimensional no DuckDB, com fato de preço diário e dimensões de produto, coleção, data e acabamento.</span></div>
+          <div class="method-step"><strong>Dashboard</strong><span>Aplicação em Streamlit, ou outra biblioteca de frontend em Python, ligada ao lakehouse e às cinco perguntas.</span></div>
+        </div>
+        <p>O método é o mesmo das aulas: Spec-Driven Development com prompts CREATE, na ordem persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM. A persona do projeto é um colecionador que compra cartas e produtos selados para guardar e quer saber onde o dinheiro dele rende mais. Os artefatos SDD, o histórico de prompts e os testes fazem parte da entrega, como descrito no <a href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/material/material_aula_08_mentoria_e_entrega_do_projeto_final.html#s5">material da Aula 08</a>.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Escolha da coleção</h2>
+        <p>Cada aluno fica com uma coleção principal do Pokémon TCG lançada a partir de 2024, e duas pessoas não ficam com a mesma. A escolha é registrada no <a href="entrega_grupo_data_collection.html">formulário de inscrição</a> até 24/10/2026, e vale a ordem de envio. O prazo é curto porque o histórico de preços começa no primeiro dia de coleta: quem começa em novembro chega à entrega com metade da série de quem começou em outubro.</p>
+        <table>
+          <thead><tr><th>Sigla</th><th>Coleção</th><th><code>groupId</code></th><th>Lançamento</th></tr></thead>
+          <tbody>
+            <tr><td>TEF</td><td>SV05: Temporal Forces</td><td>23381</td><td>22/03/2024</td></tr>
+            <tr><td>TWM</td><td>SV06: Twilight Masquerade</td><td>23473</td><td>24/05/2024</td></tr>
+            <tr><td>SFA</td><td>SV: Shrouded Fable</td><td>23529</td><td>02/08/2024</td></tr>
+            <tr><td>SCR</td><td>SV07: Stellar Crown</td><td>23537</td><td>13/09/2024</td></tr>
+            <tr><td>SSP</td><td>SV08: Surging Sparks</td><td>23651</td><td>08/11/2024</td></tr>
+            <tr><td>PRE</td><td>SV: Prismatic Evolutions</td><td>23821</td><td>17/01/2025</td></tr>
+            <tr><td>JTG</td><td>SV09: Journey Together</td><td>24073</td><td>28/03/2025</td></tr>
+            <tr><td>DRI</td><td>SV10: Destined Rivals</td><td>24269</td><td>30/05/2025</td></tr>
+            <tr><td>BLK</td><td>SV: Black Bolt</td><td>24325</td><td>18/07/2025</td></tr>
+            <tr><td>WHT</td><td>SV: White Flare</td><td>24326</td><td>18/07/2025</td></tr>
+            <tr><td>MEG</td><td>ME01: Mega Evolution</td><td>24380</td><td>26/09/2025</td></tr>
+            <tr><td>PFL</td><td>ME02: Phantasmal Flames</td><td>24448</td><td>14/11/2025</td></tr>
+            <tr><td>ASC</td><td>ME: Ascended Heroes</td><td>24541</td><td>30/01/2026</td></tr>
+            <tr><td>POR</td><td>ME03: Perfect Order</td><td>24587</td><td>27/03/2026</td></tr>
+            <tr><td>CRI</td><td>ME04: Chaos Rising</td><td>24655</td><td>22/05/2026</td></tr>
+            <tr><td>PBL</td><td>ME05: Pitch Black</td><td>24688</td><td>17/07/2026</td></tr>
+            <tr><td>30C</td><td>ME: 30th Celebration</td><td>24722</td><td>16/09/2026</td></tr>
+          </tbody>
+        </table>
+        <p>Os identificadores e as datas vêm do endpoint de coleções do TCGplayer para a categoria Pokémon (<code>categoryId</code> 3), consultado em 21/10/2026. Se a turma tiver mais alunos que coleções na lista, a lista se estende para as coleções principais de 2023. A ME06: Delta Reign, com lançamento previsto para 06/11/2026, pode ser escolhida por quem quiser estudar o preço de pré-venda, sabendo que a série começa antes de existir carta no mercado.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Fontes de dados</h2>
+        <p>A coleta precisa trazer, para cada produto da coleção, o identificador, o nome, a raridade e o número da carta, a URL da imagem, a URL da página no marketplace e o preço do dia. Produtos selados (booster box, elite trainer box, booster bundle, blisters) entram junto com as cartas avulsas, porque uma das perguntas compara os dois. O TCGplayer e o PriceCharting servem de referência para esse tipo de dado, mas cada um chega ao coletor por um caminho diferente.</p>
+        <table>
+          <thead><tr><th>Fonte</th><th>Acesso</th><th>O que entrega</th><th>Uso no projeto</th></tr></thead>
+          <tbody>
+            <tr><td>TCGplayer pelo <a href="https://tcgcsv.com/" target="_blank" rel="noopener noreferrer">TCGCSV</a></td><td>JSON e CSV públicos, sem chave, atualizados por volta de 20h UTC</td><td>Coleções, produtos com <code>imageUrl</code>, <code>url</code> e <code>extendedData</code> (raridade, número, tipo), e preços <code>lowPrice</code>, <code>midPrice</code>, <code>highPrice</code> e <code>marketPrice</code> por acabamento</td><td>Fonte principal recomendada</td></tr>
+            <tr><td>API oficial do TCGplayer</td><td>Exige chave de desenvolvedor; o TCGplayer não libera chaves novas</td><td>Os mesmos dados que o TCGCSV espelha</td><td>Só para quem já tiver chave</td></tr>
+            <tr><td>PriceCharting</td><td>API paga, com token de assinatura; o site é protegido por desafio anti-robô</td><td>Preço de carta solta e graduada (PSA, CGC) e histórico</td><td>Segunda fonte opcional, somente pela API</td></tr>
+          </tbody>
+        </table>
+        <p>Os endereços do TCGCSV seguem a hierarquia categoria, coleção, produto: <code>https://tcgcsv.com/tcgplayer/3/groups</code> lista as coleções, <code>https://tcgcsv.com/tcgplayer/3/{groupId}/products</code> traz os produtos e <code>https://tcgcsv.com/tcgplayer/3/{groupId}/prices</code> traz os preços, que se juntam aos produtos pelo <code>productId</code>. Na Destined Rivals, em 21/10/2026, eram 281 produtos e 446 linhas de preço, porque uma mesma carta tem um preço para cada acabamento (<code>Normal</code>, <code>Holofoil</code>, <code>Reverse Holofoil</code>).</p>
+        <div class="note">
+          <strong>Regras de coleta</strong>
+          <p>O TCGCSV pede um <code>User-Agent</code> próprio em cada requisição (por exemplo, <code>colecao-tef/1.0</code>), uma pausa de pelo menos 100 ms entre chamadas e no máximo 10.000 requisições por dia. Uma coleção pede três chamadas por dia, então não há motivo para coletar mais de uma vez: o dado só muda após a atualização das 20h UTC. O site do PriceCharting bloqueia acesso automatizado com desafio do Cloudflare, e contornar esse bloqueio está fora do escopo da disciplina. Scraping de qualquer página só vale se o <code>robots.txt</code> e os termos de uso permitirem.</p>
+        </div>
+        <p>O preço ao longo do tempo é construído pela própria coleta. A fonte devolve o preço do dia, e é a gravação diária no bruto que forma a série histórica. O TCGCSV mantém também um arquivo de preços diários desde 08/02/2024, com regras de uso mais restritas: cada data pode ser baixada uma única vez, e o arquivo traz todas as categorias juntas. Usá-lo para preencher o histórico anterior à coleta é um ir além, desde que o acesso esteja liberado e as regras sejam respeitadas.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Data lake da turma</h2>
+        <p>Todos os alunos gravam no mesmo MinIO, publicado pelo professor no Railway. O endpoint S3 e a chave de acesso de cada aluno são enviados no canal da turma e ficam fora do repositório, nas variáveis do job e no <code>.env</code>. Cada aluno escreve somente nos prefixos da própria coleção e lê todos os demais.</p>
+        <pre><code>tcg/
+├── raw/tcgplayer/group_id=24269/data=2026-10-24/products.json   resposta original, imutável
+├── raw/tcgplayer/group_id=24269/data=2026-10-24/prices.json
+├── silver/colecao/group_id=24269/colecao.parquet                contrato comum da turma
+├── silver/produto/group_id=24269/produto.parquet
+├── silver/preco_diario/group_id=24269/data=2026-10-24/preco.parquet
+└── gold/group_id=24269/                                         modelo dimensional do aluno</code></pre>
+        <p>O bruto segue a regra das aulas: nenhum objeto em <code>raw/</code> é sobrescrito ou apagado, e o coletor confere se a chave do dia já existe antes de gravar. Uma coleta repetida no mesmo dia não pode duplicar a série. Silver e gold são derivadas e precisam poder ser reconstruídas a partir do bruto com um único comando.</p>
+        <p>A silver tem um contrato comum porque o dashboard de cada aluno lê a silver dos colegas. Se uma pessoa grava o preço como texto e outra como número, a consulta da turma quebra. As colunas mínimas de cada tabela estão abaixo; colunas extras são permitidas, nomes e tipos destas não.</p>
+        <table>
+          <thead><tr><th>Tabela silver</th><th>Grão</th><th>Colunas mínimas</th></tr></thead>
+          <tbody>
+            <tr><td><code>colecao</code></td><td>uma coleção</td><td><code>group_id</code> INTEGER, <code>nome</code> VARCHAR, <code>sigla</code> VARCHAR, <code>data_lancamento</code> DATE, <code>responsavel</code> VARCHAR</td></tr>
+            <tr><td><code>produto</code></td><td>um produto da coleção</td><td><code>product_id</code> INTEGER, <code>group_id</code> INTEGER, <code>nome</code> VARCHAR, <code>tipo_produto</code> VARCHAR (<code>carta</code> ou <code>selado</code>), <code>raridade</code> VARCHAR, <code>numero</code> VARCHAR, <code>image_url</code> VARCHAR, <code>url</code> VARCHAR</td></tr>
+            <tr><td><code>preco_diario</code></td><td>um produto, em um acabamento, em um dia</td><td><code>data</code> DATE, <code>product_id</code> INTEGER, <code>group_id</code> INTEGER, <code>acabamento</code> VARCHAR, <code>market_price</code> DOUBLE, <code>low_price</code> DOUBLE, <code>mid_price</code> DOUBLE, <code>high_price</code> DOUBLE, <code>moeda</code> VARCHAR, <code>fonte</code> VARCHAR, <code>chave_raw</code> VARCHAR</td></tr>
+          </tbody>
+        </table>
+        <p>Preços chegam em dólar e podem vir nulos quando o produto não teve venda recente. Nulo não é zero: um <code>market_price</code> ausente fica nulo na silver e não entra em média nem em variação. Registros que falham no modelo Pydantic vão para <code>quarentena/</code>, com o motivo, e a contagem aparece no log da execução.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Lakehouse e modelagem dimensional</h2>
+        <p>A gold é um esquema estrela lido pelo DuckDB, com Parquet no MinIO por trás e acesso pela extensão <code>httpfs</code>, como na Aula 04. O fato central é o preço diário, e cada pergunta do dashboard é uma agregação desse fato por alguma dimensão.</p>
+        <table>
+          <thead><tr><th>Tabela gold</th><th>Grão ou conteúdo</th></tr></thead>
+          <tbody>
+            <tr><td><code>fato_preco_diario</code></td><td>um produto, em um acabamento, em um dia: preço de mercado, mínimo, médio e máximo</td></tr>
+            <tr><td><code>dim_produto</code></td><td>nome, tipo (carta ou selado), categoria do selado, raridade, número, URL da imagem e da página</td></tr>
+            <tr><td><code>dim_colecao</code></td><td>nome, sigla, série (Scarlet &amp; Violet ou Mega Evolution), data de lançamento, responsável</td></tr>
+            <tr><td><code>dim_data</code></td><td>data, dia da semana, semana, mês</td></tr>
+            <tr><td><code>dim_acabamento</code></td><td><code>Normal</code>, <code>Holofoil</code>, <code>Reverse Holofoil</code> e outros que a fonte trouxer</td></tr>
+          </tbody>
+        </table>
+        <p>A gold de cada aluno é construída sobre a silver de todas as coleções, lida com um curinga como <code>s3://tcg/silver/preco_diario/*/*/*.parquet</code>. Os dias desde o lançamento são calculados na consulta, a partir da data do fato e da data de lançamento da coleção, e não ficam guardados em nenhuma dimensão. A escolha do modelo é registrada num ADR que cita as perguntas abaixo.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>As cinco perguntas iniciais</h2>
+        <p>O dashboard precisa responder a estas cinco perguntas. Cada painel mostra a imagem das cartas que cita e permite abrir a página do produto no TCGplayer. As perguntas 1, 2 e 4 partem da coleção do aluno e as perguntas 3 e 5 exigem os dados da turma.</p>
+        <table>
+          <thead><tr><th>Pergunta</th><th>Métrica e grão</th><th>Visualização sugerida</th></tr></thead>
+          <tbody>
+            <tr><td>1. Quais cartas da minha coleção mais valorizaram e quais mais desvalorizaram desde o início da coleta?</td><td>Variação percentual do <code>market_price</code> entre o primeiro e o último dia, por carta e acabamento, considerando só cartas acima de US$ 1 no primeiro dia</td><td>Dois rankings de dez cartas, com imagem, preço inicial, preço atual e variação</td></tr>
+            <tr><td>2. Na minha coleção, o produto selado guardou valor melhor que as cartas avulsas?</td><td>Índice base 100 no primeiro dia: média dos selados contra a soma do preço das cartas de raridade Double Rare em diante</td><td>Gráfico de linhas com os dois índices no tempo</td></tr>
+            <tr><td>3. Qual coleção da turma valorizou mais no período?</td><td>Valor da coleção no dia (soma do <code>market_price</code> de um exemplar de cada carta) em índice base 100, por coleção</td><td>Gráfico de linhas com uma linha por coleção, destacando a do aluno</td></tr>
+            <tr><td>4. Onde está concentrado o valor de cada coleção?</td><td>Participação de cada raridade no valor total da coleção no último dia e número de cartas que somam 80% do valor</td><td>Barras empilhadas a 100% por coleção, com a contagem ao lado</td></tr>
+            <tr><td>5. Quais cartas da turma deram mais retorno para o risco assumido?</td><td>Retorno no período contra volatilidade (desvio-padrão dos retornos diários), para cartas acima de US$ 5</td><td>Dispersão risco &times; retorno, cor por coleção, imagem ao passar o cursor</td></tr>
+          </tbody>
+        </table>
+        <p>Os filtros de preço mínimo existem por um motivo de cálculo: uma carta comum que passa de US$ 0,10 para US$ 0,30 aparece com 200% de valorização e domina qualquer ranking, sem que isso tenha valor para quem investe. Cards de código digital (raridade <code>Code Card</code>) ficam fora das perguntas 1, 3 e 4, porque não são colecionáveis.</p>
+        <div class="note">
+          <strong>Ir além</strong>
+          <p>Depois das cinco perguntas, o aluno pode estender o projeto: preço em reais com a PTAX coletada na Aula 03; valor esperado de abrir um booster box contra o preço da caixa fechada; curva de preço pelos dias desde o lançamento, comparando coleções de idades diferentes; diferença entre <code>low_price</code> e <code>market_price</code> como sinal de liquidez; preço da carta graduada no PriceCharting contra a carta solta; histórico anterior à coleta pelo arquivo do TCGCSV; alertas de variação diária acima de um limite.</p>
+        </div>
+      </section>
+
+      <section class="content-block">
+        <h2>Limites do dado</h2>
+        <p>O <code>market_price</code> do TCGplayer é calculado a partir de vendas recentes nos Estados Unidos, em dólar, e não separa a condição da carta: o TCGCSV não publica preço por SKU, que é a combinação de produto, idioma, acabamento e condição. Também não inclui frete, taxas do marketplace nem o preço praticado no Brasil. Uma valorização no dashboard indica que o preço de venda subiu no marketplace, e não quanto um colecionador ganharia ao vender a carta.</p>
+        <p>A série vai de outubro a dezembro de 2026, cerca de sete semanas. Esse intervalo sustenta descrever o que aconteceu no período e comparar coleções na mesma janela; não sustenta previsão de preço nem recomendação de compra. O dashboard mostra evidência, e quem decide é o colecionador.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Entregáveis</h2>
+        <table>
+          <thead><tr><th>Entregável</th><th>Onde fica</th></tr></thead>
+          <tbody>
+            <tr><td>Coletor diário publicado e rodando por agendamento, com repetição e idempotência</td><td>Repositório do aluno e Railway ou GitHub Actions</td></tr>
+            <tr><td>Série bruta da coleção desde o primeiro dia de coleta</td><td><code>tcg/raw/tcgplayer/group_id=.../</code></td></tr>
+            <tr><td>Silver no contrato comum e gold dimensional, reconstruíveis a partir do bruto</td><td><code>tcg/silver/</code> e <code>tcg/gold/</code></td></tr>
+            <tr><td>Modelos Pydantic, testes de unidade e de integração</td><td><code>tests/</code></td></tr>
+            <tr><td>Dashboard em Streamlit ou outra biblioteca Python, respondendo às cinco perguntas</td><td>Repositório do aluno, com o comando para rodar no README</td></tr>
+            <tr><td>Artefatos SDD, ADRs, ATAM, rastreabilidade e histórico de prompts</td><td><code>docs/</code> e <code>specs/</code></td></tr>
+          </tbody>
+        </table>
+        <p>Vale o que pode ser verificado no repositório e no data lake. Um dia sem coleta fica como lacuna na série e precisa ser explicado no README; um dia preenchido com dado inventado invalida a pergunta que o usa.</p>
+
+        <div class="actions">
+          <a class="button" href="home_data_collection.html">&larr; Voltar para a disciplina</a>
+          <a class="button" href="https://minio-production-505d.up.railway.app" target="_blank" rel="noopener noreferrer">Console do MinIO da turma</a>
+          <a class="button" href="https://tcgcsv.com/docs" target="_blank" rel="noopener noreferrer">Documentação do TCGCSV</a>
+          <a class="button" href="entrega_grupo_data_collection.html">Formulário de inscrição</a>
+          <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/entrega/entrega_projeto_final.html">Formulário de entrega</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
