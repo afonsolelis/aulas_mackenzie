@@ -25,7 +25,7 @@
         <p>
           O dashboard lê os dados do próprio aluno e os dos colegas. Uma coleção sozinha mostra quais cartas subiram; a turma inteira mostra se a coleção escolhida subiu mais ou menos que as outras. As cartas são tratadas como opções de investimento em colecionismo, e o dashboard precisa responder às cinco perguntas iniciais desta página.
         </p>
-        <p class="meta">Projeto individual &middot; Escolha da coleção até 24/10/2026 &middot; Coleta diária até a entrega &middot; Mentoria em 05/12/2026 &middot; Entrega até 12/12/2026, 23h59</p>
+        <p class="meta">Projeto individual &middot; Coleta diária até a entrega &middot; Mentoria em 05/12/2026 &middot; Entrega até 12/12/2026, 23h59</p>
       </section>
 
       <section class="content-block">
@@ -42,7 +42,7 @@
 
       <section class="content-block">
         <h2>Escolha da coleção</h2>
-        <p>Cada aluno fica com uma coleção principal do Pokémon TCG lançada a partir de 2024, e duas pessoas não ficam com a mesma. A escolha é registrada no <a href="entrega_grupo_data_collection.html">formulário de inscrição</a> até 24/10/2026, e vale a ordem de envio. O prazo é curto porque o histórico de preços começa no primeiro dia de coleta: quem começa em novembro chega à entrega com metade da série de quem começou em outubro.</p>
+        <p>Cada aluno fica com uma coleção principal do Pokémon TCG lançada a partir de 2024, e duas pessoas não ficam com a mesma. Antes da primeira gravação, liste o prefixo <code>tcg/raw/tcgplayer/</code> no MinIO da turma: se a pasta <code>group_id=</code> da coleção já existir, outra pessoa chegou antes e a escolha precisa mudar. A coleção escolhida fica declarada no README do repositório. Vale começar cedo, porque o histórico de preços começa no primeiro dia de coleta: quem começa em novembro chega à entrega com metade da série de quem começou em outubro.</p>
         <table>
           <thead><tr><th>Sigla</th><th>Coleção</th><th><code>groupId</code></th><th>Lançamento</th></tr></thead>
           <tbody>
@@ -171,7 +171,6 @@
           <a class="button" href="home_data_collection.html">&larr; Voltar para a disciplina</a>
           <a class="button" href="https://minio-production-505d.up.railway.app" target="_blank" rel="noopener noreferrer">Console do MinIO da turma</a>
           <a class="button" href="https://tcgcsv.com/docs" target="_blank" rel="noopener noreferrer">Documentação do TCGCSV</a>
-          <a class="button" href="entrega_grupo_data_collection.html">Formulário de inscrição</a>
           <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/entrega/entrega_projeto_final.html">Formulário de entrega</a>
         </div>
       </section>

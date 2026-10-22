@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
-    <title>Inscrição no Projeto · Data Collection 2026</title>
-    <meta name="description" content="Formulário de Data Collection and Storage: aluno, coleção escolhida e link do repositório no GitHub." />
+    <title>Grupo e Repositório · Data Collection 2026</title>
+    <meta name="description" content="Formulário de Data Collection and Storage: integrantes do grupo e link do repositório no GitHub." />
     <link rel="stylesheet" href="../assets/styles.css" />
   </head>
   <body>
@@ -18,52 +18,44 @@
       <section class="hero" data-year="2026">
         <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
         <span class="kicker">MBA Engenharia de Dados &middot; Data Collection and Storage &middot; Entrega</span>
-        <h1>Aluno, coleção e repositório</h1>
+        <h1>Grupo e repositório</h1>
         <p id="turma-atual">Carregando o formulário...</p>
       </section>
 
       <section class="content-block">
         <h2>Antes de enviar</h2>
         <ul>
-          <li>O projeto é individual: cada aluno envia o próprio formulário, com o próprio repositório.</li>
-          <li>A coleção escolhida é a que você vai coletar no data lake da turma. Envie até 24/10/2026; duas pessoas não ficam com a mesma coleção, e vale a ordem de envio. As coleções estão na <a href="projeto_data_collection.html">página do projeto</a>.</li>
-          <li>Para corrigir algo, envie de novo com o mesmo nome e a mesma coleção. Vale o envio mais recente.</li>
+          <li>Um integrante envia pelo grupo inteiro. O grupo tem de um a cinco integrantes.</li>
+          <li>Para corrigir algo, envie de novo com o mesmo link do GitHub. Vale o envio mais recente.</li>
           <li>O repositório precisa ser público. O formulário confere isso no GitHub antes de enviar.</li>
         </ul>
+        <p id="instrucoes" class="meta"></p>
       </section>
 
       <section class="content-block">
-        <h2>Seus dados</h2>
+        <h2>Dados do grupo</h2>
         <div id="recado" class="aviso" role="status" hidden></div>
 
         <form id="form-entrega" class="form-grid" novalidate>
-          <label>Nome completo
-            <input name="nome" required minlength="3" maxlength="53" autocomplete="name" />
+          <label>Integrante 1
+            <span class="dica">Nome completo. Obrigatório.</span>
+            <input name="integrante" required minlength="3" maxlength="120" autocomplete="off" />
           </label>
-          <label>Coleção
-            <span class="dica">A coleção que você vai estudar. Duas pessoas não ficam com a mesma; vale a ordem de envio.</span>
-            <select name="colecao" required>
-              <option value="">Escolha a coleção</option>
-              <option value="TEF">TEF · SV05: Temporal Forces</option>
-              <option value="TWM">TWM · SV06: Twilight Masquerade</option>
-              <option value="SFA">SFA · SV: Shrouded Fable</option>
-              <option value="SCR">SCR · SV07: Stellar Crown</option>
-              <option value="SSP">SSP · SV08: Surging Sparks</option>
-              <option value="PRE">PRE · SV: Prismatic Evolutions</option>
-              <option value="JTG">JTG · SV09: Journey Together</option>
-              <option value="DRI">DRI · SV10: Destined Rivals</option>
-              <option value="BLK">BLK · SV: Black Bolt</option>
-              <option value="WHT">WHT · SV: White Flare</option>
-              <option value="MEG">MEG · ME01: Mega Evolution</option>
-              <option value="PFL">PFL · ME02: Phantasmal Flames</option>
-              <option value="ASC">ASC · ME: Ascended Heroes</option>
-              <option value="POR">POR · ME03: Perfect Order</option>
-              <option value="CRI">CRI · ME04: Chaos Rising</option>
-              <option value="PBL">PBL · ME05: Pitch Black</option>
-              <option value="30C">30C · ME: 30th Celebration</option>
-              <option value="DLR">DLR · ME06: Delta Reign (pré-venda)</option>
-              <option value="OUTRA">Outra coleção principal de 2023, combinada com o professor</option>
-            </select>
+          <label>Integrante 2
+            <span class="dica">Opcional.</span>
+            <input name="integrante" minlength="3" maxlength="120" autocomplete="off" />
+          </label>
+          <label>Integrante 3
+            <span class="dica">Opcional.</span>
+            <input name="integrante" minlength="3" maxlength="120" autocomplete="off" />
+          </label>
+          <label>Integrante 4
+            <span class="dica">Opcional.</span>
+            <input name="integrante" minlength="3" maxlength="120" autocomplete="off" />
+          </label>
+          <label>Integrante 5
+            <span class="dica">Opcional.</span>
+            <input name="integrante" minlength="3" maxlength="120" autocomplete="off" />
           </label>
 
           <label>Repositório no GitHub
@@ -119,7 +111,7 @@
         }
         slug = data.slug;
         document.getElementById('turma-atual').textContent = data.turma;
-        // As instruções ficam na própria página; as do banco ainda descrevem a entrega em grupo.
+        document.getElementById('instrucoes').textContent = data.instrucoes || '';
       }
 
       // 404 na API pública do GitHub significa repositório privado ou inexistente.
@@ -138,8 +130,7 @@
         ev.preventDefault();
         if (!form.reportValidity()) return;
         const f = new FormData(form);
-        const nome = f.get('nome').trim();
-        const colecao = f.get('colecao');
+        const integrantes = f.getAll('integrante').map((n) => n.trim()).filter(Boolean);
         const botao = document.getElementById('enviar');
         botao.disabled = true;
         if (!(await repositorioPublico(f.get('repositorio')))) {
@@ -147,17 +138,10 @@
           avisar('O repositório não foi encontrado ou é privado. Deixe-o público no GitHub e confira o link.', 'erro');
           return;
         }
-        // Entrega individual: o envio é identificado por coleção e aluno, e a área do
-        // professor agrupa por esse rótulo. Duas pessoas na mesma coleção aparecem lado a lado.
-        const { data, error } = await db.rpc('entrega_enviar', {
+        const { data, error } = await db.rpc('entrega_enviar_grupo', {
           p_slug: slug,
-          p_grupo: `${colecao} · ${nome}`,
-          p_integrantes: nome,
+          p_integrantes: integrantes,
           p_repositorio: f.get('repositorio'),
-          p_plataforma: null,
-          p_painel: null,
-          p_acesso: null,
-          p_observacoes: null,
         });
         botao.disabled = false;
         if (error) {
@@ -168,8 +152,7 @@
         const dl = document.getElementById('comprovante-dados');
         dl.replaceChildren();
         for (const [rotulo, valor] of [
-          ['Aluno', nome],
-          ['Coleção', colecao],
+          ['Integrantes', integrantes.join(', ')],
           ['Repositório', data.repositorio],
           ['Enviado em', quando(data.enviado_em)],
           ['Código', data.id],

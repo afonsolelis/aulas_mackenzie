@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
     <title>Entrega do Projeto Final · Data Collection and Storage 2026</title>
-    <meta name="description" content="Formulário de entrega individual do projeto final de Data Collection and Storage: aluno, coleção, repositório no GitHub e dashboard." />
+    <meta name="description" content="Formulário de entrega individual do projeto final de Data Collection and Storage: nome do aluno e repositório no GitHub." />
     <link rel="stylesheet" href="../../../../assets/styles.css" />
   </head>
   <body>
@@ -26,7 +26,7 @@
       <section class="content-block">
         <h2>Antes de enviar</h2>
         <ul>
-          <li>A entrega é individual. Para corrigir algo, envie de novo com o mesmo nome e a mesma coleção: vale o envio mais recente feito até o prazo.</li>
+          <li>A entrega é individual. Para corrigir algo, envie de novo com o mesmo nome: vale o envio mais recente feito até o prazo.</li>
           <li>O repositório precisa ser público. O professor avalia o último commit do ramo <code>main</code> feito até o prazo.</li>
           <li>O repositório precisa conter o coletor, a construção da silver e da gold, o dashboard, os testes, os artefatos de SDD (<code>AGENTS.md</code>, <code>docs/</code> e <code>specs/</code>), a matriz de rastreabilidade, o histórico de prompts e o README que permite rodar o projeto do zero. A lista completa está na <a href="../../../../pages/projeto_data_collection.html">página do projeto</a>.</li>
           <li>Não coloque no repositório arquivos <code>.env</code>, senhas, chaves de API nem credenciais do Railway. Faça a busca de segredos da seção 16 do enunciado antes de enviar.</li>
@@ -39,52 +39,12 @@
 
         <form id="form-entrega" class="form-grid" novalidate>
           <label>Nome completo
-            <input name="nome" required minlength="3" maxlength="53" autocomplete="name" />
-          </label>
-          <label>Coleção
-            <span class="dica">A mesma coleção informada na inscrição.</span>
-            <select name="colecao" required>
-              <option value="">Escolha a coleção</option>
-              <option value="TEF">TEF · SV05: Temporal Forces</option>
-              <option value="TWM">TWM · SV06: Twilight Masquerade</option>
-              <option value="SFA">SFA · SV: Shrouded Fable</option>
-              <option value="SCR">SCR · SV07: Stellar Crown</option>
-              <option value="SSP">SSP · SV08: Surging Sparks</option>
-              <option value="PRE">PRE · SV: Prismatic Evolutions</option>
-              <option value="JTG">JTG · SV09: Journey Together</option>
-              <option value="DRI">DRI · SV10: Destined Rivals</option>
-              <option value="BLK">BLK · SV: Black Bolt</option>
-              <option value="WHT">WHT · SV: White Flare</option>
-              <option value="MEG">MEG · ME01: Mega Evolution</option>
-              <option value="PFL">PFL · ME02: Phantasmal Flames</option>
-              <option value="ASC">ASC · ME: Ascended Heroes</option>
-              <option value="POR">POR · ME03: Perfect Order</option>
-              <option value="CRI">CRI · ME04: Chaos Rising</option>
-              <option value="PBL">PBL · ME05: Pitch Black</option>
-              <option value="30C">30C · ME: 30th Celebration</option>
-              <option value="DLR">DLR · ME06: Delta Reign (pré-venda)</option>
-              <option value="OUTRA">Outra coleção principal de 2023, combinada com o professor</option>
-            </select>
+            <input name="nome" required minlength="3" maxlength="60" autocomplete="name" />
           </label>
           <label>Repositório no GitHub
             <span class="dica">Repositório público, no formato https://github.com/usuario/repositorio</span>
             <input name="repositorio" type="url" required placeholder="https://github.com/usuario/repositorio"
                    pattern="https://github\.com/[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+(\.git)?/?" />
-          </label>
-
-          <label>Dashboard publicado
-            <span class="dica">Endereço do dashboard em Streamlit ou outra biblioteca Python, se estiver publicado. Opcional: o README precisa dizer como rodá-lo localmente.</span>
-            <input name="painel" type="url" maxlength="500" placeholder="https://" />
-          </label>
-
-          <label>Como o professor confere o ambiente
-            <span class="dica">Prefixos da sua coleção no data lake da turma e, se o dashboard pedir login, um usuário só de leitura. Nunca envie a sua chave de escrita do MinIO. Só o professor vê este campo.</span>
-            <textarea name="acesso" maxlength="1000"></textarea>
-          </label>
-
-          <label>Observações
-            <span class="dica">Dias sem coleta, perguntas respondidas em parte e qualquer aviso para a correção. Opcional.</span>
-            <textarea name="observacoes" maxlength="4000"></textarea>
           </label>
 
           <div class="actions">
@@ -142,13 +102,13 @@
         botao.disabled = true;
         const { data, error } = await db.rpc('entrega_enviar', {
           p_slug: SLUG,
-          p_grupo: `${f.get('colecao')} · ${f.get('nome').trim()}`,
+          p_grupo: f.get('nome').trim(),
           p_integrantes: f.get('nome').trim(),
           p_repositorio: f.get('repositorio'),
           p_plataforma: null,
-          p_painel: f.get('painel'),
-          p_acesso: f.get('acesso'),
-          p_observacoes: f.get('observacoes'),
+          p_painel: null,
+          p_acesso: null,
+          p_observacoes: null,
         });
         botao.disabled = false;
         if (error) {
@@ -160,7 +120,6 @@
         dl.replaceChildren();
         for (const [rotulo, valor] of [
           ['Aluno', f.get('nome').trim()],
-          ['Coleção', f.get('colecao')],
           ['Repositório', data.repositorio],
           ['Enviado em', quando(data.enviado_em)],
           ['Código', data.id],
