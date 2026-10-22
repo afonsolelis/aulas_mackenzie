@@ -22,7 +22,7 @@
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
       <h1>Aula 08 — Mentoria e Entrega do Projeto Final</h1>
       <p class="meta">Aula 08 &middot; 05/12/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>Este documento é o enunciado oficial do projeto final e o roteiro da Aula 08. O projeto é individual: cada aluno constrói um pipeline de dados sobre uma coleção de cartas Pokémon tratadas como ativos de coleção, grava no data lake da turma e responde, num dashboard em Python, a cinco perguntas de investimento que usam a sua coleção e as dos colegas. A Aula 08 não tem bloco teórico nem conteúdo novo: o professor atende cada aluno em 05/12/2026, e a entrega fecha uma semana depois, em 12/12/2026, às 23h59.</p>
+      <p>Este documento é o enunciado oficial do projeto final e o roteiro da Aula 08. O projeto é individual: cada aluno constrói um pipeline de dados sobre uma coleção de cartas Pokémon tratadas como ativos de coleção, grava no data lake da turma, converte os preços para reais pelo câmbio do dia e responde, num dashboard em Python, a cinco perguntas de investimento e a um desafio de carteira que usam a sua coleção e as dos colegas. A Aula 08 não tem bloco teórico nem conteúdo novo: o professor atende cada aluno em 05/12/2026, e a entrega fecha uma semana depois, em 12/12/2026, às 23h59.</p>
     </header>
 
     <article class="material">
@@ -55,7 +55,7 @@
 
       <section class="content-block" id="s2">
         <h2>2. O projeto em resumo</h2>
-        <p>Cada aluno escolhe uma coleção principal do Pokémon TCG lançada a partir de 2024, coleta todos os dias os produtos e os preços dessa coleção no TCGplayer e grava a resposta original no MinIO da turma, publicado pelo professor no Railway. A partir do bruto, constrói a silver no contrato comum da turma, a gold num esquema estrela lido pelo DuckDB e um dashboard em Streamlit, ou outra biblioteca de frontend em Python, que responde às cinco perguntas da página de direcionamentos.</p>
+        <p>Cada aluno escolhe uma coleção principal do Pokémon TCG lançada a partir de 2024, coleta todos os dias os produtos e os preços dessa coleção no TCGplayer e grava a resposta original no MinIO da turma, publicado pelo professor no Railway. A partir do bruto, constrói a silver no contrato comum da turma, a gold num esquema estrela lido pelo DuckDB e um dashboard em Streamlit, ou outra biblioteca de frontend em Python, que responde às cinco perguntas da página de direcionamentos. Os preços chegam em dólar e são convertidos pela PTAX do Banco Central, e o desafio final compara uma carteira de R$ 1.000 em cartas e selados com deixar o dinheiro em dólar ou no CDI.</p>
         <p>A persona é um colecionador que compra cartas avulsas e produtos selados para guardar e quer saber onde o dinheiro rende mais. É dela que saem os requisitos: o colecionador precisa ver o preço ao longo do tempo, reconhecer a carta pela imagem, comparar selado com avulso e comparar a própria coleção com as outras. Por isso o projeto depende dos colegas. Uma coleção sozinha responde às perguntas 1, 2 e 4; as perguntas 3 e 5 exigem a silver de toda a turma.</p>
         <div class="note">
           <strong>Resultado esperado</strong>
@@ -74,7 +74,9 @@
             <tr><td>Silver</td><td>Tabelas <code>colecao</code>, <code>produto</code> e <code>preco_diario</code> em Parquet, no contrato comum; modelo Pydantic por tabela; registros inválidos em <code>quarentena/</code> com o motivo; preço ausente fica nulo</td><td>04, 07</td></tr>
             <tr><td>Gold</td><td>Esquema estrela no DuckDB sobre a silver de todas as coleções, com <code>fato_preco_diario</code> e as dimensões de produto, coleção, data e acabamento; escolha registrada em ADR</td><td>04, 05</td></tr>
             <tr><td>Reprocessamento</td><td>Silver e gold apagadas e reconstruídas a partir do bruto com um único comando; duas execuções sobre o mesmo período não duplicam linhas</td><td>04</td></tr>
-            <tr><td>Dashboard</td><td>Aplicação em Python ligada ao lakehouse que responde às cinco perguntas, mostra a imagem das cartas citadas e abre a página do produto</td><td>projeto</td></tr>
+            <tr><td>Câmbio e CDI</td><td>PTAX e CDI coletados todo dia no bruto da coleção; preço convertido pela PTAX de fechamento do dia ou do último dia útil anterior, com <code>ASOF JOIN</code>, sem usar cotação posterior; teste com fim de semana e feriado</td><td>03, 04</td></tr>
+            <tr><td>Dashboard</td><td>Aplicação em Python ligada ao lakehouse que responde às cinco perguntas em reais, separa o efeito da carta e o do câmbio, mostra a imagem das cartas citadas e abre a página do produto</td><td>projeto</td></tr>
+            <tr><td>Desafio da carteira</td><td>Cinco carteiras de R$ 1.000 avaliadas todo dia pelo valor de liquidação, com unidades inteiras, PTAX de compra e de venda, taxa de venda como parâmetro e sem informação do futuro; resultado em <code>tcg/gold_turma/carteira/</code> no contrato comum</td><td>projeto</td></tr>
             <tr><td>Testes</td><td>Unidade sem rede para modelos, parsers e transformações; integração com VCR para o TCGCSV e com Testcontainers para o MinIO</td><td>07</td></tr>
             <tr><td>Operação</td><td>Job no Railway ou no GitHub Actions; credenciais só em variáveis; dias sem coleta declarados no README</td><td>01, 04</td></tr>
           </tbody>
@@ -132,11 +134,11 @@ Medida:     a coleta do dia é gravada até as 23h59 UTC ou o dia aparece
         <table>
           <thead><tr><th>Aula</th><th>Data</th><th>Marco sugerido</th></tr></thead>
           <tbody>
-            <tr><td>03</td><td>24/10/2026</td><td>coleção escolhida e declarada no README; <code>AGENTS.md</code>, persona e objetivos; primeira coleta gravada no bruto da turma</td></tr>
+            <tr><td>03</td><td>24/10/2026</td><td>coleção escolhida e declarada no README; <code>AGENTS.md</code>, persona e objetivos; primeira coleta de preços, PTAX e CDI gravada no bruto da turma</td></tr>
             <tr><td>04</td><td>31/10/2026</td><td><code>spec.md</code> e <code>plan.md</code>; job diário agendado; silver no contrato comum</td></tr>
             <tr><td>05</td><td>07/11/2026</td><td>ADR de modelagem; gold dimensional sobre a silver da turma</td></tr>
-            <tr><td>06</td><td>14/11/2026</td><td>dashboard com as perguntas 1, 2 e 4 da própria coleção</td></tr>
-            <tr><td>07</td><td>28/11/2026</td><td>perguntas 3 e 5 com a turma; Pydantic, quarentena, testes de unidade e de integração</td></tr>
+            <tr><td>06</td><td>14/11/2026</td><td>conversão para reais com <code>ASOF JOIN</code>; dashboard com as perguntas 1, 2 e 4 da própria coleção</td></tr>
+            <tr><td>07</td><td>28/11/2026</td><td>perguntas 3 e 5 com a turma; desafio da carteira; Pydantic, quarentena, testes de unidade e de integração</td></tr>
             <tr><td>08</td><td>05/12/2026</td><td>mentoria; ATAM, matriz e evidências completos; entrega até 12/12/2026, 23h59</td></tr>
           </tbody>
         </table>
@@ -151,7 +153,7 @@ Medida:     a coleta do dia é gravada até as 23h59 UTC ou o dia aparece
           <tbody>
             <tr><td>Coleta e bruto</td><td>20%</td><td>job diário, série contínua no bruto da turma, recusa de sobrescrita, repetição com espera crescente, lacunas declaradas</td></tr>
             <tr><td>Lakehouse e modelagem</td><td>20%</td><td>silver no contrato comum, gold em esquema estrela sobre todas as coleções, ADR de modelagem, reprocessamento sem duplicata</td></tr>
-            <tr><td>Dashboard e cinco perguntas</td><td>20%</td><td>as cinco perguntas respondidas com as métricas da página de direcionamentos, imagem das cartas, caminho até a linha de origem</td></tr>
+            <tr><td>Dashboard, perguntas e desafio</td><td>20%</td><td>as cinco perguntas em reais com as métricas da página de direcionamentos, decomposição carta e câmbio, as cinco carteiras do desafio, imagem das cartas, caminho até a linha de origem</td></tr>
             <tr><td>Artefatos SDD e ATAM</td><td>15%</td><td><code>AGENTS.md</code>, persona, objetivos, spec, plan, tasks, utility tree, cenários de seis partes, trade-offs e ADRs, todos anteriores ao código que orientam</td></tr>
             <tr><td>Testes e rastreabilidade</td><td>15%</td><td>Pydantic e quarentena, testes de unidade sem rede, VCR e Testcontainers, matriz completa, commits ligados a tarefas</td></tr>
             <tr><td>Operação, README e prompts</td><td>10%</td><td>segredos em variáveis, README que leva um clone limpo até o dashboard, <code>docs/prompts.md</code> com o histórico real</td></tr>
@@ -198,7 +200,7 @@ Medida:     a coleta do dia é gravada até as 23h59 UTC ou o dia aparece
             <tr><td>1</td><td>Codespace aberto no repositório</td><td>o ramo <code>main</code> está atualizado e o <code>.env</code> local tem as variáveis do MinIO da turma</td></tr>
             <tr><td>2</td><td>Série no bruto</td><td><code>mc ls</code> do prefixo da coleção lista as datas coletadas; lacunas anotadas no README</td></tr>
             <tr><td>3</td><td>Pipeline executado na manhã</td><td>o comando do README levou a coleta do dia até a gold</td></tr>
-            <tr><td>4</td><td>Dashboard aberto</td><td>as cinco perguntas carregam com os dados da turma</td></tr>
+            <tr><td>4</td><td>Dashboard aberto</td><td>as cinco perguntas e o placar do desafio carregam com os dados da turma</td></tr>
             <tr><td>5</td><td>Testes passando</td><td><code>pytest</code> sem falha, com a saída à vista</td></tr>
             <tr><td>6</td><td>Artefatos SDD abertos</td><td>persona, objetivos, <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code> e <code>atam.md</code> em abas do editor</td></tr>
             <tr><td>7</td><td>Matriz de rastreabilidade</td><td>uma linha por RF/RNF, nenhuma em <code>atendido</code> sem evidência</td></tr>
@@ -264,6 +266,12 @@ ou ausente, com o arquivo e a linha que sustentam o julgamento.
 11. Segredos: procure no histórico (git log -p) senhas, chaves do MinIO,
     URLs com usuário e senha e arquivos .env versionados.
 12. Lacunas da série: dias sem coleta declarados no README.
+13. Câmbio: PTAX e CDI no bruto; conversão pela PTAX de fechamento do
+    dia ou do último dia útil anterior, nunca posterior; teste com fim
+    de semana e feriado.
+14. Desafio: cinco carteiras com unidades inteiras, PTAX de compra e de
+    venda, taxa de venda parametrizada, composição escolhida só com
+    dados do primeiro dia; resultado no contrato de gold_turma.
 
 [E] Exemplos
 | # | Item | Estado | Evidência | Lacuna |
@@ -280,7 +288,7 @@ ou ausente, com o arquivo e a linha que sustentam o julgamento.
 - Separe fato, lacuna e suposição.
 
 [T] Tipo de saída
-docs/auditoria_final.md com a tabela dos 12 itens no formato do
+docs/auditoria_final.md com a tabela dos 14 itens no formato do
 exemplo; as lacunas ordenadas pelo impacto, primeiro as que acionam
 limitador (pipeline que não roda, segredo versionado, silver fora do
 contrato, dado inventado, código sem especificação prévia); e uma seção

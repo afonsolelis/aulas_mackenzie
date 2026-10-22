@@ -23,7 +23,7 @@
           Uma carta Pokémon lançada há dois anos pode valer hoje dez vezes o preço de uma caixa fechada da mesma coleção, ou quase nada. Quem compra para guardar precisa de dados para decidir o que guardar: preço ao longo do tempo, raridade, imagem da carta e comparação entre coleções. O projeto do módulo constrói essa base. Cada aluno escolhe uma coleção recente do Pokémon TCG, coleta os produtos e os preços do TCGplayer todos os dias, grava tudo no data lake da turma e monta um lakehouse com modelagem dimensional que alimenta um dashboard em Python.
         </p>
         <p>
-          O dashboard lê os dados do próprio aluno e os dos colegas. Uma coleção sozinha mostra quais cartas subiram; a turma inteira mostra se a coleção escolhida subiu mais ou menos que as outras. As cartas são tratadas como opções de investimento em colecionismo, e o dashboard precisa responder às cinco perguntas iniciais desta página.
+          O dashboard lê os dados do próprio aluno e os dos colegas. Uma coleção sozinha mostra quais cartas subiram; a turma inteira mostra se a coleção escolhida subiu mais ou menos que as outras. Como o colecionador mora no Brasil, todo preço é convertido para reais pelo câmbio do dia, e a valorização em reais é separada em duas partes: o que veio da carta e o que veio do dólar. O projeto termina num desafio: montar, com R$ 1.000, uma carteira de cartas e de selados e verificar se ela ganhou de deixar o dinheiro em dólar ou no CDI.
         </p>
         <p class="meta">Projeto individual &middot; Coleta diária até a entrega &middot; Mentoria em 05/12/2026 &middot; Entrega até 12/12/2026, 23h59</p>
       </section>
@@ -31,11 +31,11 @@
       <section class="content-block">
         <h2>O que cada aluno constrói</h2>
         <div class="method-flow">
-          <div class="method-step"><strong>Coleta</strong><span>Job agendado que busca, uma vez por dia, os produtos e os preços da coleção escolhida por API ou scraping permitido.</span></div>
+          <div class="method-step"><strong>Coleta</strong><span>Job agendado que busca, uma vez por dia, os produtos e os preços da coleção, a PTAX do dólar e o CDI do Banco Central.</span></div>
           <div class="method-step"><strong>Bruto</strong><span>Resposta original gravada sem alteração no MinIO da turma, com chave por coleção e data.</span></div>
           <div class="method-step"><strong>Silver</strong><span>Parquet tipado e validado com Pydantic, seguindo o contrato comum da turma.</span></div>
           <div class="method-step"><strong>Gold</strong><span>Modelo dimensional no DuckDB, com fato de preço diário e dimensões de produto, coleção, data e acabamento.</span></div>
-          <div class="method-step"><strong>Dashboard</strong><span>Aplicação em Streamlit, ou outra biblioteca de frontend em Python, ligada ao lakehouse e às cinco perguntas.</span></div>
+          <div class="method-step"><strong>Dashboard</strong><span>Aplicação em Streamlit, ou outra biblioteca de frontend em Python, com as cinco perguntas em reais e o desafio da carteira.</span></div>
         </div>
         <p>O método é o mesmo das aulas: Spec-Driven Development com prompts CREATE, na ordem persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM. A persona do projeto é um colecionador que compra cartas e produtos selados para guardar e quer saber onde o dinheiro dele rende mais. Os artefatos SDD, o histórico de prompts e os testes fazem parte da entrega, como descrito no <a href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/material/material_aula_08_mentoria_e_entrega_do_projeto_final.html#s4">material da Aula 08</a>.</p>
       </section>
@@ -77,6 +77,8 @@
             <tr><td>TCGplayer pelo <a href="https://tcgcsv.com/" target="_blank" rel="noopener noreferrer">TCGCSV</a></td><td>JSON e CSV públicos, sem chave, atualizados por volta de 20h UTC</td><td>Coleções, produtos com <code>imageUrl</code>, <code>url</code> e <code>extendedData</code> (raridade, número, tipo), e preços <code>lowPrice</code>, <code>midPrice</code>, <code>highPrice</code> e <code>marketPrice</code> por acabamento</td><td>Fonte principal recomendada</td></tr>
             <tr><td>API oficial do TCGplayer</td><td>Exige chave de desenvolvedor; o TCGplayer não libera chaves novas</td><td>Os mesmos dados que o TCGCSV espelha</td><td>Só para quem já tiver chave</td></tr>
             <tr><td>PriceCharting</td><td>API paga, com token de assinatura; o site é protegido por desafio anti-robô</td><td>Preço de carta solta e graduada (PSA, CGC) e histórico</td><td>Segunda fonte opcional, somente pela API</td></tr>
+            <tr><td>PTAX do Banco Central</td><td>API OData pública, sem chave, a mesma da Aula 03</td><td>Cotações de compra e de venda do dólar em cada boletim do dia (abertura, intermediários e fechamento)</td><td>Obrigatória, para converter os preços para reais</td></tr>
+            <tr><td>CDI no SGS do Banco Central</td><td>API pública, sem chave, série 12</td><td>Taxa DI diária, em % ao dia, publicada para dias úteis</td><td>Obrigatória, como referência de renda fixa no desafio</td></tr>
           </tbody>
         </table>
         <p>Os endereços do TCGCSV seguem a hierarquia categoria, coleção, produto: <code>https://tcgcsv.com/tcgplayer/3/groups</code> lista as coleções, <code>https://tcgcsv.com/tcgplayer/3/{groupId}/products</code> traz os produtos e <code>https://tcgcsv.com/tcgplayer/3/{groupId}/prices</code> traz os preços, que se juntam aos produtos pelo <code>productId</code>. Na Destined Rivals, em 21/10/2026, eram 281 produtos e 446 linhas de preço, porque uma mesma carta tem um preço para cada acabamento (<code>Normal</code>, <code>Holofoil</code>, <code>Reverse Holofoil</code>).</p>
@@ -84,6 +86,7 @@
           <strong>Regras de coleta</strong>
           <p>O TCGCSV pede um <code>User-Agent</code> próprio em cada requisição (por exemplo, <code>colecao-tef/1.0</code>), uma pausa de pelo menos 100 ms entre chamadas e no máximo 10.000 requisições por dia. Uma coleção pede três chamadas por dia, então não há motivo para coletar mais de uma vez: o dado só muda após a atualização das 20h UTC. O site do PriceCharting bloqueia acesso automatizado com desafio do Cloudflare, e contornar esse bloqueio está fora do escopo da disciplina. Scraping de qualquer página só vale se o <code>robots.txt</code> e os termos de uso permitirem.</p>
         </div>
+        <p>As duas séries do Banco Central entram pelo mesmo coletor diário. A PTAX vem de <code>https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='USD'&amp;@dataCotacao='MM-DD-AAAA'&amp;$format=json</code>, que devolve todos os boletins do dia; o de fechamento traz <code>tipoBoletim</code> igual a <code>Fechamento</code> e sai por volta das 13h de Brasília. O CDI vem de <code>https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json&amp;dataInicial=DD/MM/AAAA&amp;dataFinal=DD/MM/AAAA</code>, e a taxa de um dia útil só aparece na manhã seguinte. Em 20/10/2026, a PTAX de fechamento foi R$ 5,0134 na compra e R$ 5,0140 na venda, e o CDI foi 0,050788% ao dia.</p>
         <p>O preço ao longo do tempo é construído pela própria coleta. A fonte devolve o preço do dia, e é a gravação diária no bruto que forma a série histórica. O TCGCSV mantém também um arquivo de preços diários desde 08/02/2024, com regras de uso mais restritas: cada data pode ser baixada uma única vez, e o arquivo traz todas as categorias juntas. Usá-lo para preencher o histórico anterior à coleta é um ir além, desde que o acesso esteja liberado e as regras sejam respeitadas.</p>
       </section>
 
@@ -93,10 +96,16 @@
         <pre><code>tcg/
 ├── raw/tcgplayer/group_id=24269/data=2026-10-24/products.json   resposta original, imutável
 ├── raw/tcgplayer/group_id=24269/data=2026-10-24/prices.json
+├── raw/bcb_ptax/group_id=24269/data=2026-10-24/cotacao.json     PTAX do dia, todos os boletins
+├── raw/bcb_cdi/group_id=24269/data=2026-10-24/cdi.json          janela do CDI consultada no dia
 ├── silver/colecao/group_id=24269/colecao.parquet                contrato comum da turma
 ├── silver/produto/group_id=24269/produto.parquet
 ├── silver/preco_diario/group_id=24269/data=2026-10-24/preco.parquet
-└── gold/group_id=24269/                                         modelo dimensional do aluno</code></pre>
+├── silver/cambio_diario/group_id=24269/cambio.parquet
+├── silver/cdi_diario/group_id=24269/cdi.parquet
+├── gold/group_id=24269/                                         modelo dimensional do aluno
+└── gold_turma/carteira/group_id=24269/carteira.parquet          resultado do desafio, contrato comum</code></pre>
+        <p>A PTAX e o CDI são iguais para todos, mas cada aluno coleta a sua cópia, na partição da própria coleção. A coleta faz parte da avaliação de cada um, e duas pessoas gravando no mesmo prefixo voltariam ao problema da sobrescrita.</p>
         <p>O bruto segue a regra das aulas: nenhum objeto em <code>raw/</code> é sobrescrito ou apagado, e o coletor confere se a chave do dia já existe antes de gravar. Uma coleta repetida no mesmo dia não pode duplicar a série. Silver e gold são derivadas e precisam poder ser reconstruídas a partir do bruto com um único comando.</p>
         <p>A silver tem um contrato comum porque o dashboard de cada aluno lê a silver dos colegas. Se uma pessoa grava o preço como texto e outra como número, a consulta da turma quebra. As colunas mínimas de cada tabela estão abaixo; colunas extras são permitidas, nomes e tipos destas não.</p>
         <table>
@@ -105,6 +114,8 @@
             <tr><td><code>colecao</code></td><td>uma coleção</td><td><code>group_id</code> INTEGER, <code>nome</code> VARCHAR, <code>sigla</code> VARCHAR, <code>data_lancamento</code> DATE, <code>responsavel</code> VARCHAR</td></tr>
             <tr><td><code>produto</code></td><td>um produto da coleção</td><td><code>product_id</code> INTEGER, <code>group_id</code> INTEGER, <code>nome</code> VARCHAR, <code>tipo_produto</code> VARCHAR (<code>carta</code> ou <code>selado</code>), <code>raridade</code> VARCHAR, <code>numero</code> VARCHAR, <code>image_url</code> VARCHAR, <code>url</code> VARCHAR</td></tr>
             <tr><td><code>preco_diario</code></td><td>um produto, em um acabamento, em um dia</td><td><code>data</code> DATE, <code>product_id</code> INTEGER, <code>group_id</code> INTEGER, <code>acabamento</code> VARCHAR, <code>market_price</code> DOUBLE, <code>low_price</code> DOUBLE, <code>mid_price</code> DOUBLE, <code>high_price</code> DOUBLE, <code>moeda</code> VARCHAR, <code>fonte</code> VARCHAR, <code>chave_raw</code> VARCHAR</td></tr>
+            <tr><td><code>cambio_diario</code></td><td>um dia útil com PTAX</td><td><code>data</code> DATE, <code>cotacao_compra</code> DOUBLE, <code>cotacao_venda</code> DOUBLE, <code>data_hora_cotacao</code> TIMESTAMP, <code>boletim</code> VARCHAR (<code>Fechamento</code>), <code>chave_raw</code> VARCHAR</td></tr>
+            <tr><td><code>cdi_diario</code></td><td>um dia útil com taxa DI</td><td><code>data</code> DATE, <code>taxa_dia</code> DOUBLE (em % ao dia, como publicada), <code>chave_raw</code> VARCHAR</td></tr>
           </tbody>
         </table>
         <p>Preços chegam em dólar e podem vir nulos quando o produto não teve venda recente. Nulo não é zero: um <code>market_price</code> ausente fica nulo na silver e não entra em média nem em variação. Registros que falham no modelo Pydantic vão para <code>quarentena/</code>, com o motivo, e a contagem aparece no log da execução.</p>
@@ -121,20 +132,36 @@
             <tr><td><code>dim_colecao</code></td><td>nome, sigla, série (Scarlet &amp; Violet ou Mega Evolution), data de lançamento, responsável</td></tr>
             <tr><td><code>dim_data</code></td><td>data, dia da semana, semana, mês</td></tr>
             <tr><td><code>dim_acabamento</code></td><td><code>Normal</code>, <code>Holofoil</code>, <code>Reverse Holofoil</code> e outros que a fonte trouxer</td></tr>
+            <tr><td><code>fato_cambio_diario</code></td><td>um dia de calendário: a PTAX aplicada naquele dia, a data do boletim de origem e o CDI do dia (zero em dia sem taxa)</td></tr>
           </tbody>
         </table>
         <p>A gold de cada aluno é construída sobre a silver de todas as coleções, lida com um curinga como <code>s3://tcg/silver/preco_diario/*/*/*.parquet</code>. Os dias desde o lançamento são calculados na consulta, a partir da data do fato e da data de lançamento da coleção, e não ficam guardados em nenhuma dimensão. A escolha do modelo é registrada num ADR que cita as perguntas abaixo.</p>
       </section>
 
       <section class="content-block">
+        <h2>Conversão para reais</h2>
+        <p>O TCGplayer publica preço todos os dias, inclusive sábado, domingo e feriado. A PTAX só existe em dia útil. Em 12/10/2026, feriado nacional, não houve boletim, e o mesmo vale para 10/10 e 11/10, sábado e domingo. O preço desses três dias precisa de um câmbio, e a regra para escolhê-lo é a parte difícil da conversão.</p>
+        <p>A regra do projeto é a da última cotação conhecida: o preço do dia D usa o boletim de fechamento da PTAX do próprio dia D ou, se ele não existir, o do dia útil anterior mais próximo. Os preços de 10/10, 11/10 e 12/10 usam a PTAX de 09/10. Nunca se usa uma cotação posterior ao dia do preço, porque o colecionador não a conhecia naquele dia. No DuckDB, essa junção se escreve com <code>ASOF JOIN</code>, que liga cada linha à última linha da outra tabela com data menor ou igual.</p>
+        <pre><code>SELECT p.data, p.product_id, p.acabamento, p.market_price,
+       c.data AS data_ptax, c.cotacao_venda,
+       p.market_price * c.cotacao_venda AS market_price_brl
+FROM preco_diario p
+ASOF JOIN cambio_diario c ON p.data &gt;= c.data;</code></pre>
+        <p>O fato de preço guarda <code>market_price_brl</code>, a cotação aplicada e <code>data_ptax</code>, a data do boletim usado. Com isso, qualquer valor em reais no dashboard pode ser refeito à mão, e um teste de unidade com a semana de 09/10 a 13/10 verifica a regra nos dois casos que costumam falhar: o fim de semana e o feriado.</p>
+        <h3>Quanto veio da carta e quanto veio do dólar</h3>
+        <p>Para quem compra em dólar e mede o patrimônio em reais, a variação em reais junta dois movimentos. Se uma carta passa de US$ 100 para US$ 110 (alta de 10%) enquanto a PTAX passa de R$ 5,00 para R$ 5,25 (alta de 5%), o preço em reais vai de R$ 500,00 para R$ 577,50, uma alta de 15,5%. A conta se decompõe em <code>(1 + r_brl) = (1 + r_usd) &times; (1 + r_cambio)</code>: 10% da carta, 5% do câmbio e 0,5% do efeito cruzado. Os números do exemplo são ilustrativos; no projeto, a decomposição é calculada com os preços e as cotações coletados.</p>
+        <p>Essa separação muda a leitura do dashboard. Uma carta que subiu 3% em reais pode ter caído em dólar num período de alta do câmbio, e o colecionador que olhar só o número em reais vai atribuir à carta um ganho que veio da moeda.</p>
+      </section>
+
+      <section class="content-block">
         <h2>As cinco perguntas iniciais</h2>
-        <p>O dashboard precisa responder a estas cinco perguntas. Cada painel mostra a imagem das cartas que cita e permite abrir a página do produto no TCGplayer. As perguntas 1, 2 e 4 partem da coleção do aluno e as perguntas 3 e 5 exigem os dados da turma.</p>
+        <p>O dashboard precisa responder a estas cinco perguntas, com os valores em reais e uma chave para ver em dólar. Cada painel mostra a imagem das cartas que cita e permite abrir a página do produto no TCGplayer. As perguntas 1, 2 e 4 partem da coleção do aluno e as perguntas 3 e 5 exigem os dados da turma. Os filtros de preço mínimo continuam em dólar, para que a lista de cartas não mude quando o câmbio muda.</p>
         <table>
           <thead><tr><th>Pergunta</th><th>Métrica e grão</th><th>Visualização sugerida</th></tr></thead>
           <tbody>
-            <tr><td>1. Quais cartas da minha coleção mais valorizaram e quais mais desvalorizaram desde o início da coleta?</td><td>Variação percentual do <code>market_price</code> entre o primeiro e o último dia, por carta e acabamento, considerando só cartas acima de US$ 1 no primeiro dia</td><td>Dois rankings de dez cartas, com imagem, preço inicial, preço atual e variação</td></tr>
+            <tr><td>1. Quais cartas da minha coleção mais valorizaram e quais mais desvalorizaram desde o início da coleta?</td><td>Variação percentual em reais entre o primeiro e o último dia, por carta e acabamento, decomposta em efeito da carta, efeito do câmbio e efeito cruzado, considerando só cartas acima de US$ 1 no primeiro dia</td><td>Dois rankings de dez cartas, com imagem, preço inicial e atual em reais e a variação dividida nas três partes</td></tr>
             <tr><td>2. Na minha coleção, o produto selado guardou valor melhor que as cartas avulsas?</td><td>Índice base 100 no primeiro dia: média dos selados contra a soma do preço das cartas de raridade Double Rare em diante</td><td>Gráfico de linhas com os dois índices no tempo</td></tr>
-            <tr><td>3. Qual coleção da turma valorizou mais no período?</td><td>Valor da coleção no dia (soma do <code>market_price</code> de um exemplar de cada carta) em índice base 100, por coleção</td><td>Gráfico de linhas com uma linha por coleção, destacando a do aluno</td></tr>
+            <tr><td>3. Qual coleção da turma valorizou mais no período?</td><td>Valor da coleção no dia em reais (soma do <code>market_price_brl</code> de um exemplar de cada carta) em índice base 100, por coleção, com a PTAX no mesmo gráfico em índice base 100</td><td>Gráfico de linhas com uma linha por coleção, destacando a do aluno</td></tr>
             <tr><td>4. Onde está concentrado o valor de cada coleção?</td><td>Participação de cada raridade no valor total da coleção no último dia e número de cartas que somam 80% do valor</td><td>Barras empilhadas a 100% por coleção, com a contagem ao lado</td></tr>
             <tr><td>5. Quais cartas da turma deram mais retorno para o risco assumido?</td><td>Retorno no período contra volatilidade (desvio-padrão dos retornos diários), para cartas acima de US$ 5</td><td>Dispersão risco &times; retorno, cor por coleção, imagem ao passar o cursor</td></tr>
           </tbody>
@@ -142,14 +169,43 @@
         <p>Os filtros de preço mínimo existem por um motivo de cálculo: uma carta comum que passa de US$ 0,10 para US$ 0,30 aparece com 200% de valorização e domina qualquer ranking, sem que isso tenha valor para quem investe. Cards de código digital (raridade <code>Code Card</code>) ficam fora das perguntas 1, 3 e 4, porque não são colecionáveis.</p>
         <div class="note">
           <strong>Ir além</strong>
-          <p>Depois das cinco perguntas, o aluno pode estender o projeto: preço em reais com a PTAX coletada na Aula 03; valor esperado de abrir um booster box contra o preço da caixa fechada; curva de preço pelos dias desde o lançamento, comparando coleções de idades diferentes; diferença entre <code>low_price</code> e <code>market_price</code> como sinal de liquidez; preço da carta graduada no PriceCharting contra a carta solta; histórico anterior à coleta pelo arquivo do TCGCSV; alertas de variação diária acima de um limite.</p>
+          <p>Depois das cinco perguntas e do desafio, o aluno pode estender o projeto: valor esperado de abrir um booster box contra o preço da caixa fechada; curva de preço pelos dias desde o lançamento, comparando coleções de idades diferentes; diferença entre <code>low_price</code> e <code>market_price</code> como sinal de liquidez; preço da carta graduada no PriceCharting contra a carta solta; histórico anterior à coleta pelo arquivo do TCGCSV; alertas de variação diária acima de um limite.</p>
         </div>
+      </section>
+
+      <section class="content-block">
+        <h2>Desafio: a carteira do colecionador</h2>
+        <p>As cinco perguntas descrevem o que aconteceu com os preços. O desafio pergunta o que teria acontecido com o dinheiro de quem comprou. Com R$ 1.000,00 no primeiro dia de coleta, o colecionador teria terminado o período com mais dinheiro em cartas avulsas, em produto selado, em dólar parado ou no CDI?</p>
+        <p>A resposta exige regras que as perguntas anteriores não pedem. Quem compra carta no TCGplayer compra dólar pela cotação de venda e, ao vender a carta, recebe dólar que volta a reais pela cotação de compra. Ninguém compra 0,37 booster box: as unidades são inteiras, e a sobra fica em caixa. E vender tem custo, porque o marketplace fica com uma parte do preço.</p>
+        <table>
+          <thead><tr><th>Carteira</th><th>Regra de montagem no primeiro dia</th></tr></thead>
+          <tbody>
+            <tr><td><code>selado</code></td><td>Unidades inteiras do booster box da coleção; se ele não tiver preço no primeiro dia, o selado de maior preço com preço, escolha registrada em ADR</td></tr>
+            <tr><td><code>cesta_raras</code></td><td>R$ 100,00 em cada uma das dez cartas de maior <code>market_price</code> no primeiro dia, em unidades inteiras</td></tr>
+            <tr><td><code>propria</code></td><td>Regra definida pelo aluno, registrada num ADR com commit anterior ao primeiro cálculo da carteira</td></tr>
+            <tr><td><code>dolar</code></td><td>R$ 1.000,00 convertidos pela PTAX de venda do primeiro dia e guardados em dólar</td></tr>
+            <tr><td><code>cdi</code></td><td>R$ 1.000,00 corrigidos pelo CDI de cada dia útil, com juros compostos</td></tr>
+          </tbody>
+        </table>
+        <p>A carteira é avaliada todo dia pelo valor de liquidação: o que o colecionador receberia em reais se vendesse tudo naquele dia. Para as carteiras de cartas e de selados, o valor é a soma de unidades &times; <code>market_price</code> &times; (1 &minus; taxa de venda) &times; PTAX de compra, mais a sobra em caixa, que rende CDI. A taxa de venda é um parâmetro do pipeline, com 15% como hipótese declarada no ADR; o dashboard mostra o resultado com a taxa e sem ela, e a diferença entre os dois entra no ATAM como ponto de sensibilidade.</p>
+        <p>Três armadilhas costumam aparecer. A primeira é usar informação do futuro: a escolha das dez cartas usa só os preços do primeiro dia, e um teste verifica que acrescentar dias posteriores à silver não muda a composição. A segunda é o preço ausente: na avaliação da carteira, um produto sem preço no dia usa o último preço observado, e o painel marca esses dias, sem gravar nada inventado na silver. A terceira é o calendário do CDI: ele só rende em dia útil, então sábado, domingo e feriado não acrescentam juros.</p>
+        <table>
+          <thead><tr><th>Métrica</th><th>Definição</th></tr></thead>
+          <tbody>
+            <tr><td>Retorno acumulado</td><td>valor de liquidação no último dia dividido por R$ 1.000,00, menos 1</td></tr>
+            <tr><td>Excesso sobre o CDI</td><td>retorno acumulado da carteira menos o retorno acumulado da carteira <code>cdi</code></td></tr>
+            <tr><td>Perda máxima</td><td>a maior queda, em %, entre um pico do valor da carteira e o ponto mais baixo depois dele</td></tr>
+            <tr><td>Dias com preço carregado</td><td>número de dias em que algum item da carteira usou o último preço observado</td></tr>
+          </tbody>
+        </table>
+        <p>O resultado de cada aluno vai para <code>tcg/gold_turma/carteira/</code>, num segundo contrato comum: <code>data</code> DATE, <code>group_id</code> INTEGER, <code>carteira</code> VARCHAR (os cinco nomes da tabela acima), <code>valor_brl</code> DOUBLE, <code>retorno_acumulado</code> DOUBLE, <code>taxa_venda</code> DOUBLE. Com ele, o dashboard ganha um placar da turma: em quantas coleções o selado ganhou do CDI, em quantas a cesta de raras ganhou do dólar parado, e qual coleção teve a carteira com menor perda máxima.</p>
       </section>
 
       <section class="content-block">
         <h2>Limites do dado</h2>
         <p>O <code>market_price</code> do TCGplayer é calculado a partir de vendas recentes nos Estados Unidos, em dólar, e não separa a condição da carta: o TCGCSV não publica preço por SKU, que é a combinação de produto, idioma, acabamento e condição. Também não inclui frete, taxas do marketplace nem o preço praticado no Brasil. Uma valorização no dashboard indica que o preço de venda subiu no marketplace, e não quanto um colecionador ganharia ao vender a carta.</p>
-        <p>A série vai de outubro a dezembro de 2026, cerca de sete semanas. Esse intervalo sustenta descrever o que aconteceu no período e comparar coleções na mesma janela; não sustenta previsão de preço nem recomendação de compra. O dashboard mostra evidência, e quem decide é o colecionador.</p>
+        <p>A PTAX é uma taxa de referência calculada pelo Banco Central a partir das operações do mercado interbancário. Quem paga com cartão internacional paga outra cotação, com spread do banco e IOF, então o valor em reais do dashboard é uma aproximação do custo real, e o desafio compara as carteiras sob a mesma aproximação. O CDI entra como referência de renda fixa, sem imposto de renda e sem taxas de corretora.</p>
+        <p>A série vai de outubro a dezembro de 2026, cerca de sete semanas. Esse intervalo sustenta descrever o que aconteceu no período e comparar coleções na mesma janela; não sustenta previsão de preço nem recomendação de compra, e uma carteira que ganhou do CDI em sete semanas não diz nada sobre o semestre seguinte. O dashboard mostra evidência, e quem decide é o colecionador.</p>
       </section>
 
       <section class="content-block">
@@ -158,10 +214,11 @@
           <thead><tr><th>Entregável</th><th>Onde fica</th></tr></thead>
           <tbody>
             <tr><td>Coletor diário publicado e rodando por agendamento, com repetição e idempotência</td><td>Repositório do aluno e Railway ou GitHub Actions</td></tr>
-            <tr><td>Série bruta da coleção desde o primeiro dia de coleta</td><td><code>tcg/raw/tcgplayer/group_id=.../</code></td></tr>
+            <tr><td>Série bruta da coleção, da PTAX e do CDI desde o primeiro dia de coleta</td><td><code>tcg/raw/tcgplayer/</code>, <code>tcg/raw/bcb_ptax/</code> e <code>tcg/raw/bcb_cdi/</code>, na partição da coleção</td></tr>
             <tr><td>Silver no contrato comum e gold dimensional, reconstruíveis a partir do bruto</td><td><code>tcg/silver/</code> e <code>tcg/gold/</code></td></tr>
             <tr><td>Modelos Pydantic, testes de unidade e de integração</td><td><code>tests/</code></td></tr>
-            <tr><td>Dashboard em Streamlit ou outra biblioteca Python, respondendo às cinco perguntas</td><td>Repositório do aluno, com o comando para rodar no README</td></tr>
+            <tr><td>Dashboard em Streamlit ou outra biblioteca Python, com as cinco perguntas em reais e o desafio da carteira</td><td>Repositório do aluno, com o comando para rodar no README</td></tr>
+            <tr><td>Resultado diário das cinco carteiras no contrato comum</td><td><code>tcg/gold_turma/carteira/group_id=.../</code></td></tr>
             <tr><td>Artefatos SDD, ADRs, ATAM, rastreabilidade e histórico de prompts</td><td><code>docs/</code> e <code>specs/</code></td></tr>
           </tbody>
         </table>
