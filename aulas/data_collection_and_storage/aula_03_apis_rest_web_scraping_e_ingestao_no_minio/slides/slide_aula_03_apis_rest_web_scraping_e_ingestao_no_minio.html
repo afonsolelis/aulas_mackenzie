@@ -6,6 +6,111 @@
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <title>Aula 03 — APIs REST, Web Scraping e Ingestão no MinIO</title>
   <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style>
+    /* Animações da teoria (blocos 1, 3 e 5): mesmo padrão do slide-fluxo da Aula 02. */
+    .an-shell { gap: 12px; padding-top: 30px; padding-bottom: 26px; }
+    .an-shell .deck-title { margin-bottom: 8px; }
+    .an-shell .deck-summary { margin: 0; max-width: 92ch; font-size: 0.82em; }
+    .an-stage { position: relative; height: clamp(170px, 27vh, 330px); border: 1px solid var(--deck-line); background: var(--deck-bg); flex-shrink: 0; }
+    .an-stage.is-baixo { height: clamp(140px, 20vh, 220px); }
+    .an-stage canvas { display: block; width: 100%; height: 100%; }
+    .an-bottom { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; }
+    .an-label { display: block; margin-bottom: 4px; font-size: 0.62em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--deck-muted); }
+    .an-shell pre.an-pre { margin: 0; padding: 20px 14px 10px !important; min-height: 9.6em; font-size: clamp(0.5em, 0.85vw, 0.66em) !important; line-height: 1.5 !important; white-space: pre; overflow-x: auto; border-radius: 2px !important; }
+    .an-pre .c { color: var(--deck-code-dim); }
+    .an-dl { display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; margin: 0 0 6px; font-size: 0.66em; }
+    .an-dl.is-duplo { grid-template-columns: auto 1fr auto 1fr; }
+    .an-dl dt { color: var(--deck-muted); }
+    .an-dl dd { margin: 0; font-family: var(--font-mono); font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .an-tab { width: 100%; border-collapse: collapse; font-size: 0.66em; font-variant-numeric: tabular-nums; }
+    .an-tab th, .an-tab td { padding: 3px 8px; border-bottom: 1px solid var(--deck-line-soft); text-align: right; }
+    .an-tab th:first-child, .an-tab td:first-child { text-align: left; }
+    .an-tab th { color: var(--deck-muted); font-weight: 700; }
+    .an-tab td { font-family: var(--font-mono); font-weight: 700; }
+    .an-tab td:first-child { font-family: var(--font-sans); font-weight: 400; color: var(--deck-muted); }
+    .an-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin: 6px 0; }
+    .an-controls button { font: inherit; font-size: 0.62em; font-weight: 700; padding: 5px 12px; border: 1px solid var(--deck-text); border-radius: 2px; background: var(--deck-panel); color: var(--deck-text); cursor: pointer; }
+    .an-controls button:hover, .an-controls button[aria-pressed="true"] { background: var(--deck-text); color: var(--deck-panel); }
+    .an-controls button:disabled { opacity: 0.35; cursor: default; }
+    .an-controls button:disabled:hover { background: var(--deck-panel); color: var(--deck-text); }
+    .an-speed { font-family: var(--font-mono); font-size: 0.6em; color: var(--deck-muted); }
+    .an-note { margin: 0; font-size: 0.62em; }
+    .an-carga { position: relative; height: 12px; margin: 4px 0 2px; border: 1px solid var(--deck-text); background: var(--deck-panel); }
+    .an-carga span { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--deck-text); }
+    .an-carga i { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--deck-muted); }
+    .an-legenda { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 0; font-size: 0.6em; color: var(--deck-muted); }
+    .an-legenda b { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; border: 1px solid var(--deck-text); font-weight: 400; }
+    @media (max-width: 900px) {
+      .an-bottom { grid-template-columns: 1fr; }
+    }
+  </style>
+  <style>
+
+    .agenda-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 12px; }
+    .agenda-3 .deck-card { padding: 16px 18px; font-size: 0.86em; }
+    .agenda-3 .deck-card ul { margin: 8px 0 0; padding-left: 18px; }
+    .entrega-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    @media (max-width: 900px) { .agenda-3, .entrega-4 { grid-template-columns: 1fr !important; } }
+    /* Construção em etapas: trilha, painel lateral e prompt rolável */
+    .etapa-shell { gap: 14px; padding-top: 30px; padding-bottom: 26px; }
+    .etapa-shell .deck-summary { max-width: 96ch; margin: 4px 0 0; }
+    .etapa-trilha { display: grid; grid-template-columns: repeat(19, minmax(0, 1fr)); gap: 3px; margin: 0 0 10px; padding: 0; list-style: none; font-family: var(--font-mono); font-size: 0.56em; font-weight: 700; letter-spacing: 0.04em; }
+    .etapa-trilha li { padding: 3px 0; text-align: center; border: 1px solid var(--deck-line); color: #a3a3a0; background: var(--deck-panel); }
+    .etapa-trilha li.is-done { color: var(--deck-muted); background: var(--deck-surface); }
+    .etapa-trilha li.is-current { color: var(--deck-panel); background: var(--deck-text); border-color: var(--deck-text); }
+    .etapa-grid { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.45fr); gap: 18px; align-items: start; }
+    .etapa-lado { display: flex; flex-direction: column; gap: 10px; font-size: 0.8em; line-height: 1.45; }
+    .etapa-item { padding: 12px 14px; border: 1px solid var(--deck-line); border-radius: 2px; background: var(--deck-panel); }
+    .etapa-item p { margin: 0; }
+    .etapa-item ul, .etapa-item ol { margin: 0; padding-left: 18px; }
+    .etapa-item li { margin-bottom: 4px; }
+    .etapa-gate { border-left: 3px solid var(--deck-text); background: var(--deck-surface); }
+    .etapa-rotulo { display: block; margin-bottom: 6px; font-size: 0.78em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--deck-muted); }
+    .etapa-prompt { position: relative; min-width: 0; }
+    .etapa-prompt .etapa-rotulo { font-size: 0.62em; }
+    .etapa-copiar { position: absolute; top: 30px; right: 10px; z-index: 2; padding: 6px 10px !important; font-size: 0.55em !important; }
+    .etapa-copiar.is-ok { background: var(--deck-panel); color: var(--deck-text); }
+    .etapa-shell pre.etapa-pre { margin: 0; max-height: clamp(200px, calc(100vh - 420px), 560px); overflow: auto; padding: 26px 16px 14px !important; font-size: clamp(0.5em, 0.82vw, 0.66em) !important; line-height: 1.5 !important; }
+    .etapa-shell pre.etapa-pre-codigo { white-space: pre; font-size: clamp(0.5em, 0.86vw, 0.7em) !important; }
+    .etapa-pre .k { color: #ffffff; font-weight: 700; }
+    .etapa-rodadas { list-style: none; padding: 0 !important; }
+    .etapa-rodadas strong { display: inline-block; min-width: 2.4ch; font-family: var(--font-mono); }
+    .fase-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+    .fase { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 14px 14px 12px; border: 1px solid var(--deck-line); border-top: 3px solid var(--deck-text); background: var(--deck-panel); font-size: 0.74em; }
+    .fase h3 { margin: 0; font-size: 1.05em; }
+    .fase p { margin: 0; color: var(--deck-muted); line-height: 1.4; flex: 1; }
+    .fase-num { font-family: var(--font-mono); font-weight: 700; font-size: 0.85em; letter-spacing: 0.06em; color: var(--deck-muted); }
+    .fase-hora { font-family: var(--font-mono); font-size: 0.85em; font-weight: 700; }
+    .fase.is-semana { border-top-style: dashed; background: var(--deck-surface); }
+    .fio-flow .method-step { min-height: 0; padding: 12px 12px; font-size: 0.82em; }
+    .fio-flow .method-step::before { margin-bottom: 6px; content: counter(method-step, decimal-leading-zero); }
+    .fio-flow code { overflow-wrap: anywhere; }
+    .fio-defs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .fio-defs .deck-panel { padding: 12px 16px; font-size: 0.82em; }
+    .fio-defs .deck-panel p { margin: 4px 0 0; }
+    .etapa-svg { display: block; width: 100%; flex: 1 1 0; min-height: 180px; }
+    .etapa-diagrama { gap: 10px; padding-top: 28px; padding-bottom: 18px; }
+    .etapa-diagrama .deck-summary { max-width: none; margin: 4px 0 0; }
+    .eixos-tabela td:first-child { font-weight: 600; white-space: nowrap; }
+    @media (max-height: 760px) {
+      .etapa-shell, .etapa-intro, .etapa-diagrama { gap: 10px; padding-top: 22px; padding-bottom: 16px; }
+      .etapa-shell .deck-title, .etapa-intro .deck-title, .etapa-diagrama .deck-title { font-size: 1.75em; }
+      .etapa-shell .deck-summary, .etapa-intro .deck-summary { font-size: 0.86em; }
+      .etapa-trilha { margin-bottom: 4px; }
+      .etapa-lado { font-size: 0.74em; gap: 8px; }
+      .etapa-item { padding: 9px 12px; }
+      .etapa-shell pre.etapa-pre { max-height: clamp(200px, calc(100vh - 392px), 560px); }
+      .fase { padding: 10px 12px 10px; }
+      .etapa-shell pre.etapa-pre-codigo { font-size: 0.56em !important; }
+      .fio-flow .method-step { padding: 8px 10px; }
+      .eixos-tabela td, .eixos-tabela th { padding: 5px 8px !important; }
+    }
+    @media (max-width: 900px) {
+      .etapa-grid { grid-template-columns: 1fr; }
+      .fase-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .etapa-trilha { font-size: 0.45em; }
+    }
+  </style>
 </head>
 <body>
   <div class="slide-container">
@@ -19,37 +124,46 @@
           <h1 class="deck-title">APIs REST, Web Scraping e Ingestão no MinIO</h1>
           <p class="deck-meta">Aula 03 &nbsp;&bull;&nbsp; 24/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Duas horas sobre o que falha numa coleta por API e por scraping, com números medidos na PTAX e no books.toscrape.com; depois, um monitor de preços de livros construído em SDD e gravando HTML e JSON brutos no MinIO, e um quiz sobre a manhã.</p>
+          <p class="deck-subtitle">O que falha numa coleta por API e por scraping, com números medidos na PTAX e no books.toscrape.com; depois, um monitor de preços de livros construído em 19 etapas, da persona ao código, e um quiz.</p>
         </div>
       </div>
     </div>
 
     <!-- 2 · AGENDA -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">Teoria até 10h30, prática e quiz até 12h10</h2>
-          <p class="deck-summary">Cinco blocos, cada um com exemplo numérico, pausa e pontos-chave. Depois, demonstração ao vivo e reprodução no Codespace.</p>
+          <h2 class="deck-title">Teoria até 10h00, construção até 11h30</h2>
+          <p class="deck-summary">Cinco blocos com exemplo numérico, animação, pausa e pontos-chave. Depois, o monitor nasce em 19 etapas, uma por slide, com o prompt de cada uma.</p>
         </div>
-        <div class="deck-grid">
+        <div class="deck-grid agenda-3">
           <article class="deck-card">
-            <h3>8h30 &ndash; 10h30 &middot; Teoria</h3>
+            <h3>8h30 &ndash; 10h00 &middot; Teoria</h3>
             <ul>
-              <li>Bloco 1: APIs REST e falhas de rede</li>
+              <li>Bloco 1: APIs REST, retry e jitter</li>
               <li>Bloco 2: PTAX, contrato e realidade</li>
               <li>Bloco 3: scraping e coleta educada</li>
               <li>Bloco 4: HTML bruto e escolha da fonte</li>
-              <li>Bloco 5: arquitetura do monitor e chaves no MinIO</li>
+              <li>Bloco 5: arquitetura e chaves no MinIO</li>
             </ul>
           </article>
           <article class="deck-card">
-            <h3>10h30 &ndash; 12h10 &middot; Prática e quiz</h3>
+            <h3>10h00 &ndash; 11h30 &middot; Construção em etapas</h3>
             <ul>
-              <li>10h30: MinIO local e prompts 1 a 5 em SDD</li>
+              <li>10h00: Etapas 00 a 03, contexto</li>
+              <li>10h20: Etapas 04 e 05, requisitos</li>
+              <li>10h30: Etapas 06 a 09, modelagem e ADRs</li>
+              <li>10h50: Etapas 10 e 11, tarefas e testes</li>
+              <li>11h00: Etapas 12 a 15, código</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>11h30 &ndash; 12h10 &middot; Quiz e fechamento</h3>
+            <ul>
               <li>11h30: quiz de dez perguntas</li>
               <li>12h00: o que existe e o que fica para a semana</li>
-              <li>Na semana: prompt 6, Railway, ATAM e ADR-001</li>
+              <li>Na semana: Etapas 16 a 18, execução, ATAM e Railway</li>
             </ul>
           </article>
         </div>
@@ -186,6 +300,39 @@ espera = aleatorio(0, min(teto, base * 2 ** tentativa))
       </div>
     </div>
 
+    <!-- 9b · ANIMAÇÃO · UMA REQUISIÇÃO, QUATRO TENTATIVAS -->
+    <div class="slide" id="slide-tentativas">
+      <div class="deck-shell is-dense an-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Animação</span>
+          <h2 class="deck-title">Uma requisição, quatro tentativas</h2>
+          <p class="deck-summary">O coletor pede a página de detalhe do <em>Sharp Objects</em>. Cada falha transitória gera uma espera e uma linha no manifesto. No <code>429</code>, a espera pedida pelo servidor em <code>Retry-After</code> substitui o sorteio.</p>
+        </div>
+        <div class="an-stage is-baixo"><canvas id="ten-canvas" role="img" aria-label="Linha do tempo de uma requisição: read timeout em 20 segundos, espera sorteada, 503, espera sorteada, 429 com Retry-After de 2 segundos e, na quarta tentativa, 200"></canvas></div>
+        <div class="an-bottom">
+          <div>
+            <span class="an-label">Manifesto da execução, uma linha por tentativa</span>
+            <pre class="an-pre" id="ten-manifesto"></pre>
+          </div>
+          <div>
+            <span class="an-label">Estado do coletor</span>
+            <dl class="an-dl">
+              <dt>Relógio da requisição</dt><dd id="ten-relogio">0,0 s</dd>
+              <dt>Tentativa</dt><dd id="ten-tentativa">1 de 4</dd>
+              <dt>Situação</dt><dd id="ten-situacao">aguardando resposta</dd>
+              <dt>Regra aplicada</dt><dd id="ten-regra">timeout (5, 20)</dd>
+            </dl>
+            <div class="an-controls">
+              <button type="button" id="ten-play">Pausar</button>
+              <button type="button" id="ten-proximo">Próximo evento</button>
+              <button type="button" id="ten-reset">Reiniciar</button>
+            </div>
+            <p class="deck-note an-note">Relógio acelerado quatro vezes durante o timeout. As respostas rápidas levam 0,15 s, a mediana medida em 16/10/2026; a sequência de falhas é ilustrativa. Esperas sorteadas entre 0 e 1 s depois da tentativa 1 e entre 0 e 2 s depois da tentativa 2.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 10 · EXEMPLO NUMÉRICO 1 -->
     <div class="slide">
       <div class="deck-shell is-dense">
@@ -204,6 +351,45 @@ espera = aleatorio(0, min(teto, base * 2 ** tentativa))
         <div class="deck-callout">
           <strong>O que a conta mostra</strong>
           <p style="margin:8px 0 0;">Sem jitter, o backoff só adia o pico que derrubou o servidor: os cem voltam juntos. Sorteando a espera, o pico cai para menos de um quarto e a espera média fica na metade do teto. O jitter não substitui o limite de tentativas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10b · ANIMAÇÃO · JITTER -->
+    <div class="slide" id="slide-jitter">
+      <div class="deck-shell is-dense an-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Animação</span>
+          <h2 class="deck-title">Cem coletores depois de um 503</h2>
+          <p class="deck-summary">Os cem clientes do exemplo 1 recebem <code>503</code> juntos e repetem quatro vezes. Cada ponto é um cliente à espera da próxima tentativa; as barras contam chegadas ao servidor por 100 ms.</p>
+        </div>
+        <div class="an-stage"><canvas id="jit-canvas" role="img" aria-label="Duas faixas de 0 a 16 segundos. Sem jitter, os cem clientes chegam juntos em 1, 3, 7 e 15 segundos. Com full jitter, as chegadas se espalham e o pico por 100 milissegundos cai"></canvas></div>
+        <div class="an-bottom">
+          <div>
+            <span class="an-label">Contadores até o instante atual</span>
+            <table class="an-tab">
+              <thead><tr><th>Medida</th><th>Sem jitter</th><th>Full jitter</th></tr></thead>
+              <tbody>
+                <tr><td>Chegadas ao servidor</td><td id="jit-n-sem">0</td><td id="jit-n-com">0</td></tr>
+                <tr><td>Pico em 100 ms</td><td id="jit-pico-sem">0</td><td id="jit-pico-com">0</td></tr>
+                <tr><td>Chegadas acima da capacidade</td><td id="jit-exc-sem">0</td><td id="jit-exc-com">0</td></tr>
+                <tr><td>Espera total média por cliente</td><td id="jit-media-sem">15,0 s</td><td id="jit-media-com">0,0 s</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <span class="an-label">Relógio e controles</span>
+            <dl class="an-dl">
+              <dt>Tempo desde o 503</dt><dd id="jit-relogio">0,0 s</dd>
+            </dl>
+            <div class="an-controls">
+              <button type="button" id="jit-play">Pausar</button>
+              <button type="button" id="jit-sortear">Sortear de novo</button>
+              <button type="button" id="jit-rapido" aria-pressed="false">Mais rápido</button>
+              <span class="an-speed" id="jit-speed">1 s simulado = 1,5 s</span>
+            </div>
+            <p class="deck-note an-note">Capacidade de 10 por 100 ms: hipótese, só como referência visual. A tabela anterior vem de simulação em Python com semente fixa; a animação sorteia a cada reinício e fica perto dela.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -314,7 +500,7 @@ dataFinalCotacao=@dataFinalCotacao)?@moeda='GBP'&amp;@dataInicial='10-17-2026'\
         <ol class="deck-steps">
           <li>Quantos dias a janela precisa cobrir para achar um fechamento?</li>
           <li>Que campo do <code>cotacoes.jsonl</code> mostra à Aula 04 que a cotação é de sexta, 30/10?</li>
-          <li>Que critério de aceite do <code>spec.md</code> separa lista vazia em feriado de lista vazia por data em ISO?</li>
+          <li>Que critério de aceite dos requisitos funcionais separa lista vazia em feriado de lista vazia por data em ISO?</li>
         </ol>
       </div>
     </div>
@@ -434,6 +620,45 @@ BeautifulSoup(r.content, "html.parser")   # lê o meta charset UTF-8</code></pre
         <div class="deck-callout">
           <strong>O que a conta mostra</strong>
           <p style="margin:8px 0 0;">82% do tempo é pausa. A tentativa sem retry parou num <code>ReadTimeout</code>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 22b · ANIMAÇÃO · COLETA EDUCADA -->
+    <div class="slide" id="slide-coleta">
+      <div class="deck-shell is-dense an-shell">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Animação</span>
+          <h2 class="deck-title">A coleta educada em tempo acelerado</h2>
+          <p class="deck-summary">Mesmas 1.081 páginas, duas políticas: sequencial com 1 s de pausa, ou 10 conexões ao mesmo domínio sem pausa. Cada quadrado escurece quando a página termina de baixar.</p>
+        </div>
+        <div class="an-stage"><canvas id="col-canvas" role="img" aria-label="Árvore da coleta: página inicial, 50 categorias, 80 páginas de categoria e 1.000 páginas de detalhe acendendo conforme a coleta avança"></canvas></div>
+        <div class="an-bottom">
+          <div>
+            <span class="an-label">Carga na fonte (requisições por segundo, últimos 10 s simulados)</span>
+            <div class="an-carga" aria-hidden="true"><span id="col-barra"></span></div>
+            <dl class="an-dl is-duplo">
+              <dt>Requisições</dt><dd id="col-req">0 / 1.081</dd>
+              <dt>Requisições/s</dt><dd id="col-rps">0,0</dd>
+              <dt>Tempo simulado</dt><dd id="col-tempo">0 min 00 s</dd>
+              <dt>Simultâneas</dt><dd id="col-sim">0</dd>
+              <dt>Desse tempo, em pausa</dt><dd id="col-pausa">0 min 00 s</dd>
+              <dt>Duração total</dt><dd id="col-total">&ndash;</dd>
+            </dl>
+          </div>
+          <div>
+            <span class="an-label">Política e controles</span>
+            <div class="an-controls">
+              <button type="button" id="col-seq" aria-pressed="true">Sequencial, 1 s</button>
+              <button type="button" id="col-par" aria-pressed="false">10 threads, sem pausa</button>
+            </div>
+            <div class="an-controls">
+              <button type="button" id="col-play">Pausar</button>
+              <button type="button" id="col-reset">Reiniciar</button>
+              <span class="an-speed">1 s na tela = 52 s simulados</span>
+            </div>
+            <p class="deck-note an-note">Latência sorteada com mediana de 0,15 s e p95 de 0,33 s, como em 16/10/2026 (coleta real de 21 min 57 s). Hipóteses: latência estável sob carga e ordem ilustrativa. As 10 threads terminam em segundos e põem dezenas de requisições por segundo na fonte, fora da cadência combinada.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -638,6 +863,50 @@ bronze/ptax/moeda=GBP/data=2026-10-24/cotacoes.jsonl</code></pre>
       </div>
     </div>
 
+    <!-- 33b · ANIMAÇÃO · 502 E CHAVES -->
+    <div class="slide" id="slide-chave502">
+      <div class="deck-shell is-dense an-shell">
+        <div>
+          <span class="deck-kicker">Bloco 5 &middot; Animação</span>
+          <h2 class="deck-title">Retry no 502: chave fixa contra chave com horário</h2>
+          <p class="deck-summary">O proxy grava o objeto e às vezes devolve <code>502</code>; o coletor repete. Com chave determinística, a repetição cai sobre o mesmo objeto; com horário na chave, cada repetição e cada execução criam objetos novos.</p>
+        </div>
+        <div class="an-stage"><canvas id="ch5-canvas" role="img" aria-label="Dois buckets lado a lado. O da chave determinística fica com 1.083 objetos nas duas execuções; o da chave com horário chega a 2.188 objetos"></canvas></div>
+        <div class="an-bottom">
+          <div>
+            <span class="an-label">Contadores</span>
+            <table class="an-tab">
+              <thead><tr><th>Medida</th><th>Chave determinística</th><th>Chave com horário</th></tr></thead>
+              <tbody>
+                <tr><td>Objetos no bucket</td><td id="ch5-obj-det">0</td><td id="ch5-obj-ts">0</td></tr>
+                <tr><td>Regravações na mesma chave</td><td id="ch5-reg-det">0</td><td>&ndash;</td></tr>
+                <tr><td>Objetos a mais que o necessário</td><td>0</td><td id="ch5-extra-ts">0</td></tr>
+              </tbody>
+            </table>
+            <div class="an-legenda">
+              <span><b style="background:#9a9a96"></b>gravado na execução 1</span>
+              <span><b style="background:#d9d9d4"></b>execução 2</span>
+              <span><b style="background:#0f0f0f"></b>repetição depois do 502</span>
+            </div>
+          </div>
+          <div>
+            <span class="an-label">Execução e controles</span>
+            <dl class="an-dl">
+              <dt>Execução</dt><dd id="ch5-exec">1 de 2</dd>
+              <dt>PUT enviados</dt><dd id="ch5-put">0</dd>
+              <dt>PUT com 502</dt><dd id="ch5-502">0</dd>
+            </dl>
+            <div class="an-controls">
+              <button type="button" id="ch5-play">Pausar</button>
+              <button type="button" id="ch5-rapido" aria-pressed="false">Acelerar</button>
+              <button type="button" id="ch5-reset">Reiniciar</button>
+            </div>
+            <p class="deck-note an-note">Hipóteses do exemplo 5: 1.083 objetos por execução, 1% dos PUT com 502 depois de gravar (11 por execução) e uma segunda execução no mesmo dia. Posições dos 502 sorteadas a cada reinício.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 34 · PAUSA BLOCO 5 -->
     <div class="slide">
       <div class="deck-shell">
@@ -667,157 +936,1278 @@ bronze/ptax/moeda=GBP/data=2026-10-24/cotacoes.jsonl</code></pre>
           <li>Metadados ASCII guardam origem, horário, status e hash; conferidos com <code>head_object</code>.</li>
           <li>A contagem do bronze contra o total declarado é o teste que denuncia cópia ou perda.</li>
         </ol>
-        <p class="deck-note">Daqui em diante, cada decisão vira requisito, tarefa, teste e cenário ATAM no projeto do grupo.</p>
+        <p class="deck-note">Na construção, cada uma dessas decisões vira regra, requisito, ADR, tarefa, teste e cenário ATAM.</p>
       </div>
     </div>
 
-    <!-- 36 · SETUP -->
+    <!-- C1 · CONSTRUÇÃO: MAPA -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell is-dense etapa-intro">
         <div>
-          <span class="deck-kicker">10h30 &middot; Ambiente</span>
-          <h2 class="deck-title">MinIO local e buckets</h2>
+          <span class="deck-kicker">10h00 &middot; Construção em etapas</span>
+          <h2 class="deck-title">Do problema ao código em 19 etapas</h2>
+          <p class="deck-summary">O método vem do repositório <code>afonsolelis/cinesenac</code>, que levou um sistema de reservas de cinema da persona ao merge. Aqui ele serve a um sistema de dados: o usuário principal é um pipeline, e a modelagem descreve chaves, contratos de arquivo e manifesto. Cada slide é uma etapa, com artefato, prompt CREATE e revisão.</p>
         </div>
-        <pre style="flex-shrink:0"><code>cd aula_03_api_scraping
+        <div class="fase-grid">
+          <article class="fase"><span class="fase-num">00</span><h3>Preparação</h3><p>Pasta, MinIO local, buckets e registro de prompts.</p><span class="fase-hora">10h00</span></article>
+          <article class="fase"><span class="fase-num">01&ndash;03</span><h3>Contexto</h3><p>Personas, direcionadores de negócio e regras numeradas.</p><span class="fase-hora">10h05</span></article>
+          <article class="fase"><span class="fase-num">04&ndash;05</span><h3>Requisitos</h3><p>Funcionais com Dado, Quando, Então; não funcionais com medida.</p><span class="fase-hora">10h20</span></article>
+          <article class="fase"><span class="fase-num">06&ndash;09</span><h3>Modelagem</h3><p>Modelo de dados, componentes, classes, sequências, estados e ADRs.</p><span class="fase-hora">10h30</span></article>
+          <article class="fase"><span class="fase-num">10&ndash;11</span><h3>Plano e testes</h3><p>Tarefas de até 30 minutos e testes vermelhos a partir dos critérios.</p><span class="fase-hora">10h50</span></article>
+          <article class="fase"><span class="fase-num">12&ndash;15</span><h3>Código</h3><p>Cliente HTTP, gravador, coletores e extrator, uma tarefa por vez.</p><span class="fase-hora">11h00</span></article>
+          <article class="fase is-semana"><span class="fase-num">16&ndash;18</span><h3>Validação</h3><p>Execução local, ATAM, rastreabilidade e Railway.</p><span class="fase-hora">na semana</span></article>
+        </div>
+        <p class="deck-note">Toda etapa termina com o prompt registrado, literal, em <code>docs/prompts.md</code>.</p>
+      </div>
+    </div>
+
+    <!-- C2 · CADEIA DE RASTREABILIDADE -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-intro">
+        <div>
+          <span class="deck-kicker">Construção em etapas &middot; Rastreabilidade</span>
+          <h2 class="deck-title">Da persona ao teste, um fio só</h2>
+          <p class="deck-summary">Cada artefato cita o anterior pelo ID. Teste falhou: o fio mostra a decisão de negócio em risco. Negócio mudou: o fio mostra os testes a revisar.</p>
+        </div>
+        <div class="method-flow fio-flow">
+          <div class="method-step"><strong>P1</strong><span>Analista de compras reprecifica em reais</span></div>
+          <div class="method-step"><strong>DN-01</strong><span>Margem perdida por câmbio sem data</span></div>
+          <div class="method-step"><strong>OBJ-02</strong><span>Cotação de fechamento disponível todo dia</span></div>
+          <div class="method-step"><strong>RN-02</strong><span>Vale o último Fechamento até a data D</span></div>
+          <div class="method-step"><strong>RF-05</strong><span>Gravar a resposta PTAX bruta no <code>raw</code></span></div>
+          <div class="method-step"><strong>RNF-04</strong><span>Retry com backoff, jitter e <code>Retry-After</code></span></div>
+          <div class="method-step"><strong>ADR-003</strong><span>Full jitter; alternativas: fixo, sem jitter</span></div>
+          <div class="method-step"><strong>T-02</strong><span>Cliente HTTP repete 429 respeitando o servidor</span></div>
+          <div class="method-step"><strong>Teste</strong><span><code>test_respeita_retry_after_em_429</code></span></div>
+          <div class="method-step"><strong>Evidência</strong><span>Tentativas no manifesto da execução</span></div>
+        </div>
+        <div class="deck-columns fio-defs">
+          <div class="deck-panel"><strong>Regra de negócio</strong><p>Vale no mundo, com ou sem software. Uma frase, com exemplo e contraexemplo.</p></div>
+          <div class="deck-panel"><strong>Requisito funcional</strong><p>O que o sistema faz para respeitar a regra. Critério Dado, Quando, Então.</p></div>
+          <div class="deck-panel"><strong>Requisito não funcional</strong><p>Quão bem o sistema faz, com número e forma de medir.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E00 · Preparação -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="00">
+        <div>
+          <span class="deck-kicker">Etapa 00 &middot; Preparação</span>
+          <h2 class="deck-title">Pasta, MinIO local e registro de prompts</h2>
+          <p class="deck-summary">Antes do primeiro prompt, o ambiente tem de responder. Três buckets: <code>raw</code> e <code>bronze</code> para a coleta, <code>teste</code> para os testes de gravação.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><ul><li><code>docker compose ps</code> mostra <code>(healthy)</code></li><li><code>mc ls local</code> lista <code>raw</code>, <code>bronze</code> e <code>teste</code></li><li><code>git check-ignore .env</code> imprime <code>.env</code></li></ul></div><div class="etapa-item "><span class="etapa-rotulo">Regra do registro</span><p>O <code>AGENTS.md</code> do laboratório manda o agente acrescentar, ao fim de cada etapa, o prompt literal, a data e os arquivos gerados em <code>docs/prompts.md</code>. No cinesenac, essa regra virou a skill <code>update-tutorial</code>.</p></div>
+            
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Terminal do Codespace</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="etapa-pre etapa-pre-codigo"><code>mkdir -p aula_03_api_scraping/{docs/adr,docs/modelagem/estatica,docs/modelagem/dinamica,specs,features,src,tests/fixtures}
+cd aula_03_api_scraping
+# copie docker-compose.yml, .env.example, requirements.txt e AGENTS.md do laboratório da aula
 printf '.env\n.env.*\n!.env.example\n.venv/\n__pycache__/\n' &gt;&gt; .gitignore
-cp .env.example .env && git check-ignore .env
+cp .env.example .env &amp;&amp; git check-ignore .env
 docker compose up -d --wait
-docker compose exec minio sh -c 'mc alias set local http://localhost:9000 \
-  "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" &amp;&amp; mc mb --ignore-existing local/raw local/bronze'</code></pre>
-        <p class="deck-note">Arquivos de apoio em <code>laboratorio/</code>: <code>docker-compose.yml</code>, <code>.env.example</code>, <code>requirements.txt</code>, <code>AGENTS.md</code>. Imagem <code>coollabsio/minio:RELEASE.2025-10-15T17-29-55Z</code>.</p>
-      </div>
-    </div>
-
-    <!-- 37 · PROMPTS 1 E 2 -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">SDD &middot; Prompts 1 e 2</span>
-          <h2 class="deck-title">Persona e objetivos antes de código</h2>
-        </div>
-        <div class="deck-grid">
-          <article class="deck-card"><h3>Prompt 1 &middot; 00_persona.md</h3><p>Analista de compras que reprecifica em reais e uma persona que opera o pipeline. Decisão, pergunta, frequência, dor.</p></article>
-          <article class="deck-card"><h3>Prompt 2 &middot; 01_objetivos_negocio.md</h3><p>OBJ-01: snapshot diário completo, medido contra o total que o site declara. Restrições e fora de escopo.</p></article>
-        </div>
-        <div class="deck-callout">
-          <strong>Revise antes de seguir</strong>
-          <p style="margin:8px 0 0;">Algum horário ou volume sem a marcação "hipótese"? A lista de lacunas está vazia? Prompts completos no material, seções 12.1 e 12.2.</p>
+docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" &amp;&amp; mc mb --ignore-existing local/raw local/bronze local/teste'
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate &amp;&amp; pip install -r requirements.txt
+printf '# Registro de prompts\n' &gt; docs/prompts.md
+echo "@AGENTS.md" &gt; CLAUDE.md     # só no Claude Code</code></pre>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 38 · PROMPT 3 -->
+    <!-- E01 · Personas -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="01">
         <div>
-          <span class="deck-kicker">SDD &middot; Prompt 3</span>
-          <h2 class="deck-title">Spec com Dado, Quando, Então</h2>
+          <span class="deck-kicker">Etapa 01 &middot; Personas</span>
+          <h2 class="deck-title">Quem usa o dado e que decisão toma</h2>
+          <p class="deck-summary">Persona de pipeline tem três lados: quem decide com o dado (P1), quem é acionado quando a coleta falha (P2) e quem consome o bronze na aula seguinte (P3).</p>
         </div>
-        <pre style="flex-shrink:0"><code>RF-05 · Gravar a resposta PTAX bruta
-Dado que a API respondeu 200 com ao menos um boletim de fechamento,
-quando a coleta da data D terminar,
-então existe o objeto raw/ptax/moeda=GBP/data=D/cotacao_moeda_periodo.json
-com SHA-256 igual ao do corpo e metadados fonte-url, coletado-em, sha256.</code></pre>
-        <p class="deck-note">A spec cobre PTAX vazia, data em formato errado, 429, 5xx, 502, reexecução, cadência e codificação. Não fixa 1.000 livros nem 80 páginas. Seção 12.3.</p>
-      </div>
-    </div>
-
-    <!-- 39 · PROMPT 4 -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">SDD &middot; Prompt 4</span>
-          <h2 class="deck-title">O plano liga cada escolha a um requisito</h2>
-        </div>
-        <ol class="deck-steps">
-          <li>C4 de contexto e contêineres em Mermaid.</li>
-          <li>Componentes: configuração, cliente HTTP, coletores, gravador, manifesto, extrator.</li>
-          <li>Layout de chaves e metadados ASCII.</li>
-          <li>Comparação: extração na mesma execução ou separada.</li>
-          <li>Sequência com 502 no MinIO e o retry.</li>
-        </ol>
-        <p class="deck-note">Tecnologia sem requisito fica marcada. Seção 12.4.</p>
-      </div>
-    </div>
-
-    <!-- 40 · PROMPTS 5 E 6 -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">SDD &middot; Prompts 5 e 6</span>
-          <h2 class="deck-title">Tarefas pequenas, teste primeiro</h2>
-        </div>
-        <pre style="flex-shrink:0"><code>T-04 · Extrair um livro da página de detalhe
-Arquivos: src/extrator.py, tests/test_extrator.py,
-          tests/fixtures/detalhe_sharp_objects.html
-Teste:    upc e00eb4fd7b871a48, preco_gbp 47.82, Mystery, qtd_estoque 20
-Comando:  pytest tests/test_extrator.py -q</code></pre>
-        <div class="quality-gates">
-          <div class="quality-gate"><strong>Teste falha antes</strong><span>e passa depois.</span></div>
-          <div class="quality-gate"><strong>Sem rede</strong><span>extração testada com fixture.</span></div>
-          <div class="quality-gate"><strong>Diff revisado</strong><span>timeout, segredo, paralelismo.</span></div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/00_persona.md</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code></code></pre>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 41 · VERIFICAÇÃO -->
+    <!-- E02 · Direcionadores de negócio -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="02">
         <div>
-          <span class="deck-kicker">Gate &middot; execução local</span>
-          <h2 class="deck-title">Prove que os objetos existem e batem</h2>
+          <span class="deck-kicker">Etapa 02 &middot; Direcionadores de negócio</span>
+          <h2 class="deck-title">Direcionadores de negócio e objetivos medíveis</h2>
+          <p class="deck-summary">Direcionador é a força que justifica o sistema: dinheiro, prazo, risco, regulação. Objetivo é a resposta a essa força, com métrica e comando que mede. Os direcionadores voltam na utility tree do ATAM.</p>
         </div>
-        <pre style="flex-shrink:0"><code>pytest -q
-docker compose exec minio mc ls --recursive \
-  local/raw/books_toscrape/data=AAAA-MM-DD/ | wc -l
-docker compose exec minio mc cat \
-  local/bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl | wc -l
-docker compose exec minio mc ls local/raw/manifestos/data=AAAA-MM-DD/</code></pre>
-        <div class="quality-gates">
-          <div class="quality-gate"><strong>Linhas</strong><span>JSONL igual ao total declarado e aos detalhes.</span></div>
-          <div class="quality-gate"><strong>Reexecução</strong><span>mesma contagem, um manifesto a mais.</span></div>
-          <div class="quality-gate"><strong>Metadados</strong><span>conferidos com <code>head_object</code>.</span></div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/01_objetivos_negocio.md</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code></code></pre>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 42 · RAILWAY -->
+    <!-- E03 · Regras de negócio -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="03">
         <div>
-          <span class="deck-kicker">Publicação &middot; Railway</span>
-          <h2 class="deck-title">Mesmo código, outro endpoint</h2>
+          <span class="deck-kicker">Etapa 03 &middot; Regras de negócio</span>
+          <h2 class="deck-title">Regras de negócio antes de requisitos</h2>
+          <p class="deck-summary">No cinesenac, a frase do cliente sobre assentos virou RN01 a RN03. A regra vale no mundo; o requisito, na Etapa 04, é o que o sistema faz para respeitá-la.</p>
         </div>
-        <pre style="flex-shrink:0"><code>cp .env .env.railway && git check-ignore .env.railway
-# S3_ENDPOINT_URL=https://&lt;dominio-gerado-pelo-railway&gt;
-docker compose exec minio mc alias set railway https://&lt;dominio&gt;
-docker compose exec minio mc mb --ignore-existing railway/raw railway/bronze</code></pre>
-        <div class="deck-callout">
-          <strong>502 do proxy</strong>
-          <p style="margin:8px 0 0;">O manifesto mostra gravações com mais de uma tentativa. Chave determinística torna o retry seguro.</p>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/02_regras_de_negocio.md</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code></code></pre>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 43 · ATAM -->
+    <!-- E04 · Requisitos funcionais -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="04">
         <div>
-          <span class="deck-kicker">SDD &middot; Prompt 7 &middot; ATAM</span>
-          <h2 class="deck-title">Sete cenários ATAM obrigatórios</h2>
+          <span class="deck-kicker">Etapa 04 &middot; Requisitos funcionais</span>
+          <h2 class="deck-title">Requisitos funcionais com Dado, Quando, Então</h2>
+          <p class="deck-summary">Cada critério vira um teste sem reinterpretação. O total esperado vem da página, e não de uma constante: 1.000 livros é um fato de 03/10/2026.</p>
         </div>
-        <table class="deck-table">
-          <thead><tr><th>Estímulo</th><th>Resposta esperada</th></tr></thead>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>specs/01_requisitos_funcionais.md</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Todo critério vira teste sem reinterpretação?</li><li>Existe RF para janela PTAX vazia e para data em formato errado?</li><li>A matriz não tem RN órfã?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é engenheiro de dados responsável pela especificação. Escreve
+requisitos testáveis; não escolhe bibliotecas.
+
+<span class="k">[R] Pedido</span>
+Crie specs/01_requisitos_funcionais.md com os RF-01... do monitor. Cada
+RF tem descrição, origem (RN, OBJ ou P) e ao menos um critério
+Dado / Quando / Então. Cubra: descoberta das categorias na página
+inicial; paginação pelo link next; visita ao detalhe de cada livro
+(UPC e estoque só aparecem ali); filtro SCRAPER_CATEGORIAS; gravação do
+HTML bruto com chave determinística e metadados de origem; consulta e
+registro do robots.txt; coleta da PTAX GBP numa janela de dias e
+gravação do JSON bruto; janela sem fechamento; manifesto por execução;
+extração lendo só do MinIO para livros.jsonl e cotacoes.jsonl;
+reexecução sem duplicar.
+
+Fatos verificados em 03/10 e 16/10/2026 (confirme antes de usar):
+- books.toscrape.com: 50 categorias, 1.000 livros, 20 por página;
+  article.product_pod; título no atributo title de h3 &gt; a; preço em
+  p.price_color; próxima página em li.next &gt; a; robots.txt devolve 404;
+  detalhe: UPC na linha "UPC" de table.table-striped, estoque em
+  div.product_main p.availability ("In stock (20 available)"),
+  categoria no terceiro link de ul.breadcrumb; Content-Type sem charset.
+- PTAX: .../odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=
+  @dataInicial,dataFinalCotacao=@dataFinalCotacao), datas 'MM-DD-AAAA',
+  $format=json; sábado e data ISO devolvem 200 com value vazio;
+  DD-MM-AAAA devolve 500; o boletim final se chama "Fechamento".
+
+<span class="k">[E] Exemplos</span>
+### RF-05 · Gravar a resposta PTAX bruta
+Origem: RN-02, OBJ-02.
+- Dado que a API respondeu 200 com ao menos um Fechamento na janela,
+  quando a coleta da data D terminar,
+  então existe raw/ptax/moeda=GBP/data=D/cotacao_moeda_periodo.json com
+  SHA-256 igual ao do corpo recebido e metadados fonte-url,
+  coletado-em e sha256.
+
+<span class="k">[A] Ajustes</span>
+- Só funcional. Desempenho, segurança e afins ficam para a Etapa 05.
+- Não fixe 1.000 livros nem 80 páginas: o critério compara com o total
+  que a página declara.
+- Termine com a matriz RN → RF; toda RN aparece em pelo menos um RF.
+
+<span class="k">[T] Tipo de saída</span>
+Markdown: contexto em cinco linhas, RFs agrupados por módulo (descoberta,
+coleta, gravação, extração, execução) e a matriz.
+
+<span class="k">[E] Extras</span>
+Leia docs/. Mostre o índice dos RFs antes de escrever tudo. Registre o
+prompt e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E05 · Requisitos não funcionais -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="05">
+        <div>
+          <span class="deck-kicker">Etapa 05 &middot; Requisitos não funcionais</span>
+          <h2 class="deck-title">Requisitos não funcionais com número e medida</h2>
+          <p class="deck-summary">Os oito eixos da ISO/IEC 25010 organizam a lista. As medidas de 16/10/2026 entram como linha de base, e não como meta inventada.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>specs/02_requisitos_nao_funcionais.md</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Os oito eixos aparecem?</li><li>Cada RNF tem medida que um teste, um comando ou o manifesto prova?</li><li>A linha de base foi tratada como medida, e não como meta inventada?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é engenheiro de confiabilidade de dados. Escreve requisitos de
+qualidade com medida, ligados aos RF.
+
+<span class="k">[R] Pedido</span>
+Crie specs/02_requisitos_nao_funcionais.md com RNF-01... organizados
+pelos oito eixos da ISO/IEC 25010 (adequação funcional, eficiência de
+desempenho, compatibilidade, usabilidade, confiabilidade, segurança,
+manutenibilidade, portabilidade). Cada RNF tem critério de aceite com
+número, forma de medir, RFs ligados, personas e componente provável.
+Cubra no mínimo: timeout explícito; retry só para transitórios com
+backoff exponencial, full jitter, Retry-After e limite de tentativas;
+intervalo mínimo entre requisições e zero paralelismo contra o site;
+duração da coleta completa; ausência de duplicação na reexecução;
+metadados só ASCII; segredos fora do Git; extração testável sem rede;
+mesmo código para MinIO local e Railway trocando só o .env.
+
+Medidas de 16/10/2026 para usar como linha de base (não como meta):
+1.081 requisições por coleta completa (1 + 80 + 1.000); latência
+mediana 0,15 s, p95 0,33 s, máxima 9,9 s; cerca de 18 min só de espera
+com 1 s de intervalo; 1.083 objetos e 21,5 MiB de bruto por execução;
+livros.jsonl com 268 KiB.
+
+<span class="k">[E] Exemplos</span>
+### RNF-04 · Repetição com backoff e jitter (confiabilidade)
+Critério: timeout, erro de conexão, 408, 429 e 5xx são repetidos até
+HTTP_MAX_TENTATIVAS; a espera da tentativa k é sorteada entre 0 e
+min(teto, base · 2^k); com Retry-After, vale o valor do servidor.
+Medida: teste com servidor simulado conta tentativas e esperas.
+RFs: RF-03, RF-05. Personas: P2. Componente: cliente HTTP.
+
+<span class="k">[A] Ajustes</span>
+- Nada de "rápido" ou "robusto" sem número. Número sem origem recebe
+  "hipótese — validação pendente".
+- Eixo sem RNF pertinente: escreva por quê.
+- Termine com a matriz RF → RNF.
+
+<span class="k">[T] Tipo de saída</span>
+Markdown: premissas, uma seção por eixo, matriz RF → RNF.
+
+<span class="k">[E] Extras</span>
+Leia docs/ e specs/01_requisitos_funcionais.md. Registre o prompt e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E05b · EIXOS ISO 25010 -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-intro">
+        <div>
+          <span class="deck-kicker">Etapa 05 &middot; Os oito eixos num coletor</span>
+          <h2 class="deck-title">ISO/IEC 25010 aplicada ao monitor</h2>
+          <p class="deck-summary">No cinesenac, o cenário era um frontend com 10.000 usuários. Num coletor diário, o peso muda: confiabilidade e respeito à fonte pesam mais que tempo de resposta.</p>
+        </div>
+        <table class="deck-table eixos-tabela">
+          <thead><tr><th>Eixo</th><th>Pergunta no monitor</th><th>RNF de exemplo e medida</th></tr></thead>
           <tbody>
-            <tr><td>site muda o HTML</td><td>extração falha com erro; bruto preservado para reprocessar</td></tr>
-            <tr><td>PTAX sem cotação na data</td><td>janela acha o último fechamento; <code>data_cotacao</code> visível</td></tr>
-            <tr><td>429 ou timeout</td><td><code>Retry-After</code> ou backoff; desiste no limite</td></tr>
-            <tr><td>reexecução no mesmo dia</td><td>mesmas chaves; zero duplicação</td></tr>
-            <tr><td>1.000 requisições de detalhe</td><td>cadência mantida; duração medida; <code>If-None-Match</code> na reexecução</td></tr>
-            <tr><td>scraping agressivo demais</td><td>configuração rejeita intervalo baixo e paralelismo</td></tr>
-            <tr><td>502 do Railway</td><td>retry do <code>put_object</code> com a mesma chave</td></tr>
+            <tr><td>Adequação funcional</td><td>O snapshot está completo?</td><td>linhas extraídas = total declarado na página</td></tr>
+            <tr><td>Eficiência de desempenho</td><td>Quanto dura e quanto pesa na fonte?</td><td>1 requisição por vez; duração no manifesto (base: cerca de 18 min de espera)</td></tr>
+            <tr><td>Compatibilidade</td><td>A Aula 04 lê o bronze sem adaptar?</td><td>nomes e tipos dos campos iguais ao contrato da Etapa 06</td></tr>
+            <tr><td>Usabilidade</td><td>P2 entende a falha às 7h?</td><td>manifesto aponta URL, status e tentativas de cada falha</td></tr>
+            <tr><td>Confiabilidade</td><td>Sobrevive a timeout, 429, 5xx e 502?</td><td>retry com limite; 0 objetos duplicados na reexecução</td></tr>
+            <tr><td>Segurança</td><td>Alguma credencial vaza?</td><td><code>git grep</code> sem segredo; metadados sem chave</td></tr>
+            <tr><td>Manutenibilidade</td><td>O seletor quebrou: quanto custa corrigir?</td><td>extração testada só com fixtures; reprocesso a partir do <code>raw</code></td></tr>
+            <tr><td>Portabilidade</td><td>Roda local e no Railway?</td><td>mesmo código, só o <code>.env</code> muda</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- E06 · Modelo de dados -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="06">
+        <div>
+          <span class="deck-kicker">Etapa 06 &middot; Modelo de dados</span>
+          <h2 class="deck-title">Modelo de dados: chaves, contratos e manifesto</h2>
+          <p class="deck-summary">Num data lake o modelo tem três partes: onde cada objeto mora, o contrato de cada arquivo do bronze e o registro da execução. O DBML documenta as relações lógicas mesmo sem banco.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>specs/03_modelo_de_dados.md</code> e <code>specs/modelo.dbml</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Os nove campos de livros.jsonl e os cinco de cotacoes.jsonl estão com os nomes exatos?</li><li>Cada campo tem origem rastreável?</li><li>Alguma chave usa horário e quebraria a reexecução?</li><li>O DBML abre no dbdiagram.io?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é modelador de dados. Desenha chaves, contratos de arquivo e o
+manifesto do monitor.
+
+<span class="k">[R] Pedido</span>
+Crie specs/03_modelo_de_dados.md e specs/modelo.dbml com:
+1. Layout de chaves em raw e bronze, com um exemplo real por tipo.
+2. Dicionário do bronze: livros.jsonl (upc, url, titulo, categoria,
+   avaliacao, preco_gbp, em_estoque, qtd_estoque, coletado_em) e
+   cotacoes.jsonl (moeda, dataHoraCotacao, tipoBoletim, cotacaoCompra,
+   cotacaoVenda). Para cada campo: tipo, nulo permitido, origem
+   (seletor CSS ou campo JSON), exemplo e regra (RN) que o governa.
+3. Manifesto da execução: cabeçalho (id, início, fim, data de
+   referência, robots.txt, total declarado) e itens (url, chave, status
+   HTTP, tentativas, bytes, sha256, erro).
+4. Metadados x-amz-meta-* de cada objeto bruto, só ASCII.
+5. DBML com as entidades execucao, item_manifesto, objeto_raw, livro e
+   cotacao, e as relações lógicas entre elas.
+
+<span class="k">[E] Exemplos</span>
+raw/books_toscrape/data=2026-10-24/categoria=mystery_3/pagina=001.html
+raw/books_toscrape/data=2026-10-24/livro=sharp-objects_997/detalhe.html
+raw/ptax/moeda=GBP/data=2026-10-24/cotacao_moeda_periodo.json
+raw/manifestos/data=2026-10-24/execucao=&lt;id&gt;.json
+bronze/books_toscrape/data=2026-10-24/livros.jsonl
+bronze/ptax/moeda=GBP/data=2026-10-24/cotacoes.jsonl
+
+Table livro {
+  upc varchar [pk, note: 'td da linha UPC no detalhe']
+  preco_gbp decimal [note: 'p.price_color, sem o símbolo']
+  data_ref date [note: 'RN-03']
+}
+
+<span class="k">[A] Ajustes</span>
+- Os nomes dos campos do bronze são contrato com as Aulas 04 e 05: não
+  renomeie nem traduza.
+- Chave derivada de fonte, data e página; o manifesto é a única chave
+  com id de execução.
+- Nada de silver, Parquet ou conversão para reais.
+
+<span class="k">[T] Tipo de saída</span>
+Markdown com tabelas e um bloco DBML importável em dbdiagram.io.
+
+<span class="k">[E] Extras</span>
+Leia docs/ e specs/. Registre o prompt e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E06b · MODELO LÓGICO -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-diagrama">
+        <div>
+          <span class="deck-kicker">Etapa 06 &middot; Modelagem</span>
+          <h2 class="deck-title">Modelo lógico do monitor</h2>
+          <p class="deck-summary">Cinco entidades em três prefixos. Os campos do bronze são contrato com as Aulas 04, 05 e 07: não renomeie nem traduza.</p>
+        </div>
+        <svg class="etapa-svg" viewBox="0 0 1200 426" role="img" aria-label="Modelo lógico: execucao tem muitos item_manifesto; cada item aponta para um objeto_raw pela chave; um detalhe.html gera um livro; um JSON da PTAX gera várias cotacoes" font-family="Inter, Helvetica, Arial, sans-serif">
+          <defs><marker id="er-seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f0f0f"/></marker></defs>
+          <g font-size="15" fill="#5c5c5c">
+            <text x="20" y="22">raw/manifestos/</text><text x="640" y="22">raw/</text><text x="940" y="22">bronze/</text>
+          </g>
+          <g font-family="JetBrains Mono, monospace" font-size="14" fill="#0f0f0f">
+            <rect x="20" y="34" width="250" height="168" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <rect x="20" y="34" width="250" height="32" fill="#0f0f0f"/>
+            <text x="34" y="56" fill="#ffffff" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="700">execucao</text>
+            <text x="34" y="88">id_execucao  PK</text><text x="34" y="110">inicio, fim</text><text x="34" y="132">data_ref</text><text x="34" y="154">robots_status</text><text x="34" y="176">total_declarado</text>
+
+            <rect x="330" y="34" width="250" height="234" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <rect x="330" y="34" width="250" height="32" fill="#0f0f0f"/>
+            <text x="344" y="56" fill="#ffffff" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="700">item_manifesto</text>
+            <text x="344" y="88">id_execucao  FK</text><text x="344" y="110">url</text><text x="344" y="132">chave  FK</text><text x="344" y="154">status_http</text><text x="344" y="176">tentativas</text><text x="344" y="198">bytes</text><text x="344" y="220">sha256</text><text x="344" y="242">erro</text>
+
+            <rect x="640" y="34" width="250" height="168" fill="#f2f2ee" stroke="#0f0f0f" stroke-width="2"/>
+            <rect x="640" y="34" width="250" height="32" fill="#0f0f0f"/>
+            <text x="654" y="56" fill="#ffffff" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="700">objeto_raw</text>
+            <text x="654" y="88">chave  PK</text><text x="654" y="110">content_type</text><text x="654" y="132">fonte-url</text><text x="654" y="154">coletado-em, sha256</text><text x="654" y="176">execucao</text>
+
+            <rect x="940" y="34" width="240" height="234" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <rect x="940" y="34" width="240" height="32" fill="#0f0f0f"/>
+            <text x="954" y="56" fill="#ffffff" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="700">livro  (livros.jsonl)</text>
+            <text x="954" y="88">upc  PK do dia</text><text x="954" y="110">url, titulo</text><text x="954" y="132">categoria</text><text x="954" y="154">avaliacao</text><text x="954" y="176">preco_gbp</text><text x="954" y="198">em_estoque</text><text x="954" y="220">qtd_estoque</text><text x="954" y="242">coletado_em</text>
+
+            <rect x="940" y="290" width="240" height="132" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <rect x="940" y="290" width="240" height="32" fill="#0f0f0f"/>
+            <text x="954" y="312" fill="#ffffff" font-family="Inter, Helvetica, Arial, sans-serif" font-size="16" font-weight="700">cotacao  (cotacoes.jsonl)</text>
+            <text x="954" y="344">moeda, tipoBoletim</text><text x="954" y="366">dataHoraCotacao</text><text x="954" y="388">cotacaoCompra</text><text x="954" y="410">cotacaoVenda</text>
+          </g>
+          <g stroke="#0f0f0f" stroke-width="2" fill="none" marker-end="url(#er-seta)">
+            <line x1="270" y1="100" x2="328" y2="100"/>
+            <line x1="580" y1="128" x2="638" y2="128"/>
+            <line x1="890" y1="100" x2="938" y2="100"/>
+            <polyline points="890,180 914,180 914,352 938,352"/>
+          </g>
+          <g font-size="14" fill="#0f0f0f" text-anchor="middle">
+            <text x="299" y="92">1 : N</text>
+            <text x="609" y="120">N : 1</text>
+            <text x="914" y="92">1 : 1</text>
+            <text x="926" y="270" text-anchor="start" transform="rotate(90 926 270)">1 : N</text>
+          </g>
+          <g font-size="13.5" fill="#5c5c5c">
+            <text x="20" y="232">Uma execução por coleta. Reexecutar</text>
+            <text x="20" y="250">no mesmo dia cria outra execução e</text>
+            <text x="20" y="268">sobrescreve os mesmos objetos.</text>
+            <text x="640" y="232">Um detalhe.html: uma linha de livro.</text>
+            <text x="640" y="250">Um JSON da PTAX: um registro</text>
+            <text x="640" y="268">por boletim da janela.</text>
+            <text x="330" y="300">A chave liga o item ao objeto.</text>
+            <text x="330" y="318">Sem sobrenome de horário: o retry</text>
+            <text x="330" y="336">e a reexecução caem na mesma chave.</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- E07 · Modelagem estática -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="07">
+        <div>
+          <span class="deck-kicker">Etapa 07 &middot; Modelagem estática</span>
+          <h2 class="deck-title">Componentes e classes antes do código</h2>
+          <p class="deck-summary">Os nomes do diagrama são os nomes que vão para <code>src/</code>. Dois limites de dependência valem para toda a aula: coletor não conhece o MinIO, extrator não conhece a rede.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/modelagem/estatica/componentes.md</code> e <code>classes.md</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Há seta do extrator para a rede?</li><li>(Não pode haver.) Todo RF aparece em algum componente?</li><li>O diagrama renderiza no preview do GitHub?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é arquiteto de software de dados. Desenha a estrutura do código
+antes de qualquer linha de implementação.
+
+<span class="k">[R] Pedido</span>
+1. componentes.md: diagrama de componentes em Mermaid (flowchart) com
+   fontes externas (books.toscrape.com, PTAX), configuração, cliente
+   HTTP, coletor de páginas, coletor PTAX, gravador S3, manifesto,
+   extrator, MinIO local e MinIO no Railway. Para cada componente:
+   responsabilidade, interface (funções públicas), RF e RNF atendidos.
+2. classes.md: diagrama de classes em Mermaid (classDiagram) com
+   Config, ClienteHttp, Resposta, ColetorBooks, ColetorPtax,
+   GravadorS3, Manifesto, ItemManifesto, Extrator, Livro e Cotacao.
+   Atributos com tipo, métodos com assinatura, dependências.
+
+<span class="k">[E] Exemplos</span>
+classDiagram
+  class ClienteHttp {
+    +timeout: tuple[float, float]
+    +max_tentativas: int
+    +get(url: str) Resposta
+    -espera(tentativa: int, retry_after: float|None) float
+  }
+  ClienteHttp ..&gt; Resposta
+
+<span class="k">[A] Ajustes</span>
+- Coletores não conhecem o MinIO: recebem um gravador.
+- O extrator não importa requests: lê só do MinIO.
+- Nomes do diagrama iguais aos que irão para src/.
+- Mermaid sem ponto e vírgula dentro de rótulos (quebra a renderização).
+
+<span class="k">[T] Tipo de saída</span>
+Dois arquivos Markdown com blocos mermaid e uma tabela componente | RF | RNF.
+
+<span class="k">[E] Extras</span>
+Leia specs/. Registre o prompt e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E07b · COMPONENTES -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-diagrama">
+        <div>
+          <span class="deck-kicker">Etapa 07 &middot; Modelagem estática</span>
+          <h2 class="deck-title">Componentes e o limite da rede</h2>
+          <p class="deck-summary">Só os coletores falam com a rede, sempre pelo <code>ClienteHttp</code>. O extrator lê e grava no MinIO e roda sem internet.</p>
+        </div>
+        <svg class="etapa-svg" viewBox="0 0 1200 400" role="img" aria-label="Componentes: fontes externas à esquerda, ClienteHttp, coletores, GravadorS3 e Manifesto no centro; à direita, o bucket raw, o Extrator que lê o raw e o bucket bronze onde ele grava" font-family="Inter, Helvetica, Arial, sans-serif">
+          <defs><marker id="cp-seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f0f0f"/></marker></defs>
+          <rect x="8" y="20" width="212" height="300" fill="none" stroke="#5c5c5c" stroke-width="1.5" stroke-dasharray="6 5"/>
+          <text x="20" y="44" font-size="15" fill="#5c5c5c">rede: só coletores</text>
+          <rect x="470" y="40" width="210" height="270" fill="none" stroke="#5c5c5c" stroke-width="1.5"/>
+          <text x="484" y="300" font-size="15" fill="#5c5c5c">coletores</text>
+          <g font-size="18" fill="#0f0f0f" text-anchor="middle">
+            <rect x="26" y="64" width="176" height="74" fill="#f2f2ee" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="114" y="96" font-weight="600">books.toscrape</text><text x="114" y="120" font-size="15" fill="#5c5c5c">HTML, sem API</text>
+            <rect x="26" y="220" width="176" height="74" fill="#f2f2ee" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="114" y="252" font-weight="600">API PTAX</text><text x="114" y="276" font-size="15" fill="#5c5c5c">OData, JSON</text>
+
+            <rect x="258" y="142" width="180" height="74" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="348" y="174" font-weight="600">ClienteHttp</text><text x="348" y="198" font-size="15" fill="#5c5c5c">timeout, retry, jitter</text>
+
+            <rect x="485" y="60" width="180" height="74" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="575" y="92" font-weight="600">ColetorBooks</text><text x="575" y="116" font-size="15" fill="#5c5c5c">robots, paginação</text>
+            <rect x="485" y="194" width="180" height="74" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="575" y="226" font-weight="600">ColetorPtax</text><text x="575" y="250" font-size="15" fill="#5c5c5c">janela de dias</text>
+
+            <rect x="726" y="60" width="180" height="74" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="816" y="92" font-weight="600">GravadorS3</text><text x="816" y="116" font-size="15" fill="#5c5c5c">chave, metadados</text>
+            <rect x="726" y="194" width="180" height="74" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="816" y="226" font-weight="600">Manifesto</text><text x="816" y="250" font-size="15" fill="#5c5c5c">um por execução</text>
+
+            <rect x="980" y="20" width="200" height="96" fill="#0f0f0f" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="1080" y="52" font-weight="700" fill="#ffffff" font-family="JetBrains Mono, monospace">raw</text><text x="1080" y="78" font-size="15" fill="#ffffff">bytes da fonte</text><text x="1080" y="100" font-size="15" fill="#ffffff">e manifestos</text>
+            <rect x="990" y="166" width="180" height="74" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="1080" y="198" font-weight="600">Extrator</text><text x="1080" y="222" font-size="15" fill="#5c5c5c">sem rede</text>
+            <rect x="980" y="290" width="200" height="74" fill="#0f0f0f" stroke="#0f0f0f" stroke-width="2"/>
+            <text x="1080" y="322" font-weight="700" fill="#ffffff" font-family="JetBrains Mono, monospace">bronze</text><text x="1080" y="346" font-size="15" fill="#ffffff">JSON Lines</text>
+
+            <rect x="258" y="320" width="180" height="60" fill="#ffffff" stroke="#0f0f0f" stroke-width="1.5" stroke-dasharray="5 4"/>
+            <text x="348" y="346" font-weight="600">Config</text><text x="348" y="368" font-size="14" fill="#5c5c5c">.env, lida por todos</text>
+          </g>
+          <g stroke="#0f0f0f" stroke-width="2" fill="none" marker-end="url(#cp-seta)">
+            <line x1="470" y1="179" x2="440" y2="179"/>
+            <polyline points="258,166 236,166 236,101 204,101"/>
+            <polyline points="258,192 236,192 236,257 204,257"/>
+            <line x1="680" y1="97" x2="724" y2="97"/>
+            <line x1="680" y1="231" x2="724" y2="231"/>
+            <line x1="906" y1="80" x2="978" y2="80"/>
+            <polyline points="906,231 940,231 940,104 978,104"/>
+            <line x1="1080" y1="116" x2="1080" y2="164"/>
+            <line x1="1080" y1="240" x2="1080" y2="288"/>
+          </g>
+          <g font-size="14" fill="#5c5c5c">
+            <text x="1090" y="146">lê</text><text x="1090" y="270">grava</text>
+            <text x="686" y="88">put</text><text x="686" y="222">registra</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- E08 · Modelagem dinâmica -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="08">
+        <div>
+          <span class="deck-kicker">Etapa 08 &middot; Modelagem dinâmica</span>
+          <h2 class="deck-title">Sequências com falha e estados do item</h2>
+          <p class="deck-summary">Um diagrama de sequência por fluxo, sempre com o caminho de erro. O diagrama de estados do item é o que o manifesto registra.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/modelagem/dinamica/RF-xx.md</code> e <code>estados_item.md</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>O 502 aparece com a mesma chave no retry?</li><li>O diagrama de extração não toca nenhuma fonte externa?</li><li>O estado "falhou" é final e registrado no manifesto?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é arquiteto de software de dados. Mostra como os componentes
+conversam no tempo, incluindo as falhas.
+
+<span class="k">[R] Pedido</span>
+1. Para cada fluxo, um arquivo com sequenceDiagram em Mermaid, os RF e
+   RNF que realiza e notas de como o fluxo cumpre cada RNF:
+   - coleta da PTAX com janela de dias (RF da PTAX);
+   - coleta de uma categoria com paginação e detalhes, incluindo 429 com
+     Retry-After e um read timeout repetido;
+   - gravação com 502 do proxy do Railway e retry na mesma chave;
+   - extração lendo do MinIO e gravando o JSON Lines;
+   - reexecução no mesmo dia.
+2. estados_item.md: stateDiagram-v2 de um item do manifesto (pendente,
+   baixando, aguardando, baixado, gravado, falhou) com as transições e o
+   evento que causa cada uma.
+
+<span class="k">[E] Exemplos</span>
+sequenceDiagram
+  participant C as ColetorBooks
+  participant H as ClienteHttp
+  participant S as books.toscrape.com
+  C-&gt;&gt;H: get(url_detalhe)
+  H-&gt;&gt;S: GET (timeout 5 s, 20 s)
+  S--&gt;&gt;H: 429 Retry-After 2
+  Note over H: espera 2 s (Retry-After prevalece)
+  H-&gt;&gt;S: GET
+  S--&gt;&gt;H: 200 (bytes)
+
+<span class="k">[A] Ajustes</span>
+- Participantes com os nomes de classes.md.
+- Caminho de erro explícito em todo diagrama (alt/else).
+- Nada de ponto e vírgula nas mensagens.
+
+<span class="k">[T] Tipo de saída</span>
+Um Markdown por fluxo e estados_item.md, com tabela final fluxo | RF | RNF.
+
+<span class="k">[E] Extras</span>
+Leia specs/ e docs/modelagem/estatica/. Valide a sintaxe de cada bloco
+antes de terminar. Registre o prompt e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E08b · SEQUÊNCIA COM 429 E 502 -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-diagrama">
+        <div>
+          <span class="deck-kicker">Etapa 08 &middot; Modelagem dinâmica</span>
+          <h2 class="deck-title">Um detalhe de livro com 429 e 502</h2>
+          <p class="deck-summary">A fonte pede calma, o proxy do Railway falha depois de gravar, e o bucket termina com um objeto só.</p>
+        </div>
+        <svg class="etapa-svg" viewBox="0 0 1200 500" role="img" aria-label="Diagrama de sequência: ColetorBooks pede ao ClienteHttp, que recebe 429 com Retry-After 2, espera 2 segundos e recebe 200; o GravadorS3 recebe 502 do MinIO no Railway, espera e repete o PUT na mesma chave" font-family="Inter, Helvetica, Arial, sans-serif">
+          <defs>
+            <marker id="sq-seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f0f0f"/></marker>
+            <marker id="sq-seta-r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10" fill="none" stroke="#0f0f0f" stroke-width="1.5"/></marker>
+          </defs>
+          <g font-size="17" font-weight="600" fill="#0f0f0f" text-anchor="middle">
+            <rect x="30" y="6" width="180" height="40" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/><text x="120" y="32">ColetorBooks</text>
+            <rect x="290" y="6" width="180" height="40" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/><text x="380" y="32">ClienteHttp</text>
+            <rect x="560" y="6" width="180" height="40" fill="#f2f2ee" stroke="#0f0f0f" stroke-width="2"/><text x="650" y="32">books.toscrape</text>
+            <rect x="790" y="6" width="180" height="40" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/><text x="880" y="32">GravadorS3</text>
+            <rect x="1010" y="6" width="180" height="40" fill="#0f0f0f" stroke="#0f0f0f" stroke-width="2"/><text x="1100" y="32" fill="#ffffff">MinIO Railway</text>
+          </g>
+          <g stroke="#a3a3a0" stroke-width="1.5" stroke-dasharray="4 4">
+            <line x1="120" y1="46" x2="120" y2="494"/><line x1="380" y1="46" x2="380" y2="494"/><line x1="650" y1="46" x2="650" y2="494"/><line x1="880" y1="46" x2="880" y2="494"/><line x1="1100" y1="46" x2="1100" y2="494"/>
+          </g>
+          <g stroke="#0f0f0f" stroke-width="2" fill="none">
+            <line x1="120" y1="82" x2="376" y2="82" marker-end="url(#sq-seta)"/>
+            <line x1="380" y1="114" x2="646" y2="114" marker-end="url(#sq-seta)"/>
+            <line x1="650" y1="146" x2="384" y2="146" stroke-dasharray="7 5" marker-end="url(#sq-seta-r)"/>
+            <line x1="380" y1="212" x2="646" y2="212" marker-end="url(#sq-seta)"/>
+            <line x1="650" y1="244" x2="384" y2="244" stroke-dasharray="7 5" marker-end="url(#sq-seta-r)"/>
+            <line x1="380" y1="276" x2="124" y2="276" stroke-dasharray="7 5" marker-end="url(#sq-seta-r)"/>
+            <line x1="120" y1="308" x2="876" y2="308" marker-end="url(#sq-seta)"/>
+            <line x1="880" y1="340" x2="1096" y2="340" marker-end="url(#sq-seta)"/>
+            <line x1="1100" y1="372" x2="884" y2="372" stroke-dasharray="7 5" marker-end="url(#sq-seta-r)"/>
+            <line x1="880" y1="438" x2="1096" y2="438" marker-end="url(#sq-seta)"/>
+            <line x1="1100" y1="470" x2="884" y2="470" stroke-dasharray="7 5" marker-end="url(#sq-seta-r)"/>
+          </g>
+          <g fill="#f2f2ee" stroke="#0f0f0f" stroke-width="1.5">
+            <rect x="392" y="158" width="250" height="28"/>
+            <rect x="892" y="384" width="250" height="28"/>
+          </g>
+          <g font-size="16" fill="#0f0f0f">
+            <text x="132" y="75">get(url_detalhe)</text>
+            <text x="392" y="107">GET, timeout (5 s, 20 s)</text>
+            <text x="412" y="139">429, Retry-After: 2</text>
+            <text x="404" y="178">espera 2 s, o servidor manda</text>
+            <text x="392" y="205">GET, tentativa 2</text>
+            <text x="412" y="237">200, bytes</text>
+            <text x="152" y="269">Resposta(bytes, tentativas=2)</text>
+            <text x="132" y="301">put(chave, bytes, metadados)</text>
+            <text x="892" y="333">PUT .../detalhe.html</text>
+            <text x="912" y="365">502 do proxy</text>
+            <text x="904" y="404">espera sorteada, mesma chave</text>
+            <text x="892" y="431">PUT .../detalhe.html</text>
+            <text x="912" y="463">200</text>
+          </g>
+          <g font-size="15" fill="#5c5c5c">
+            <text x="132" y="356">o 502 chegou depois</text>
+            <text x="132" y="376">de o objeto existir</text>
+            <text x="132" y="430">manifesto: 2 tentativas</text>
+            <text x="132" y="450">no GET, 2 no PUT,</text>
+            <text x="132" y="470">1 objeto no bucket</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <!-- E08c · ESTADOS DO ITEM -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-diagrama">
+        <div>
+          <span class="deck-kicker">Etapa 08 &middot; Modelagem dinâmica</span>
+          <h2 class="deck-title">Estados de um item do manifesto</h2>
+          <p class="deck-summary">Cada URL percorre estes estados, e o manifesto grava o final e o caminho. É aqui que se responde por que o <code>livros.jsonl</code> saiu com 980 linhas.</p>
+        </div>
+        <svg class="etapa-svg" viewBox="0 0 1200 330" role="img" aria-label="Estados: pendente, baixando, aguardando, baixado, gravado e falhou, com as transições por status HTTP e limite de tentativas" font-family="Inter, Helvetica, Arial, sans-serif">
+          <defs><marker id="st-seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f0f0f"/></marker></defs>
+          <circle cx="30" cy="110" r="10" fill="#0f0f0f"/>
+          <g font-size="17" font-weight="600" fill="#0f0f0f" text-anchor="middle">
+            <rect x="70" y="84" width="150" height="52" rx="4" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/><text x="145" y="116">pendente</text>
+            <rect x="320" y="84" width="150" height="52" rx="4" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/><text x="395" y="116">baixando</text>
+            <rect x="320" y="240" width="150" height="52" rx="4" fill="#f2f2ee" stroke="#0f0f0f" stroke-width="2"/><text x="395" y="272">aguardando</text>
+            <rect x="620" y="84" width="150" height="52" rx="4" fill="#ffffff" stroke="#0f0f0f" stroke-width="2"/><text x="695" y="116">baixado</text>
+            <rect x="920" y="84" width="150" height="52" rx="4" fill="#0f0f0f" stroke="#0f0f0f" stroke-width="2"/><text x="995" y="116" fill="#ffffff">gravado</text>
+            <rect x="770" y="240" width="150" height="52" rx="4" fill="#ffffff" stroke="#0f0f0f" stroke-width="3"/><text x="845" y="272">falhou</text>
+          </g>
+          <g stroke="#0f0f0f" stroke-width="2" fill="none" marker-end="url(#st-seta)">
+            <line x1="40" y1="110" x2="68" y2="110"/>
+            <line x1="220" y1="110" x2="318" y2="110"/>
+            <line x1="470" y1="110" x2="618" y2="110"/>
+            <line x1="770" y1="110" x2="918" y2="110"/>
+            <line x1="370" y1="136" x2="370" y2="238"/>
+            <line x1="420" y1="238" x2="420" y2="138"/>
+            <polyline points="470,128 560,128 560,266 768,266"/>
+            <polyline points="695,136 695,200 820,200 820,238"/>
+          </g>
+          <circle cx="1130" cy="110" r="12" fill="none" stroke="#0f0f0f" stroke-width="2"/><circle cx="1130" cy="110" r="6" fill="#0f0f0f"/>
+          <line x1="1070" y1="110" x2="1116" y2="110" stroke="#0f0f0f" stroke-width="2" marker-end="url(#st-seta)"/>
+          <polyline points="920,266 1130,266 1130,124" fill="none" stroke="#0f0f0f" stroke-width="2" marker-end="url(#st-seta)"/>
+          <g font-size="14" fill="#0f0f0f">
+            <text x="236" y="100">em ordem</text>
+            <text x="482" y="100">200 ou 304</text>
+            <text x="782" y="100">PUT 200</text>
+            <text x="186" y="196">timeout, conexão,</text>
+            <text x="186" y="214">408, 429, 5xx</text>
+            <text x="432" y="196">intervalo, jitter</text>
+            <text x="432" y="214">ou Retry-After</text>
+            <text x="572" y="190">4xx sem retry</text>
+            <text x="572" y="208">ou limite atingido</text>
+            <text x="708" y="190">PUT falhou até o limite</text>
+          </g>
+          <text x="20" y="320" font-size="14" fill="#5c5c5c">O estado aguardando conta tentativas; HTTP_MAX_TENTATIVAS fecha o laço. Item em falhou não para a execução: entra no manifesto e a contagem final denuncia a lacuna.</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- E09 · Arquitetura e ADRs -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="09">
+        <div>
+          <span class="deck-kicker">Etapa 09 &middot; Arquitetura e ADRs</span>
+          <h2 class="deck-title">Uma ADR por tática de qualidade</h2>
+          <p class="deck-summary">Sete decisões já apareceram na teoria. Cada uma vira um registro com contexto, alternativas e custo, em status Proposta: aceitar é decisão do grupo.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/arquitetura.md</code> e <code>docs/adr/ADR-001</code> a <code>ADR-007</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Cada ADR tem pelo menos duas alternativas reais?</li><li>As consequências trazem o custo da decisão, e não só o benefício?</li><li>O mapa tática → RNF cobre os RNF de confiabilidade?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é arquiteto responsável pelas decisões. Cada tática de qualidade
+vira um ADR com alternativas e consequências.
+
+<span class="k">[R] Pedido</span>
+1. docs/arquitetura.md: drivers arquiteturais (os DN e os RNF de maior
+   peso), estilo (pipeline em lotes com etapas separadas), visão de
+   implantação (Codespace, MinIO local, MinIO no Railway), mapa
+   tática → atributo de qualidade → RNF, trade-offs e riscos.
+2. Um ADR por tática, status "Proposta":
+   ADR-001 coleta e extração separadas;
+   ADR-002 chaves determinísticas por fonte, data e página;
+   ADR-003 retry com backoff exponencial, full jitter e Retry-After;
+   ADR-004 coleta sequencial com intervalo mínimo;
+   ADR-005 bytes originais no bruto e decodificação no parser;
+   ADR-006 manifesto por execução;
+   ADR-007 janela de dias na PTAX.
+
+<span class="k">[E] Exemplos</span>
+# ADR-003 · Retry com backoff exponencial e full jitter
+Status: Proposta
+Contexto: RNF-04; 100 clientes que repetem juntos depois de um 503
+voltam juntos em 1, 3, 7 e 15 s.
+Decisão: espera sorteada entre 0 e min(teto, base · 2^k); Retry-After
+prevalece; limite HTTP_MAX_TENTATIVAS.
+Alternativas: intervalo fixo; backoff sem jitter; sem retry.
+Consequências: pico de chegada cai para cerca de um quarto; espera média
+na metade do teto; a duração da coleta passa a variar.
+
+<span class="k">[A] Ajustes</span>
+- Toda ADR cita RNF e RF de origem e os diagramas da Etapa 08.
+- Nenhuma ADR "Aceita": aceitar é decisão do grupo.
+- Nomes de arquivo: ADR-00N-titulo-em-kebab.md.
+
+<span class="k">[T] Tipo de saída</span>
+arquitetura.md e sete ADRs com contexto, decisão, alternativas,
+consequências e links.
+
+<span class="k">[E] Extras</span>
+Leia docs/ e specs/. Registre o prompt e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E09b · SETE ADRS -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Etapa 09 &middot; Sete decisões</span>
+          <h2 class="deck-title">As táticas da teoria viram ADRs</h2>
+          <p class="deck-summary">Cada ADR responde a um RNF e cita o bloco da manhã em que a decisão foi discutida.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>ADR</th><th>Decisão</th><th>Alternativa descartada</th><th>Custo aceito</th></tr></thead>
+          <tbody>
+            <tr><td>001</td><td>coleta e extração separadas</td><td>extrair na mesma execução</td><td>uma etapa a mais para operar</td></tr>
+            <tr><td>002</td><td>chave por fonte, data e página</td><td>chave com horário</td><td>perde a versão intermediária do dia</td></tr>
+            <tr><td>003</td><td>backoff exponencial com full jitter</td><td>intervalo fixo; sem jitter</td><td>duração da coleta varia</td></tr>
+            <tr><td>004</td><td>sequencial com intervalo mínimo</td><td>threads contra o site</td><td>cerca de 18 min de espera</td></tr>
+            <tr><td>005</td><td>bytes originais no <code>raw</code></td><td>gravar <code>response.text</code></td><td>decodificar em todo parser</td></tr>
+            <tr><td>006</td><td>manifesto por execução</td><td>só log no terminal</td><td>um objeto a mais por execução</td></tr>
+            <tr><td>007</td><td>janela de dias na PTAX</td><td>consulta só do dia</td><td>resposta maior, data a declarar</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- E10 · Plano e tarefas -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="10">
+        <div>
+          <span class="deck-kicker">Etapa 10 &middot; Plano e tarefas</span>
+          <h2 class="deck-title">Plano e tarefas de até 30 minutos</h2>
+          <p class="deck-summary">O plano justifica cada biblioteca com um RNF. As tarefas já nascem agrupadas nas Etapas 12 a 15, cada uma com o teste que prova a conclusão.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>specs/plan.md</code> e <code>specs/tasks.md</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Alguma tarefa mexe em mais de três arquivos?</li><li>Existe tarefa para cada falha tratada (timeout, 429, 5xx, PTAX vazia, 502, reexecução)?</li><li>Algum RF ficou sem tarefa?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é líder técnico. Quebra a arquitetura em tarefas de até 30 minutos.
+
+<span class="k">[R] Pedido</span>
+1. specs/plan.md: bibliotecas (cada uma com o RNF que a justifica),
+   estrutura de src/ e tests/, comandos de execução local e no Railway.
+2. specs/tasks.md: T-01... em ordem. Cada tarefa: objetivo, arquivos,
+   RF/RNF, ADR, teste que prova (nome e o que verifica), comando,
+   dependências. Agrupe nas Etapas 12 a 15: configuração e cliente HTTP;
+   gravador e manifesto; coletores; extrator e linha de comando.
+
+<span class="k">[E] Exemplos</span>
+### T-02 · Cliente HTTP repete 429 respeitando Retry-After
+- Arquivos: src/http.py, tests/test_http.py
+- Requisitos: RNF-04, RF-03. ADR-003.
+- Teste: test_respeita_retry_after_em_429: servidor simulado responde
+  429 com Retry-After: 2 e depois 200; o sleep simulado recebe 2 e o
+  cliente devolve os bytes do 200.
+- Comando: pytest tests/test_http.py -q
+- Depende de: T-01
+
+<span class="k">[A] Ajustes</span>
+- requests, beautifulsoup4, boto3, python-dotenv e pytest. Outra
+  biblioteca só com RNF que a justifique.
+- Testes de parser e cliente HTTP sem rede; testes de gravação no MinIO
+  local, bucket teste.
+- Tabela final requisito | tarefas, sem linha vazia.
+
+<span class="k">[T] Tipo de saída</span>
+Dois arquivos Markdown.
+
+<span class="k">[E] Extras</span>
+Leia docs/ e specs/. Registre o prompt e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E11 · Fixtures -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="11">
+        <div>
+          <span class="deck-kicker">Etapa 11 &middot; Fixtures</span>
+          <h2 class="deck-title">Três páginas reais, baixadas uma vez</h2>
+          <p class="deck-summary">Os testes de parser leem arquivos locais. As fixtures são baixadas uma única vez, com o mesmo User-Agent e a mesma pausa da coleta.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item "><span class="etapa-rotulo">Por que páginas reais</span><p>Uma fixture escrita à mão testa o que o agente imagina do site. A página real traz o <code>Content-Type</code> sem charset, o símbolo da libra em UTF-8 e o UPC <code>e00eb4fd7b871a48</code> do Sharp Objects.</p></div><div class="etapa-item "><span class="etapa-rotulo">Conferido em 23/10/2026</span><p><code>inicio.html</code> declara 1000 resultados em <code>form.form-horizontal strong</code>; o detalhe traz <code>In stock (20 available)</code>, avaliação <code>Four</code> e preço £47.82.</p></div>
+            
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Terminal</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="etapa-pre etapa-pre-codigo"><code>UA='mba-mackenzie-aula03-coletor/0.1 (+https://github.com/&lt;org&gt;/&lt;repo&gt;)'
+curl -s -A "$UA" https://books.toscrape.com/ -o tests/fixtures/inicio.html; sleep 1
+curl -s -A "$UA" https://books.toscrape.com/catalogue/category/books/mystery_3/index.html -o tests/fixtures/categoria_mystery_p1.html; sleep 1
+curl -s -A "$UA" https://books.toscrape.com/catalogue/sharp-objects_997/index.html -o tests/fixtures/detalhe_sharp_objects.html</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E11 · Testes primeiro -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="11">
+        <div>
+          <span class="deck-kicker">Etapa 11 &middot; Testes primeiro</span>
+          <h2 class="deck-title">Testes vermelhos a partir dos critérios</h2>
+          <p class="deck-summary">Os critérios Dado, Quando, Então viram cenários Gherkin e testes pytest. Todos falham pelo motivo certo antes de existir código.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>features/*.feature</code>, <code>tests/test_*.py</code> e <code>tests/fixtures/</code></p></div>
+            
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Há um cenário para cada critério de aceite?</li><li>Os testes falham pelo motivo certo?</li><li>Algum teste depende da ordem de execução?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é engenheiro de testes. Escreve os testes antes do código, a partir
+dos critérios Dado / Quando / Então.
+
+<span class="k">[R] Pedido</span>
+1. features/: um .feature em Gherkin por módulo (coleta, gravação,
+   extração, execução), copiando os critérios dos RF e RNF, com a tag
+   @RF-xx ou @RNF-xx em cada cenário.
+2. tests/: um teste pytest por cenário, com o mesmo nome do cenário em
+   snake_case e um comentário com o ID. Use as fixtures de
+   tests/fixtures/ e servidor HTTP simulado (função get injetada).
+3. Rode pytest -q e mostre que todos falham por falta de implementação
+   (ImportError ou NotImplementedError), e não por erro no teste.
+
+<span class="k">[E] Exemplos</span>
+@RF-08
+Cenário: extrai UPC e estoque da página de detalhe
+  Dado a página de detalhe do livro Sharp Objects
+  Quando o extrator processa os bytes da página
+  Então o upc é "e00eb4fd7b871a48"
+  E o preco_gbp é 47.82
+  E a qtd_estoque é 20
+
+<span class="k">[A] Ajustes</span>
+- Nenhum teste acessa a rede.
+- Testes de gravação marcados com @pytest.mark.minio e bucket teste.
+- Não implemente nada em src/ além de assinaturas que levantam
+  NotImplementedError.
+
+<span class="k">[T] Tipo de saída</span>
+features/, tests/ e a saída do pytest -q.
+
+<span class="k">[E] Extras</span>
+Leia specs/ e docs/modelagem/. Registre o prompt e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E12-15 · PROMPT DE CÓDIGO -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="12">
+        <div>
+          <span class="deck-kicker">Etapas 12 a 15 &middot; Código</span>
+          <h2 class="deck-title">Um prompt, quatro rodadas de tarefas</h2>
+          <p class="deck-summary">O mesmo prompt serve às quatro etapas de código; muda só o intervalo de tarefas. Os testes da Etapa 11 são o contrato: o agente não pode alterá-los para passar.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Rodadas</span>
+              <ol class="etapa-rodadas">
+                <li><strong>12</strong> configuração e cliente HTTP</li>
+                <li><strong>13</strong> gravador no MinIO e manifesto</li>
+                <li><strong>14</strong> coletores da PTAX e do catálogo</li>
+                <li><strong>15</strong> extrator e linha de comando</li>
+              </ol>
+            </div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>O teste estava vermelho antes do código?</li><li>O diff mexe só nos arquivos da tarefa?</li><li>Existe <code>requests.get</code> sem timeout?</li><li>Algum segredo ou URL do Railway no código?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é engenheiro de dados Python. Implementa as tarefas indicadas de
+specs/tasks.md, uma por vez, com os testes da Etapa 11 como contrato.
+
+<span class="k">[R] Pedido</span>
+Implemente as tarefas T-__ a T-__ (Etapa __ · &lt;tema&gt;). Para cada uma:
+mostre o plano, rode o teste dela (vermelho), implemente o mínimo, rode
+pytest -q (verde), marque a tarefa em specs/tasks.md com o comando de
+verificação e só então passe para a próxima.
+
+<span class="k">[E] Exemplos</span>
+Saída esperada por tarefa:
+T-02 · verde · pytest tests/test_http.py -q · 4 passed · src/http.py
+
+<span class="k">[A] Ajustes</span>
+- Não altere testes para fazê-los passar. Se o teste estiver errado,
+  pare e explique.
+- Configuração só pelo .env (python-dotenv). Nenhum segredo em código,
+  teste, log, manifesto ou metadado.
+- Toda requisição com timeout. Retry só para transitórios, com limite.
+- Bytes ao parser e bytes ao MinIO.
+- Siga os nomes de docs/modelagem/estatica/classes.md.
+
+<span class="k">[T] Tipo de saída</span>
+Código em src/, saída do pytest e resumo de até dez linhas.
+
+<span class="k">[E] Extras</span>
+Leia AGENTS.md, specs/ e docs/adr/. Comandos só os permitidos.
+Registre o prompt e pare ao fim das tarefas indicadas.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E12 · Configuração e cliente HTTP -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="12">
+        <div>
+          <span class="deck-kicker">Etapa 12 &middot; Configuração e cliente HTTP</span>
+          <h2 class="deck-title">O cliente que toda coleta usa</h2>
+          <p class="deck-summary">Timeout em toda chamada, repetição só do transitório, full jitter e <code>Retry-After</code>. É a teoria do bloco 1 em vinte linhas.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item "><span class="etapa-rotulo">Tarefas</span><ul><li><code>Config</code> lê o <code>.env</code> e recusa intervalo abaixo do mínimo</li><li><code>ClienteHttp.get</code> devolve bytes e a lista de tentativas</li><li>Servidor simulado: 429 com <code>Retry-After: 2</code>, depois 200</li></ul></div><div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><p><code>pytest tests/test_http.py tests/test_config.py -q</code></p></div><div class="etapa-item "><span class="etapa-rotulo">Requisitos e decisões</span><p>RNF-04 &middot; ADR-003, ADR-004</p></div>
+            
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">O núcleo que o teste espera</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="etapa-pre etapa-pre-codigo"><code>TRANSITORIOS = {408, 429}
+
+def deve_repetir(status: int | None) -&gt; bool:
+    # None = timeout ou erro de conexão
+    return status is None or status in TRANSITORIOS or status &gt;= 500
+
+def espera(tentativa: int, retry_after: float | None,
+           base: float = 1.0, teto: float = 30.0) -&gt; float:
+    if retry_after is not None:          # o servidor manda
+        return retry_after
+    return random.uniform(0, min(teto, base * 2 ** tentativa))
+
+resp = sessao.get(url, timeout=(cfg.timeout_connect, cfg.timeout_read),
+                  headers={"User-Agent": cfg.user_agent})
+time.sleep(cfg.intervalo)                # coleta educada, sem threads</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E13 · Gravador e manifesto -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="13">
+        <div>
+          <span class="deck-kicker">Etapa 13 &middot; Gravador e manifesto</span>
+          <h2 class="deck-title">Gravador no MinIO e manifesto</h2>
+          <p class="deck-summary">Chave determinística, bytes originais e metadados ASCII. O <code>boto3</code> recusa acento em metadado com <code>ParamValidationError</code>.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item "><span class="etapa-rotulo">Tarefas</span><ul><li>Chave derivada de fonte, data e página</li><li>SHA-256 do corpo nos metadados e no manifesto</li><li>Retry do <code>put_object</code> na mesma chave depois de 502</li></ul></div><div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><p><code>pytest -m minio -q</code> e <code>mc ls local/teste</code></p></div><div class="etapa-item "><span class="etapa-rotulo">Requisitos e decisões</span><p>RF de gravação &middot; ADR-002, ADR-006</p></div>
+            
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">O núcleo que o teste espera</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="etapa-pre etapa-pre-codigo"><code>def chave_pagina(data_ref: date, categoria: str, pagina: int) -&gt; str:
+    return (f"books_toscrape/data={data_ref:%Y-%m-%d}/"
+            f"categoria={categoria}/pagina={pagina:03d}.html")
+
+corpo = resp.content                     # bytes, nunca resp.text
+s3.put_object(
+    Bucket=cfg.bucket_raw, Key=chave, Body=corpo,
+    ContentType="text/html; charset=utf-8",
+    Metadata={                           # só ASCII
+        "fonte-url": url,
+        "coletado-em": agora_utc.isoformat(),
+        "sha256": hashlib.sha256(corpo).hexdigest(),
+        "execucao": id_execucao,
+    },
+)</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E14 · Coletores -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="14">
+        <div>
+          <span class="deck-kicker">Etapa 14 &middot; Coletores</span>
+          <h2 class="deck-title">Coletores da PTAX e do catálogo</h2>
+          <p class="deck-summary">Os dois coletores gravam o bruto antes de qualquer interpretação. Datas da PTAX em <code>MM-DD-AAAA</code>; em ISO, a API devolve 200 com lista vazia.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item "><span class="etapa-rotulo">Tarefas</span><ul><li><code>robots.txt</code> consultado e registrado (hoje, 404)</li><li>Categorias, <code>li.next</code> com <code>urljoin</code> e detalhes</li><li><code>SCRAPER_CATEGORIAS</code> restringe a coleta no desenvolvimento</li></ul></div><div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><p><code>pytest tests/test_coletores.py -q</code></p></div><div class="etapa-item "><span class="etapa-rotulo">Requisitos e decisões</span><p>RF de coleta &middot; ADR-005, ADR-007</p></div>
+            
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">O núcleo que o teste espera</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="etapa-pre etapa-pre-codigo"><code># PTAX: janela que alcança o último Fechamento (RN-02, ADR-007)
+ini = data_ref - timedelta(days=cfg.ptax_janela_dias)
+url = (f"{base}/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,"
+       f"dataFinalCotacao=@dataFinalCotacao)?@moeda='GBP'"
+       f"&amp;@dataInicial='{ini:%m-%d-%Y}'&amp;@dataFinalCotacao='{data_ref:%m-%d-%Y}'"
+       f"&amp;$format=json")
+fechamentos = [c for c in valores if c["tipoBoletim"] == "Fechamento"]
+if not fechamentos:
+    manifesto.falha(url, "janela sem Fechamento")
+
+# Catálogo: paginação pelo link, sem número fixo de páginas
+sopa = BeautifulSoup(resp.content, "html.parser")
+prox = sopa.select_one("li.next &gt; a")
+url = urljoin(url, prox["href"]) if prox else None</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E15 · Extrator e linha de comando -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="15">
+        <div>
+          <span class="deck-kicker">Etapa 15 &middot; Extrator e linha de comando</span>
+          <h2 class="deck-title">Extrator e linha de comando</h2>
+          <p class="deck-summary">O extrator lê só do MinIO e falha de forma visível quando a contagem não bate com o total que a página declara.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item "><span class="etapa-rotulo">Tarefas</span><ul><li><code>livros.jsonl</code> com os nove campos do contrato</li><li><code>cotacoes.jsonl</code> com os cinco campos da PTAX</li><li>Dois comandos: coletar e extrair, cada um com <code>--data</code></li></ul></div><div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><p><code>pytest -q</code> inteiro verde</p></div><div class="etapa-item "><span class="etapa-rotulo">Requisitos e decisões</span><p>RF de extração &middot; ADR-001</p></div>
+            
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">O núcleo que o teste espera</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="etapa-pre etapa-pre-codigo"><code>inicio = BeautifulSoup(ler_raw(chave_inicio), "html.parser")
+declarado = int(inicio.select_one("form.form-horizontal strong").text)
+
+linhas = [extrair_detalhe(ler_raw(k)) for k in chaves_detalhe(data_ref)]
+if len(linhas) != declarado:             # RN da execução incompleta
+    raise ExtracaoIncompleta(f"{len(linhas)} de {declarado}")
+
+gravar_jsonl("bronze", f"books_toscrape/data={data_ref:%Y-%m-%d}/livros.jsonl",
+             linhas)
+
+# python -m src.coletar --data 2026-10-24
+# python -m src.extrair --data 2026-10-24</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E16 · Execução local -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="16">
+        <div>
+          <span class="deck-kicker">Etapa 16 &middot; Execução local</span>
+          <h2 class="deck-title">Execução local e reexecução</h2>
+          <p class="deck-summary">Primeiro duas categorias, depois, com autorização, a coleta completa de cerca de 18 minutos. A reexecução é o teste da chave determinística.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Checklist</span><ul><li>linhas de <code>livros.jsonl</code> = total declarado = número de <code>detalhe.html</code></li><li>todo registro com <code>upc</code> e <code>qtd_estoque</code> inteiro</li><li>PTAX com ao menos um <code>Fechamento</code> na janela</li><li>reexecução: mesma contagem e um manifesto a mais</li><li><code>git status</code> sem <code>.env</code></li></ul></div>
+            
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Terminal</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="etapa-pre etapa-pre-codigo"><code>SCRAPER_CATEGORIAS=mystery_3,poetry_23 python -m src.coletar --data 2026-10-24
+python -m src.extrair --data 2026-10-24
+docker compose exec minio mc ls --recursive local/raw/books_toscrape/data=2026-10-24/ | wc -l
+docker compose exec minio mc cat local/bronze/books_toscrape/data=2026-10-24/livros.jsonl | wc -l
+docker compose exec minio mc ls local/raw/manifestos/data=2026-10-24/
+# reexecute a coleta: a contagem de páginas fica igual e surge um manifesto a mais</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E17 · Validação -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="17">
+        <div>
+          <span class="deck-kicker">Etapa 17 &middot; Validação</span>
+          <h2 class="deck-title">ATAM, rastreabilidade e cobertura</h2>
+          <p class="deck-summary">A utility tree começa nos direcionadores da Etapa 02. A matriz de rastreabilidade é derivada dos arquivos, e a cobertura vem do comando, sem arredondar.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/atam.md</code> e <code>docs/rastreabilidade.md</code></p></div>
+            <div class="etapa-item "><span class="etapa-rotulo">Ir além</span><p>Como no passo 6 do cinesenac: workflow no GitHub Actions com o MinIO como service container, rodando <code>pytest -q</code> a cada push.</p></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Os sete cenários têm as seis partes?</li><li>A matriz tem linha vazia?</li><li>A cobertura veio do comando ou foi digitada?</li></ul></div>
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Prompt CREATE</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é facilitador de ATAM. Procura riscos; não elogia a arquitetura.
+
+<span class="k">[R] Pedido</span>
+1. docs/atam.md: drivers (DN-xx), utility tree com prioridade de
+   importância e de dificuldade, cenários de qualidade com as seis
+   partes, riscos, não riscos, pontos de sensibilidade e trade-offs.
+   Cenários obrigatórios: site muda o HTML; PTAX sem cotação na data;
+   429 ou timeout; reexecução no mesmo dia; configuração agressiva
+   (intervalo zero ou paralelismo); custo de cerca de 1.000 detalhes
+   por execução; 502 do Railway ao gravar.
+2. docs/rastreabilidade.md: matriz P → DN → OBJ → RN → RF → RNF → ADR →
+   tarefa → teste → evidência (comando, objeto ou campo do manifesto).
+3. Cobertura: rode pytest --cov=src e anote o número medido, sem
+   arredondar.
+
+<span class="k">[E] Exemplos</span>
+| Parte | C3 · 502 ao gravar no MinIO do Railway |
+| Fonte | proxy do Railway |
+| Estímulo | PutObject recebe 502 (taxa: hipótese) |
+| Artefato | GravadorS3 |
+| Ambiente | execução diária, MinIO no Railway |
+| Resposta | repete com backoff e jitter na mesma chave |
+| Medida | 0 objetos duplicados; tentativas no manifesto |
+
+<span class="k">[A] Ajustes</span>
+- Medida sem evidência recebe "evidência pendente".
+- Não altere código nem specs; divergência vira risco.
+- A matriz é derivada dos arquivos, não digitada de memória.
+
+<span class="k">[T] Tipo de saída</span>
+Dois arquivos Markdown com tabelas.
+
+<span class="k">[E] Extras</span>
+Leia tudo em docs/, specs/, src/, tests/ e o último manifesto local.
+Registre o prompt, liste as três ações mais urgentes e pare.</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E18 · Railway -->
+    <div class="slide">
+      <div class="deck-shell is-dense etapa-shell" data-etapa="18">
+        <div>
+          <span class="deck-kicker">Etapa 18 &middot; Railway</span>
+          <h2 class="deck-title">Mesmo código, outro endpoint</h2>
+          <p class="deck-summary">Só o <code>.env.railway</code> muda. O proxy do Railway pode devolver 502: procure no manifesto gravações com mais de uma tentativa.</p>
+        </div>
+        <div class="etapa-grid">
+          <div class="etapa-lado">
+            <div class="etapa-item "><span class="etapa-rotulo">Entregável</span><p>Pasta <code>aula_03_api_scraping/</code> com <code>docs/</code> (prompts, persona, objetivos, regras, modelagem, arquitetura, sete ADRs, ATAM, rastreabilidade), <code>specs/</code> (RF, RNF, modelo de dados, plan, tasks), <code>features/</code>, <code>src/</code> e <code>tests/</code> verdes.</p></div><div class="etapa-item etapa-gate"><span class="etapa-rotulo">No MinIO do Railway</span><p><code>raw/books_toscrape/</code>, <code>raw/ptax/</code>, <code>raw/manifestos/</code>, <code>bronze/books_toscrape/</code> e <code>bronze/ptax/</code> de pelo menos uma data.</p></div>
+            
+          </div>
+          <div class="etapa-prompt">
+            <span class="etapa-rotulo">Terminal</span>
+            <button class="copy-button etapa-copiar" type="button">Copiar</button>
+            <pre class="etapa-pre etapa-pre-codigo"><code>cp .env .env.railway &amp;&amp; git check-ignore .env.railway
+# S3_ENDPOINT_URL=https://&lt;dominio-gerado-pelo-railway&gt;, chaves do serviço
+docker compose exec minio mc alias set railway https://&lt;dominio&gt;
+docker compose exec minio mc mb --ignore-existing railway/raw railway/bronze
+set -a; source .env.railway; set +a
+SCRAPER_CATEGORIAS=mystery_3,poetry_23 python -m src.coletar --data 2026-10-24
+python -m src.extrair --data 2026-10-24
+docker compose exec minio mc ls --recursive railway/raw/books_toscrape/ | wc -l</code></pre>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -858,27 +2248,29 @@ docker compose exec minio mc mb --ignore-existing railway/raw railway/bronze</co
 
     <!-- 46 · FECHAMENTO -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Fechamento &middot; 12h00</span>
-          <h2 class="deck-title">O que precisa existir às 12h10</h2>
-          <p class="deck-summary">A prática tem 1h, seguida de 30 minutos de quiz. O que não couber segue durante a semana, com o material e o roteiro do laboratório.</p>
+          <h2 class="deck-title">O que existe às 12h10 e o que fica para a semana</h2>
+          <p class="deck-summary">O professor percorre as etapas ao vivo e a turma reproduz até onde der. O resto segue com o material e o roteiro do laboratório.</p>
         </div>
         <div class="deck-columns">
           <div class="deck-panel">
             <strong>Em sala, até 12h10</strong>
             <ul>
-              <li>Pasta <code>aula_03_api_scraping/</code>, MinIO local com <code>raw</code> e <code>bronze</code></li>
-              <li>Prompts 1 a 5 executados, revisados e commitados</li>
+              <li>Etapa 00: pasta e MinIO local com três buckets</li>
+              <li>Etapas 01 a 10 revisadas, da persona ao <code>tasks.md</code></li>
+              <li>Etapa 11 e o primeiro teste verde</li>
               <li>Quiz respondido e temas a retomar anotados</li>
             </ul>
           </div>
           <div class="deck-panel">
             <strong>Na semana, até a Aula 04 (31/10)</strong>
             <ul>
-              <li>Prompt 6: coletores e extrator, uma tarefa por vez, com teste verde</li>
-              <li>Coleta completa local e no MinIO do Railway</li>
-              <li>Prompt 7: ATAM com evidência e ADR-001</li>
+              <li>Etapas 12 a 15 com <code>pytest -q</code> verde</li>
+              <li>Etapa 16: coleta completa e reexecução</li>
+              <li>Etapa 17: ATAM, rastreabilidade e cobertura</li>
+              <li>Etapa 18: uma data no MinIO do Railway</li>
             </ul>
           </div>
         </div>
@@ -887,16 +2279,17 @@ docker compose exec minio mc mb --ignore-existing railway/raw railway/bronze</co
 
     <!-- 47 · ENTREGA -->
     <div class="slide">
-      <div class="deck-shell is-dense">
+      <div class="deck-shell">
         <div>
           <span class="deck-kicker">Entrega &middot; repositório do grupo</span>
-          <h2 class="deck-title">Pasta aula_03_api_scraping/</h2>
+          <h2 class="deck-title">Pasta <code>aula_03_api_scraping/</code></h2>
+          <p class="deck-summary">A correção segue <code>docs/prompts.md</code> e a matriz de rastreabilidade: cada teste leva a um requisito, e cada requisito a uma persona.</p>
         </div>
-        <div class="deck-grid">
-          <article class="deck-card"><h3>Documentos</h3><p><code>AGENTS.md</code>, persona, objetivos, <code>spec.md</code>, <code>plan.md</code>, <code>tasks.md</code>.</p></article>
-          <article class="deck-card"><h3>Código</h3><p>Coletores e extrator em <code>src/</code> rodando; <code>pytest -q</code> passando.</p></article>
-          <article class="deck-card"><h3>MinIO do Railway</h3><p><code>raw/books_toscrape/</code>, <code>raw/ptax/</code>, <code>raw/manifestos/</code>, <code>bronze/books_toscrape/</code> e <code>bronze/ptax/</code> de pelo menos uma data.</p></article>
-          <article class="deck-card"><h3>Validação</h3><p><code>docs/atam.md</code> com os sete cenários e <code>ADR-001-coleta-e-extracao-separadas.md</code>.</p></article>
+        <div class="deck-grid agenda-3 entrega-4">
+          <article class="deck-card"><h3>Contexto e requisitos</h3><p><code>docs/</code>: prompts, persona, objetivos com direcionadores, regras de negócio. <code>specs/</code>: RF, RNF, modelo de dados e DBML.</p></article>
+          <article class="deck-card"><h3>Modelagem e decisões</h3><p>Componentes, classes, sequências, estados, <code>arquitetura.md</code> e as sete ADRs em Proposta.</p></article>
+          <article class="deck-card"><h3>Código</h3><p><code>plan.md</code>, <code>tasks.md</code>, <code>features/</code>, <code>src/</code> e <code>tests/</code> com <code>pytest -q</code> verde.</p></article>
+          <article class="deck-card"><h3>Validação e Railway</h3><p><code>atam.md</code>, <code>rastreabilidade.md</code> e objetos em <code>raw/</code> e <code>bronze/</code> no MinIO do Railway.</p></article>
         </div>
       </div>
     </div>
@@ -960,6 +2353,531 @@ docker compose exec minio mc mb --ignore-existing railway/raw railway/bronze</co
     });
 
     showSlide(0);
+  </script>
+  <script>
+    /* Aula 03: animações da teoria.
+       slide-tentativas e slide-jitter (bloco 1), slide-coleta (bloco 3), slide-chave502 (bloco 5).
+       Cada animação só roda com o slide ativo; com prefers-reduced-motion, mostra o estado final. */
+    (function () {
+      const reduzir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const COR = { tinta: "#0f0f0f", mudo: "#5c5c5c", linha: "#d6d6d1", suave: "#e7e7e2", cinza: "#9a9a96", claro: "#d9d9d4", fundo: "#fafaf7", painel: "#ffffff" };
+      const num = (v, d) => v.toLocaleString("pt-BR", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 });
+      const seg = v => num(v, 1) + " s";
+      const mmss = s => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + " min " + String(s % 60).padStart(2, "0") + " s"; };
+      const el = id => document.getElementById(id);
+      const txt = (id, v) => { const e = el(id); if (e && e.textContent !== v) e.textContent = v; };
+
+      function animacao(o) {
+        const slide = el(o.slide), canvas = el(o.canvas);
+        if (!slide || !canvas) return null;
+        const ctx = canvas.getContext("2d");
+        const a = { ctx, W: 0, H: 0, sans: "sans-serif", mono: "monospace", tocando: false, ativo: false, terminou: false };
+        const play = el(o.play);
+        let raf = null, ultimo = null;
+
+        function botao() { if (play) play.textContent = a.tocando ? "Pausar" : (a.terminou ? "Repetir" : "Reproduzir"); }
+        function medir() {
+          const r = canvas.getBoundingClientRect();
+          const dpr = window.devicePixelRatio || 1;
+          a.W = r.width; a.H = r.height;
+          canvas.width = Math.round(a.W * dpr); canvas.height = Math.round(a.H * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          const cs = getComputedStyle(document.documentElement);
+          a.sans = cs.getPropertyValue("--font-sans").trim() || a.sans;
+          a.mono = cs.getPropertyValue("--font-mono").trim() || a.mono;
+        }
+        function quadro(ts) {
+          raf = null;
+          if (!a.ativo) return;
+          const dt = ultimo == null ? 0 : Math.min(0.1, (ts - ultimo) / 1000);
+          ultimo = ts;
+          if (a.tocando && o.passo(dt)) { a.tocando = false; a.terminou = true; botao(); }
+          o.desenhar(a);
+          raf = requestAnimationFrame(quadro);
+        }
+        function laco() { if (raf == null && a.ativo) { ultimo = null; raf = requestAnimationFrame(quadro); } }
+        a.reiniciar = tocar => { o.reiniciar(); a.terminou = false; a.tocando = !!tocar; botao(); laco(); };
+        a.pausar = () => { a.tocando = false; botao(); };
+        a.tocar = () => { if (a.terminou) { a.reiniciar(true); return; } a.tocando = true; botao(); laco(); };
+        a.irAoFim = () => { o.final(); a.tocando = false; a.terminou = true; botao(); };
+        if (play) play.addEventListener("click", () => { if (a.tocando) a.pausar(); else a.tocar(); });
+        new MutationObserver(() => {
+          const agora = slide.classList.contains("active");
+          if (agora && !a.ativo) {
+            a.ativo = true; medir();
+            if (reduzir) { o.reiniciar(); a.irAoFim(); } else a.reiniciar(true);
+            laco();
+          } else if (!agora && a.ativo) {
+            a.ativo = false; a.tocando = false; botao();
+          }
+        }).observe(slide, { attributes: true, attributeFilter: ["class"] });
+        window.addEventListener("resize", () => { if (a.ativo) medir(); });
+        o.reiniciar();
+        return a;
+      }
+
+      function eixo(ctx, a, x0, x1, base, tmax, passo, rotulo) {
+        ctx.strokeStyle = COR.tinta; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x0, base + 0.5); ctx.lineTo(x1, base + 0.5); ctx.stroke();
+        ctx.fillStyle = COR.mudo; ctx.font = "11px " + a.mono; ctx.textAlign = "center"; ctx.textBaseline = "top";
+        for (let s = 0; s <= tmax + 1e-9; s += passo) {
+          const x = x0 + (x1 - x0) * s / tmax;
+          ctx.beginPath(); ctx.moveTo(x + 0.5, base); ctx.lineTo(x + 0.5, base + 4); ctx.stroke();
+          ctx.fillText(rotulo(s), x, base + 5);
+        }
+        ctx.textBaseline = "alphabetic";
+      }
+
+      /* ---------- 1. Uma requisição, quatro tentativas ---------- */
+      (function () {
+        const LAT = 0.15;
+        let ev, t, total, linhas;
+        const URL = "…/sharp-objects_997/";
+        function montar() {
+          const w1 = Math.random() * 1, w2 = Math.random() * 2, w3 = 2;
+          ev = [];
+          let c = 0;
+          const tentativa = (n, dur, status, erro, espera, regra, sit) => {
+            ev.push({ tipo: "req", n, ini: c, fim: c + dur, status, erro, espera, regra, sit }); c += dur;
+            if (espera != null) { ev.push({ tipo: "espera", n, ini: c, fim: c + espera }); c += espera; }
+          };
+          tentativa(1, 20, null, "ReadTimeout", w1, "transitório: espera sorteada entre 0 e 1 s", "read timeout após 20 s");
+          tentativa(2, LAT, 503, null, w2, "transitório: espera sorteada entre 0 e 2 s", "503 do servidor");
+          tentativa(3, LAT, 429, null, w3, "Retry-After: 2 prevalece sobre o sorteio", "429 com Retry-After: 2");
+          tentativa(4, LAT, 200, null, null, "sucesso: grava os bytes no raw", "200, corpo recebido");
+          total = c;
+        }
+        function linhaManifesto(e) {
+          const st = e.status == null ? "null" : e.status;
+          const er = e.erro ? '"' + e.erro + '"' : "null";
+          const es = e.espera == null ? "null" : e.espera.toFixed(2);
+          return '{"url":"' + URL + '","tentativa":' + e.n + ',"status":' + st + ',"erro":' + er + ',"espera_s":' + es + '}';
+        }
+        function atualizarTexto() {
+          const feitas = ev.filter(e => e.tipo === "req" && e.fim <= t + 1e-9);
+          const pre = el("ten-manifesto");
+          const conteudo = feitas.map(linhaManifesto).join("\n") || "";
+          const vazio = '<span class="c"># nenhuma tentativa concluída</span>';
+          if (pre && pre.dataset.n !== String(feitas.length)) { pre.dataset.n = String(feitas.length); if (feitas.length) pre.textContent = conteudo; else pre.innerHTML = vazio; }
+          const atual = ev.find(e => t >= e.ini - 1e-9 && t < e.fim - 1e-9) || ev[ev.length - 1];
+          txt("ten-relogio", seg(t));
+          if (atual.tipo === "req") {
+            txt("ten-tentativa", atual.n + " de 4");
+            const fim = t >= atual.fim - 1e-9;
+            txt("ten-situacao", fim ? atual.sit : "aguardando resposta");
+            txt("ten-regra", fim ? atual.regra : "timeout (5, 20)");
+          } else {
+            const req = ev.find(e => e.tipo === "req" && e.n === atual.n);
+            txt("ten-tentativa", atual.n + " de 4");
+            txt("ten-situacao", "esperando " + seg(Math.max(0, atual.fim - t)));
+            txt("ten-regra", req.regra);
+          }
+        }
+        const anim = animacao({
+          slide: "slide-tentativas", canvas: "ten-canvas", play: "ten-play",
+          reiniciar() { montar(); t = 0; const p = el("ten-manifesto"); if (p) p.dataset.n = "-1"; atualizarTexto(); },
+          final() { t = total; atualizarTexto(); },
+          passo(dt) { t = Math.min(total, t + dt * (t < 20 ? 4 : 1)); atualizarTexto(); return t >= total; },
+          desenhar(a) {
+            const { ctx, W, H } = a;
+            ctx.clearRect(0, 0, W, H);
+            const x0 = 16, x1 = W - 16, X = s => x0 + (x1 - x0) * s / total;
+            const yBar = H * 0.36, hBar = Math.min(34, H * 0.2), base = yBar + hBar + 12;
+            ctx.font = "600 13px " + a.sans; ctx.textAlign = "left"; ctx.fillStyle = COR.tinta;
+            ctx.fillText("Coletor → books.toscrape.com", x0, 18);
+            ctx.font = "12px " + a.sans; ctx.fillStyle = COR.mudo; ctx.textAlign = "right";
+            ctx.fillText("tentativa em preto · espera em cinza", x1, 18);
+            ev.forEach(e => {
+              const fimVis = Math.min(e.fim, t);
+              const xa = X(e.ini), xb = X(Math.max(e.ini, e.fim));
+              ctx.strokeStyle = COR.linha; ctx.lineWidth = 1;
+              ctx.strokeRect(xa + 0.5, yBar + 0.5, Math.max(2, xb - xa), hBar);
+              if (t > e.ini) {
+                const w = Math.max(2, X(fimVis) - xa);
+                ctx.fillStyle = e.tipo === "req" ? COR.tinta : COR.claro;
+                ctx.fillRect(xa, yBar, w, hBar);
+              }
+            });
+            // rótulos: tentativa 1 dentro da barra; demais alternando acima e abaixo
+            ctx.font = "12px " + a.sans; ctx.textBaseline = "middle";
+            const reqs = ev.filter(e => e.tipo === "req");
+            reqs.forEach((e, i) => {
+              if (t < e.ini) return;
+              const fim = t >= e.fim - 1e-9;
+              const rot = "T" + e.n + (fim ? " · " + (e.status == null ? "timeout" : e.status) : "");
+              if (e.n === 1) {
+                ctx.fillStyle = COR.painel; ctx.textAlign = "left";
+                ctx.fillText(fim ? "T1 · read timeout após 20 s" : "T1 · aguardando resposta", X(0) + 8, yBar + hBar / 2);
+              } else {
+                const acima = i % 2 === 1;
+                const y = acima ? yBar - 12 : yBar + hBar + 30;
+                const xr = X(e.ini), w2 = ctx.measureText(rot).width / 2;
+                ctx.fillStyle = COR.tinta; ctx.textAlign = "center";
+                ctx.fillText(rot, Math.min(x1 - w2, Math.max(x0 + w2, xr)), y);
+                ctx.strokeStyle = COR.mudo; ctx.beginPath();
+                ctx.moveTo(X(e.ini) + 0.5, acima ? y + 7 : y - 7); ctx.lineTo(X(e.ini) + 0.5, acima ? yBar : yBar + hBar); ctx.stroke();
+              }
+            });
+            ctx.textBaseline = "alphabetic";
+            eixo(ctx, a, x0, x1, base + 26, total, total > 24 ? 4 : 2, s => s + " s");
+            const xc = X(t);
+            ctx.strokeStyle = COR.mudo; ctx.setLineDash([3, 3]);
+            ctx.beginPath(); ctx.moveTo(xc + 0.5, 28); ctx.lineTo(xc + 0.5, base + 26); ctx.stroke();
+            ctx.setLineDash([]);
+          }
+        });
+        if (!anim) return;
+        el("ten-reset").addEventListener("click", () => anim.reiniciar(true));
+        el("ten-proximo").addEventListener("click", () => {
+          const prox = ev.map(e => e.fim).concat(ev.map(e => e.ini)).filter(v => v > t + 1e-6).sort((p, q) => p - q)[0];
+          anim.pausar();
+          t = prox == null ? total : prox;
+          if (t >= total) { anim.terminou = true; }
+          atualizarTexto(); anim.pausar();
+        });
+      })();
+
+      /* ---------- 2. Cem coletores depois de um 503 ---------- */
+      (function () {
+        const N = 100, CAP = 10, BINS = 160, TMAX = 16, ESC = 30;
+        let sem, com, t, rapido = false, mediaCom;
+        function sortear() {
+          sem = []; com = [];
+          for (let i = 0; i < N; i++) {
+            sem.push([1, 3, 7, 15]);
+            let acc = 0; const e = [];
+            for (let k = 0; k < 4; k++) { acc += Math.random() * Math.pow(2, k); e.push(acc); }
+            com.push(e);
+          }
+          mediaCom = com.reduce((s, e) => s + e[3], 0) / N;
+        }
+        function contar(lista) {
+          const b = new Array(BINS).fill(0); let n = 0;
+          lista.forEach(e => e.forEach(x => { if (x <= t + 1e-9) { b[Math.min(BINS - 1, Math.floor(x * 10 + 1e-9))]++; n++; } }));
+          let pico = 0, exc = 0;
+          b.forEach(v => { if (v > pico) pico = v; if (v > CAP) exc += v - CAP; });
+          return { b, n, pico, exc };
+        }
+        function texto(cs, cc) {
+          txt("jit-relogio", seg(t));
+          txt("jit-n-sem", num(cs.n)); txt("jit-n-com", num(cc.n));
+          txt("jit-pico-sem", num(cs.pico)); txt("jit-pico-com", num(cc.pico));
+          txt("jit-exc-sem", num(cs.exc)); txt("jit-exc-com", num(cc.exc));
+          txt("jit-media-sem", seg(15)); txt("jit-media-com", seg(mediaCom));
+        }
+        function faixa(a, top, h, lista, c, titulo) {
+          const { ctx, W } = a;
+          const x0 = Math.min(176, W * 0.17), x1 = W - 14;
+          const X = s => x0 + (x1 - x0) * s / TMAX;
+          ctx.fillStyle = COR.tinta; ctx.font = "600 13px " + a.sans; ctx.textAlign = "left";
+          ctx.fillText(titulo, 8, top + 16);
+          // servidor: chegadas na janela de 100 ms atual
+          const k = Math.min(BINS - 1, Math.floor(t * 10 + 1e-9));
+          const atual = c.b[k] || 0;
+          const bx = 8, by = top + 26, bw = x0 - 22, bh = h - 50;
+          ctx.fillStyle = atual > CAP ? COR.tinta : COR.painel; ctx.strokeStyle = COR.tinta; ctx.lineWidth = 1.5;
+          ctx.fillRect(bx, by, bw, bh); ctx.strokeRect(bx + 0.5, by + 0.5, bw, bh);
+          ctx.fillStyle = atual > CAP ? COR.painel : COR.tinta; ctx.textAlign = "center";
+          ctx.font = "600 12px " + a.sans; ctx.fillText("servidor", bx + bw / 2, by + bh / 2 - 6);
+          ctx.font = "12px " + a.mono; ctx.fillText(atual + " / 100 ms", bx + bw / 2, by + bh / 2 + 12);
+          // clientes aguardando a próxima tentativa
+          const dTop = top + 24, dH = h * 0.3;
+          ctx.fillStyle = COR.mudo; ctx.font = "11px " + a.sans; ctx.textAlign = "right";
+          ctx.fillText("próxima tentativa de cada cliente", x1, top + 16);
+          for (let i = 0; i < N; i++) {
+            const prox = lista[i].find(x => x > t + 1e-9);
+            if (prox === undefined) continue;
+            const x = X(prox) + ((i * 7) % 5 - 2) * 0.8, y = dTop + (i % 20) / 19 * dH;
+            ctx.fillStyle = COR.cinza; ctx.beginPath(); ctx.arc(x, y, 2.3, 0, Math.PI * 2); ctx.fill();
+          }
+          // histograma de chegadas
+          const base = top + h - 16, hh = h * 0.4, larg = (x1 - x0) / BINS;
+          for (let j = 0; j < BINS; j++) {
+            const v = c.b[j]; if (!v) continue;
+            const alt = Math.min(v, ESC) / ESC * hh;
+            ctx.fillStyle = v > CAP ? COR.tinta : COR.cinza;
+            ctx.fillRect(X(j / 10) + 0.5, base - alt, Math.max(1.5, larg - 1), alt);
+            if (v > ESC) {
+              ctx.fillStyle = COR.tinta; ctx.font = "600 11px " + a.mono; ctx.textAlign = "left";
+              ctx.fillText(String(v), X(j / 10) + larg + 3, base - hh + 10);
+            }
+          }
+          const yCap = base - CAP / ESC * hh;
+          ctx.strokeStyle = COR.mudo; ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(x0, yCap + 0.5); ctx.lineTo(x1, yCap + 0.5); ctx.stroke(); ctx.setLineDash([]);
+          ctx.fillStyle = COR.mudo; ctx.font = "11px " + a.sans; ctx.textAlign = "right";
+          ctx.fillText("capacidade (hipótese): 10 por 100 ms", x1, yCap - 4);
+          eixo(ctx, a, x0, x1, base, TMAX, 2, s => s + " s");
+          const xc = X(Math.min(t, TMAX));
+          ctx.strokeStyle = COR.tinta; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(xc + 0.5, dTop - 4); ctx.lineTo(xc + 0.5, base); ctx.stroke();
+        }
+        const anim = animacao({
+          slide: "slide-jitter", canvas: "jit-canvas", play: "jit-play",
+          reiniciar() { sortear(); t = 0; texto(contar(sem), contar(com)); },
+          final() { t = TMAX; texto(contar(sem), contar(com)); },
+          passo(dt) { t = Math.min(TMAX, t + dt * (rapido ? 2 : 1 / 1.5)); return t >= TMAX; },
+          desenhar(a) {
+            const { ctx, W, H } = a;
+            ctx.clearRect(0, 0, W, H);
+            const cs = contar(sem), cc = contar(com);
+            const lh = H / 2;
+            faixa(a, 0, lh - 4, sem, cs, "Backoff sem jitter");
+            ctx.strokeStyle = COR.linha; ctx.beginPath(); ctx.moveTo(0, lh + 0.5); ctx.lineTo(W, lh + 0.5); ctx.stroke();
+            faixa(a, lh + 4, lh - 4, com, cc, "Backoff com full jitter");
+            texto(cs, cc);
+          }
+        });
+        if (!anim) return;
+        el("jit-sortear").addEventListener("click", () => anim.reiniciar(true));
+        el("jit-rapido").addEventListener("click", ev => {
+          rapido = !rapido;
+          ev.currentTarget.setAttribute("aria-pressed", String(rapido));
+          txt("jit-speed", rapido ? "1 s simulado = 0,5 s" : "1 s simulado = 1,5 s");
+        });
+      })();
+
+      /* ---------- 3. A coleta educada em tempo acelerado ---------- */
+      (function () {
+        const MED = 0.15, SIGMA = Math.log(0.33 / 0.15) / 1.645, PAUSA = 1, TAXA = 52, THREADS = 10;
+        let reqs, t, modo = "seq", total;
+        const latencia = () => {
+          const u1 = Math.random() || 1e-9, u2 = Math.random();
+          const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+          return Math.min(9.9, MED * Math.exp(SIGMA * z));
+        };
+        function montar() {
+          reqs = [{ tipo: "inicio", idx: 0 }];
+          for (let p = 0; p < 80; p++) {
+            reqs.push({ tipo: "pagina", idx: p });
+            const d0 = Math.floor(p * 1000 / 80), d1 = Math.floor((p + 1) * 1000 / 80);
+            for (let d = d0; d < d1; d++) reqs.push({ tipo: "detalhe", idx: d });
+          }
+          reqs.forEach(r => { r.lat = latencia(); });
+          if (modo === "seq") {
+            let c = 0;
+            reqs.forEach((r, i) => { if (i > 0) c += PAUSA; r.ini = c; r.fim = c + r.lat; c = r.fim; });
+          } else {
+            const livre = new Array(THREADS).fill(0);
+            reqs.forEach(r => {
+              let k = 0; for (let j = 1; j < THREADS; j++) if (livre[j] < livre[k]) k = j;
+              r.ini = livre[k]; r.fim = r.ini + r.lat; livre[k] = r.fim;
+            });
+          }
+          total = Math.max(...reqs.map(r => r.fim));
+        }
+        function texto() {
+          let feitas = 0, voo = 0, rec = 0, pausa = 0;
+          const jan = Math.min(10, Math.max(t, 1e-9));
+          reqs.forEach((r, i) => {
+            if (r.fim <= t) feitas++;
+            else if (r.ini <= t) voo++;
+            if (r.ini <= t && r.ini > t - 10) rec++;
+            if (modo === "seq" && i > 0) { const pi = reqs[i - 1].fim, pf = r.ini; if (t > pi) pausa += Math.min(t, pf) - pi; }
+          });
+          const rps = t < 0.5 ? 0 : rec / jan;
+          txt("col-req", num(feitas) + " / 1.081");
+          txt("col-tempo", mmss(t));
+          txt("col-pausa", mmss(pausa));
+          txt("col-sim", num(voo));
+          txt("col-rps", num(rps, 1));
+          txt("col-total", t >= total ? mmss(total) : "–");
+          const barra = el("col-barra"); if (barra) barra.style.width = Math.min(100, rps / 70 * 100) + "%";
+        }
+        function linha(a, y, h, rotulo, n, cor) {
+          const { ctx, W } = a;
+          const lx = Math.min(210, W * 0.22), x1 = W - 12, w = (x1 - lx) / n;
+          ctx.fillStyle = COR.tinta; ctx.font = "12px " + a.sans; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+          ctx.fillText(rotulo, 10, y + h / 2); ctx.textBaseline = "alphabetic";
+          for (let i = 0; i < n; i++) {
+            const c = cor(i);
+            ctx.fillStyle = c; ctx.fillRect(lx + i * w + 0.5, y, Math.max(1, w - 1.5), h);
+            if (c === COR.painel) { ctx.strokeStyle = COR.linha; ctx.strokeRect(lx + i * w + 0.5, y + 0.5, Math.max(1, w - 1.5), h - 1); }
+          }
+          return { lx, x1 };
+        }
+        const estado = r => r.fim <= t ? COR.tinta : (r.ini <= t ? COR.cinza : COR.painel);
+        const anim = animacao({
+          slide: "slide-coleta", canvas: "col-canvas", play: "col-play",
+          reiniciar() { montar(); t = 0; texto(); },
+          final() { t = total; texto(); },
+          passo(dt) { t = Math.min(total, t + dt * TAXA); texto(); return t >= total; },
+          desenhar(a) {
+            const { ctx, W, H } = a;
+            ctx.clearRect(0, 0, W, H);
+            const porTipo = { pagina: [], detalhe: [] };
+            reqs.forEach(r => { if (r.tipo !== "inicio") porTipo[r.tipo][r.idx] = r; });
+            const inicio = reqs[0];
+            const hL = Math.max(10, Math.min(18, H * 0.07)), g = Math.max(8, H * 0.04);
+            let y = 10;
+            const lI = linha(a, y, hL, "Página inicial · 1", 1, () => estado(inicio));
+            y += hL + g;
+            linha(a, y, hL, "Categorias · 50 (links da inicial)", 50, () => inicio.fim <= t ? COR.cinza : COR.painel);
+            y += hL + g;
+            linha(a, y, hL, "Páginas de categoria · 80", 80, i => estado(porTipo.pagina[i]));
+            y += hL + g;
+            const lx = lI.lx, x1 = lI.x1, rows = 10, cols = 100;
+            const gh = H - y - 8, ch = gh / rows, cw = (x1 - lx) / cols;
+            ctx.fillStyle = COR.tinta; ctx.font = "12px " + a.sans; ctx.textAlign = "left"; ctx.textBaseline = "middle";
+            ctx.fillText("Detalhes · 1.000", 10, y + gh / 2); ctx.textBaseline = "alphabetic";
+            for (let d = 0; d < 1000; d++) {
+              const c = estado(porTipo.detalhe[d]);
+              const cx = lx + (d % cols) * cw, cy = y + Math.floor(d / cols) * ch;
+              if (c === COR.painel) { ctx.strokeStyle = COR.suave; ctx.strokeRect(cx + 0.5, cy + 0.5, Math.max(1, cw - 1.5), Math.max(1, ch - 1.5)); }
+              else { ctx.fillStyle = c; ctx.fillRect(cx + 0.5, cy + 0.5, Math.max(1, cw - 1), Math.max(1, ch - 1)); }
+            }
+          }
+        });
+        if (!anim) return;
+        el("col-reset").addEventListener("click", () => anim.reiniciar(true));
+        const trocar = m => {
+          modo = m;
+          el("col-seq").setAttribute("aria-pressed", String(m === "seq"));
+          el("col-par").setAttribute("aria-pressed", String(m === "par"));
+          if (reduzir) { anim.reiniciar(false); anim.irAoFim(); } else anim.reiniciar(true);
+        };
+        el("col-seq").addEventListener("click", () => trocar("seq"));
+        el("col-par").addEventListener("click", () => trocar("par"));
+      })();
+
+      /* ---------- 4. Retry no 502: chave fixa contra chave com horário ---------- */
+      (function () {
+        const POR_EXEC = 1083, FALHAS = 11, COLS = 80, LINS = 28, PAUSA_REAL = 1.2;
+        let eventos, pos, det, ts, regrav, n502, puts, flash, espera, rapido = false, execAtual, acc, pausou, inicio2;
+        function montar() {
+          eventos = [];
+          for (let e = 1; e <= 2; e++) {
+            const falha = new Set();
+            while (falha.size < FALHAS) falha.add(Math.floor(Math.random() * POR_EXEC));
+            for (let i = 0; i < POR_EXEC; i++) {
+              eventos.push({ e, i, retry: false, f: falha.has(i) });
+              if (falha.has(i)) eventos.push({ e, i, retry: true, f: false });
+            }
+          }
+        }
+        function aplicar(ev) {
+          puts++;
+          if (det[ev.i]) regrav++;
+          det[ev.i] = ev.retry ? 3 : ev.e;
+          ts.push(ev.retry ? "copia" : (ev.e === 1 ? "e1" : "e2"));
+          if (ev.f) { n502++; flash = 0.45; }
+          execAtual = ev.e;
+        }
+        function texto() {
+          const objDet = det.reduce((s, v) => s + (v ? 1 : 0), 0);
+          txt("ch5-obj-det", num(objDet));
+          txt("ch5-obj-ts", num(ts.length));
+          txt("ch5-reg-det", num(regrav));
+          txt("ch5-extra-ts", num(ts.length - objDet));
+          txt("ch5-exec", execAtual + " de 2");
+          txt("ch5-put", num(puts));
+          txt("ch5-502", num(n502));
+        }
+        function grade(a, x, y, w, h, n, cor) {
+          const { ctx } = a;
+          const cw = w / COLS, ch = h / LINS;
+          ctx.strokeStyle = COR.linha; ctx.strokeRect(x - 2.5, y - 2.5, w + 4, h + 4);
+          for (let k = 0; k < n; k++) {
+            const c = cor(k); if (!c) continue;
+            ctx.fillStyle = c;
+            ctx.fillRect(x + (k % COLS) * cw, y + Math.floor(k / COLS) * ch, Math.max(1, cw - 1), Math.max(1, ch - 1));
+          }
+        }
+        const anim = animacao({
+          slide: "slide-chave502", canvas: "ch5-canvas", play: "ch5-play",
+          reiniciar() { montar(); inicio2 = eventos.findIndex(v => v.e === 2); acc = 0; pausou = false; pos = 0; det = new Array(POR_EXEC).fill(0); ts = []; regrav = 0; n502 = 0; puts = 0; flash = 0; espera = 0; execAtual = 1; texto(); },
+          final() { pausou = true; while (pos < eventos.length) aplicar(eventos[pos++]); flash = 0; texto(); },
+          passo(dt) {
+            flash = Math.max(0, flash - dt);
+            if (espera > 0) { espera -= dt; return false; }
+            acc += dt * (rapido ? 350 : 70);
+            while (acc >= 1 && pos < eventos.length) {
+              if (pos === inicio2 && !pausou) { pausou = true; espera = PAUSA_REAL; execAtual = 2; acc = 0; break; }
+              aplicar(eventos[pos++]); acc--;
+            }
+            texto();
+            return pos >= eventos.length && flash <= 0;
+          },
+          desenhar(a) {
+            const { ctx, W, H } = a;
+            ctx.clearRect(0, 0, W, H);
+            const pw = W * 0.4, gx1 = 10, gx2 = W - 10 - pw, gy = 46, gh = H - gy - 30;
+            ctx.textAlign = "left"; ctx.fillStyle = COR.tinta; ctx.font = "600 13px " + a.sans;
+            ctx.fillText("Chave determinística", gx1, 18);
+            ctx.fillText("Chave com horário", gx2, 18);
+            ctx.font = "11px " + a.mono; ctx.fillStyle = COR.mudo;
+            ctx.fillText(".../pagina=001.html", gx1, 34);
+            ctx.fillText(".../pagina=001_20261024T091503.html", gx2, 34);
+            grade(a, gx1, gy, pw, gh, POR_EXEC, k => det[k] === 3 ? COR.tinta : (det[k] === 2 ? COR.claro : (det[k] === 1 ? COR.cinza : null)));
+            grade(a, gx2, gy, pw, gh, ts.length, k => ts[k] === "copia" ? COR.tinta : (ts[k] === "e1" ? COR.cinza : COR.claro));
+            ctx.font = "11px " + a.sans; ctx.fillStyle = COR.mudo;
+            ctx.fillText("1.083 chaves, reescritas no lugar", gx1, H - 10);
+            ctx.textAlign = "right";
+            ctx.fillText("capacidade do quadro: 2.240 objetos", gx2 + pw, H - 10);
+            // proxy no meio
+            const mx = W / 2, bw = Math.min(110, W * 0.12), bh = 54, by = gy + gh / 2 - bh / 2;
+            const ativo = flash > 0;
+            ctx.fillStyle = ativo ? COR.tinta : COR.painel; ctx.strokeStyle = COR.tinta; ctx.lineWidth = 1.5;
+            ctx.fillRect(mx - bw / 2, by, bw, bh); ctx.strokeRect(mx - bw / 2 + 0.5, by + 0.5, bw, bh);
+            ctx.textAlign = "center"; ctx.fillStyle = ativo ? COR.painel : COR.tinta;
+            ctx.font = "600 12px " + a.sans; ctx.fillText("proxy", mx, by + 20);
+            ctx.font = "600 13px " + a.mono; ctx.fillText(ativo ? "502" : "PUT ok", mx, by + 40);
+            ctx.fillStyle = COR.mudo; ctx.font = "11px " + a.sans;
+            ctx.fillText(espera > 0 ? "início da execução 2" : "execução " + execAtual, mx, by - 10);
+            ctx.lineWidth = 1;
+          }
+        });
+        if (!anim) return;
+        el("ch5-reset").addEventListener("click", () => anim.reiniciar(true));
+        el("ch5-rapido").addEventListener("click", ev => {
+          rapido = !rapido;
+          ev.currentTarget.setAttribute("aria-pressed", String(rapido));
+        });
+      })();
+    })();
+  </script>
+  <script>
+    /* Construção em etapas: trilha de progresso (00 a 18) e botão de copiar o prompt. */
+    (function () {
+      const TOTAL = 19;
+      document.querySelectorAll(".etapa-shell[data-etapa]").forEach(shell => {
+        const atual = parseInt(shell.dataset.etapa, 10);
+        const ol = document.createElement("ol");
+        ol.className = "etapa-trilha";
+        ol.setAttribute("aria-label", "Etapa " + shell.dataset.etapa + " de 18");
+        for (let i = 0; i < TOTAL; i++) {
+          const li = document.createElement("li");
+          li.textContent = String(i).padStart(2, "0");
+          if (i < atual) li.className = "is-done";
+          if (i === atual) li.className = "is-current";
+          ol.appendChild(li);
+        }
+        shell.prepend(ol);
+      });
+
+      document.querySelectorAll(".etapa-copiar").forEach(botao => {
+        botao.addEventListener("click", event => {
+          event.stopPropagation();
+          const pre = botao.parentElement.querySelector("pre");
+          const texto = pre ? pre.innerText : "";
+          const ok = () => {
+            botao.textContent = "Copiado";
+            botao.classList.add("is-ok");
+            setTimeout(() => { botao.textContent = "Copiar"; botao.classList.remove("is-ok"); }, 1600);
+          };
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(texto).then(ok, () => {});
+          } else {
+            const area = document.createElement("textarea");
+            area.value = texto;
+            document.body.appendChild(area);
+            area.select();
+            try { document.execCommand("copy"); ok(); } catch (e) { /* sem área de transferência */ }
+            area.remove();
+          }
+        });
+      });
+    })();
   </script>
 </body>
 </html>
