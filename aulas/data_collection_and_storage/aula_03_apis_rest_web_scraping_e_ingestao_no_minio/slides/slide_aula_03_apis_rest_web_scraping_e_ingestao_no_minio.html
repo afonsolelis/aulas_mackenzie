@@ -1032,12 +1032,48 @@ echo "@AGENTS.md" &gt; CLAUDE.md     # só no Claude Code</code></pre>
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/00_persona.md</code></p></div>
             
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul></ul></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Cada persona decide algo concreto?</li><li>P2 existe e sabe o que a acorda de madrugada?</li><li>Algum horário ou volume sem marcação de hipótese?</li><li>O aviso do domínio didático está no topo?</li></ul></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
-            <pre class="is-wrap etapa-pre"><code></code></pre>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é analista de produto de dados. Trabalha em aula_03_api_scraping/,
+que segue Spec-Driven Development. Nesta etapa só descreve pessoas.
+
+<span class="k">[R] Pedido</span>
+Crie docs/00_persona.md com as personas de um monitor de preços de
+livros que roda uma vez por dia: coleta por scraping os preços em libras
+de https://books.toscrape.com, coleta pela API PTAX do Banco Central a
+cotação GBP/BRL e grava no MinIO os bytes brutos (bucket raw) e os
+registros extraídos em JSON Lines (bucket bronze). A conversão para
+reais acontece na Aula 04. Para cada persona: papel, decisão que toma
+com o dado, pergunta típica, frequência, dor atual, consequência de dado
+errado ou atrasado e nível técnico.
+
+<span class="k">[E] Exemplos</span>
+## P1 · Analista de compras da livraria importadora
+- Decisão: quais títulos repor e com qual preço em reais.
+- Pergunta típica: quais livros de Mystery em estoque custam menos de
+  R$ 150 pela PTAX de fechamento mais recente?
+- Frequência: diária, antes das 10h (hipótese — validação pendente).
+
+<span class="k">[A] Ajustes</span>
+- Três personas: P1 consumidor do negócio, P2 quem opera o pipeline e é
+  acionado quando a coleta falha, P3 engenheiro de dados da Aula 04 que
+  lê o bronze.
+- Declare no topo que o domínio é didático: o site avisa que preços e
+  avaliações são aleatórios.
+- Valor sem origem neste prompt recebe "hipótese — validação pendente".
+- Só este arquivo. Nada de código.
+
+<span class="k">[T] Tipo de saída</span>
+Markdown com até 80 linhas: uma seção por persona e uma tabela
+"Fato | Lacuna | Suposição".
+
+<span class="k">[E] Extras</span>
+Leia AGENTS.md. Mostre o plano, espere meu ok, escreva, registre o
+prompt em docs/prompts.md e pare.</code></pre>
           </div>
         </div>
       </div>
@@ -1055,12 +1091,52 @@ echo "@AGENTS.md" &gt; CLAUDE.md     # só no Claude Code</code></pre>
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/01_objetivos_negocio.md</code></p></div>
             
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul></ul></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Cada OBJ tem um comando que mede?</li><li>Cada DN tem ao menos um OBJ?</li><li>O fora de escopo segura a Aula 04 fora daqui?</li></ul></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
-            <pre class="is-wrap etapa-pre"><code></code></pre>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é gerente de produto de dados. Transforma dores de persona em
+direcionadores de negócio e objetivos medíveis.
+
+<span class="k">[R] Pedido</span>
+Crie docs/01_objetivos_negocio.md com:
+1. Direcionadores de negócio (DN-01...): força, quem sente (P1, P2, P3),
+   o que acontece se nada for feito.
+2. Objetivos (OBJ-01...): cada um ligado a um DN, com métrica, forma de
+   medir com comando ou consulta e meta (ou "hipótese — validação
+   pendente").
+3. Restrições com origem.
+4. Fora de escopo.
+
+<span class="k">[E] Exemplos</span>
+## DN-01 · Margem perdida por câmbio velho
+- Quem sente: P1.
+- Sem o sistema: reprecifica com cotação sem data e vende abaixo do custo.
+## OBJ-01 · Snapshot diário completo do catálogo
+- Direcionador: DN-01.
+- Métrica: linhas de livros.jsonl iguais ao total "N results" que a
+  página inicial declara, gravado no manifesto da execução.
+- Como medir: mc cat .../livros.jsonl | wc -l contra o manifesto.
+
+<span class="k">[A] Ajustes</span>
+- Restrições "da disciplina": sem custo de API; Codespace com Docker;
+  MinIO local e MinIO no Railway (trial, 1 GB de RAM); coleta educada
+  (User-Agent identificável, intervalo, sem paralelismo, robots.txt
+  consultado); nenhum segredo versionado.
+- Fora de escopo: Parquet, DuckDB, silver/gold e conversão para reais
+  (Aula 04); agendamento em produção; painéis; dado pessoal.
+- 1.000 livros e 50 categorias são fatos de 03/10/2026, não constantes.
+- Preserve P1, P2, P3.
+
+<span class="k">[T] Tipo de saída</span>
+Markdown com até 90 linhas e as seções Direcionadores, Objetivos,
+Restrições (tabela restrição | origem), Fora de escopo e Hipóteses.
+
+<span class="k">[E] Extras</span>
+Leia AGENTS.md e docs/00_persona.md. Dor sem objetivo precisa de
+justificativa. Registre o prompt e pare.</code></pre>
           </div>
         </div>
       </div>
@@ -1078,12 +1154,49 @@ echo "@AGENTS.md" &gt; CLAUDE.md     # só no Claude Code</code></pre>
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/02_regras_de_negocio.md</code></p></div>
             
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul></ul></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>Alguma regra fala de tecnologia?</li><li>O contraexemplo da RN de cotação é plausível?</li><li>A regra da execução incompleta tem critério numérico (declarado contra extraído)?</li></ul></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
-            <pre class="is-wrap etapa-pre"><code></code></pre>
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é analista de negócio. Transforma decisões e restrições em regras
+numeradas, sem falar de tecnologia.
+
+<span class="k">[R] Pedido</span>
+Crie docs/02_regras_de_negocio.md com as regras RN-01... do monitor.
+Cada regra tem: enunciado de uma frase, origem (DN, OBJ, P ou
+restrição), exemplo concreto e contraexemplo.
+Cubra no mínimo:
+- identidade do livro (o UPC da página de detalhe);
+- cotação válida para uma data (último boletim "Fechamento" até a data,
+  com a data da cotação visível);
+- data de referência da coleta em America/Sao_Paulo;
+- coleta educada (robots.txt, User-Agent, intervalo, sequencial);
+- o bruto é gravado antes de qualquer interpretação e não é alterado;
+- reexecução no mesmo dia substitui, não duplica;
+- execução incompleta é visível (contagem extraída diferente da
+  declarada vira falha registrada).
+
+<span class="k">[E] Exemplos</span>
+## RN-02 · Cotação válida para a data D
+Enunciado: vale o último boletim Fechamento da PTAX GBP com data menor
+ou igual a D.
+Origem: DN-01, OBJ-02.
+Exemplo: coleta no sábado 24/10/2026 usa o fechamento de sexta 23/10.
+Contraexemplo: usar o boletim de Abertura de D porque saiu antes.
+
+<span class="k">[A] Ajustes</span>
+- Sem nomes de biblioteca, bucket ou função.
+- Regras atômicas: uma regra, uma decisão.
+- Preserve os IDs anteriores.
+
+<span class="k">[T] Tipo de saída</span>
+Markdown com as regras e uma tabela final RN | origem.
+
+<span class="k">[E] Extras</span>
+Leia docs/. Se duas regras conflitarem, pergunte. Registre o prompt e
+pare.</code></pre>
           </div>
         </div>
       </div>
