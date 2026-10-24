@@ -24,11 +24,17 @@ Fatos verificados em 03/10/2026: 50 categorias, 1.000 livros, 20 por página, 80
 
 ## Horário
 
-| Horário | Bloco |
+A teoria entra dentro das etapas: o prompt vai para o agente e, enquanto ele trabalha, a aula explica o que o prompt pediu. Depois o grupo volta ao artefato e faz a revisão.
+
+| Horário | Parte |
 |---|---|
-| 8h30 às 10h00 | teoria em cinco blocos |
-| 10h00 às 10h55 | Etapas 00 a 10: do ambiente ao plano |
-| 10h55 às 11h30 | Etapas 11 a 15: testes primeiro e código |
+| 8h30 às 8h45 | abertura, API e anatomia da requisição, método |
+| 8h45 às 9h20 | Etapas 00 a 03: ambiente, personas, direcionadores e regras |
+| 9h20 às 9h51 | Etapas 04 e 05: requisitos funcionais e não funcionais |
+| 9h51 às 10h35 | Etapas 06 a 08: modelo de dados e modelagens |
+| 10h35 às 10h54 | Etapas 09 a 11: ADRs, plano, tarefas e testes vermelhos |
+| 10h54 às 11h20 | Etapas 12 a 15: código |
+| 11h20 às 11h30 | Etapas 16 a 18 apresentadas e revisão dos pontos-chave |
 | 11h30 às 12h00 | quiz |
 | 12h00 às 12h10 | fechamento |
 | semana | Etapas 16 a 18: execução completa, ATAM e Railway |
