@@ -1,3 +1,10 @@
+# supabase/ — histórico
+
+As salas de quiz, TBL e entregas não usam mais o Supabase. O banco vivo é o da plataforma (repositório
+`aulas-projeto`), e as páginas falam com ela por `/_app/aulas.js` e `/mackenzie/api/`. Os arquivos desta pasta não são
+aplicados em lugar nenhum: ficam como registro do conteúdo das perguntas. Sala nova ou alterada vai para o mantenedor
+da plataforma. O texto abaixo descreve o fluxo antigo.
+
 # Quiz da Aula 05 — Data Visualization
 
 A sala usa o mesmo projeto Supabase dos quizzes de `aulas_senac`, com o slug
