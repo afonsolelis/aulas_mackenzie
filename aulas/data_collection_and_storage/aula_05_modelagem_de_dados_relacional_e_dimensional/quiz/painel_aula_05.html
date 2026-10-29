@@ -122,7 +122,7 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script src="/_app/aulas.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="../../../../assets/quiz_csv.js"></script>
   <script>
@@ -132,7 +132,7 @@
   const URL_PUBLICA = 'https://afonsolelis.github.io/aulas_mackenzie/aulas/data_collection_and_storage/aula_05_modelagem_de_dados_relacional_e_dimensional/quiz/quiz_aula_05.html';
   const CHAVE_TOKEN = 'quiz-host:' + SLUG;
 
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+  const db = aulas.cliente();
   const el = (id) => document.getElementById(id);
   const LETRAS = ['A', 'B', 'C', 'D', 'E'];
 

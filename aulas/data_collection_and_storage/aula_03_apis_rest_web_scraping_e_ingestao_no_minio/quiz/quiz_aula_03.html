@@ -102,7 +102,7 @@
     <nav class="quiz-nav" aria-label="Navegação do quiz"><a href="../../../../pages/home_data_collection.html">Disciplina</a><a href="../../../../index.html">Hub</a></nav>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script src="/_app/aulas.js"></script>
   <script>
   /* ------------------------------------------------------------------
      Configuração. A chave publicável é pública por desenho: o que ela
@@ -114,9 +114,7 @@
   const SLUG = new URLSearchParams(location.search).get('sala') || 'mack-dcs-a03-2026-2';
   const CHAVE_LOCAL = 'quiz:' + SLUG;
 
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: { persistSession: false },
-  });
+  const db = aulas.cliente();
 
   const el = (id) => document.getElementById(id);
   const LETRAS = ['A', 'B', 'C', 'D', 'E'];
@@ -137,7 +135,7 @@
      'pergunta'. O envio usa fetch com keepalive porque a página pode estar
      indo para o fundo quando ele parte; se falhar, fica guardado e é
      reenviado na volta. */
-  const RPC_URL = SUPABASE_URL + '/rest/v1/rpc/';
+  const RPC_URL = '/mackenzie/api/';
   const CHAVE_STRIKE = 'quiz-strike:' + SLUG;
   let ultimaSaida = 0;
   let travaTela = null;

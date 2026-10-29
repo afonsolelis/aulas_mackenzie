@@ -113,7 +113,7 @@
     <p class="rodape">Mackenzie &middot; Data Visualization 2026 &middot; Prof. Afonso Brandão</p>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script src="/_app/aulas.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
   const SUPABASE_URL = 'https://lwamaovuxcevsjfvtqhf.supabase.co';
@@ -125,7 +125,7 @@
   const URL_PUBLICA = 'https://afonsolelis.github.io/aulas_mackenzie/aulas/data_visualization/aula_06_heuristicas_e_vieses/tbl/tbl_aula_06.html';
   const LETRAS = ['A', 'B', 'C', 'D'];
 
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+  const db = aulas.cliente();
   const $ = s => document.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g,
     c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
