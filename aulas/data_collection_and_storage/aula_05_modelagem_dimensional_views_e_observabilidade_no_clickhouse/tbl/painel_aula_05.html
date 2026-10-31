@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aula 04 - Painel do TBL - Data Collection 2026</title>
-  <meta name="description" content="Painel projetado do TBL da Aula 04: conduz as fases de cada questao, mantem as quatro taticas na tela em todas as etapas e mostra as distribuicoes da turma.">
+  <title>Aula 05 - Painel do TBL - Data Collection 2026</title>
+  <meta name="description" content="Painel projetado do TBL que abre a Aula 05, sobre a Aula 04: conduz as fases de cada questao, mantem as quatro taticas na tela em todas as etapas e mostra as distribuicoes da turma.">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,7 @@
     <div class="marca">
       <img src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Mackenzie">
       <div>
-        <span class="sub">Painel do professor &middot; Data Collection &middot; Aula 04</span>
+        <span class="sub">Painel do professor &middot; Data Collection &middot; Aula 05</span>
         <div class="titulo" id="fase-titulo">TBL — O servidor de ingestão da Aula 04</div>
       </div>
     </div>
@@ -104,16 +104,16 @@
     </div>
 
     <nav class="tbl-nav" aria-label="Navegação da aula">
-      <a href="../slides/slide_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Slides</a>
-      <a href="../material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Material</a>
-      <a href="tbl_aula_04.html">Sala do aluno</a>
+      <a href="../slides/slide_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html">Slides</a>
+      <a href="../material/material_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html">Material</a>
+      <a href="tbl_aula_05.html">Sala do aluno</a>
       <a href="../../../../pages/home_data_collection.html">Disciplina</a>
       <a href="../../../../index.html">Hub</a>
     </nav>
     <p class="rodape">Mackenzie &middot; Data Collection and Storage 2026 &middot; Prof. Afonso Brandão</p>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script src="/_app/aulas.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
   const SUPABASE_URL = 'https://lwamaovuxcevsjfvtqhf.supabase.co';
@@ -122,10 +122,10 @@
   const SLUG = new URLSearchParams(location.search).get('sala') || SALA_PADRAO;
   const GUARDA_TOKEN = 'mack-tbl-host:' + SLUG;
   const GUARDA_TURMA = 'mack-tbl-host-turma:' + SLUG;
-  const URL_PUBLICA = 'https://afonsolelis.github.io/aulas_mackenzie/aulas/data_collection_and_storage/aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/tbl/tbl_aula_04.html';
+  const URL_PUBLICA = 'https://afonsolelis.github.io/aulas_mackenzie/aulas/data_collection_and_storage/aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse/tbl/tbl_aula_05.html';
   const LETRAS = ['A', 'B', 'C', 'D'];
 
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+  const db = aulas.cliente();
   const $ = s => document.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g,
     c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -467,7 +467,7 @@
   const urlAluno = (() => {
     const base = new URLSearchParams(location.search).get('base');
     if (base) return base;
-    const u = new URL(location.protocol === 'file:' ? URL_PUBLICA : new URL('tbl_aula_04.html', location.href).href);
+    const u = new URL(location.protocol === 'file:' ? URL_PUBLICA : new URL('tbl_aula_05.html', location.href).href);
     if (SLUG !== SALA_PADRAO) u.searchParams.set('sala', SLUG);
     return u.href;
   })();

@@ -1,4 +1,4 @@
--- Aula 04 · Silver de livros e PTAX a partir do histórico da ingestão (contrato da Aula 05).
+-- Aula 04 · Silver de livros e PTAX a partir do histórico da ingestão (contrato da silver, o mesmo da Aula 03).
 -- Uso: python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-31
 -- DATA é a data da coleta dos livros (dia de coletado_em no horário de Brasília).
 -- Lê o bronze (bronze/ingestao/data_tag=X/...). arquivo_origem é o Parquet do bronze de onde a linha veio.
@@ -50,7 +50,7 @@ COPY (
     ORDER BY data_hora_cotacao
 ) TO 's3://silver/ptax/ptax.parquet' (FORMAT parquet, COMPRESSION zstd);
 
--- 3. Conferência: as mesmas consultas que a Aula 05 faz no silver.
+-- 3. Conferência: contagens, faixa de preço e origem no silver.
 SELECT data_coleta, count(*) AS livros, count(DISTINCT upc) AS upcs,
        min(preco_gbp) AS menor, max(preco_gbp) AS maior,
        count(*) FILTER (WHERE arquivo_origem IS NULL) AS sem_origem

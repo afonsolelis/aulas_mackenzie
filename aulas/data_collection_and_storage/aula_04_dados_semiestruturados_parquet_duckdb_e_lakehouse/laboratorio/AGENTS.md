@@ -37,7 +37,7 @@ Ao fim de cada etapa, acrescente em `docs/prompts.md` uma seção com: número e
 - Precedência, da mais forte para a mais fraca: contrato do envelope (`specs/01_contrato_envelope.md`) > requisitos (`specs/02_requisitos.md`) > modelo de dados (`specs/03_modelo_de_dados.md`) > ADR (`docs/adr/`) > `specs/plan.md` > `specs/tasks.md`.
 - `docker-compose.yml`, `.env.example`, `requirements.txt` e `sql/001_db_ingestion.sql` desta pasta.
 - `entrada/` é dado de entrada: leia, nunca altere nem versione.
-- Os campos do bronze da Aula 03 e o contrato do silver lido pela Aula 05 não mudam: não renomeie nem traduza.
+- Os campos do bronze da Aula 03 e o contrato da silver (o mesmo da Aula 03) não mudam: não renomeie nem traduza.
 - Se dois documentos se contradisserem, pare e pergunte.
 
 ## Regras de conteúdo

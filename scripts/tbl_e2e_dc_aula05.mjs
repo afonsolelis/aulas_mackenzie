@@ -1,7 +1,7 @@
 /**
- * Validação ponta a ponta do TBL da Aula 04 de Data Collection and Storage.
+ * Validação ponta a ponta do TBL que abre a Aula 05 de Data Collection and Storage (questões da Aula 04).
  *
- *   node scripts/tbl_e2e_dc_aula04.mjs [slug-da-sala] [dir-de-screenshots]
+ *   node scripts/tbl_e2e_dc_aula05.mjs [slug-da-sala] [dir-de-screenshots]
  *
  * O token do professor vem do .env local (DCS_HOST_TOKEN); ele nunca
  * é passado por argumento nem impresso.
@@ -25,7 +25,7 @@ const tk = env.match(/^\s*DCS_HOST_TOKEN\s*=\s*(.+)\s*$/m);
 if (!tk) { console.error('DCS_HOST_TOKEN ausente no arquivo de ambiente.'); process.exit(2); }
 const TOKEN = tk[1].trim().replace(/^(['"])(.*)\1$/, '$2');
 
-const BASE = 'file://' + path.resolve('aulas/data_collection_and_storage/aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/tbl') + '/';
+const BASE = 'file://' + path.resolve('aulas/data_collection_and_storage/aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse/tbl') + '/';
 const RPC = 'https://lwamaovuxcevsjfvtqhf.supabase.co/rest/v1/rpc/';
 const KEY = 'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ';
 const PADRAO = SALA === PADRAO_SALA ? '' : `?sala=${SALA}`;
@@ -56,7 +56,7 @@ try {
   const painelCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const painel = await painelCtx.newPage();
   painel.on('dialog', (d) => d.accept());
-  await painel.goto(BASE + `painel_aula_04.html${PADRAO}`);
+  await painel.goto(BASE + `painel_aula_05.html${PADRAO}`);
   await painel.fill('#token', TOKEN);
   await painel.click('#form-token button');
   await espera(painel, () => !document.querySelector('#painel').hidden, null, 'painel autenticado');
@@ -68,8 +68,8 @@ try {
   for (const nome of ['Teste TBL A', 'Teste TBL B']) {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const p = await ctx.newPage();
-    await p.goto(BASE + `tbl_aula_04.html${PADRAO}`);
-    confere(await p.locator('a.botao-professor[href="painel_aula_04.html"]').count() === 1, `${nome}: rodapé tem o botão da área do professor`);
+    await p.goto(BASE + `tbl_aula_05.html${PADRAO}`);
+    confere(await p.locator('a.botao-professor[href="painel_aula_05.html"]').count() === 1, `${nome}: rodapé tem o botão da área do professor`);
     await p.fill('#nome', nome);
     await p.click('#form-entrada button');
     await espera(p, () => !document.querySelector('#tela-sala').hidden, null, `${nome} entrou na sala`);

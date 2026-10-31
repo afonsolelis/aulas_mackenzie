@@ -20,7 +20,7 @@ O código do grupo nasce ao vivo, pelos prompts, no repositório do grupo, na pa
 | `sql/001_db_ingestion.sql` | DDL da tabela de pouso, executado pelo ClickHouse na primeira subida |
 | `sql/duckdb_cast.sql` | contagens de raw, bronze e manifestos e JSON cast no DuckDB lendo o bronze |
 | `sql/clickhouse_cast.sql` | JSON cast no ClickHouse, lendo os caminhos do tipo `JSON` (`data_json.caminho::Tipo`) |
-| `sql/silver_livros_ptax.sql` | silver de livros e PTAX para a Aula 05, gerado a partir do bronze |
+| `sql/silver_livros_ptax.sql` | silver de livros e PTAX, gerado a partir do bronze |
 | `sql/rodar_sql.py` | executa um `.sql` no DuckDB com o secret S3 montado a partir do `.env` |
 | `fixtures/` | dados pequenos para os testes e exemplos de envelope |
 
@@ -80,7 +80,7 @@ O tipo `JSON` do ClickHouse faz o papel do `jsonb` do PostgreSQL: o documento é
 
 ## Horário
 
-A teoria entra dentro das etapas. O TBL fica às 11h30.
+A teoria entra dentro das etapas.
 
 | Horário | Parte |
 |---|---|
@@ -95,8 +95,8 @@ A teoria entra dentro das etapas. O TBL fica às 11h30.
 | 10h40 às 10h50 | Etapa 07: contrato e API |
 | 10h50 às 11h05 | Etapa 08: consumidor e gravadores (raw, bronze, ClickHouse, manifesto) |
 | 11h05 às 11h15 | Etapa 09: produtores lendo `entrada/`, execução e teste de queda |
-| 11h15 às 11h30 | Etapa 10: JSON cast e silver para a Aula 05 |
-| 11h30 às 12h00 | TBL |
+| 11h15 às 11h30 | Etapa 10: JSON cast e silver de livros e PTAX |
+| 11h30 às 12h00 | conferência do resultado no ClickHouse e no RustFS e dúvidas da construção |
 | 12h00 às 12h10 | fechamento |
 | semana | ATAM e Railway |
 
@@ -343,7 +343,7 @@ docker compose exec -T clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --
 python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-30   # dia da coleta dos livros do zip
 ```
 
-O silver sai do bronze, no mesmo contrato que a Aula 05 lê:
+O silver sai do bronze, no contrato da silver (o mesmo da Aula 03):
 
 - `s3://silver/livros/data_coleta=D/livros.parquet`: `upc`, `url`, `titulo`, `categoria`, `avaliacao` (TINYINT), `preco_gbp` (DECIMAL(10,2)), `em_estoque` (BOOLEAN), `qtd_estoque` (INTEGER), `coletado_em` (TIMESTAMPTZ), `arquivo_origem`, `processado_em`; um por `upc`, fica a coleta mais recente;
 - `s3://silver/ptax/ptax.parquet`: `moeda`, `data_hora_cotacao` (TIMESTAMP), `tipo_boletim`, `cotacao_compra` e `cotacao_venda` (DECIMAL(12,5)), `arquivo_origem`, `processado_em`; um por (`moeda`, `data_hora_cotacao`, `tipo_boletim`).

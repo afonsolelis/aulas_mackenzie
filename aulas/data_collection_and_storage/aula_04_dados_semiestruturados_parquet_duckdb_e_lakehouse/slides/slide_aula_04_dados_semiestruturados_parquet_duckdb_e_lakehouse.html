@@ -142,9 +142,6 @@
     .de-shell pre.de-pre-largo { white-space: pre; overflow-x: auto; overflow-wrap: normal; }
     .de-num td:not(:first-child), .de-num th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
     .de-svg.is-alto { min-height: 260px; }
-    .tbl-fases { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-    .tbl-fases .fase { font-size: 0.78em; }
-    @media (max-width: 900px) { .tbl-fases { grid-template-columns: 1fr; } }
     .de-dois-esq { grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr); }
     .mostrar-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
     .etapa-shell pre.etapa-pre.is-curto { max-height: none; }
@@ -178,7 +175,7 @@
           <h1 class="deck-title">Arquitetura de Ingestão com Fila, DuckDB e ClickHouse</h1>
           <p class="deck-meta">Aula 04 &nbsp;&bull;&nbsp; 31/10/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Um servidor Python sempre no ar recebe dados por HTTP e por uma fila RabbitMQ, guarda raw e bronze no RustFS e insere numa tabela de três colunas no ClickHouse. Onze etapas e um TBL.</p>
+          <p class="deck-subtitle">Um servidor Python sempre no ar recebe dados por HTTP e por uma fila RabbitMQ, guarda raw e bronze no RustFS e insere numa tabela de três colunas no ClickHouse. Onze etapas.</p>
         </div>
       </div>
     </div>
@@ -210,13 +207,12 @@
               <li>10h40: Etapas 07 e 08, código</li>
               <li>11h05: Etapa 09, contagem e queda</li>
               <li>11h15: Etapa 10, JSON cast</li>
-              <li>11h20: o resultado no ClickHouse e no RustFS</li>
             </ul>
           </article>
           <article class="deck-card">
-            <h3>11h30 &ndash; 12h10 &middot; TBL e fechamento</h3>
+            <h3>11h30 &ndash; 12h10 &middot; Resultado e fechamento</h3>
             <ul>
-              <li>11h30: TBL, três questões</li>
+              <li>11h30: o resultado no ClickHouse e no RustFS, e as dúvidas da construção</li>
               <li>12h00: fechamento</li>
               <li>Semana: ATAM e Railway</li>
             </ul>
@@ -707,7 +703,7 @@ engenheiro de dados que opera o servidor de ingestão</code></pre>
           <p class="deck-summary">Na Aula 03, o usuário principal era o analista de compras e o pipeline buscava o dado por ele. Aqui aparecem dois clientes do servidor com interesses opostos, e alguém no meio que responde pelos dois.</p>
         </div>
         <div class="df-termos df-c3"><article class="df-termo"><h3>P1 &middot; time dono da fonte</h3><p>Quer entregar o dado e esquecer: um endereço, uma resposta rápida, nenhuma reunião para criar tabela. Sofre quando o servidor recusa sem dizer por quê.</p></article><article class="df-termo"><h3>P2 &middot; analista</h3><p>Quer o dado consultável em SQL, com tipos e nomes estáveis. Sofre quando um campo some ou muda de nome sem aviso, ou quando cada consulta exige extrair o JSON.</p></article><article class="df-termo"><h3>P3 &middot; engenheiro que opera</h3><p>Responde quando a fila cresce, o ClickHouse cai ou aparece linha duplicada. Precisa de logs com <code>data_tag</code>, tamanho do lote e tempo de cada gravação.</p></article></div>
-        <div class="deck-callout"><strong>O conflito que o TBL retoma</strong><p>P1 ganha com um contrato frouxo (aceitar qualquer <code>data</code>); P2 ganha com um contrato rígido (campos e tipos fixos). O contrato desta aula valida só o envelope; a Aula 07 valida o conteúdo por domínio.</p></div>
+        <div class="deck-callout"><strong>O conflito que o TBL da Aula 05 retoma</strong><p>P1 ganha com um contrato frouxo (aceitar qualquer <code>data</code>); P2 ganha com um contrato rígido (campos e tipos fixos). O contrato desta aula valida só o envelope; a Aula 07 valida o conteúdo por domínio.</p></div>
       </div>
     </div>
 
@@ -1147,7 +1143,7 @@ Crie specs/03_modelo_de_dados.md e confira sql/001_db_ingestion.sql:
   (input_format_try_infer_dates e input_format_try_infer_datetimes).
 - Diga por que a chave do lote não é determinística, ao contrário das
   chaves da Aula 03.
-- Nada de colunas por domínio (é a discussão do TBL).
+- Nada de colunas por domínio (é a discussão do TBL da Aula 05).
 
 <span class="k">[T] Tipo de saída</span>
 Markdown com até 100 linhas, com o DDL em bloco sql.
@@ -1534,7 +1530,7 @@ ADR-004 micro-lote por tamanho ou tempo (N e T no .env)</code></pre>
             <tr><td>005</td><td>três colunas, <code>data_json</code> do tipo JSON</td><td>uma tabela por domínio; <code>data_json</code> String</td><td>fonte nova sem DDL; tipo inferido no INSERT e dado na consulta</td></tr>
           </tbody>
         </table>
-        <p class="deck-note">As alternativas descartadas voltam no TBL: a questão 2 discute a ordem dos destinos, e a questão 3, a forma da tabela.</p>
+        <p class="deck-note">As alternativas descartadas voltam no TBL que abre a Aula 05: a questão 2 discute a ordem dos destinos, e a questão 3, a forma da tabela.</p>
       </div>
     </div>
 
@@ -2325,12 +2321,12 @@ GROUP BY data_tag ORDER BY data_tag</code></pre>
         <div>
           <span class="deck-kicker">11h15 &middot; Etapa 10 &middot; JSON cast e silver</span>
           <h2 class="deck-title">JSON cast nas duas engines e silver</h2>
-          <p class="deck-summary">Os três arquivos SQL vieram do laboratório. O agente roda, compara as engines consulta a consulta e grava o silver que a Aula 05 lê.</p>
+          <p class="deck-summary">Os três arquivos SQL vieram do laboratório. O agente roda, compara as engines consulta a consulta e grava o silver de livros e PTAX.</p>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p><code>sql/duckdb_cast.sql</code>, <code>sql/clickhouse_cast.sql</code>, <code>sql/silver_livros_ptax.sql</code> rodados; resultado em <code>docs/prompts.md</code></p></div>
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>As duas engines dão o mesmo resultado?</li><li>O silver tem as colunas e tipos que a Aula 05 lê?</li></ul></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>As duas engines dão o mesmo resultado?</li><li>O silver tem as colunas e tipos do contrato da silver?</li></ul></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
@@ -2352,7 +2348,7 @@ sql/silver_livros_ptax.sql vieram do laboratório.
    no ClickHouse) e em que momento o tipo é decidido: no INSERT, na
    consulta ou nos dois.
 3. sql/silver_livros_ptax.sql: DuckDB lendo o bronze e gravando
-   s3://silver/... no contrato da Aula 05. Rode com
+   s3://silver/... no contrato da silver. Rode com
    --var DATA=2026-10-30 (dia da coleta dos livros do zip) e confira
    as colunas e os tipos com DESCRIBE.
 
@@ -2364,7 +2360,7 @@ FROM read_parquet('s3://bronze/ingestao/data_tag=livros/*/*.parquet',
 GROUP BY ALL;
 
 <span class="k">[A] Ajustes</span>
-- Colunas e tipos da silver exatamente como no contrato da Aula 05:
+- Colunas e tipos da silver exatamente como no contrato da silver:
   livros (upc, url, titulo, categoria, avaliacao TINYINT, preco_gbp
   DECIMAL(10,2), em_estoque BOOLEAN, qtd_estoque INTEGER, coletado_em
   TIMESTAMPTZ, arquivo_origem, processado_em); ptax (moeda,
@@ -2398,7 +2394,7 @@ README do laboratório. Registre o prompt e pare.</code></pre>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>JSON cast no DuckDB e no ClickHouse</li><li>Tempos com um milhão de linhas</li><li>O -03:00 e a inferência de datas</li><li>Silver para a Aula 05</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>JSON cast no DuckDB e no ClickHouse</li><li>Tempos com um milhão de linhas</li><li>O -03:00 e a inferência de datas</li><li>Silver de livros e PTAX</li></ol></div>
             <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Na volta ao terminal</span><p>Mesmo resultado nas duas engines, com a diferença de arredondamento explicada; <code>DESCRIBE</code> do silver igual ao contrato.</p></div>
           </div>
           <div class="etapa-prompt">
@@ -2511,9 +2507,9 @@ guardado: coletado_em  String  2026-10-30T19:27:52-03:00</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
-          <span class="deck-kicker">Etapa 10 &middot; Teoria &middot; Ponte para a Aula 05</span>
-          <h2 class="deck-title">Silver para a Aula 05</h2>
-          <p class="deck-summary">A Aula 05 lê o silver de livros e PTAX com o mesmo contrato de colunas de antes. Agora o DuckDB o grava a partir do bronze, e <code>arquivo_origem</code> passa a ser o Parquet do bronze de onde a linha veio.</p>
+          <span class="deck-kicker">Etapa 10 &middot; Teoria &middot; Silver</span>
+          <h2 class="deck-title">Silver de livros e PTAX</h2>
+          <p class="deck-summary">O silver de livros e PTAX mantém o contrato de colunas da Aula 03. Agora o DuckDB o grava a partir do bronze, e <code>arquivo_origem</code> passa a ser o Parquet do bronze de onde a linha veio.</p>
         </div>
         <table class="deck-table de-tabela">
           <thead><tr><th>Arquivo</th><th>Colunas e tipos</th><th>Deduplicação</th></tr></thead>
@@ -2547,7 +2543,7 @@ guardado: coletado_em  String  2026-10-30T19:27:52-03:00</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense etapa-shell">
         <div>
-          <span class="deck-kicker">11h20 &middot; Mostrar o resultado &middot; 1 de 4</span>
+          <span class="deck-kicker">11h30 &middot; Mostrar o resultado &middot; 1 de 4</span>
           <h2 class="deck-title">Ingerir o zip da aula</h2>
           <p class="deck-summary">O zip do link Dados, no rodapé, traz a pasta <code>entrada/</code> com os três domínios. O professor descompacta e envia pelo contrato público; o mesmo script serve para o servidor de referência e para o do grupo.</p>
         </div>
@@ -2588,7 +2584,7 @@ python enviar_entrada.py --so livros # um domínio só</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense etapa-shell">
         <div>
-          <span class="deck-kicker">11h20 &middot; Mostrar o resultado &middot; 2 de 4</span>
+          <span class="deck-kicker">11h30 &middot; Mostrar o resultado &middot; 2 de 4</span>
           <h2 class="deck-title">ClickHouse: a tabela de ingestão</h2>
           <p class="deck-summary">Sessão do <code>clickhouse-client</code> dentro do contêiner, na pasta do <code>docker-compose.yml</code>. Primeiro a conexão; depois, dentro da sessão, as consultas. Saia com <code>exit</code>.</p>
         </div>
@@ -2644,7 +2640,7 @@ LIMIT 5;</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense etapa-shell">
         <div>
-          <span class="deck-kicker">11h20 &middot; Mostrar o resultado &middot; 3 de 4</span>
+          <span class="deck-kicker">11h30 &middot; Mostrar o resultado &middot; 3 de 4</span>
           <h2 class="deck-title">RustFS: o lake no console e no mc</h2>
           <p class="deck-summary">Console em <code>http://localhost:9001/rustfs/console/</code>, login <code>admin</code> / <code>admin123</code>; a raiz <code>:9001/</code> responde 403. No terminal, o <code>mc</code> do compose lista a árvore da Aula 03 e abre um manifesto.</p>
         </div>
@@ -2679,7 +2675,7 @@ python sql/rodar_sql.py sql/duckdb_cast.sql</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense etapa-shell">
         <div>
-          <span class="deck-kicker">11h20 &middot; Mostrar o resultado &middot; 4 de 4</span>
+          <span class="deck-kicker">11h30 &middot; Mostrar o resultado &middot; 4 de 4</span>
           <h2 class="deck-title">Portas para encaminhar no Codespaces</h2>
           <p class="deck-summary">No terminal do Codespace, os comandos anteriores usam <code>localhost</code> sem nada a configurar. Só o que abre no navegador precisa de porta encaminhada, na aba Ports.</p>
         </div>
@@ -2711,42 +2707,6 @@ http://localhost:8000/docs              # API de ingestão (FastAPI)</code></pre
       </div>
     </div>
 
-    <!-- TBL dinâmica -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">TBL &middot; 11h30</span>
-          <h2 class="deck-title">Três decisões sobre o servidor de ingestão</h2>
-          <p class="deck-summary">Team-Based Learning na sala do aluno, aberta pelo celular. São três questões, nove minutos cada. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo, e o que conta é a justificativa.</p>
-        </div>
-        <div class="tbl-fases">
-          <article class="fase"><span class="fase-num">1</span><h3>Leitura</h3><p>O caso e a questão, com o dado novo quando houver.</p></article>
-          <article class="fase"><span class="fase-num">2</span><h3>Voto individual</h3><p>Uma tática, com justificativa escrita, sem conversar.</p></article>
-          <article class="fase"><span class="fase-num">3</span><h3>Discussão</h3><p>A turma lê as justificativas sem nome e defende o custo da própria escolha.</p></article>
-          <article class="fase"><span class="fase-num">4</span><h3>Segundo voto</h3><p>Decidir outra vez, mudando ou não.</p></article>
-          <article class="fase"><span class="fase-num">5</span><h3>Síntese e revelação</h3><p>O que moveu a sala e o ganho e o custo de cada tática.</p></article>
-        </div>
-        <p class="deck-note">Entre na sala pelo link TBL do rodapé ou pelo QR projetado. O professor conduz as fases pela área do professor.</p>
-      </div>
-    </div>
-
-    <!-- TBL caso -->
-    <div class="slide">
-      <div class="deck-shell is-dense de-shell">
-        <div>
-          <span class="deck-kicker">TBL &middot; Caso</span>
-          <h2 class="deck-title">O caso e as três questões</h2>
-          <p class="deck-summary">O caso é o servidor que a turma montou nesta manhã, com os números medidos na preparação: fila durável, flush por N ou T, raw e bronze antes do ClickHouse, manifesto depois dele, ack no fim e a tabela de três colunas.</p>
-        </div>
-        <div class="de-tres">
-          <div class="de-caixa is-forte"><span class="de-rotulo">Questão 1</span><p>Contrato e mudança de payload.</p></div>
-          <div class="de-caixa is-forte"><span class="de-rotulo">Questão 2</span><p>Ordem dos destinos e falha do ClickHouse.</p></div>
-          <div class="de-caixa is-forte"><span class="de-rotulo">Questão 3</span><p>Forma da tabela para consulta.</p></div>
-        </div>
-        <p class="deck-note">As alternativas aparecem só na sala do aluno, na hora de cada questão.</p>
-      </div>
-    </div>
-
     <!-- Fechamento -->
     <div class="slide">
       <div class="deck-shell is-dense">
@@ -2762,7 +2722,6 @@ http://localhost:8000/docs              # API de ingestão (FastAPI)</code></pre
               <li>Etapa 00: RustFS, RabbitMQ e ClickHouse no ar, tabela criada</li>
               <li>Etapas 01 a 06 revisadas, do contrato aos testes vermelhos</li>
               <li>Etapas 07 a 10 até onde o tempo permitir</li>
-              <li>TBL respondido</li>
             </ul>
           </div>
           <div class="deck-panel">
@@ -2805,8 +2764,6 @@ http://localhost:8000/docs              # API de ingestão (FastAPI)</code></pre
       <a href="../material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html" class="material-link">Material</a>
       <a href="../laboratorio/README.md" class="material-link">Laboratório</a>
       <a href="../laboratorio/dados/dados_aula_04.zip" class="material-link" download>Dados</a>
-      <a href="../tbl/tbl_aula_04.html" class="material-link">TBL</a>
-      <a href="../tbl/painel_aula_04.html" class="material-link">Área do professor</a>
     </div>
     <div class="nav-wrapper">
       <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>

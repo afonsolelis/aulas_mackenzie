@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Aula 04 - TBL - Servidor de ingestao - Data Collection 2026</title>
-  <meta name="description" content="Sala de Team-Based Learning da Aula 04: tres decisoes sobre o servidor de ingestao com fila RabbitMQ, lake no RustFS com raw, bronze e manifesto, DuckDB e ClickHouse montado pela turma, com quatro taticas de ganho e custo declarados em cada questao.">
+  <title>Aula 05 - TBL - Servidor de ingestao da Aula 04 - Data Collection 2026</title>
+  <meta name="description" content="Sala de Team-Based Learning que abre a Aula 05, sobre a Aula 04: tres decisoes sobre o servidor de ingestao com fila RabbitMQ, lake no RustFS com raw, bronze e manifesto, DuckDB e ClickHouse montado pela turma, com quatro taticas de ganho e custo declarados em cada questao.">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,7 +16,7 @@
     <div class="marca">
       <img src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Mackenzie">
       <div>
-        <span class="quem" id="quem">Data Collection &middot; Aula 04</span>
+        <span class="quem" id="quem">Data Collection &middot; Aula 05</span>
         <div class="fase" id="fase">Sala TBL</div>
       </div>
     </div>
@@ -25,9 +25,9 @@
 
   <main>
     <section id="tela-entrada">
-      <span class="selo">Team-Based Learning &middot; 31/10/2026</span>
+      <span class="selo">Team-Based Learning &middot; 07/11/2026</span>
       <h1 style="margin-top:12px">O servidor de ingestão que a turma montou</h1>
-      <p style="margin-top:12px">Um caso e três decisões sobre o servidor de ingestão que a turma montou de manhã, com a fila RabbitMQ, o lake no RustFS, com raw em JSON Lines, bronze em Parquet gravado pelo DuckDB e um manifesto por lote, e a tabela db_ingestion no ClickHouse. Em cada questão você decide sozinho, ouve a turma e decide outra vez. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.</p>
+      <p style="margin-top:12px">Um caso e três decisões sobre o servidor de ingestão que a turma montou na Aula 04, com a fila RabbitMQ, o lake no RustFS, com raw em JSON Lines, bronze em Parquet gravado pelo DuckDB e um manifesto por lote, e a tabela db_ingestion no ClickHouse. Em cada questão você decide sozinho, ouve a turma e decide outra vez. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.</p>
       <form id="form-entrada" style="margin-top:18px">
         <label for="nome">Como você quer aparecer para o professor</label>
         <input id="nome" type="text" maxlength="24" autocomplete="off" autocapitalize="words"
@@ -49,15 +49,15 @@
     </section>
 
     <nav class="tbl-nav" aria-label="Navegação da aula" style="margin-top:8px">
-      <a href="../slides/slide_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Slides</a>
-      <a href="../material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Material</a>
+      <a href="../slides/slide_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html">Slides</a>
+      <a href="../material/material_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html">Material</a>
       <a href="../../../../pages/home_data_collection.html">Disciplina</a>
       <a href="../../../../index.html">Hub</a>
-      <a class="botao-professor" href="painel_aula_04.html">Área do professor</a>
+      <a class="botao-professor" href="painel_aula_05.html">Área do professor</a>
     </nav>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script src="/_app/aulas.js"></script>
   <script>
   /* ------------------------------------------------------------------
      A chave publicável é pública por desenho: a proteção está na RLS e
@@ -70,7 +70,7 @@
   const GUARDA = 'mack-tbl:' + SLUG;
   const LETRAS = ['A', 'B', 'C', 'D'];
 
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
+  const db = aulas.cliente();
   const $ = s => document.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g,
     c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
@@ -344,7 +344,7 @@
     $('#fase').textContent = TITULOS_FASE[s.fase] || 'Sala TBL';
     $('#selo-fase').textContent = (NOMES_FASE[s.fase] || s.fase) +
       (s.fase === 'revelacao' || s.fase === 'lobby' ? '' : ` · questão ${s.questao} de ${s.total_questoes}`);
-    $('#quem').textContent = eu ? eu.nome + ' · Aula 04' : 'Data Collection · Aula 04';
+    $('#quem').textContent = eu ? eu.nome + ' · Aula 05' : 'Data Collection · Aula 05';
 
     const rodada = { voto1: 1, voto2: 2 }[s.fase] || null;
     const chave = JSON.stringify([s.fase, s.questao, s.meus_votos, s.votacao_aberta,
@@ -424,7 +424,7 @@
       const novo = await rpc('hubtbl_estado', { p_slug: SLUG, p_participante: eu.id });
       if (!novo.inscrito) {   // a sala foi reiniciada para outra turma
         eu = null; guardar(null); s = null; prazo = 0; chaveRender = ''; rodadaEmTela = null;
-        $('#quem').textContent = 'Data Collection · Aula 04';
+        $('#quem').textContent = 'Data Collection · Aula 05';
         $('#fase').textContent = 'Sala TBL';
         atualizarCabecalho();
         $('#tela-sala').hidden = true; $('#tela-entrada').hidden = false;
