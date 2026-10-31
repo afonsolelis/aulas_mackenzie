@@ -12,9 +12,14 @@ class TabelaIngestao:
             database=env("CLICKHOUSE_DATABASE", "ingestao"),
             # O ClickHouse 26.8 liga async_insert por padrão: o servidor junta INSERTs pequenos
             # e segura cada um por 50 a 200 ms. O consumidor já faz o lote, então desligamos.
-            settings={"async_insert": int(env("CLICKHOUSE_ASYNC_INSERT", "0"))})
+            # data_json é do tipo JSON: o servidor infere o tipo de cada caminho no INSERT.
+            # Datas e horas ficam como texto, para não perder o deslocamento (-03:00).
+            settings={"async_insert": int(env("CLICKHOUSE_ASYNC_INSERT", "0")),
+                      "input_format_try_infer_dates": 0,
+                      "input_format_try_infer_datetimes": 0})
         self.tabela = env("CLICKHOUSE_TABELA", "db_ingestion")
 
     def inserir(self, linhas: list[tuple[int, str, str]]) -> None:
-        """Um INSERT por lote: cada INSERT cria uma parte no MergeTree."""
+        """Um INSERT por lote: cada INSERT cria uma parte no MergeTree.
+        O data_json vai como texto JSON; o servidor o converte para o tipo JSON da coluna."""
         self.cli.insert(self.tabela, linhas, column_names=self.COLUNAS)

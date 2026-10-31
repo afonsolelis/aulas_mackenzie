@@ -18,9 +18,9 @@
 --      etapas 05, 08 e 09 (raw e bronze antes do ClickHouse, manifesto
 --      como recibo do lote, ack depois de tudo, at-least-once,
 --      reentrega).
---   3. Forma da tabela para consulta: JSONExtract em toda consulta.
---      Retoma as etapas 04 e 10 (tabela de três colunas, String contra
---      tipo JSON, JSON cast medido).
+--   3. Forma da tabela para consulta: caminho e tipo em toda consulta.
+--      Retoma as etapas 04 e 10 (tabela de três colunas, data_json no
+--      tipo JSON com tipos inferidos, JSON cast medido).
 --
 -- Cada questão traz quatro táticas com ganho e custo declarados, e
 -- nenhuma é correta: o que se mede é o deslocamento entre a decisão
@@ -141,9 +141,9 @@ values (
   'O servidor de ingestão que a turma montou',
   'Nesta manhã, cada grupo montou um servidor de ingestão: um processo Python que fica no ar e recebe dados por dois caminhos. Pelo HTTP, o POST /ingest valida o envelope, publica a mensagem na fila ingestao do RabbitMQ e responde 202; envelope inválido recebe 422. Pela fila, qualquer sistema publica direto. Uma thread do mesmo processo consome a fila, valida o envelope de novo, porque a fila aceita qualquer coisa, e grava o inválido em raw/ingestao_rejeitados/ com ack. O válido entra num micro-lote em memória.
 
-O flush acontece a cada 500 envelopes ou 2 segundos, o que vier primeiro, e grava no RustFS, um object storage compatível com a API S3, com a organização da Aula 03. A ordem é fixa: os envelopes, como chegaram, vão em JSON Lines para raw/ingestao/data_tag=X/data=D/; o DuckDB grava o lote em Parquet em bronze/ingestao/data_tag=X/data=D/, uma linha por objeto de data; o clickhouse-connect insere o lote em ingestao.db_ingestion; o manifesto do lote, com contagens, chaves, bytes e SHA-256 de cada arquivo e o status, vai para raw/_manifestos/ingestao/data=D/; só então o consumidor dá o ack. O mesmo nome de lote liga as três chaves, e um manifesto com status ok quer dizer lote completo em raw, bronze e ClickHouse. A tabela tem três colunas: timestamp (UInt64, unix em milissegundos, hora da ingestão), data_json (String, o objeto recebido como texto) e data_tag (LowCardinality). O contrato vale só para o envelope: data_tag em telemetria, livros ou ptax, e data como objeto ou lista não vazia de objetos. O conteúdo de data não é validado. A leitura extrai os campos com JSONExtract no ClickHouse ou com ->> no DuckDB, e o DuckDB gera a partir do bronze a silver de livros e PTAX que a Aula 05 vai usar.
+O flush acontece a cada 500 envelopes ou 2 segundos, o que vier primeiro, e grava no RustFS, um object storage compatível com a API S3, com a organização da Aula 03. A ordem é fixa: os envelopes, como chegaram, vão em JSON Lines para raw/ingestao/data_tag=X/data=D/; o DuckDB grava o lote em Parquet em bronze/ingestao/data_tag=X/data=D/, uma linha por objeto de data; o clickhouse-connect insere o lote em ingestao.db_ingestion; o manifesto do lote, com contagens, chaves, bytes e SHA-256 de cada arquivo e o status, vai para raw/_manifestos/ingestao/data=D/; só então o consumidor dá o ack. O mesmo nome de lote liga as três chaves, e um manifesto com status ok quer dizer lote completo em raw, bronze e ClickHouse. A tabela tem três colunas: timestamp (UInt64, unix em milissegundos, hora da ingestão), data_json (JSON, o objeto recebido, com o tipo de cada caminho inferido no INSERT e datas guardadas como texto) e data_tag (LowCardinality). O contrato vale só para o envelope: data_tag em telemetria, livros ou ptax, e data como objeto ou lista não vazia de objetos. O conteúdo de data não é validado. A leitura pega os campos com data_json.caminho::Tipo no ClickHouse ou com ->> no DuckDB, e o DuckDB gera a partir do bronze a silver de livros e PTAX que a Aula 05 vai usar.
 
-A preparação mediu: o POST /ingest responde 202 em 1,51 ms e 422 em 0,53 ms (p50); o flush de 500 linhas custa 31,6 ms (raw 8,0, bronze 10,7, ClickHouse 5,7 e manifesto 7,5 ms), e o de uma linha, 30,8 ms, porque o custo fixo dos três PUTs domina; um dia de telemetria, 31.265 mensagens, drena a cerca de 5.100 linhas/s com N=500 e deixa 63 partes no MergeTree e 189 objetos no lake, enquanto N=1 criaria uma parte e três objetos por mensagem; a linha fica consultável cerca de 2 s depois do POST com N=500 e o servidor ocioso; um kill entre o manifesto e o ack deixou 500 linhas duplicadas em cada camada e no ClickHouse, com dois manifestos ok para o mesmo conteúdo, sem perda. O ClickHouse 26.8 vem com async_insert ligado, e cada INSERT esperava pelo menos 50 ms até o cliente desligar a opção. Em 1 milhão de linhas, o preço médio por categoria levou 146 ms com JSONExtract sobre String e 20,8 ms numa coluna do tipo JSON, que inferiu coletado_em como DateTime e perdeu o -03:00.
+A preparação mediu: o POST /ingest responde 202 em 1,51 ms e 422 em 0,53 ms (p50); o flush de 500 linhas custa 31,6 ms (raw 8,0, bronze 10,7, ClickHouse 5,7 e manifesto 7,5 ms), e o de uma linha, 30,8 ms, porque o custo fixo dos três PUTs domina; um dia de telemetria, 31.265 mensagens, drena a cerca de 5.100 linhas/s com N=500 e deixa 63 partes no MergeTree e 189 objetos no lake, enquanto N=1 criaria uma parte e três objetos por mensagem; a linha fica consultável cerca de 2 s depois do POST com N=500 e o servidor ocioso; um kill entre o manifesto e o ack deixou 500 linhas duplicadas em cada camada e no ClickHouse, com dois manifestos ok para o mesmo conteúdo, sem perda. O ClickHouse 26.8 vem com async_insert ligado, e cada INSERT esperava pelo menos 50 ms até o cliente desligar a opção. Em 1 milhão de linhas, o preço médio por categoria levou 20,8 ms na coluna do tipo JSON e 146 ms com JSONExtract sobre uma coluna String. Com a inferência padrão, a coluna JSON tinha transformado coletado_em em DateTime e perdido o -03:00; o consumidor passou a inserir com a inferência de datas desligada.
 
 As três questões revisam o servidor antes que ele receba fontes reais. A Aula 06 aprofunda a fila e o ClickHouse, e a Aula 07 trata do schema de cada domínio. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.',
   '[
@@ -168,7 +168,7 @@ values (
   'mack-dcs-a04-2026-2', 1,
   'Contrato e mudança de payload',
   'O payload da telemetria mudou de forma',
-  'O time da telemetria passa a mandar o campo texto no lugar de linha e acrescenta um campo firmware. O envelope continua válido, as mensagens chegam pela fila e entram no raw, no bronze e no ClickHouse. A consulta da manhã, que extrai o caminhão com JSONExtractString sobre o campo linha, recebe texto vazio nas linhas novas, sem erro, e elas se somam às 2.396 linhas sem caminhão que a medição já registrava. Que tática o servidor adota para mudança de payload?',
+  'O time da telemetria passa a mandar o campo texto no lugar de linha e acrescenta um campo firmware. O envelope continua válido, as mensagens chegam pela fila e entram no raw, no bronze e no ClickHouse. A consulta da manhã, que extrai o caminhão de data_json.linha::String, recebe texto vazio nas linhas novas, sem erro, e elas se somam às 2.396 linhas sem caminhão que a medição já registrava. Que tática o servidor adota para mudança de payload?',
   '[
     {
       "letra":"A","titulo":"Aceitar e resolver na leitura","tatica":"Manter o contrato só do envelope",
@@ -267,31 +267,31 @@ insert into hubtbl_questoes (session_slug, ordem, categoria, titulo, pergunta, a
 values (
   'mack-dcs-a04-2026-2', 3,
   'Forma da tabela para consulta',
-  'Extrair o JSON na escrita ou na leitura',
-  'Os analistas consultam livros, PTAX e telemetria em db_ingestion e escrevem JSONExtract em toda consulta. Na medição com 1 milhão de linhas, o preço médio por categoria levou 146 ms com JSONExtract sobre String, 75 ms com simpleJSONExtract, 957 ms com CAST para JSON na consulta e 20,8 ms numa coluna do tipo JSON. O Parquet tipado, lido pelo DuckDB, levou 7,5 ms. Que forma a tabela assume para quem consulta?',
+  'Até onde tipar a tabela de pouso',
+  'Os analistas consultam livros, PTAX e telemetria em db_ingestion, com data_json no tipo JSON, e escrevem data_json.caminho::Tipo em toda consulta. Os tipos de cada caminho foram inferidos no INSERT, e um caminho pode guardar mais de um tipo. Na medição com 1 milhão de linhas, o preço médio por categoria levou 20,8 ms na coluna JSON, 15,5 ms com o tipo declarado no caminho e 146 ms com JSONExtract sobre uma coluna String. O Parquet tipado, lido pelo DuckDB, levou 7,5 ms. Que forma a tabela assume para quem consulta?',
   '[
     {
-      "letra":"A","titulo":"Três colunas e uma view por domínio","tatica":"Extração na leitura, escondida",
-      "texto":"A tabela fica como está. Cada domínio ganha uma view, como ingestao.livros, que faz o JSONExtract e entrega colunas com nome e tipo ao analista.",
-      "ganho":"Nada muda na escrita nem no servidor, o analista consulta colunas e não JSON, e uma fonte nova ganha uma view sem tocar na tabela.",
-      "custo":"A view não guarda nada: toda consulta continua pagando a extração, 146 ms por milhão de linhas contra 20,8 ms. Cada mudança de payload, como a da questão 1, exige editar a view, e um tipo errado só aparece na leitura."
+      "letra":"A","titulo":"Três colunas e uma view por domínio","tatica":"Conversão na leitura, escondida",
+      "texto":"A tabela fica como está. Cada domínio ganha uma view, como ingestao.livros, que lê os caminhos do data_json com o tipo final, como data_json.preco_gbp::Decimal(10,2), e entrega colunas com nome e tipo ao analista.",
+      "ganho":"Nada muda na escrita nem no servidor, o analista consulta colunas e não caminhos, e uma fonte nova ganha uma view sem tocar na tabela.",
+      "custo":"A view não guarda nada: toda consulta continua convertendo as subcolunas, 20,8 ms por milhão de linhas contra 7,5 ms do Parquet tipado. Cada mudança de payload, como a da questão 1, exige editar a view, e um preço que chegue como texto só aparece na leitura, como erro de conversão."
     },
     {
-      "letra":"B","titulo":"data_json com o tipo JSON","tatica":"Subcolunas inferidas na escrita",
-      "texto":"A coluna data_json passa a ser do tipo JSON do ClickHouse, que separa cada caminho em subcolunas tipadas no INSERT. A migração é um INSERT ... SELECT da tabela atual.",
-      "ganho":"A consulta medida cai de 146 ms para 20,8 ms, e o armazenamento comprimido caiu de 97,6 MB para 23,4 MB na amostra de 1 milhão de linhas. A migração levou 1,02 s por milhão de linhas.",
-      "custo":"Os tipos são inferidos na inserção: coletado_em virou DateTime em UTC e perdeu o -03:00. O texto exato que chegou deixa de existir no ClickHouse e fica só no raw e no bronze, e um produtor que mande o preço como texto muda o tipo da subcoluna."
+      "letra":"B","titulo":"Tipos declarados nos caminhos do JSON","tatica":"JSON(preco_gbp Float64, ...)",
+      "texto":"A coluna data_json continua do tipo JSON, mas declara o tipo dos caminhos conhecidos, como JSON(preco_gbp Float64, avaliacao UInt8, coletado_em String). Os outros caminhos seguem inferidos. A migração é um INSERT ... SELECT para uma tabela nova com o tipo declarado.",
+      "ganho":"A consulta medida cai de 20,8 ms para 15,5 ms, o tipo do caminho deixa de depender do que chegou primeiro, e coletado_em declarado como String não depende mais das configurações de quem insere.",
+      "custo":"A tabela genérica passa a conhecer campos de domínios, todos na mesma coluna. Um produtor que mande o preço como texto num caminho declarado Float64 faz o INSERT falhar, e o lote de todos os domínios entra no ciclo de reentrega da questão 2."
     },
     {
       "letra":"C","titulo":"Materialized view por domínio","tatica":"Colunas tipadas na inserção",
-      "texto":"A tabela de três colunas continua sendo a entrada. Para cada domínio, uma materialized view extrai as colunas na hora do INSERT e grava numa tabela tipada, como ingestao.livros_tipado.",
-      "ganho":"O analista consulta colunas nativas sem extrair nada na leitura, como o Parquet tipado que o DuckDB leu em 7,5 ms (o equivalente no ClickHouse não foi medido). A landing segue genérica, e uma fonte nova entra sem DDL nela.",
+      "texto":"A tabela de três colunas continua sendo a entrada. Para cada domínio, uma materialized view lê os caminhos do data_json na hora do INSERT e grava numa tabela tipada, como ingestao.livros_tipado.",
+      "ganho":"O analista consulta colunas nativas sem converter nada na leitura, como o Parquet tipado que o DuckDB leu em 7,5 ms (o equivalente no ClickHouse não foi medido). A landing segue genérica, e uma fonte nova entra sem DDL nela.",
       "custo":"Cada domínio e cada mudança de payload pedem DDL, e a view só vale para o que entrar depois dela, sem carga do histórico. Por padrão, um erro de conversão na view faz falhar o INSERT do lote inteiro, e o consumidor entra no ciclo de reentrega da questão 2, com raw, bronze e manifesto de erro gravados a cada tentativa."
     },
     {
       "letra":"D","titulo":"Uma tabela por domínio","tatica":"O servidor escreve tabelas tipadas",
       "texto":"O consumidor deixa a tabela de três colunas e insere cada data_tag numa tabela própria, com tipos declarados e ORDER BY do domínio, como upc para livros e caminhão e hora para telemetria.",
-      "ganho":"Tipos declarados, ORDER BY pensado para as consultas de cada domínio e SQL direto para o analista, sem JSON na leitura.",
+      "ganho":"Tipos declarados, ORDER BY pensado para as consultas de cada domínio e SQL direto para o analista, sem caminhos de JSON na leitura.",
       "custo":"O servidor passa a conhecer o payload e o contrato deixa de ser só do envelope. Uma fonte nova exige DDL, código e deploy, e um payload que mude, como o da questão 1, falha no INSERT e trava o lote de todos os domínios."
     }
   ]'::jsonb

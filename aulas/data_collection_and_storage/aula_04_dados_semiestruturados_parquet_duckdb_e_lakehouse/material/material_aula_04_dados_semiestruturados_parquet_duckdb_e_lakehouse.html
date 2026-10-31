@@ -38,7 +38,7 @@
           <li><a href="#s5">Etapa 02 &middot; Contrato do envelope</a> (contrato de dados, códigos HTTP)</li>
           <li><a href="#s6">Etapa 03 &middot; Requisitos</a> (push e pull, 202, garantias de entrega)</li>
           <li><a href="#s7">Etapa 04 &middot; Modelo de dados</a> (tabela de pouso, MergeTree, raw, bronze e manifesto)</li>
-          <li><a href="#s8">Etapa 05 &middot; Arquitetura e ADRs</a> (ordem do flush, ack, falhas)</li>
+          <li><a href="#s8">Etapa 05 &middot; Arquitetura e ADRs</a> (ordem do flush, ack, falhas, custos e homem-hora)</li>
           <li><a href="#s9">Etapa 06 &middot; Plano, tarefas e testes vermelhos</a></li>
           <li><a href="#s10">Etapa 07 &middot; Código: contrato e API</a></li>
           <li><a href="#s11">Etapa 08 &middot; Código: consumidor e gravadores</a> (micro-lote medido, <code>async_insert</code>)</li>
@@ -89,7 +89,7 @@
             <tr><td>Camada <code>bronze</code>: o extraído, uma linha por registro</td><td>Aula 03</td><td><code>bronze/ingestao/</code> guarda uma linha por objeto de <code>data</code>, em Parquet.</td></tr>
             <tr><td>JSON Lines: um objeto JSON por linha</td><td>Aula 03</td><td>É o formato do raw desta aula e dos livros e boletins PTAX que os produtores enviam.</td></tr>
             <tr><td>Manifesto por lote, com SHA-256</td><td>Aula 03</td><td>Cada flush grava um manifesto em <code>raw/_manifestos/ingestao/</code>, o recibo do lote.</td></tr>
-            <tr><td>Schema on read: o tipo é aplicado na leitura</td><td>Aula 02</td><td>A tabela de pouso guarda texto JSON; o tipo aparece só no JSON cast da Etapa 10.</td></tr>
+            <tr><td>Schema on read: o tipo é aplicado na leitura</td><td>Aula 02</td><td>A tabela de pouso não declara tipos: o INSERT infere um por caminho do JSON, e a consulta escolhe o tipo final no JSON cast da Etapa 10.</td></tr>
             <tr><td>Chave particionada no object storage, com data em Brasília</td><td>Aulas 02 e 03</td><td>Raw e bronze ficam em <code>.../data_tag=X/data=D/</code>, com <code>D</code> no horário de <code>America/Sao_Paulo</code>.</td></tr>
           </tbody>
         </table></div>
@@ -170,7 +170,7 @@
             <tr><td>Raw e bronze antes do ClickHouse</td><td>O raw guarda o que chegou e permite refazer o bronze; o bronze é o histórico tipável, de onde se recria a tabela do ClickHouse.</td><td>Três <code>PUT</code>s por flush em vez de um; se o ClickHouse cair, o consumidor para e a fila cresce (questão 2 do TBL).</td></tr>
             <tr><td>Manifesto depois do ClickHouse e ack por último</td><td>O manifesto é o recibo do lote: com <code>"status": "ok"</code>, o lote está completo em raw, bronze e ClickHouse. A mensagem só sai da fila depois disso.</td><td>Se o processo morrer entre o manifesto e o ack, o lote volta e é gravado de novo, com dois manifestos <code>ok</code>: duplicata.</td></tr>
             <tr><td>Micro-lote de 500 envelopes ou 2 segundos</td><td>Cada <code>PUT</code> e cada <code>INSERT</code> têm custo fixo; com lote de 500, o dia de telemetria drenou em cerca de 6 s, contra 524,5 s linha a linha na primeira rodada.</td><td>Com pouco tráfego, o dado leva cerca de 2 s para ficar consultável.</td></tr>
-            <tr><td>Tabela de três colunas com <code>data_json</code> como texto</td><td>Fonte nova é só uma tag nova no <code>.env</code>, sem <code>CREATE TABLE</code>.</td><td>Toda consulta extrai campos do JSON; tipos e nomes só aparecem na leitura (questão 3 do TBL).</td></tr>
+            <tr><td>Tabela de três colunas com <code>data_json</code> no tipo <code>JSON</code></td><td>Fonte nova é só uma tag nova no <code>.env</code>, sem <code>CREATE TABLE</code>.</td><td>Os tipos são inferidos no INSERT, e toda consulta ainda escreve caminho e tipo de cada campo (questão 3 do TBL).</td></tr>
           </tbody>
         </table></div>
         <p>Três assuntos ficam de fora de propósito. A Aula 05 lê a camada silver que a Etapa 10 gera e monta o modelo dimensional. A Aula 06 aprofunda a fila: dead letter exchange, <code>prefetch</code>, controle de fluxo, exchanges e a deduplicação com <code>ReplacingMergeTree</code>. A Aula 07 valida o conteúdo de cada domínio com schema próprio. Nesta aula, o contrato cobre só o envelope.</p>
@@ -319,7 +319,7 @@ prompt em docs/prompts.md e pare.</code></pre>
 
         <h3>4.1 Enquanto o agente trabalha: quem empurra, quem lê e quem acorda de madrugada</h3>
         <p>Na Aula 03, as personas eram o comprador que decide preço, o operador do coletor e o engenheiro da aula seguinte. Aqui o centro muda, porque a plataforma deixa de ir buscar o dado. A P1 é um time que não é de dados: o time de logística dono da telemetria, o time de compras que coleta livros. Ele quer entregar o dado e voltar ao próprio trabalho. A pergunta da P1 é "o que eu preciso mandar, e como sei que foi aceito?". O contrato da Etapa 02 e o código 202 respondem a ela.</p>
-        <p>A P2 é o analista. Ele não sabe, e não deveria precisar saber, se o dado chegou por HTTP ou pela fila. A pergunta dele é "o dado de agora já está na tabela?" e, depois, "por que preciso extrair o preço de dentro de um texto JSON?". A primeira pergunta vira o objetivo de latência; a segunda vira a questão 3 do TBL. A P3 é quem opera o servidor. Ela é acionada quando a fila cresce sem parar, quando o ClickHouse recusa conexões ou quando a contagem de linhas não fecha. Uma persona de operação bem escrita diz o que a acorda e que número ela olha primeiro: o tamanho da fila e as mensagens sem ack, no console do RabbitMQ.</p>
+        <p>A P2 é o analista. Ele não sabe, e não deveria precisar saber, se o dado chegou por HTTP ou pela fila. A pergunta dele é "o dado de agora já está na tabela?" e, depois, "por que preciso dizer o tipo do preço em toda consulta?". A primeira pergunta vira o objetivo de latência; a segunda vira a questão 3 do TBL. A P3 é quem opera o servidor. Ela é acionada quando a fila cresce sem parar, quando o ClickHouse recusa conexões ou quando a contagem de linhas não fecha. Uma persona de operação bem escrita diz o que a acorda e que número ela olha primeiro: o tamanho da fila e as mensagens sem ack, no console do RabbitMQ.</p>
         <p>Um objetivo útil tem três partes que um teste consegue conferir: a métrica, o comando que a mede e a meta. O OBJ-01 do exemplo mede uma coisa estrutural (quantos passos para uma fonte nova) e já sugere a resposta: uma linha no <code>.env</code> e um reinício, sem <code>CREATE TABLE</code>. O OBJ-02 mede tempo. A meta de "poucos segundos" ainda não tem origem e por isso o prompt pede a marcação de hipótese; a Etapa 09 mede e a seção 6.5 mostra o número: com o micro-lote de 2 segundos e pouco tráfego, o dado fica consultável em cerca de 2.030 ms.</p>
         <div class="note">
           <strong>Revise antes de seguir</strong>
@@ -529,9 +529,10 @@ com DDL e layout de chaves, sem código Python.
 [R] Pedido
 Crie specs/03_modelo_de_dados.md e confira sql/001_db_ingestion.sql:
 1. Tabela ingestao.db_ingestion: timestamp UInt64 (unix ms da
-   ingestão), data_json String (o dado recebido, como texto JSON),
-   data_tag LowCardinality(String). Motor, ORDER BY e PARTITION BY,
-   com o porquê de cada escolha.
+   ingestão), data_json JSON (o dado recebido, no tipo JSON do
+   ClickHouse, com datas e horas inferidas como texto), data_tag
+   LowCardinality(String). Motor, ORDER BY e PARTITION BY, com o
+   porquê de cada escolha.
 2. Lake, na organização da Aula 03, com D = data do recebimento em
    America/Sao_Paulo e o mesmo nome de lote nas três chaves:
    - raw/ingestao/data_tag=X/data=D/lote_&lt;HHMMSS&gt;_&lt;id&gt;.jsonl: um
@@ -557,7 +558,10 @@ Crie specs/03_modelo_de_dados.md e confira sql/001_db_ingestion.sql:
 [A] Ajustes
 - Não troque nomes nem tipos das três colunas.
 - Explique por que unix em milissegundos e não segundos nem DateTime.
-- Diga o que se perde guardando data_json como String e o que se ganha.
+- Diga o que se ganha guardando data_json no tipo JSON e o que se perde
+  em relação ao texto que chegou, e onde esse texto continua guardado.
+- Explique por que o INSERT desliga a inferência de datas
+  (input_format_try_infer_dates e input_format_try_infer_datetimes).
 - Nada de colunas por domínio (é a discussão do TBL).
 - Diga por que a chave do lote não é determinística, ao contrário das
   chaves da Aula 03.
@@ -574,27 +578,32 @@ espere meu ok, escreva, registre o prompt e pare.</code></pre>
 CREATE TABLE IF NOT EXISTS ingestao.db_ingestion
 (
     timestamp UInt64,                  -- unix em milissegundos, hora da ingestão (dada pelo servidor)
-    data_json String,                  -- o dado recebido, como texto JSON, sem alteração
+    data_json JSON,                    -- o dado recebido, no tipo JSON: cada caminho vira subcoluna tipada
     data_tag  LowCardinality(String)   -- o domínio: telemetria, livros, ptax
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(fromUnixTimestamp64Milli(toInt64(timestamp)))
-ORDER BY (data_tag, timestamp);</code></pre>
+ORDER BY (data_tag, timestamp);
+
+-- O consumidor insere com input_format_try_infer_dates = 0 e
+-- input_format_try_infer_datetimes = 0: datas e horas ficam como texto.</code></pre>
 
         <h3>7.1 Enquanto o agente trabalha: uma tabela de pouso para todos os domínios</h3>
-        <p>O caminho óbvio seria uma tabela por domínio: <code>livros</code> com <code>upc</code>, <code>titulo</code>, <code>preco_gbp</code>; <code>ptax</code> com <code>moeda</code> e <code>cotacao_venda</code>; <code>telemetria</code> com os campos da linha. Cada fonte nova pediria um <code>CREATE TABLE</code>, e cada campo novo numa fonte existente pediria um <code>ALTER TABLE</code> antes de o dado poder entrar. O servidor desta aula escolhe o oposto: uma tabela de pouso (landing table) com três colunas que servem a qualquer domínio. A hora da ingestão, o dado como chegou e a etiqueta do domínio. Fonte nova é uma linha no <code>.env</code>. O custo aparece na leitura: tipos e nomes de campo só existem quando alguém extrai o campo do texto JSON. É o schema on read da Aula 02, agora dentro de um banco. A Etapa 10 mostra quanto isso custa em tempo de consulta, e a questão 3 do TBL discute o que fazer quando os analistas reclamam.</p>
+        <p>O caminho óbvio seria uma tabela por domínio: <code>livros</code> com <code>upc</code>, <code>titulo</code>, <code>preco_gbp</code>; <code>ptax</code> com <code>moeda</code> e <code>cotacao_venda</code>; <code>telemetria</code> com os campos da linha. Cada fonte nova pediria um <code>CREATE TABLE</code>, e cada campo novo numa fonte existente pediria um <code>ALTER TABLE</code> antes de o dado poder entrar. O servidor desta aula escolhe o oposto: uma tabela de pouso (landing table) com três colunas que servem a qualquer domínio. A hora da ingestão, o dado recebido e a etiqueta do domínio. Fonte nova é uma linha no <code>.env</code>. O tipo <code>JSON</code> da coluna <code>data_json</code> faz o papel do <code>jsonb</code> do PostgreSQL: o servidor interpreta o documento uma vez, no INSERT, e guarda cada caminho como subcoluna, sem que ninguém declare os campos antes. O custo aparece na leitura: os tipos foram inferidos, não declarados, e a consulta ainda diz como quer ler cada campo, como em <code>data_json.preco_gbp::Float64</code>. É o schema on read da Aula 02, agora dentro de um banco, com parte do trabalho adiantada para a escrita. A Etapa 10 mostra quanto isso custa em tempo de consulta, e a questão 3 do TBL discute o que fazer quando os analistas reclamam.</p>
 
         <h3>7.2 Por que unix em milissegundos</h3>
         <p>O <code>timestamp</code> é um número inteiro sem sinal, a quantidade de milissegundos desde 1/1/1970 em UTC. Três razões levam a essa escolha. Um instante unix não tem fuso, e por isso não existe a dúvida que o <code>coletado_em</code> com <code>-03:00</code> criou nas aulas anteriores. Ele ordena como número, o que é tudo o que o <code>ORDER BY</code> precisa. E é o que o Python dá diretamente, com <code>time.time_ns() // 1_000_000</code>, sem formatação. Segundos não bastam: o produtor HTTP mandou cerca de 640 envelopes por segundo, e com resolução de segundo todos os 640 receberiam o mesmo valor. <code>DateTime</code> do ClickHouse resolve a leitura humana, mas guarda segundos; <code>DateTime64(3)</code> guardaria milissegundos, e seria uma alternativa razoável, que o grupo pode registrar numa ADR. Para ler o número como hora, basta converter na consulta: <code>fromUnixTimestamp64Milli(toInt64(timestamp), 'America/Sao_Paulo')</code>.</p>
-        <p>O <code>timestamp</code> não é chave única. Todos os objetos de um envelope com lista recebem o mesmo valor, porque ele é a hora em que a API recebeu o envelope (o cabeçalho <code>recebido_em_ms</code> que a API põe na mensagem). Para mensagens publicadas direto na fila, sem esse cabeçalho, o consumidor usa a hora em que as consome. Os 40 boletins PTAX de uma mensagem têm o mesmo <code>timestamp</code>. Por isso a contagem de duplicatas usa o par (<code>timestamp</code>, <code>data_json</code>).</p>
+        <p>O <code>timestamp</code> não é chave única. Todos os objetos de um envelope com lista recebem o mesmo valor, porque ele é a hora em que a API recebeu o envelope (o cabeçalho <code>recebido_em_ms</code> que a API põe na mensagem). Para mensagens publicadas direto na fila, sem esse cabeçalho, o consumidor usa a hora em que as consome. Os 40 boletins PTAX de uma mensagem têm o mesmo <code>timestamp</code>. Por isso a contagem de duplicatas usa o par (<code>timestamp</code>, <code>data_json</code>), com <code>toJSONString(data_json)</code> para comparar o objeto inteiro.</p>
 
         <h3>7.3 MergeTree, ORDER BY e partição</h3>
         <p>O <code>MergeTree</code> é o motor de tabela principal do ClickHouse, e o nome descreve o que ele faz. Cada <code>INSERT</code> grava uma parte (part) nova no disco, já ordenada pela chave do <code>ORDER BY</code> e com cada coluna num arquivo comprimido. Em segundo plano, o servidor junta (merge) partes pequenas em partes maiores. Isso tem uma consequência direta para a ingestão: um <code>INSERT</code> por linha cria uma parte por linha, e o servidor gasta CPU e disco juntando-as. A seção 11 mede esse efeito.</p>
         <p>O <code>ORDER BY (data_tag, timestamp)</code> define a ordem física das linhas dentro de cada parte e, por padrão, a chave primária. No ClickHouse, a chave primária não é única e não aponta para cada linha. Ela é um índice esparso: guarda o valor da chave a cada 8.192 linhas (um grânulo, o <code>index_granularity</code> que o <code>SHOW CREATE TABLE</code> mostra). Uma consulta com <code>WHERE data_tag = 'livros'</code> usa esse índice para pular os grânulos dos outros domínios; um filtro por intervalo de tempo dentro do domínio também aproveita a segunda coluna. Por isso <code>data_tag</code> vem primeiro: quase toda consulta de analista começa escolhendo o domínio.</p>
         <p>A partição é outra coisa. <code>PARTITION BY toYYYYMM(...)</code> separa as partes por mês da ingestão, e partes de meses diferentes nunca se juntam. Ela serve para gerenciar dados (apagar ou mover um mês inteiro) e, como efeito colateral, para descartar meses inteiros numa consulta. Partição demais é um erro comum: uma por dia num volume pequeno gera muitas partes pequenas. Mês é suficiente aqui. A expressão precisa do <code>toInt64</code> porque <code>fromUnixTimestamp64Milli</code> espera <code>Int64</code> e a coluna é <code>UInt64</code>; na versão 26.8.15.10 o DDL foi aceito sem ajuste. O <code>data_tag</code> é <code>LowCardinality(String)</code> porque tem poucos valores distintos: o ClickHouse guarda um dicionário com as três palavras e, em cada linha, só um número pequeno.</p>
 
-        <h3>7.4 String ou o tipo JSON</h3>
-        <p>O ClickHouse tem um tipo <code>JSON</code> próprio, que separa cada caminho do documento em subcolunas tipadas na hora da escrita. A leitura fica muito mais rápida, como a Etapa 10 mede. O custo é que o servidor infere os tipos na inserção e pode transformar o dado. Na preparação, a coluna <code>JSON</code> inferiu <code>coletado_em</code> como <code>DateTime</code> e converteu <code>2026-10-30T19:27:52-03:00</code> para <code>2026-10-30 22:27:52</code>, em UTC: o deslocamento original se perdeu. Uma tabela de pouso tem a função de guardar o dado como chegou, e por isso <code>data_json</code> é <code>String</code>: o texto exato que o produtor mandou, reserializado de forma compacta. Quem quiser velocidade de leitura cria uma estrutura derivada; a questão 3 do TBL discute as opções.</p>
+        <h3>7.4 O tipo JSON ou String</h3>
+        <p>O ClickHouse tem um tipo <code>JSON</code> próprio, que separa cada caminho do documento em subcolunas tipadas na hora da escrita, como o <code>jsonb</code> do PostgreSQL guarda o documento já interpretado em vez do texto. A tabela da aula usa esse tipo. A leitura fica muito mais rápida que interpretar texto a cada consulta: na Etapa 10, o preço médio por categoria sobre um milhão de linhas levou 21 ms na coluna <code>JSON</code> e 146 ms numa coluna <code>String</code> com <code>JSONExtract*</code>, e a mesma amostra ocupou 23.429.172 bytes comprimidos contra 97.592.663.</p>
+        <p>O custo é que o servidor infere os tipos na inserção e pode transformar o dado. Com a configuração padrão, a coluna <code>JSON</code> inferiu <code>coletado_em</code> como <code>DateTime</code> e converteu <code>2026-10-30T19:27:52-03:00</code> para <code>2026-10-30 22:27:52</code>, em UTC: o deslocamento original se perdeu. Por isso o consumidor insere com <code>input_format_try_infer_dates = 0</code> e <code>input_format_try_infer_datetimes = 0</code>, em <code>referencia/src/clickhouse.py</code>. Com as duas configurações, datas e horas ficam como <code>String</code>, iguais ao que chegou, e o silver as converte de forma explícita. Os números continuam inferidos: <code>preco_gbp</code> vira <code>Float64</code>, <code>avaliacao</code> vira <code>Int64</code>, <code>em_estoque</code> vira <code>Bool</code>.</p>
+        <p>Duas coisas o tipo <code>JSON</code> não preserva: a ordem das chaves, porque <code>toJSONString(data_json)</code> devolve as chaves em ordem alfabética, e a grafia dos números, porque <code>51.770</code> vira <code>51.77</code>. A tabela de pouso deixa de ser o texto exato que o produtor mandou. Esse texto continua no raw do lake, que guarda o envelope como chegou e é a fonte do reprocesso. Se um produtor mandar o preço como texto numa linha, o INSERT não falha: o caminho passa a guardar os dois tipos, e quem quebra é a consulta que lê <code>data_json.preco_gbp::Float64</code>. A questão 3 do TBL discute até onde ir na tipagem.</p>
 
         <h3>7.5 O lake na organização da Aula 03: raw, bronze e manifesto</h3>
         <p>O lake segue os preceitos da Aula 03. O <code>raw</code> guarda o que chegou, sem interpretação. O <code>bronze</code> guarda o extraído, uma linha por registro. A chave tem partições no formato <code>nome=valor</code>, e a data da partição é a do recebimento em <code>America/Sao_Paulo</code>. Cada lote grava um manifesto. No servidor de ingestão, esses preceitos viram quatro prefixos:</p>
@@ -651,10 +660,10 @@ raw/ingestao_rejeitados/data=D/rejeitado_&lt;HHMMSS&gt;_&lt;id&gt;.json      um 
 
         <h3>7.8 Pontos-chave</h3>
         <ul>
-          <li>A tabela de pouso de três colunas aceita qualquer domínio sem DDL; os tipos aparecem só na leitura.</li>
+          <li>A tabela de pouso de três colunas aceita qualquer domínio sem DDL; o INSERT infere os tipos de cada caminho e a consulta escolhe o tipo final.</li>
           <li>Unix em milissegundos não tem fuso, ordena como número e não colide a 640 envelopes por segundo; não é chave única.</li>
           <li>No MergeTree, cada <code>INSERT</code> cria uma parte; o <code>ORDER BY</code> é um índice esparso por grânulo de 8.192 linhas; a partição separa meses.</li>
-          <li><code>data_json</code> como <code>String</code> guarda o dado exato; o tipo <code>JSON</code> lê mais rápido, mas infere tipos e perdeu o <code>-03:00</code>.</li>
+          <li><code>data_json</code> no tipo <code>JSON</code> lê sete vezes mais rápido que o texto e ocupa um quarto; a inferência de datas fica desligada para não perder o <code>-03:00</code>, e o texto exato fica no raw.</li>
           <li>Raw (envelopes em JSON Lines), bronze (Parquet) e manifesto (com SHA-256) seguem a Aula 03; o mesmo nome de lote liga os três.</li>
           <li>A partição <code>data=D</code> usa a data de Brasília; a chave do lote tem sufixo aleatório porque o dado empurrado pode voltar em outra composição.</li>
           <li>O bronze se refaz a partir do raw, e a tabela do ClickHouse a partir do bronze, usando só os lotes com manifesto <code>ok</code>.</li>
@@ -675,7 +684,7 @@ raw/ingestao_rejeitados/data=D/rejeitado_&lt;HHMMSS&gt;_&lt;id&gt;.json      um 
 
       <section class="content-block" id="s8">
         <h2>8. Etapa 05 &middot; Arquitetura e ADRs</h2>
-        <p>Objetivo: desenhar os componentes e a sequência do caminho feliz e de uma falha, e registrar as cinco decisões com as alternativas descartadas. Artefatos: <code>docs/arquitetura.md</code> e <code>docs/adr/ADR-001</code> a <code>ADR-005</code>.</p>
+        <p>Objetivo: desenhar os componentes e a sequência do caminho feliz e de uma falha, e registrar as cinco decisões com as alternativas descartadas, os custos de cada uma e a previsão de esforço em homem-hora. Artefatos: <code>docs/arquitetura.md</code> e <code>docs/adr/ADR-001</code> a <code>ADR-005</code>.</p>
         <pre class="is-wrap"><code>[C] Personagem
 Você é arquiteto de software de dados. Desenha componentes e sequência
 e registra cada decisão com alternativas.
@@ -689,14 +698,14 @@ e registra cada decisão com alternativas.
    - diagrama de sequência do caminho feliz e de uma falha do
      ClickHouse no meio do lote.
 2. ADRs em docs/adr/ (Contexto, Decisão, Alternativas, Consequências,
-   Status: Proposta):
+   Custos, Previsão de esforço em HH, Status: Proposta):
    ADR-001 HTTP publica na fila em vez de gravar direto
    ADR-002 raw e bronze antes do ClickHouse
    ADR-003 manifesto do lote depois do ClickHouse e ack só depois de
            tudo gravado
    ADR-004 micro-lote por tamanho ou tempo (FLUSH_N e FLUSH_SEGUNDOS
            no .env, prefetch_count pelo menos FLUSH_N)
-   ADR-005 tabela de três colunas com data_json String
+   ADR-005 tabela de três colunas com data_json no tipo JSON
 
 [E] Exemplos
 sequenceDiagram
@@ -721,9 +730,20 @@ sequenceDiagram
 - Sem ponto e vírgula dentro de rótulo Mermaid.
 - DLX, prefetch ajustado e deduplicação ficam como "Aula 06" nas
   consequências.
+- Custos de cada ADR, da decisão e de cada alternativa descartada:
+  infraestrutura (serviços no Railway: crédito de teste de US$ 5 por
+  até 30 dias, depois plano Free de US$ 1/mês; no ambiente local, zero)
+  e mão de obra (quem do grupo faz cada atividade).
+- Previsão de esforço em HH (homem-hora = pessoas x horas) numa tabela
+  atividade | HH da decisão | HH da alternativa | base da estimativa,
+  com as linhas implementar, testar, documentar e operar por mês.
+  Feche com o total em HH e o custo = HH x valor-hora, com o
+  valor-hora como parâmetro que o grupo declara.
+- Estimativa sem base (medição, código existente ou tarefa parecida já
+  feita) vira pergunta para o grupo, não número.
 
 [T] Tipo de saída
-Markdown; arquitetura.md com até 120 linhas; cada ADR com até 40.
+Markdown; arquitetura.md com até 120 linhas; cada ADR com até 60.
 
 [E] Extras
 Leia AGENTS.md, docs/ e specs/. Mostre o plano, espere meu ok, escreva,
@@ -735,7 +755,7 @@ registre o prompt e pare.</code></pre>
         <p>ADR-002, raw e bronze antes do ClickHouse. A ordem importa porque o processo pode morrer entre os passos. O raw vem primeiro porque é o que chegou, sem interpretação: se a extração do bronze tiver um erro, o raw permite refazê-la. O bronze vem antes do ClickHouse porque é o histórico tipável e o backup; com ele se recria a tabela. Gravando as duas camadas primeiro, o histórico nunca fica atrás da tabela: tudo o que está no ClickHouse também está no lake, e o reprocesso da seção 7.5 sempre recupera a tabela inteira. A alternativa de gravar o ClickHouse primeiro deixaria o backup atrás da cópia. O custo aparece quando o ClickHouse cai: o flush falha no terceiro passo, não há ack, e o consumidor para de avançar mesmo com o RustFS no ar. A questão 2 do TBL discute alternativas para esse caso, como gravar só o lake e carregar o ClickHouse a partir dele num segundo consumidor.</p>
         <p>ADR-003, o manifesto depois do ClickHouse e o ack por último. O manifesto é o recibo do lote, e só pode dizer o resultado de todos os destinos se for escrito depois deles. Com essa ordem vale uma regra simples: manifesto com <code>"status": "ok"</code> quer dizer lote completo em raw, bronze e ClickHouse. Arquivos de lote sem manifesto <code>ok</code> vêm de um flush interrompido, e as mensagens deles voltam pela fila porque não houve ack. Se o ClickHouse falhar, o servidor grava o manifesto com <code>"status": "erro_clickhouse"</code> e o texto do erro, não dá ack e reconecta; a tentativa fica registrada. A alternativa considerada foi gravar o manifesto antes do ClickHouse. Nesse caso ele precisaria ser regravado depois do <code>INSERT</code>, com dois <code>PUT</code>s por lote, ou ficaria dizendo "pendente" para sempre nos lotes que deram certo. O ack por último é a escolha da entrega pelo menos uma vez, discutida na seção 6.2. A alternativa, ack ao receber, é mais simples e nunca duplica, mas perde o lote em memória a cada queda do processo.</p>
         <p>ADR-004, o micro-lote. A alternativa de gravar cada mensagem assim que chega dá a menor latência e o pior custo, como o exemplo abaixo e a seção 11 medem. O lote fecha por tamanho (<code>FLUSH_N</code> envelopes) ou por tempo (<code>FLUSH_SEGUNDOS</code>), o que vier primeiro. O tamanho limita a memória e o tempo limita a latência quando o tráfego é baixo. A ADR precisa registrar uma consequência descoberta na preparação: o <code>prefetch_count</code> do consumidor, o número de mensagens que o broker entrega sem ack, tem de ser pelo menos <code>FLUSH_N</code>. Com um valor menor, o broker para de entregar antes de o lote encher, e todo flush passa a acontecer pelo relógio. A Aula 06 aprofunda o prefetch.</p>
-        <p>ADR-005, a tabela de três colunas, foi discutida na seção 7. A alternativa principal, uma tabela por domínio, é a questão 3 do TBL.</p>
+        <p>ADR-005, a tabela de três colunas com <code>data_json</code> no tipo <code>JSON</code>, foi discutida na seção 7. A ADR registra duas alternativas descartadas: <code>data_json</code> como <code>String</code>, que guarda o texto exato e paga a interpretação em toda consulta, e uma tabela por domínio, que é a questão 3 do TBL.</p>
 
         <h3>8.2 O que acontece se o processo cair entre os passos</h3>
         <p>O flush tem cinco passos (raw, bronze, ClickHouse, manifesto e ack), e a pergunta que a ADR-002 e a ADR-003 precisam responder é o que acontece se o processo morrer em cada intervalo. A tabela resume; a Etapa 09 mede os casos principais.</p>
@@ -766,10 +786,16 @@ registre o prompt e pare.</code></pre>
         <p>O total é a mediana do flush inteiro, medida à parte, e por isso não é a soma exata das medianas dos passos. Gravar 1 linha custa 30,8 ms; gravar 500 custa 31,6 ms. Por linha, o primeiro caso gasta 30,8 ms e o segundo 31,6 / 500 = 0,063 ms, quase 500 vezes menos. Com 5.000 linhas o total sobe para 45,9 ms, 1,5 vez o de uma linha; quem mais cresce é o raw (de 8,0 para 18,5 ms), que envia dez vezes mais bytes sem compressão. O manifesto custa o mesmo em qualquer tamanho, cerca de 7,5 ms. Para um dia de telemetria (31.265 linhas), os 63 flushes de 500 somam 63 &times; 31,6 ms = 2,0 s. Gravar linha a linha custaria, pela mesma conta, 31.265 &times; 30,8 ms = 963 s, mais de 16 minutos; essa é uma estimativa, porque <code>FLUSH_N=1</code> não foi medido com o RustFS.</p>
         <p>Na primeira rodada, com MinIO e o lake só com um Parquet por lote, o flush tinha dois passos: lake 5,2, 5,3 e 6,5 ms e ClickHouse 4,0, 4,0 e 6,0 ms, cerca de 9,3 ms para 500 linhas. O flush ficou 31,6 / 9,3 = 3,4 vezes mais caro por dois motivos. Ele faz três <code>PUT</code>s em vez de um (raw, bronze e manifesto), e cada <code>PUT</code> no RustFS custou uns 2 ms a mais que no MinIO nesta máquina: o mesmo <code>COPY lote TO 's3://...'</code> do DuckDB levou 7,6, 7,2 e 7,8 ms no RustFS contra 5,2, 5,3 e 6,5 ms no MinIO. A conclusão sobre o micro-lote não muda: o custo fixo continua dominando.</p>
 
-        <h3>8.4 Pausa para reflexão</h3>
+        <h3>8.4 Custos e previsão de esforço em homem-hora</h3>
+        <p>Uma decisão de arquitetura também tem preço, e a ADR desta aula registra esse preço ao lado das consequências. Ele tem três partes. A infraestrutura é o que a decisão exige em serviços: no ambiente local, com Docker, o custo é zero; no Railway, o projeto do grupo roda no plano de teste, com crédito único de US$ 5 por até 30 dias e até cinco serviços, e depois no plano Free, de US$ 1 por mês. A mão de obra é o tempo das pessoas que constroem a decisão. A operação é o tempo que a decisão continua pedindo depois de pronta, mês a mês.</p>
+        <p>Mão de obra se mede em HH, homem-hora: o número de pessoas multiplicado pelas horas de trabalho. Duas pessoas que passam 4 horas numa tarefa gastam 8 HH, o mesmo que uma pessoa em 8 horas. O custo em dinheiro é HH &times; valor-hora. O valor-hora varia com a senioridade e o contrato, e por isso o prompt pede que o grupo o declare como parâmetro, em vez de o agente escolher um número. A ADR preenche uma tabela com as atividades implementar, testar, documentar e operar por mês, uma coluna para a decisão e outra para a alternativa descartada, e fecha com o total em HH e o custo.</p>
+        <p>A comparação muda a leitura de algumas ADRs. Na ADR-005, a tabela de três colunas pede um DDL só, e uma fonte nova custa uma linha no <code>.env</code>; a alternativa de uma tabela por domínio pede DDL, código e deploy a cada fonte nova, e esse custo entra na linha de operação, multiplicado pelo número de fontes novas esperadas por mês. Na ADR-002, gravar o lake antes do ClickHouse quase não muda a implementação, mas a alternativa, exportar o ClickHouse para o lake, acrescenta um processo para escrever e vigiar. O que a tabela de HH deixa visível é a diferença entre o custo de construir e o custo de manter.</p>
+        <p>Cada número precisa de uma base. As bases disponíveis nesta aula são as medições da preparação, o código de <code>referencia/src/</code>, que mostra o tamanho de cada peça, e as tarefas parecidas que o grupo já fez nas Aulas 01 a 03, como o coletor da Aula 02. Uma estimativa sem nenhuma dessas bases fica na ADR como pergunta para o grupo responder. É a mesma regra do resto do pacote: o agente não inventa número.</p>
+
+        <h3>8.5 Pausa para reflexão</h3>
         <p>O ClickHouse fica fora do ar por 20 minutos numa sexta à tarde. Com a ordem raw, bronze, ClickHouse, manifesto, ack, o que acontece com o lake nesse intervalo? Quantos manifestos <code>erro_clickhouse</code> aparecem, e o que eles dizem? E com a fila? Que número a P3 vê subir no console do RabbitMQ, e que decisão ela pode tomar sem mudar o código? Guarde a resposta para a questão 2 do TBL.</p>
 
-        <h3>8.5 Pontos-chave</h3>
+        <h3>8.6 Pontos-chave</h3>
         <ul>
           <li>Uma ADR registra as alternativas e o motivo de cada uma ter sido descartada.</li>
           <li>A fila no meio deixa um caminho só até os destinos e uma API que responde em milissegundos.</li>
@@ -778,9 +804,10 @@ registre o prompt e pare.</code></pre>
           <li>Em nenhum ponto de queda o dado se perde; dentro do flush, ele pode se repetir.</li>
           <li>O flush de 500 linhas custa 31,6 ms com raw, bronze, ClickHouse e manifesto, contra 9,3 ms do desenho só com Parquet; o custo fixo ainda domina.</li>
           <li><code>prefetch_count</code> menor que <code>FLUSH_N</code> impede o lote de encher.</li>
+          <li>Cada ADR registra o custo de infraestrutura e a previsão de HH da decisão e da alternativa; custo = HH &times; valor-hora, e cada estimativa diz de onde vem.</li>
         </ul>
 
-        <h3>8.6 Para saber mais</h3>
+        <h3>8.7 Para saber mais</h3>
         <ul>
           <li>Nygard, M. <a href="https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions" target="_blank" rel="noopener noreferrer">Documenting Architecture Decisions</a>. Cognitect, 2011.</li>
           <li>RabbitMQ. <a href="https://www.rabbitmq.com/docs/consumer-prefetch" target="_blank" rel="noopener noreferrer">Consumer Prefetch</a>: o limite de mensagens entregues sem ack.</li>
@@ -788,7 +815,7 @@ registre o prompt e pare.</code></pre>
         </ul>
         <div class="note">
           <strong>Revise antes de seguir</strong>
-          <p>A sequência mostra o manifesto depois do <code>INSERT</code> e o ack por último? A ADR-002 diz o que acontece se o processo cair entre o bronze e o ClickHouse (arquivos sem manifesto, reentrega)? A ADR-003 diz o que o manifesto registra quando o ClickHouse falha? A ADR-004 menciona o <code>prefetch_count</code>? Cada ADR tem alternativa descartada com motivo e liga a um RF ou RNF? Os blocos Mermaid renderizam (sem ponto e vírgula nos rótulos)?</p>
+          <p>A sequência mostra o manifesto depois do <code>INSERT</code> e o ack por último? A ADR-002 diz o que acontece se o processo cair entre o bronze e o ClickHouse (arquivos sem manifesto, reentrega)? A ADR-003 diz o que o manifesto registra quando o ClickHouse falha? A ADR-004 menciona o <code>prefetch_count</code>? Cada ADR tem alternativa descartada com motivo e liga a um RF ou RNF? Os blocos Mermaid renderizam (sem ponto e vírgula nos rótulos)? Cada ADR tem custos e a tabela de HH da decisão e da alternativa, com a base de cada estimativa e o valor-hora declarado pelo grupo?</p>
         </div>
       </section>
 
@@ -1230,10 +1257,11 @@ python -m src.conferir                                     # depois da drenagem<
 
       <section class="content-block" id="s13">
         <h2>13. Etapa 10 &middot; JSON cast e silver para a Aula 05</h2>
-        <p>Objetivo: transformar o JSON guardado como texto em colunas tipadas, nas duas engines, comparar resultado e tempo, e gerar a camada silver de livros e PTAX que a Aula 05 lê. Artefatos: <code>sql/duckdb_cast.sql</code>, <code>sql/clickhouse_cast.sql</code> e <code>sql/silver_livros_ptax.sql</code>. Os três arquivos vieram do laboratório na Etapa 00; nesta etapa o agente os lê, roda, confere contra o contrato e registra os resultados do grupo.</p>
+        <p>Objetivo: transformar o JSON em colunas tipadas nas duas engines, lendo o texto do bronze no DuckDB e as subcolunas do tipo <code>JSON</code> no ClickHouse, comparar resultado e tempo, e gerar a camada silver de livros e PTAX que a Aula 05 lê. Artefatos: <code>sql/duckdb_cast.sql</code>, <code>sql/clickhouse_cast.sql</code> e <code>sql/silver_livros_ptax.sql</code>. Os três arquivos vieram do laboratório na Etapa 00; nesta etapa o agente os lê, roda, confere contra o contrato e registra os resultados do grupo.</p>
         <pre class="is-wrap"><code>[C] Personagem
-Você é analista de dados. Lê o JSON guardado como texto e devolve
-colunas tipadas, no DuckDB e no ClickHouse.
+Você é analista de dados. Lê o JSON do bronze (texto, no DuckDB) e o
+da tabela de pouso (tipo JSON, no ClickHouse) e devolve colunas
+tipadas.
 
 [R] Pedido
 Os arquivos sql/duckdb_cast.sql, sql/clickhouse_cast.sql e
@@ -1244,8 +1272,9 @@ sql/silver_livros_ptax.sql vieram do laboratório. Para cada um:
    caminhão (telemetria); duplicatas; e as contagens do raw (envelopes
    e linhas que eles carregam) e dos manifestos por status. Rode com
    python sql/rodar_sql.py sql/duckdb_cast.sql.
-2. sql/clickhouse_cast.sql: as mesmas consultas com JSONExtract*,
-   simpleJSONExtract* e CAST(data_json AS JSON). Rode com
+2. sql/clickhouse_cast.sql: as mesmas consultas lendo os caminhos do
+   tipo JSON (data_json.caminho::Tipo), mais os tipos que o INSERT
+   inferiu em cada caminho (JSONAllPathsWithTypes). Rode com
    clickhouse-client --time --multiquery.
 3. sql/silver_livros_ptax.sql: DuckDB lendo o bronze e gravando
    s3://silver/livros/data_coleta=D/livros.parquet e
@@ -1284,10 +1313,10 @@ docker compose exec -T clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --
   --time --multiquery &lt; sql/clickhouse_cast.sql
 python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-30   # dia da coleta dos livros do zip</code></pre>
 
-        <h3>13.1 Enquanto as consultas rodam: as formas de ler JSON guardado como texto</h3>
-        <p>A tabela de pouso adiou uma decisão: os tipos. Na Etapa 10 ela chega. O preço de um livro está dentro de <code>data_json</code> como o texto <code>51.77</code>, e para calcular uma média é preciso extraí-lo e convertê-lo. Cada engine oferece mais de um caminho, e eles diferem no que fazem a cada linha.</p>
+        <h3>13.1 Enquanto as consultas rodam: as formas de ler JSON</h3>
+        <p>A tabela de pouso adiou uma decisão: os tipos. Na Etapa 10 ela chega. No bronze, o preço de um livro está dentro de <code>data_json</code> como o texto <code>51.77</code>, e para calcular uma média é preciso extraí-lo e convertê-lo. No ClickHouse, o INSERT já separou o preço numa subcoluna <code>Float64</code>, e a consulta só escolhe como lê-lo. Cada engine oferece mais de um caminho, e eles diferem no que fazem a cada linha.</p>
         <p>No DuckDB, a extensão JSON trata uma coluna <code>VARCHAR</code> como JSON quando se aplica um operador. <code>data_json -&gt;&gt; 'categoria'</code> extrai o valor como texto (<code>VARCHAR</code>); <code>-&gt;</code> extrai como JSON. <code>json_extract_string</code> e <code>json_extract</code> fazem o mesmo com caminhos JSONPath (<code>'$.categoria'</code>). Em todos esses, o texto é interpretado a cada consulta, e o tipo final vem de um <code>CAST</code> explícito. <code>from_json(data_json, '{"categoria":"VARCHAR","preco_gbp":"DECIMAL(10,2)"}')</code> é diferente: recebe a estrutura declarada e devolve um <code>STRUCT</code> já tipado. Campos fora da estrutura somem, e é o mais próximo de um schema aplicado na leitura.</p>
-        <p>No ClickHouse, <code>JSONExtractString(data_json, 'categoria')</code> e <code>JSONExtractFloat(data_json, 'preco_gbp')</code> interpretam o texto a cada linha. A família <code>simpleJSONExtract*</code> é mais rápida porque supõe um JSON simples: procura o nome do campo no texto sem montar a árvore do documento, e pode errar se o mesmo nome aparecer aninhado. <code>CAST(data_json AS JSON)</code> converte o texto para o tipo <code>JSON</code> na hora da consulta e permite o acesso por caminho (<code>.categoria</code>); o valor sai como <code>Dynamic</code> e precisa de conversão para somar. Por fim, há a coluna do tipo <code>JSON</code>, discutida na seção 7.4, que faz essa separação na escrita e guarda cada caminho como subcoluna.</p>
+        <p>No ClickHouse, <code>data_json</code> é do tipo <code>JSON</code>, e cada caminho é uma subcoluna: <code>data_json.categoria</code> lê só a coluna de categorias, sem tocar no resto do documento. O valor sai como <code>Dynamic</code>, que pode guardar mais de um tipo no mesmo caminho, e o <code>::String</code> ou <code>::Float64</code> diz como lê-lo. <code>JSONAllPathsWithTypes(data_json)</code> mostra o tipo que o INSERT inferiu em cada caminho; para os livros, <code>preco_gbp</code> Float64, <code>avaliacao</code> Int64, <code>em_estoque</code> Bool e, com a inferência de datas desligada, <code>coletado_em</code> String. As alternativas medidas abaixo partem de uma coluna <code>String</code>, como seria a tabela se guardasse o texto: <code>JSONExtractString</code> e <code>JSONExtractFloat</code> interpretam o texto a cada linha; <code>simpleJSONExtract*</code> é mais rápida porque procura o nome do campo sem montar a árvore do documento, e pode errar se o mesmo nome aparecer aninhado; <code>CAST(data_json AS JSON)</code> converte o texto para o tipo <code>JSON</code> a cada consulta.</p>
 
         <h3>13.2 Exemplo numérico: quanto custa ler o JSON</h3>
         <p>A consulta medida é o preço médio por categoria. Cada tempo é a mediana de 5 execuções depois de uma de aquecimento. A tabela é da primeira rodada, com o DuckDB lendo o Parquet do lake no MinIO. Com o RustFS, as mesmas consultas rodaram sobre o bronze, em 7 a 90 ms com os 1.000 livros e o dia de telemetria, mas a mediana de 5 não foi refeita. Os tempos do ClickHouse não dependem do object storage, porque a tabela fica no disco do próprio ClickHouse; os do DuckDB incluem a leitura pela rede local, e o conteúdo do Parquet é o mesmo nas duas rodadas. A coluna "1.000.000 linhas" usa a tabela de livros repetida 1.000 vezes, com o mesmo texto, o que favorece a compressão; ela mostra a tendência, e não o tempo de um caso real com um milhão de livros diferentes.</p>
@@ -1298,19 +1327,19 @@ python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-30   # dia
             <tr><td>DuckDB <code>json_extract_string</code> / <code>json_extract</code></td><td>3,9 ms</td><td>194,0 ms</td></tr>
             <tr><td>DuckDB <code>from_json</code> com estrutura declarada</td><td>3,5 ms</td><td>130,4 ms</td></tr>
             <tr><td>DuckDB sobre Parquet já tipado</td><td></td><td>7,5 ms</td></tr>
-            <tr><td>ClickHouse <code>JSONExtractString</code> / <code>JSONExtractFloat</code></td><td>3,4 ms</td><td>146,3 ms</td></tr>
-            <tr><td>ClickHouse <code>simpleJSONExtract*</code></td><td>4,6 ms</td><td>75,0 ms</td></tr>
-            <tr><td>ClickHouse <code>CAST(data_json AS JSON)</code> na consulta</td><td>6,4 ms</td><td>957,4 ms</td></tr>
-            <tr><td>ClickHouse coluna do tipo <code>JSON</code></td><td></td><td>20,8 ms</td></tr>
+            <tr><td>ClickHouse coluna do tipo <code>JSON</code> (a tabela da aula)</td><td></td><td>20,8 ms</td></tr>
             <tr><td>ClickHouse coluna <code>JSON</code> com tipo no caminho (<code>data.preco_gbp.:Float64</code>)</td><td></td><td>15,5 ms</td></tr>
+            <tr><td>ClickHouse coluna <code>String</code>, <code>JSONExtractString</code> / <code>JSONExtractFloat</code></td><td>3,4 ms</td><td>146,3 ms</td></tr>
+            <tr><td>ClickHouse coluna <code>String</code>, <code>simpleJSONExtract*</code></td><td>4,6 ms</td><td>75,0 ms</td></tr>
+            <tr><td>ClickHouse coluna <code>String</code>, <code>CAST(data_json AS JSON)</code> na consulta</td><td>6,4 ms</td><td>957,4 ms</td></tr>
           </tbody>
         </table></div>
-        <p>Com 1.000 livros, todas as formas respondem entre 3,4 e 6,4 ms, e a escolha não muda nada para o analista. Com um milhão de linhas, a ordem aparece. <code>CAST AS JSON</code> na consulta é a mais lenta, 957,4 / 146,3 = 6,5 vezes o <code>JSONExtract</code>, porque converte o documento inteiro a cada linha e a cada consulta. A coluna do tipo <code>JSON</code> é 146,3 / 20,8 = 7 vezes mais rápida que o <code>JSONExtract</code>, porque o trabalho foi feito uma vez, na escrita (o <code>INSERT ... SELECT</code> do milhão de linhas para a coluna <code>JSON</code> levou 1,02 s). No DuckDB, o Parquet já tipado responde em 7,5 ms, 211,2 / 7,5 = 28 vezes mais rápido que o <code>-&gt;&gt;</code> com <code>CAST</code>. É a justificativa numérica da camada silver: quem consulta muito não deveria interpretar o JSON a cada consulta. Nas outras consultas, a venda média da PTAX por tipo de boletim levou 2,3 ms no DuckDB e 4,1 ms no ClickHouse, e a contagem de linhas de telemetria por caminhão, com expressão regular, 8,7 e 12,6 ms; 2.396 das 31.265 linhas não têm caminhão (<code>#RADIO</code> e <code>ERR SAT</code>).</p>
+        <p>Com 1.000 livros, todas as formas respondem entre 3,4 e 6,4 ms, e a escolha não muda nada para o analista. Com um milhão de linhas, a ordem aparece. <code>CAST AS JSON</code> na consulta é a mais lenta, 957,4 / 146,3 = 6,5 vezes o <code>JSONExtract</code>, porque converte o documento inteiro a cada linha e a cada consulta. A coluna do tipo <code>JSON</code>, a da tabela de pouso, é 146,3 / 20,8 = 7 vezes mais rápida que o <code>JSONExtract</code> sobre <code>String</code>, porque o trabalho foi feito uma vez, na escrita (o <code>INSERT ... SELECT</code> do milhão de linhas para a coluna <code>JSON</code> levou 1,02 s). No DuckDB, o Parquet já tipado responde em 7,5 ms, 211,2 / 7,5 = 28 vezes mais rápido que o <code>-&gt;&gt;</code> com <code>CAST</code>. É a justificativa numérica da camada silver: quem consulta muito não deveria interpretar o JSON a cada consulta. Nas outras consultas, a venda média da PTAX por tipo de boletim levou 2,3 ms no DuckDB e 4,1 ms no ClickHouse, e a contagem de linhas de telemetria por caminhão, com expressão regular, 8,7 e 12,6 ms; 2.396 das 31.265 linhas não têm caminhão (<code>#RADIO</code> e <code>ERR SAT</code>).</p>
         <p>No tamanho, a mesma escala deu 97.592.663 bytes comprimidos para a coluna <code>String</code> e 23.429.172 para a coluna <code>JSON</code>, depois de <code>OPTIMIZE FINAL</code>. A coluna <code>JSON</code> ficou 4,2 vezes menor, porque cada subcoluna guarda valores do mesmo tipo lado a lado. O texto repetido 1.000 vezes exagera o efeito.</p>
 
         <h3>13.3 Duas diferenças que a comparação revelou</h3>
-        <p>A primeira é de tipo numérico. A média de venda da PTAX nos boletins de fechamento deu 6,95758 no DuckDB, com <code>CAST</code> para <code>DECIMAL(12,5)</code>, e 6,95757 no ClickHouse, com <code>JSONExtractFloat</code>. Os dois estão certos para o tipo que usaram. <code>Float64</code> guarda números em base 2, e valores como 7,1249 não têm representação exata; a soma acumula erros na última casa, e o arredondamento para cinco casas cai para um lado ou para o outro. <code>DECIMAL</code> guarda os dígitos exatos. Para dinheiro e cotação, o tipo da silver é <code>DECIMAL</code>, e uma comparação entre engines precisa usar o mesmo tipo dos dois lados.</p>
-        <p>A segunda é de fuso. O <code>coletado_em</code> dos livros chega como <code>2026-10-30T19:27:52-03:00</code>. A coluna do tipo <code>JSON</code> do ClickHouse inferiu o campo como <code>DateTime</code> e guardou <code>2026-10-30 22:27:52</code>, em UTC, o fuso do servidor. O instante está certo, mas a informação de que a coleta aconteceu às 19h27 no horário de Brasília se perdeu. Na silver, o DuckDB lê o campo como texto e só então converte para <code>TIMESTAMPTZ</code>, com <code>SET TimeZone = 'America/Sao_Paulo'</code>, o que preserva o deslocamento. Por isso a silver não usa a inferência automática para esse campo.</p>
+        <p>A primeira é de tipo numérico. A média de venda da PTAX nos boletins de fechamento deu 6,95758 no DuckDB, com <code>CAST</code> para <code>DECIMAL(12,5)</code>, e 6,95757 no ClickHouse, lendo <code>data_json.cotacaoVenda::Float64</code>, o tipo que o INSERT inferiu. Os dois estão certos para o tipo que usaram. <code>Float64</code> guarda números em base 2, e valores como 7,1249 não têm representação exata; a soma acumula erros na última casa, e o arredondamento para cinco casas cai para um lado ou para o outro. <code>DECIMAL</code> guarda os dígitos exatos. Para dinheiro e cotação, o tipo da silver é <code>DECIMAL</code>, e uma comparação entre engines precisa usar o mesmo tipo dos dois lados.</p>
+        <p>A segunda é de fuso. O <code>coletado_em</code> dos livros chega como <code>2026-10-30T19:27:52-03:00</code>. Com a configuração padrão, a coluna do tipo <code>JSON</code> do ClickHouse inferiu o campo como <code>DateTime</code> e guardou <code>2026-10-30 22:27:52</code>, em UTC, o fuso do servidor. O instante está certo, mas a informação de que a coleta aconteceu às 19h27 no horário de Brasília se perdeu. Por isso o consumidor insere com <code>input_format_try_infer_dates = 0</code> e <code>input_format_try_infer_datetimes = 0</code>: com elas, o caminho fica <code>String</code> e guarda <code>2026-10-30T19:27:52-03:00</code>, conferido com <code>JSONAllPathsWithTypes</code>. Quem insere na tabela por outro caminho, como um <code>INSERT</code> manual no <code>clickhouse-client</code> ou o reprocesso a partir do bronze, precisa passar as mesmas duas configurações. Na silver, o DuckDB lê o campo como texto e só então converte para <code>TIMESTAMPTZ</code>, com <code>SET TimeZone = 'America/Sao_Paulo'</code>, o que preserva o deslocamento.</p>
 
         <h3>13.4 A silver para a Aula 05</h3>
         <p>A Aula 05 lê a camada silver de livros e PTAX, e o contrato dela não muda com a troca de tema desta aula. Ela continua recebendo os mesmos arquivos, com as mesmas colunas e os mesmos tipos. A diferença está na origem: em vez do bronze da Aula 03, a silver é gerada a partir do bronze da ingestão (<code>bronze/ingestao/</code>), e <code>arquivo_origem</code> passa a ser o Parquet do bronze de onde cada linha veio.</p>
@@ -1324,15 +1353,15 @@ python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-30   # dia
         <p>A deduplicação da silver é também o lugar onde as duplicatas da entrega pelo menos uma vez deixam de importar para quem consome: o lote reentregue tem os mesmos <code>upc</code> e a mesma coleta, e o <code>QUALIFY row_number() ... = 1</code> fica com uma linha só. Na preparação, nas duas rodadas, a silver gerada com <code>DATA=2026-10-30</code> teve 1.000 livros, 1.000 UPCs, preços de 10,00 a 59,99 e nenhum sem <code>arquivo_origem</code>, e 40 boletins PTAX em 8 dias, 5 por dia. O <code>DESCRIBE</code> conferiu os tipos do contrato. Um detalhe da PTAX: no endpoint de período, o último boletim do dia veio com o tipo <code>Fechamento</code>, e a consulta da Aula 05 aceita <code>Fechamento PTAX</code> e <code>Fechamento</code>.</p>
 
         <h3>13.5 Pausa para reflexão</h3>
-        <p>Os analistas consultam livros cem vezes por dia e telemetria uma vez por semana. Com os tempos da tabela 13.2, em qual domínio vale a pena pagar o custo de tipar na escrita (coluna <code>JSON</code>, silver ou uma tabela derivada), e em qual o <code>JSONExtract</code> na leitura basta? A questão 3 do TBL retoma essa conta.</p>
+        <p>Os analistas consultam livros cem vezes por dia e telemetria uma vez por semana. Com os tempos da tabela 13.2, a coluna <code>JSON</code> com tipo inferido basta para os dois domínios, ou vale declarar o tipo dos caminhos de livros, gravar a silver ou criar uma tabela derivada? A questão 3 do TBL retoma essa conta.</p>
 
         <h3>13.6 Pontos-chave</h3>
         <ul>
-          <li>Com JSON guardado como texto, o tipo é decidido na consulta, com <code>CAST</code> ou com estrutura declarada.</li>
-          <li>Interpretar o texto a cada consulta é barato com mil linhas e caro com um milhão; <code>CAST AS JSON</code> na consulta foi o mais lento (957,4 ms).</li>
+          <li>No bronze, o JSON é texto e o tipo é decidido na consulta, com <code>CAST</code> ou com estrutura declarada; no ClickHouse, o INSERT infere o tipo de cada caminho e a consulta lê <code>data_json.caminho::Tipo</code>.</li>
+          <li>Interpretar o texto a cada consulta é barato com mil linhas e caro com um milhão; numa coluna <code>String</code>, <code>CAST AS JSON</code> na consulta foi o mais lento (957,4 ms).</li>
           <li>Tipar na escrita (coluna <code>JSON</code>, Parquet tipado) deixa a leitura entre 7 e 28 vezes mais rápida nesta medição.</li>
           <li><code>Float64</code> e <code>DECIMAL</code> dão médias diferentes na quinta casa; dinheiro vai em <code>DECIMAL</code>.</li>
-          <li>A inferência de tipo pode descartar informação, como o <code>-03:00</code>; a silver converte o texto de forma explícita.</li>
+          <li>A inferência de tipo pode descartar informação, como o <code>-03:00</code>; o INSERT desliga a inferência de datas e a silver converte o texto de forma explícita.</li>
         </ul>
 
         <h3>13.7 Para saber mais</h3>
@@ -1426,9 +1455,9 @@ SELECT * FROM db_ingestion WHERE data_tag = 'ptax' ORDER BY timestamp LIMIT 5 FO
 
 SELECT * FROM db_ingestion WHERE data_tag = 'telemetria' ORDER BY timestamp LIMIT 5 FORMAT Vertical;
 
-SELECT JSONExtractString(data_json, 'titulo')   AS titulo,
-       JSONExtractString(data_json, 'categoria') AS categoria,
-       JSONExtractFloat(data_json, 'preco_gbp')  AS preco_gbp
+SELECT data_json.titulo::String     AS titulo,
+       data_json.categoria::String  AS categoria,
+       data_json.preco_gbp::Float64 AS preco_gbp
 FROM db_ingestion
 WHERE data_tag = 'livros'
 ORDER BY preco_gbp DESC
@@ -1438,12 +1467,12 @@ LIMIT 5;</code></pre>
           <thead><tr><th>Comando</th><th>Saída</th></tr></thead>
           <tbody>
             <tr><td><code>SHOW TABLES</code></td><td><code>db_ingestion</code></td></tr>
-            <tr><td><code>DESCRIBE db_ingestion</code></td><td><code>timestamp UInt64</code>, <code>data_json String</code>, <code>data_tag LowCardinality(String)</code></td></tr>
+            <tr><td><code>DESCRIBE db_ingestion</code></td><td><code>timestamp UInt64</code>, <code>data_json JSON</code>, <code>data_tag LowCardinality(String)</code></td></tr>
             <tr><td>contagem por <code>data_tag</code></td><td><code>livros 1000</code>, <code>ptax 40</code>, <code>telemetria 31265</code></td></tr>
             <tr><td>5 livros em <code>FORMAT Vertical</code></td><td>cinco blocos <code>Row 1:</code> a <code>Row 5:</code>, o primeiro com <code>A Light in the Attic</code></td></tr>
             <tr><td>5 boletins PTAX</td><td>os boletins de 20/10/2026, todos com o mesmo <code>timestamp</code> (vieram num envelope só)</td></tr>
             <tr><td>5 linhas de telemetria</td><td>as linhas 1 a 5 de <code>entrada/telemetria/CAM-0451_20261029T0000.txt</code></td></tr>
-            <tr><td><code>JSONExtract</code> dos 5 livros mais caros</td><td><code>The Perfect Play (Play by Play #1)</code>, Romance, 59.99 na primeira linha</td></tr>
+            <tr><td>Os 5 livros mais caros, lidos pelo caminho</td><td><code>The Perfect Play (Play by Play #1)</code>, Romance, 59.99 na primeira linha</td></tr>
           </tbody>
         </table></div>
         <p>O primeiro bloco dos livros, na execução da preparação:</p>
@@ -1452,8 +1481,18 @@ LIMIT 5;</code></pre>
 timestamp:   1793407757238 -- 1.79 trillion
 recebido_em: 2026-10-30 21:49:17.238
 data_tag:    livros
-data_json:   {"upc":"a897fe39b1053632","url":"https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html","titulo":"A Light in the Attic","categoria":"Poetry","avaliacao":3,"preco_gbp":51.77,"em_estoque":true,"qtd_estoque":22,"coletado_em":"2026-10-30T19:27:52-03:00"}</code></pre>
-        <p>O <code>-- 1.79 trillion</code> é um comentário do cliente, e não faz parte do dado. A coluna <code>recebido_em</code> mostra o <code>timestamp</code> convertido para o horário de Brasília; o <code>coletado_em</code> dentro do JSON é a hora da coleta, que veio do produtor. Os cinco livros mais caros:</p>
+data_json:   {
+    "avaliacao": 3,
+    "categoria": "Poetry",
+    "coletado_em": "2026-10-30T19:27:52-03:00",
+    "em_estoque": true,
+    "preco_gbp": 51.77,
+    "qtd_estoque": 22,
+    "titulo": "A Light in the Attic",
+    "upc": "a897fe39b1053632",
+    "url": "https:\/\/books.toscrape.com\/catalogue\/a-light-in-the-attic_1000\/index.html"
+}</code></pre>
+        <p>O <code>-- 1.79 trillion</code> é um comentário do cliente, e não faz parte do dado. O <code>data_json</code> aparece indentado, com as chaves em ordem alfabética e as barras da URL escapadas, porque o cliente remonta o documento a partir das subcolunas do tipo <code>JSON</code>; o texto como chegou está no raw. A coluna <code>recebido_em</code> mostra o <code>timestamp</code> convertido para o horário de Brasília; o <code>coletado_em</code> dentro do JSON é a hora da coleta, que veio do produtor. Os cinco livros mais caros:</p>
         <pre><code>The Perfect Play (Play by Play #1)   Romance          59.99
 Last One Home (New Beginnings #1)    Fiction          59.98
 Civilization and Its Discontents     Psychology       59.95
@@ -1579,7 +1618,7 @@ Metadata  :
           <tbody>
             <tr><td>1. Contrato e mudança de payload</td><td>O que fazer quando um domínio muda a forma do <code>data</code> e o envelope continua válido.</td><td>5 (contrato do envelope) e 15 (schema por domínio).</td></tr>
             <tr><td>2. Ordem dos destinos e falha do ClickHouse</td><td>O que o servidor deve fazer, e em que ordem, quando o ClickHouse fica fora do ar e a fila cresce.</td><td>6.2 (garantias de entrega), 8 (ADRs, ordem do flush e pontos de queda) e 12 (teste de queda).</td></tr>
-            <tr><td>3. Forma da tabela para consulta</td><td>Como atender analistas que extraem campos do JSON em toda consulta.</td><td>7 (tabela de pouso, String e JSON) e 13 (tempos do JSON cast).</td></tr>
+            <tr><td>3. Forma da tabela para consulta</td><td>Como atender analistas que escrevem caminho e tipo de cada campo em toda consulta.</td><td>7 (tabela de pouso, tipo JSON e String) e 13 (tempos do JSON cast).</td></tr>
           </tbody>
         </table></div>
         <ol class="steps">

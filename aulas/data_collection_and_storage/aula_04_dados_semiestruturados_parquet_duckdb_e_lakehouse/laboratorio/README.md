@@ -19,7 +19,7 @@ O código do grupo nasce ao vivo, pelos prompts, no repositório do grupo, na pa
 | `referencia/` | servidor de referência (gabarito do professor para a demonstração) com `src/` e `tests/` |
 | `sql/001_db_ingestion.sql` | DDL da tabela de pouso, executado pelo ClickHouse na primeira subida |
 | `sql/duckdb_cast.sql` | contagens de raw, bronze e manifestos e JSON cast no DuckDB lendo o bronze |
-| `sql/clickhouse_cast.sql` | JSON cast no ClickHouse (`JSONExtract*`, `CAST AS JSON`) |
+| `sql/clickhouse_cast.sql` | JSON cast no ClickHouse, lendo os caminhos do tipo `JSON` (`data_json.caminho::Tipo`) |
 | `sql/silver_livros_ptax.sql` | silver de livros e PTAX para a Aula 05, gerado a partir do bronze |
 | `sql/rodar_sql.py` | executa um `.sql` no DuckDB com o secret S3 montado a partir do `.env` |
 | `fixtures/` | dados pequenos para os testes e exemplos de envelope |
@@ -68,13 +68,15 @@ Tabela de pouso (`sql/001_db_ingestion.sql`):
 CREATE TABLE IF NOT EXISTS ingestao.db_ingestion
 (
     timestamp UInt64,                  -- unix em milissegundos, hora da ingestão
-    data_json String,                  -- o dado recebido, como texto JSON
+    data_json JSON,                    -- o dado recebido, no tipo JSON
     data_tag  LowCardinality(String)   -- o domínio
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(fromUnixTimestamp64Milli(toInt64(timestamp)))
 ORDER BY (data_tag, timestamp);
 ```
+
+O tipo `JSON` do ClickHouse faz o papel do `jsonb` do PostgreSQL: o documento é interpretado no INSERT e cada caminho vira uma subcoluna com tipo inferido. O consumidor insere com `input_format_try_infer_dates = 0` e `input_format_try_infer_datetimes = 0` (em `referencia/src/clickhouse.py`), para que datas e horas fiquem como texto e o `-03:00` não se perca. Quem inserir por outro caminho, como um `INSERT` manual ou o reprocesso a partir do bronze, passa as mesmas duas configurações. O texto exato que chegou fica no raw.
 
 ## Horário
 
@@ -292,7 +294,7 @@ ClickHouse:
 
 ```bash
 docker compose exec clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" -q "
-  SELECT data_tag, count() AS linhas, uniqExact(timestamp, data_json) AS distintas
+  SELECT data_tag, count() AS linhas, uniqExact(timestamp, toJSONString(data_json)) AS distintas
   FROM ingestao.db_ingestion GROUP BY data_tag ORDER BY data_tag"
 ```
 
@@ -498,15 +500,15 @@ JSON cast (MinIO; tempo de consulta, mediana de 5 execuções depois de uma de a
 | DuckDB `json_extract_string` / `json_extract` | 3,9 ms | 194 ms |
 | DuckDB `from_json` com estrutura declarada | 3,5 ms | 130 ms |
 | DuckDB sobre Parquet já tipado (silver) | | 7,5 ms |
-| ClickHouse `JSONExtractString` / `JSONExtractFloat` | 3,4 ms | 146 ms |
-| ClickHouse `simpleJSONExtract*` | 4,6 ms | 75 ms |
-| ClickHouse `CAST(data_json AS JSON)` na consulta | 6,4 ms | 957 ms |
-| ClickHouse coluna do tipo `JSON` (subcolunas na escrita) | | 21 ms |
+| ClickHouse coluna do tipo `JSON`, a tabela da aula (subcolunas na escrita) | | 21 ms |
 | ClickHouse coluna `JSON` com tipo declarado (`data.preco_gbp.:Float64`) | | 16 ms |
+| ClickHouse coluna `String`, `JSONExtractString` / `JSONExtractFloat` | 3,4 ms | 146 ms |
+| ClickHouse coluna `String`, `simpleJSONExtract*` | 4,6 ms | 75 ms |
+| ClickHouse coluna `String`, `CAST(data_json AS JSON)` na consulta | 6,4 ms | 957 ms |
 
 Telemetria (contar linhas por caminhão com expressão regular sobre `linha`): 8,7 ms no DuckDB e 12,6 ms no ClickHouse; 2.396 das 31.265 linhas não têm caminhão (`#RADIO` e `ERR SAT`).
 
-Com mil livros, todas as formas respondem em poucos milissegundos. Com um milhão de linhas, `CAST AS JSON` na hora da consulta é a mais lenta (o texto é convertido de novo a cada consulta) e a coluna do tipo `JSON` é a mais rápida (as subcolunas já estão separadas no disco). A coluna `JSON` inferiu `coletado_em` como `DateTime` e converteu `2026-10-30T19:27:52-03:00` para `2026-10-30 22:27:52` em UTC: o deslocamento original se perde.
+Com mil livros, todas as formas respondem em poucos milissegundos. Com um milhão de linhas, `CAST AS JSON` na hora da consulta é a mais lenta (o texto é convertido de novo a cada consulta) e a coluna do tipo `JSON` é a mais rápida (as subcolunas já estão separadas no disco). Por isso a tabela de pouso usa o tipo `JSON`; as linhas com `String` mostram o custo da alternativa. Com a inferência padrão, a coluna `JSON` inferiu `coletado_em` como `DateTime` e converteu `2026-10-30T19:27:52-03:00` para `2026-10-30 22:27:52` em UTC, perdendo o deslocamento. Com `input_format_try_infer_dates = 0` e `input_format_try_infer_datetimes = 0`, como o consumidor insere, o caminho fica `String` e guarda `2026-10-30T19:27:52-03:00`.
 
 ## 10. Semana · ATAM e Railway
 
@@ -559,9 +561,9 @@ SELECT * FROM db_ingestion WHERE data_tag = 'ptax' ORDER BY timestamp LIMIT 5 FO
 
 SELECT * FROM db_ingestion WHERE data_tag = 'telemetria' ORDER BY timestamp LIMIT 5 FORMAT Vertical;
 
-SELECT JSONExtractString(data_json, 'titulo')   AS titulo,
-       JSONExtractString(data_json, 'categoria') AS categoria,
-       JSONExtractFloat(data_json, 'preco_gbp')  AS preco_gbp
+SELECT data_json.titulo::String     AS titulo,
+       data_json.categoria::String  AS categoria,
+       data_json.preco_gbp::Float64 AS preco_gbp
 FROM db_ingestion
 WHERE data_tag = 'livros'
 ORDER BY preco_gbp DESC

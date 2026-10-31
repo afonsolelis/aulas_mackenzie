@@ -1112,9 +1112,10 @@ com DDL e layout de chaves, sem código Python.
 <span class="k">[R] Pedido</span>
 Crie specs/03_modelo_de_dados.md e confira sql/001_db_ingestion.sql:
 1. Tabela ingestao.db_ingestion: timestamp UInt64 (unix ms da
-   ingestão), data_json String (o dado recebido, como texto JSON),
-   data_tag LowCardinality(String). Motor, ORDER BY e PARTITION BY,
-   com o porquê de cada escolha.
+   ingestão), data_json JSON (o dado recebido, no tipo JSON do
+   ClickHouse, com datas e horas inferidas como texto), data_tag
+   LowCardinality(String). Motor, ORDER BY e PARTITION BY, com o
+   porquê de cada escolha.
 2. Lake, na organização da Aula 03, com D = data do recebimento em
    America/Sao_Paulo e o mesmo nome de lote nas três chaves:
    - raw/ingestao/data_tag=X/data=D/lote_&lt;HHMMSS&gt;_&lt;id&gt;.jsonl: um
@@ -1140,7 +1141,10 @@ Crie specs/03_modelo_de_dados.md e confira sql/001_db_ingestion.sql:
 <span class="k">[A] Ajustes</span>
 - Não troque nomes nem tipos das três colunas.
 - Explique por que unix em milissegundos e não segundos nem DateTime.
-- Diga o que se perde guardando data_json como String e o que se ganha.
+- Diga o que se ganha guardando data_json no tipo JSON e o que se perde
+  em relação ao texto que chegou, e onde esse texto continua guardado.
+- Explique por que o INSERT desliga a inferência de datas
+  (input_format_try_infer_dates e input_format_try_infer_datetimes).
 - Diga por que a chave do lote não é determinística, ao contrário das
   chaves da Aula 03.
 - Nada de colunas por domínio (é a discussão do TBL).
@@ -1166,7 +1170,7 @@ espere meu ok, escreva, registre o prompt e pare.</code></pre>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Tabela de pouso: prós e custos</li><li>Por que unix em milissegundos</li><li>MergeTree, ORDER BY e partição</li><li>String ou tipo JSON</li><li>Layout do lake: raw, bronze e manifesto</li><li>O lake na organização da Aula 03</li><li>Tamanho do mesmo dia em cada forma</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Tabela de pouso: prós e custos</li><li>Por que unix em milissegundos</li><li>MergeTree, ORDER BY e partição</li><li>Tipo JSON ou String</li><li>Layout do lake: raw, bronze e manifesto</li><li>O lake na organização da Aula 03</li><li>Tamanho do mesmo dia em cada forma</li></ol></div>
             <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Na volta ao artefato</span><p>O DDL do documento é igual ao de <code>SHOW CREATE TABLE</code>; o reprocesso refaz o bronze a partir do raw e a tabela a partir do bronze.</p></div>
           </div>
           <div class="etapa-prompt">
@@ -1174,12 +1178,14 @@ espere meu ok, escreva, registre o prompt e pare.</code></pre>
             <pre class="etapa-pre etapa-pre-codigo"><code>CREATE TABLE IF NOT EXISTS ingestao.db_ingestion
 (
     timestamp UInt64,                  -- unix em milissegundos
-    data_json String,                  -- o dado recebido, texto JSON
+    data_json JSON,                    -- o dado recebido, tipo JSON
     data_tag  LowCardinality(String)   -- o domínio
 )
 ENGINE = MergeTree
 PARTITION BY toYYYYMM(fromUnixTimestamp64Milli(toInt64(timestamp)))
-ORDER BY (data_tag, timestamp);</code></pre>
+ORDER BY (data_tag, timestamp);
+<span class="c">-- INSERT com input_format_try_infer_dates = 0 e</span>
+<span class="c">-- input_format_try_infer_datetimes = 0: datas ficam texto</span></code></pre>
           </div>
         </div>
       </div>
@@ -1197,13 +1203,13 @@ ORDER BY (data_tag, timestamp);</code></pre>
           <thead><tr><th>Coluna</th><th>Tipo</th><th>Papel</th></tr></thead>
           <tbody>
             <tr><td><code>timestamp</code></td><td><code>UInt64</code></td><td>hora da ingestão em unix ms, marcada pelo servidor; segunda coluna do <code>ORDER BY</code></td></tr>
-            <tr><td><code>data_json</code></td><td><code>String</code></td><td>um objeto de <code>data</code>, como texto JSON, exatamente como chegou</td></tr>
+            <tr><td><code>data_json</code></td><td><code>JSON</code></td><td>um objeto de <code>data</code>; cada caminho vira uma subcoluna com o tipo inferido no INSERT</td></tr>
             <tr><td><code>data_tag</code></td><td><code>LowCardinality(String)</code></td><td>o domínio; poucos valores distintos, guardados como dicionário</td></tr>
           </tbody>
         </table>
         <div class="de-dois">
-          <div class="de-caixa is-forte"><span class="de-rotulo">Ganhos</span><ul><li>Fonte nova sem DDL nem migração.</li><li>Nenhuma linha recusada por tipo: o texto entra como veio.</li><li>Um único caminho de gravação para todos os domínios.</li></ul></div>
-          <div class="de-caixa"><span class="de-rotulo">Custos</span><ul><li>Nomes e tipos dos campos só aparecem na consulta.</li><li>Toda consulta extrai do JSON; campo renomeado na fonte quebra o leitor, não o servidor.</li><li>O <code>timestamp</code> não é chave única: o par <code>(timestamp, data_json)</code> é que identifica a linha.</li></ul></div>
+          <div class="de-caixa is-forte"><span class="de-rotulo">Ganhos</span><ul><li>Fonte nova sem DDL nem migração: os caminhos novos viram subcolunas sozinhos.</li><li>Nenhuma linha recusada por tipo: um caminho que muda de tipo guarda os dois valores.</li><li>Um único caminho de gravação para todos os domínios.</li></ul></div>
+          <div class="de-caixa"><span class="de-rotulo">Custos</span><ul><li>Os tipos são inferidos no INSERT, não declarados; a consulta ainda escreve <code>data_json.preco_gbp::Float64</code>.</li><li>Campo renomeado ou com tipo trocado na fonte quebra o leitor, não o servidor.</li><li>O <code>timestamp</code> não é chave única: o par <code>(timestamp, data_json)</code> é que identifica a linha.</li></ul></div>
         </div>
       </div>
     </div>
@@ -1277,19 +1283,19 @@ ORDER BY (data_tag, timestamp);</code></pre>
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Etapa 04 &middot; Teoria &middot; Comparação</span>
-          <h2 class="deck-title">String ou tipo JSON na coluna data_json</h2>
-          <p class="deck-summary">O ClickHouse tem um tipo <code>JSON</code> que separa cada caminho em subcoluna tipada na hora da inserção. A tabela da aula guarda <code>String</code>. Os números abaixo vêm da Etapa 10, com os livros repetidos até um milhão de linhas.</p>
+          <h2 class="deck-title">Tipo JSON ou String na coluna data_json</h2>
+          <p class="deck-summary">O tipo <code>JSON</code> do ClickHouse faz o papel do <code>jsonb</code> do PostgreSQL: o documento é interpretado uma vez, no INSERT, e cada caminho vira uma subcoluna tipada. Os números abaixo vêm da Etapa 10, com os livros repetidos até um milhão de linhas.</p>
         </div>
         <table class="deck-table de-tabela de-num">
-          <thead><tr><th></th><th><code>String</code> (a aula)</th><th>tipo <code>JSON</code></th></tr></thead>
+          <thead><tr><th></th><th>tipo <code>JSON</code> (a aula)</th><th><code>String</code></th></tr></thead>
           <tbody>
-            <tr><td>Preço médio por categoria, 1 milhão de linhas</td><td>146 ms (<code>JSONExtract*</code>)</td><td>21 ms</td></tr>
-            <tr><td>Tamanho comprimido depois de <code>OPTIMIZE FINAL</code></td><td>97.592.663 B</td><td>23.429.172 B</td></tr>
-            <tr><td>O que a coluna guarda</td><td>o texto exato que chegou</td><td>valores com tipo inferido na escrita</td></tr>
-            <tr><td><code>coletado_em</code> = <code>2026-10-30T19:27:52-03:00</code></td><td>igual ao enviado</td><td><code>2026-10-30 22:27:52</code>, sem o deslocamento</td></tr>
+            <tr><td>Preço médio por categoria, 1 milhão de linhas</td><td>21 ms</td><td>146 ms (<code>JSONExtract*</code>)</td></tr>
+            <tr><td>Tamanho comprimido depois de <code>OPTIMIZE FINAL</code></td><td>23.429.172 B</td><td>97.592.663 B</td></tr>
+            <tr><td>O que a coluna guarda</td><td>valores com tipo inferido na escrita; chaves em ordem alfabética</td><td>o texto exato que chegou</td></tr>
+            <tr><td><code>coletado_em</code> = <code>2026-10-30T19:27:52-03:00</code></td><td>igual ao enviado, com a inferência de datas desligada</td><td>igual ao enviado</td></tr>
           </tbody>
         </table>
-        <div class="deck-callout"><strong>Por que String na tabela de pouso</strong><p>A tabela de pouso promete guardar o que chegou. O tipo <code>JSON</code> lê mais rápido e ocupa menos, mas decide tipos na escrita e já perdeu um fuso no teste. A escala repete o mesmo texto mil vezes, o que favorece a compressão. A forma da tabela para consulta é a questão 3 do TBL.</p></div>
+        <div class="deck-callout"><strong>Por que JSON na tabela de pouso</strong><p>A tabela de pouso é o que os analistas consultam, e o texto exato já está guardado no raw do lake, de onde sai o reprocesso. Com o tipo <code>JSON</code>, a leitura não interpreta o texto a cada consulta. A inferência de datas fica desligada no INSERT porque, ligada, ela trocou o <code>-03:00</code> por UTC no teste. A escala repete o mesmo texto mil vezes, o que favorece a compressão.</p></div>
       </div>
     </div>
 
@@ -1396,10 +1402,10 @@ silver/
           <h2 class="deck-title">Pontos-chave: tabela de pouso e lake</h2>
         </div>
         <ol class="deck-steps">
-          <li>Três colunas recebem qualquer domínio; o custo é extrair do JSON em toda consulta.</li>
+          <li>Três colunas recebem qualquer domínio; o custo é dar o tipo de cada caminho em toda consulta.</li>
           <li>Unix em milissegundos não tem fuso, ordena como número e quase não colide; o fuso entra na leitura.</li>
           <li><code>ORDER BY (data_tag, timestamp)</code> faz a consulta por domínio pular grânulos; a partição é por mês da ingestão.</li>
-          <li><code>String</code> guarda o texto exato; o tipo <code>JSON</code> lê mais rápido, mas infere tipos na escrita.</li>
+          <li>O tipo <code>JSON</code> separa os caminhos em subcolunas no INSERT e lê sete vezes mais rápido que o texto; a inferência de datas fica desligada para não perder o <code>-03:00</code>.</li>
           <li>O raw guarda o envelope como chegou; o bronze, o Parquet por domínio e dia, um terço do TXT; o manifesto, o recibo do lote com SHA-256. Com eles, a tabela pode ser recriada.</li>
         </ol>
       </div>
@@ -1416,7 +1422,7 @@ silver/
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p><code>docs/arquitetura.md</code>, <code>docs/adr/ADR-001</code> a <code>ADR-005</code></p></div>
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>A sequência mostra o manifesto depois do INSERT e o ack por último?</li><li>A ADR-002 diz o que acontece se o processo cair entre o bronze e o ClickHouse?</li><li>A ADR-003 diz o que o manifesto registra quando o ClickHouse falha?</li></ul></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Revise antes de seguir</span><ul><li>A sequência mostra o manifesto depois do INSERT e o ack por último?</li><li>A ADR-002 diz o que acontece se o processo cair entre o bronze e o ClickHouse?</li><li>A ADR-003 diz o que o manifesto registra quando o ClickHouse falha?</li><li>Cada ADR tem custos e HH da decisão e da alternativa, com a base de cada número?</li></ul></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
@@ -1434,13 +1440,13 @@ e registra cada decisão com alternativas.
    - diagrama de sequência do caminho feliz e de uma falha do
      ClickHouse no meio do lote.
 2. ADRs em docs/adr/ (Contexto, Decisão, Alternativas, Consequências,
-   Status: Proposta):
+   Custos, Previsão de esforço em HH, Status: Proposta):
    ADR-001 HTTP publica na fila em vez de gravar direto
    ADR-002 raw e bronze antes do ClickHouse
    ADR-003 manifesto do lote depois do ClickHouse e ack só depois de
            tudo gravado
    ADR-004 micro-lote por tamanho ou tempo (N e T no .env)
-   ADR-005 tabela de três colunas com data_json String
+   ADR-005 tabela de três colunas com data_json no tipo JSON
 
 <span class="k">[E] Exemplos</span>
 sequenceDiagram
@@ -1463,9 +1469,20 @@ sequenceDiagram
 - Cada ADR liga a um RF ou RNF.
 - Sem ponto e vírgula dentro de rótulo Mermaid.
 - Prefetch, DLX e deduplicação ficam como "Aula 06" nas consequências.
+- Custos de cada ADR, da decisão e de cada alternativa descartada:
+  infraestrutura (serviços no Railway: crédito de teste de US$ 5 por
+  até 30 dias, depois plano Free de US$ 1/mês; no ambiente local, zero)
+  e mão de obra (quem do grupo faz cada atividade).
+- Previsão de esforço em HH (homem-hora = pessoas x horas) numa tabela
+  atividade | HH da decisão | HH da alternativa | base da estimativa,
+  com as linhas implementar, testar, documentar e operar por mês.
+  Feche com o total em HH e o custo = HH x valor-hora, com o
+  valor-hora como parâmetro que o grupo declara.
+- Estimativa sem base (medição, código existente ou tarefa parecida já
+  feita) vira pergunta para o grupo, não número.
 
 <span class="k">[T] Tipo de saída</span>
-Markdown; arquitetura.md com até 120 linhas; cada ADR com até 40.
+Markdown; arquitetura.md com até 120 linhas; cada ADR com até 60.
 
 <span class="k">[E] Extras</span>
 Leia AGENTS.md, docs/ e specs/. Mostre o plano, espere meu ok, escreva,
@@ -1485,7 +1502,7 @@ registre o prompt e pare.</code></pre>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Cinco decisões e as alternativas descartadas</li><li>Onde o processo pode cair durante o flush</li><li>Micro-lote por tamanho ou por tempo</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Cinco decisões e as alternativas descartadas</li><li>Custos e esforço em homem-hora</li><li>Onde o processo pode cair durante o flush</li><li>Micro-lote por tamanho ou por tempo</li></ol></div>
             <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Na volta ao artefato</span><p>Os blocos Mermaid renderizam; cada ADR está em Proposta e cita um RF ou RNF.</p></div>
           </div>
           <div class="etapa-prompt">
@@ -1505,7 +1522,7 @@ ADR-004 micro-lote por tamanho ou tempo (N e T no .env)</code></pre>
         <div>
           <span class="deck-kicker">Etapa 05 &middot; Teoria &middot; Decisões de arquitetura</span>
           <h2 class="deck-title">Cinco decisões e as alternativas descartadas</h2>
-          <p class="deck-summary">ADR (Architecture Decision Record), vista na Aula 03, registra contexto, decisão, alternativas e consequências. Nasce como Proposta; aceitar é decisão do grupo.</p>
+          <p class="deck-summary">ADR (Architecture Decision Record), vista na Aula 03, registra contexto, decisão, alternativas, consequências, custos e esforço em HH. Nasce como Proposta; aceitar é decisão do grupo.</p>
         </div>
         <table class="deck-table de-tabela">
           <thead><tr><th>ADR</th><th>Decisão</th><th>Alternativa descartada</th><th>Consequência aceita</th></tr></thead>
@@ -1514,10 +1531,36 @@ ADR-004 micro-lote por tamanho ou tempo (N e T no .env)</code></pre>
             <tr><td>002</td><td>raw e bronze antes do ClickHouse</td><td>ClickHouse primeiro, lake por exportação</td><td>o lake permite recriar a tabela; ClickHouse fora trava o ack de tudo</td></tr>
             <tr><td>003</td><td>manifesto depois do ClickHouse, ack no fim</td><td>manifesto antes do INSERT; ack ao receber</td><td>manifesto <code>ok</code> quer dizer lote completo; o lote pode repetir</td></tr>
             <tr><td>004</td><td>flush por <code>FLUSH_N</code> ou <code>FLUSH_SEGUNDOS</code></td><td>um flush por mensagem</td><td>até 2 s de espera com pouco tráfego</td></tr>
-            <tr><td>005</td><td>três colunas, <code>data_json</code> String</td><td>uma tabela por domínio</td><td>fonte nova sem DDL; extração em toda consulta</td></tr>
+            <tr><td>005</td><td>três colunas, <code>data_json</code> do tipo JSON</td><td>uma tabela por domínio; <code>data_json</code> String</td><td>fonte nova sem DDL; tipo inferido no INSERT e dado na consulta</td></tr>
           </tbody>
         </table>
         <p class="deck-note">As alternativas descartadas voltam no TBL: a questão 2 discute a ordem dos destinos, e a questão 3, a forma da tabela.</p>
+      </div>
+    </div>
+
+    <!-- Custos e HH -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">Etapa 05 &middot; Teoria &middot; Custo da decisão</span>
+          <h2 class="deck-title">Custos e esforço em homem-hora</h2>
+          <p class="deck-summary">HH (homem-hora) é a unidade de esforço: pessoas vezes horas. Duas pessoas por 4 horas e uma pessoa por 8 horas dão os mesmos 8 HH. A ADR compara a decisão e a alternativa também pelo que custam para construir e para manter.</p>
+        </div>
+        <div class="de-tres">
+          <div class="de-caixa"><span class="de-rotulo">Infraestrutura</span><p>Serviços que a decisão exige. No Railway, crédito de teste de US$ 5 por até 30 dias e depois plano Free de US$ 1/mês, com até cinco serviços. No ambiente local, zero.</p></div>
+          <div class="de-caixa"><span class="de-rotulo">Mão de obra</span><p>Quem do grupo faz cada atividade e quantas horas leva. Custo = HH &times; valor-hora, com o valor-hora declarado pelo grupo como parâmetro.</p></div>
+          <div class="de-caixa"><span class="de-rotulo">Operação</span><p>HH por mês para manter a decisão no ar: reprocessar, conferir manifestos, ajustar a view ou o DDL quando o payload muda.</p></div>
+        </div>
+        <table class="deck-table de-tabela">
+          <thead><tr><th>Atividade</th><th>HH da decisão</th><th>HH da alternativa</th><th>Base da estimativa</th></tr></thead>
+          <tbody>
+            <tr><td>implementar</td><td>&hellip;</td><td>&hellip;</td><td>código de <code>referencia/src/</code>, tarefa parecida já feita</td></tr>
+            <tr><td>testar</td><td>&hellip;</td><td>&hellip;</td><td>testes da Etapa 06, teste de queda da Etapa 09</td></tr>
+            <tr><td>documentar</td><td>&hellip;</td><td>&hellip;</td><td>tamanho do <code>docs/</code> e do <code>specs/</code></td></tr>
+            <tr><td>operar, por mês</td><td>&hellip;</td><td>&hellip;</td><td>frequência do evento: queda, reprocesso, fonte nova</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>Número sem base vira pergunta</strong><p>A estimativa de HH vale pelo que a sustenta. Uma medição da manhã, o código que já existe ou uma tarefa parecida feita nas Aulas 01 a 03 servem de base. Sem nenhuma delas, a ADR registra a pergunta para o grupo responder, e o agente não preenche a célula.</p></div>
       </div>
     </div>
 
@@ -2221,7 +2264,7 @@ python -m src.servidor          # a fila reentrega</code></pre>
           <div class="de-caixa">
             <span class="de-rotulo">No ClickHouse</span>
             <pre class="de-pre"><code>SELECT data_tag, count() AS linhas,
-       uniqExact(timestamp, data_json) AS distintas
+       uniqExact(timestamp, toJSONString(data_json)) AS distintas
 FROM ingestao.db_ingestion
 GROUP BY data_tag ORDER BY data_tag</code></pre>
           </div>
@@ -2293,8 +2336,9 @@ GROUP BY data_tag ORDER BY data_tag</code></pre>
             <span class="etapa-rotulo">Prompt CREATE</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
             <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
-Você é analista de dados. Lê o JSON guardado como texto e devolve
-colunas tipadas, no DuckDB e no ClickHouse.
+Você é analista de dados. Lê o JSON do bronze (texto, no DuckDB) e o
+da tabela de pouso (tipo JSON, no ClickHouse) e devolve colunas
+tipadas.
 
 <span class="k">[R] Pedido</span>
 Os arquivos sql/duckdb_cast.sql, sql/clickhouse_cast.sql e
@@ -2303,9 +2347,10 @@ sql/silver_livros_ptax.sql vieram do laboratório.
    (clickhouse-client --time --multiquery) e compare, consulta a
    consulta, o resultado e o tempo, e as contagens do raw (envelopes
    e linhas que eles carregam) e dos manifestos por status.
-2. Para cada consulta, diga qual função extrai o campo (->>,
-   json_extract_string, from_json, JSONExtract*, simpleJSONExtract*,
-   CAST AS JSON) e em que momento o tipo é decidido.
+2. Para cada consulta, diga como o campo é lido (->>,
+   json_extract_string, from_json no DuckDB; data_json.caminho::Tipo
+   no ClickHouse) e em que momento o tipo é decidido: no INSERT, na
+   consulta ou nos dois.
 3. sql/silver_livros_ptax.sql: DuckDB lendo o bronze e gravando
    s3://silver/... no contrato da Aula 05. Rode com
    --var DATA=2026-10-30 (dia da coleta dos livros do zip) e confira
@@ -2349,11 +2394,11 @@ README do laboratório. Registre o prompt e pare.</code></pre>
         <div>
           <span class="deck-kicker">Etapa 10 &middot; Enquanto o agente trabalha</span>
           <h2 class="deck-title">Do texto JSON a colunas tipadas</h2>
-          <p class="deck-summary">JSON cast é transformar o texto guardado em <code>data_json</code> em valores com tipo: texto, decimal, data. A teoria mostra os comandos de cada engine, quanto custam e onde o tipo pode trair.</p>
+          <p class="deck-summary">JSON cast é transformar o <code>data_json</code> em valores com tipo: texto, decimal, data. No bronze, ele é texto e o DuckDB interpreta a cada consulta; no ClickHouse, já é do tipo <code>JSON</code>. A teoria mostra os comandos de cada engine, quanto custam e onde o tipo pode trair.</p>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>JSON cast no DuckDB e no ClickHouse</li><li>Tempos com um milhão de linhas</li><li>O -03:00 que a coluna JSON perde</li><li>Silver para a Aula 05</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>JSON cast no DuckDB e no ClickHouse</li><li>Tempos com um milhão de linhas</li><li>O -03:00 e a inferência de datas</li><li>Silver para a Aula 05</li></ol></div>
             <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Na volta ao terminal</span><p>Mesmo resultado nas duas engines, com a diferença de arredondamento explicada; <code>DESCRIBE</code> do silver igual ao contrato.</p></div>
           </div>
           <div class="etapa-prompt">
@@ -2371,7 +2416,7 @@ o tipo é decidido.</code></pre>
         <div>
           <span class="deck-kicker">Etapa 10 &middot; Teoria &middot; Comandos</span>
           <h2 class="deck-title">JSON cast no DuckDB e no ClickHouse</h2>
-          <p class="deck-summary">A mesma pergunta, preço médio por categoria, escrita nas duas engines. O DuckDB lê o bronze no RustFS; o ClickHouse lê a tabela de pouso. Trechos de <code>sql/duckdb_cast.sql</code> e <code>sql/clickhouse_cast.sql</code>.</p>
+          <p class="deck-summary">A mesma pergunta, preço médio por categoria, escrita nas duas engines. O DuckDB lê o texto do bronze no RustFS; o ClickHouse lê as subcolunas da tabela de pouso. Trechos de <code>sql/duckdb_cast.sql</code> e <code>sql/clickhouse_cast.sql</code>.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
@@ -2391,17 +2436,18 @@ from_json(data_json, '{"categoria":"VARCHAR",
           </div>
           <div class="de-caixa">
             <span class="de-rotulo">ClickHouse, sobre <code>ingestao.db_ingestion</code></span>
-            <pre class="de-pre de-pre-largo"><code><span class="c">-- lê o texto a cada consulta</span>
-SELECT JSONExtractString(data_json, 'categoria') AS categoria,
-  avg(JSONExtractFloat(data_json, 'preco_gbp')) AS preco_medio
+            <pre class="de-pre de-pre-largo"><code><span class="c">-- caminho da subcoluna; o ::Tipo dá o tipo</span>
+SELECT data_json.categoria::String AS categoria,
+  avg(data_json.preco_gbp::Float64) AS preco_medio
 FROM ingestao.db_ingestion
 WHERE data_tag = 'livros'
 GROUP BY categoria;
 
-<span class="c">-- CAST para o tipo JSON: o valor sai Dynamic</span>
-CAST(data_json AS JSON).categoria::String
-toDecimal64(CAST(data_json AS JSON)
-            .preco_gbp::String, 2)</code></pre>
+<span class="c">-- o tipo que o INSERT inferiu em cada caminho</span>
+SELECT DISTINCT arrayJoin(
+  JSONAllPathsWithTypes(data_json))
+FROM ingestao.db_ingestion
+WHERE data_tag = 'livros';</code></pre>
           </div>
         </div>
         <p class="deck-note">O <code>WHERE data_tag = 'livros'</code> usa a primeira coluna do <code>ORDER BY</code>: o ClickHouse lê só os grânulos de livros.</p>
@@ -2423,14 +2469,14 @@ toDecimal64(CAST(data_json AS JSON)
             <tr><td>DuckDB <code>json_extract_string</code> / <code>json_extract</code></td><td>3,9 ms</td><td>194 ms</td></tr>
             <tr><td>DuckDB <code>from_json</code> com estrutura declarada</td><td>3,5 ms</td><td>130 ms</td></tr>
             <tr><td>DuckDB sobre Parquet já tipado (silver)</td><td></td><td>7,5 ms</td></tr>
-            <tr><td>ClickHouse <code>JSONExtractString</code> / <code>JSONExtractFloat</code></td><td>3,4 ms</td><td>146 ms</td></tr>
-            <tr><td>ClickHouse <code>simpleJSONExtract*</code></td><td>4,6 ms</td><td>75 ms</td></tr>
-            <tr><td>ClickHouse <code>CAST(data_json AS JSON)</code> na consulta</td><td>6,4 ms</td><td>957 ms</td></tr>
-            <tr><td>ClickHouse coluna do tipo <code>JSON</code></td><td></td><td>21 ms</td></tr>
+            <tr><td>ClickHouse coluna do tipo <code>JSON</code> (a aula)</td><td></td><td>21 ms</td></tr>
             <tr><td>ClickHouse coluna <code>JSON</code> com tipo declarado</td><td></td><td>16 ms</td></tr>
+            <tr><td>ClickHouse coluna <code>String</code>, <code>JSONExtractString</code> / <code>JSONExtractFloat</code></td><td>3,4 ms</td><td>146 ms</td></tr>
+            <tr><td>ClickHouse coluna <code>String</code>, <code>simpleJSONExtract*</code></td><td>4,6 ms</td><td>75 ms</td></tr>
+            <tr><td>ClickHouse coluna <code>String</code>, <code>CAST(data_json AS JSON)</code> na consulta</td><td>6,4 ms</td><td>957 ms</td></tr>
           </tbody>
         </table>
-        <p class="deck-note">Com mil livros, tudo responde em poucos milissegundos. Com um milhão, converter o texto a cada consulta custa caro (957 ms); ler colunas já tipadas custa pouco (7,5 ms no Parquet do silver). O <code>simpleJSONExtract*</code> supõe JSON simples, sem espaços. Contra o bronze no RustFS, as consultas do <code>duckdb_cast.sql</code> rodaram em 7 a 90 ms com os dados reais; a mediana não foi refeita.</p>
+        <p class="deck-note">Com mil livros, tudo responde em poucos milissegundos. Com um milhão, interpretar o texto a cada consulta custa caro (146 a 957 ms numa coluna <code>String</code>); ler subcolunas já separadas custa pouco (21 ms na coluna <code>JSON</code>, 7,5 ms no Parquet do silver). As linhas com <code>String</code> mostram o que a tabela de pouso evitou. Contra o bronze no RustFS, as consultas do <code>duckdb_cast.sql</code> rodaram em 7 a 90 ms com os dados reais; a mediana não foi refeita.</p>
       </div>
     </div>
 
@@ -2439,22 +2485,25 @@ toDecimal64(CAST(data_json AS JSON)
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Etapa 10 &middot; Teoria &middot; Armadilha de tipo</span>
-          <h2 class="deck-title">O -03:00 que a coluna JSON perde</h2>
-          <p class="deck-summary">A coluna do tipo <code>JSON</code> infere o tipo de cada caminho na inserção. Para os livros, inferiu <code>avaliacao</code> Int64, <code>preco_gbp</code> Float64, <code>em_estoque</code> Bool e <code>coletado_em</code> DateTime. Esta última custou o fuso.</p>
+          <h2 class="deck-title">O -03:00 e a inferência de datas</h2>
+          <p class="deck-summary">A coluna do tipo <code>JSON</code> infere o tipo de cada caminho na inserção. Para os livros, inferiu <code>avaliacao</code> Int64, <code>preco_gbp</code> Float64 e <code>em_estoque</code> Bool. Com a configuração padrão, inferiu <code>coletado_em</code> como DateTime, e isso custou o fuso.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
-            <span class="de-rotulo">Enviado pelo produtor</span>
-            <pre class="de-pre"><code>"coletado_em": "2026-10-30T19:27:52-03:00"</code></pre>
-            <p style="margin-top:8px;">Na <code>String</code> da tabela de pouso, no raw e no Parquet do bronze, o texto fica igual. O silver o lê como <code>TIMESTAMPTZ</code>, com o deslocamento.</p>
+            <span class="de-rotulo">Inferência padrão do ClickHouse</span>
+            <pre class="de-pre"><code>enviado:  "2026-10-30T19:27:52-03:00"
+guardado: coletado_em  DateTime  2026-10-30 22:27:52</code></pre>
+            <p style="margin-top:8px;">Convertido para o fuso do servidor (UTC). O instante está certo, mas o <code>-03:00</code> sumiu, e quem lê não sabe mais em que fuso a coleta aconteceu.</p>
           </div>
           <div class="de-caixa is-forte">
-            <span class="de-rotulo">Guardado na coluna <code>JSON</code></span>
-            <pre class="de-pre"><code>coletado_em  DateTime  2026-10-30 22:27:52</code></pre>
-            <p style="margin-top:8px;">Convertido para o fuso do servidor (UTC). O instante está certo, mas o <code>-03:00</code> original sumiu, e quem lê não sabe mais em que fuso a coleta aconteceu.</p>
+            <span class="de-rotulo">Como o consumidor insere</span>
+            <pre class="de-pre"><code>input_format_try_infer_dates     = 0
+input_format_try_infer_datetimes = 0
+guardado: coletado_em  String  2026-10-30T19:27:52-03:00</code></pre>
+            <p style="margin-top:8px;">Datas e horas ficam como texto, iguais ao raw e ao bronze. O silver as lê como <code>TIMESTAMPTZ</code>, com o deslocamento. As duas configurações estão em <code>referencia/src/clickhouse.py</code>.</p>
           </div>
         </div>
-        <div class="deck-callout"><strong>Float contra decimal na mesma pergunta</strong><p>Venda média dos boletins de Fechamento da PTAX: 6,95758 no DuckDB com <code>DECIMAL(12,5)</code>; 6,95757 no ClickHouse com <code>JSONExtractFloat</code>. O tipo escolhido no cast muda a quinta casa.</p></div>
+        <div class="deck-callout"><strong>Float contra decimal na mesma pergunta</strong><p>Venda média dos boletins de Fechamento da PTAX: 6,95758 no DuckDB com <code>DECIMAL(12,5)</code>; 6,95757 no ClickHouse com <code>data_json.cotacaoVenda::Float64</code>, o tipo que o INSERT inferiu. O tipo escolhido no cast muda a quinta casa.</p></div>
       </div>
     </div>
 
@@ -2489,7 +2538,7 @@ toDecimal64(CAST(data_json AS JSON)
           <li><code>kill -9</code> fora do flush não perde nem duplica; entre o manifesto e o ack, o lote repete em todas as camadas, com dois manifestos <code>ok</code>.</li>
           <li>Com pouco tráfego, o tempo até consultável é <code>FLUSH_SEGUNDOS</code> mais a gravação.</li>
           <li>Extrair do texto a cada consulta funciona com mil linhas e pesa com um milhão; colunas tipadas resolvem a leitura.</li>
-          <li>O tipo decidido no cast tem consequência: a coluna <code>JSON</code> perdeu o <code>-03:00</code>, e float e decimal divergem na quinta casa.</li>
+          <li>O tipo decidido no cast tem consequência: com a inferência de datas ligada, a coluna <code>JSON</code> perde o <code>-03:00</code>, e float e decimal divergem na quinta casa.</li>
         </ol>
       </div>
     </div>
@@ -2545,7 +2594,7 @@ python enviar_entrada.py --so livros # um domínio só</code></pre>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Resultado esperado</span><ul><li><code>SHOW TABLES</code>: <code>db_ingestion</code></li><li><code>DESCRIBE</code>: <code>timestamp</code> UInt64, <code>data_json</code> String, <code>data_tag</code> LowCardinality(String)</li><li>contagem: <code>livros 1000</code>, <code>ptax 40</code>, <code>telemetria 31265</code></li><li>mais caro: The Perfect Play (Play by Play #1), Romance, 59.99</li></ul></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Resultado esperado</span><ul><li><code>SHOW TABLES</code>: <code>db_ingestion</code></li><li><code>DESCRIBE</code>: <code>timestamp</code> UInt64, <code>data_json</code> JSON, <code>data_tag</code> LowCardinality(String)</li><li>contagem: <code>livros 1000</code>, <code>ptax 40</code>, <code>telemetria 31265</code></li><li>mais caro: The Perfect Play (Play by Play #1), Romance, 59.99</li></ul></div>
             <div class="etapa-item"><span class="etapa-rotulo">Ao ler a saída</span><p>No <code>FORMAT Vertical</code>, o <code>-- 1.79 trillion</code> ao lado do <code>timestamp</code> é um comentário do cliente 26.8 e não faz parte do dado. Em <code>/play</code>, usuário <code>ingestao</code> e senha <code>ingestao123</code>; a página responde, mas o login nela não foi testado na preparação.</p></div>
           </div>
           <div class="mostrar-col">
@@ -2578,9 +2627,9 @@ SELECT * FROM db_ingestion WHERE data_tag = 'ptax' ORDER BY timestamp LIMIT 5 FO
 
 SELECT * FROM db_ingestion WHERE data_tag = 'telemetria' ORDER BY timestamp LIMIT 5 FORMAT Vertical;
 
-SELECT JSONExtractString(data_json, 'titulo')   AS titulo,
-       JSONExtractString(data_json, 'categoria') AS categoria,
-       JSONExtractFloat(data_json, 'preco_gbp')  AS preco_gbp
+SELECT data_json.titulo::String     AS titulo,
+       data_json.categoria::String  AS categoria,
+       data_json.preco_gbp::Float64 AS preco_gbp
 FROM db_ingestion
 WHERE data_tag = 'livros'
 ORDER BY preco_gbp DESC

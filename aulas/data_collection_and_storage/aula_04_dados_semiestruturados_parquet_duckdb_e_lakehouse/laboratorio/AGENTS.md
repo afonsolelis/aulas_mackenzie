@@ -50,6 +50,7 @@ Ao fim de cada etapa, acrescente em `docs/prompts.md` uma seção com: número e
 - Assuntos da Aula 06 (DLX, prefetch ajustado, exchanges, ReplacingMergeTree, TTL) aparecem só como "a Aula 06 aprofunda".
 - Mermaid sem ponto e vírgula em rótulos e mensagens (quebra a renderização). Valide cada bloco antes de terminar.
 - Toda ADR nasce com status "Proposta". Aceitar é decisão do grupo.
+- Toda ADR tem as seções Custos (infraestrutura e mão de obra) e Previsão de esforço em HH, com a decisão e a alternativa lado a lado. O valor-hora é parâmetro declarado pelo grupo. Estimativa sem base (medição, código existente ou tarefa parecida) vira pergunta, não número.
 
 ## Regras do servidor
 
@@ -61,6 +62,7 @@ Ao fim de cada etapa, acrescente em `docs/prompts.md` uma seção com: número e
   - manifesto: `raw/_manifestos/ingestao/data=D/lote_<HHMMSS>_<id>.json`, com lote, mensagens e linhas por `data_tag`, chaves gravadas, bytes e SHA-256 de cada arquivo, tempos e status.
 - Ordem do flush: raw, bronze, ClickHouse, manifesto, ack. Nunca dê ack antes de gravar tudo. Se o ClickHouse falhar, grave o manifesto com status de erro e não dê ack.
 - `timestamp` é a hora da ingestão em unix milissegundos, dada pelo servidor. O produtor não manda timestamp.
+- Em `ingestao.db_ingestion`, `data_json` é do tipo `JSON` do ClickHouse, nunca `String`. Todo INSERT nela usa `input_format_try_infer_dates = 0` e `input_format_try_infer_datetimes = 0`, para datas e horas ficarem como texto. Consultas leem `data_json.caminho::Tipo`, não `JSONExtract*`.
 - Flush por `FLUSH_N` envelopes ou `FLUSH_SEGUNDOS`, o que vier primeiro. O `prefetch_count` do consumidor é pelo menos `FLUSH_N`.
 - Mensagens persistentes, fila durável, conexão pika usada por uma thread só.
 
