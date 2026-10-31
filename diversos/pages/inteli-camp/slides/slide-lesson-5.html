@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inteli Camp — Dia 5: Apresentações — Slides - Inteli</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="../../../css/inteli-styles.css" rel="stylesheet">
+  <style>
+    :root { --inteli-purple: #2e2640; --inteli-accent: #1863dc; --inteli-highlight: #855ede; --camp-dark: #2e2640; --camp-lavender: #90a5e5; --camp-red: #c00000; }
+    body { margin: 0; padding: 0; overflow: hidden; font-family: "Manrope", sans-serif; background: #f5f7fb; color: var(--inteli-purple); }
+    .slide-container { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+    .slide { width: 100%; height: 100%; display: none; padding: 26px 40px 84px; box-sizing: border-box; position: absolute; }
+    .slide.active { display: flex; flex-direction: column; justify-content: center; animation: slideIn 0.35s ease-in-out; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: translateX(0); } }
+    .slide-content { width: min(1240px, 100%); margin: 0 auto; font-size: 1rem; line-height: 1.45; }
+
+    .slide-header { background: var(--camp-dark); color: white; padding: 15px 22px; border-radius: 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-left: 6px solid var(--camp-lavender); }
+    .slide-header.cover { padding: 30px 28px; flex-direction: column; align-items: flex-start; }
+    .slide-title { font-size: 1.75rem; font-weight: 800; margin: 0; }
+    .slide-header.cover .slide-title { font-size: 2.4rem; }
+    .slide-subtitle { font-size: 1rem; opacity: 0.92; margin: 4px 0 0; }
+    .stage-badge { background: var(--camp-lavender); color: var(--camp-dark); border: 1px solid var(--camp-lavender); padding: 6px 14px; border-radius: 999px; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; flex-shrink: 0; }
+
+    .pitch-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .pitch-card { background: white; border-radius: 14px; padding: 18px 20px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); border: 1px solid #e8ecf1; }
+    .pitch-card h3 { font-size: 0.95rem; font-weight: 800; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--inteli-accent); }
+    .pitch-card ul, .pitch-card ol { margin: 0; padding-left: 1.2rem; }
+    .pitch-card li { margin-bottom: 7px; font-size: 0.93rem; line-height: 1.5; }
+    .pitch-card li strong { color: var(--inteli-purple); }
+
+    .time-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+    .time-block { background: #f8fafc; border-radius: 10px; padding: 12px 10px; border-left: 4px solid var(--inteli-highlight); text-align: center; }
+    .time-block .t { font-size: 1.4rem; font-weight: 800; color: var(--inteli-purple); }
+    .time-block .label { font-size: 0.78rem; color: #64748b; margin-top: 4px; line-height: 1.3; }
+
+    .criteria-list { display: flex; flex-direction: column; gap: 8px; }
+    .crit-item { display: flex; align-items: flex-start; gap: 12px; background: #f8fafc; border-radius: 10px; padding: 10px 14px; border-left: 4px solid; font-size: 0.9rem; line-height: 1.5; }
+    .crit-item.c1 { border-color: #1863dc; }
+    .crit-item.c2 { border-color: #855ede; }
+    .crit-item.c3 { border-color: #0d9488; }
+    .crit-item.c4 { border-color: #f97316; }
+    .crit-item.c5 { border-color: #db2777; }
+    .crit-num { font-weight: 800; font-size: 1.1rem; flex-shrink: 0; }
+
+    .slide-footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.97); border-top: 1px solid #dfe5ec; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -2px 10px rgba(46,38,64,0.06); z-index: 100; gap: 12px; }
+    .footer-links { display: flex; gap: 10px; }
+    .back-home { color: var(--inteli-purple); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: #f1f4f8; }
+    .back-home.material { background: #2f8f78 !important; color: white !important; }
+    .back-home.material:hover { background: #267562 !important; color: white !important; }
+    .nav-wrapper { display: flex; align-items: center; gap: 14px; background: #f1f4f8; padding: 7px 18px; border-radius: 30px; }
+    .nav-buttons button { background: var(--inteli-purple); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .nav-buttons button:disabled { background: #caced6; cursor: not-allowed; }
+    .slide-counter { font-weight: 700; color: var(--inteli-purple); min-width: 70px; text-align: center; }
+    .fullscreen-btn { background: #f1f4f8; border: none; font-size: 1.1rem; cursor: pointer; padding: 8px 12px; border-radius: 8px; }
+
+    .nav-buttons button:focus-visible, .fullscreen-btn:focus-visible, .back-home:focus-visible { outline: 3px solid #1863dc; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) { .slide.active { animation: none; } }
+    /* ===== Marca compartilhada Inteli Camp 2026 (alinhamento visual com a Trilha Business) ===== */
+    .camp-brand { position: fixed; top: 12px; right: 20px; z-index: 150; display: flex; align-items: center; gap: 9px; pointer-events: none; }
+    .camp-brand img { height: 42px; width: auto; filter: drop-shadow(0 3px 8px rgba(46,38,64,0.18)); }
+    .camp-brand .cb-word { font-family: "Manrope", sans-serif; font-weight: 800; font-size: 0.82rem; line-height: 0.98; letter-spacing: 0.02em; color: var(--camp-dark); text-transform: uppercase; }
+    .camp-brand .cb-word small { display: block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; color: var(--camp-lavender); }
+    .hl { color: var(--camp-red); font-weight: 800; }
+
+    /* ===== Camada de legibilidade — dislexia/TDAH (não altera o conteúdo) ===== */
+    /* Sem caixa-alta: preserva o contorno das palavras, chave para leitura disléxica */
+    .slide *, .camp-brand .cb-word { text-transform: none !important; }
+    /* Entrelinha um pouco mais folgada por padrão (ajuda todos os alunos) */
+    .slide-content { line-height: 1.55; }
+    /* Modo leitura acessível — ligado pelo botão "Aa" e persistido por aluno */
+    body.a11y .slide-content { letter-spacing: 0.02em; line-height: 1.62; }
+    body.a11y .slide-content p, body.a11y .slide-content li { word-spacing: 0.08em; font-weight: 500; }
+    body.a11y .col-card li, body.a11y .spec-card li, body.a11y .compass li, body.a11y .concept-card li { line-height: 1.5; }
+    .a11y-btn { background: #f1f4f8; border: none; font-size: 0.95rem; font-weight: 800; cursor: pointer; padding: 8px 12px; border-radius: 8px; color: var(--inteli-purple); letter-spacing: 0.02em; }
+    .a11y-btn.is-on { background: var(--inteli-accent); color: #fff; }
+    .a11y-btn:focus-visible { outline: 3px solid #1863dc; outline-offset: 3px; }
+  
+  </style>
+
+<!-- encontro:css:start -->
+<link rel="stylesheet" href="../../../css/encontro.css">
+<!-- encontro:css:end -->
+
+<!-- semana:css:start -->
+<link rel="stylesheet" href="../../../css/semana-ano.css">
+<!-- semana:css:end -->
+</head>
+<body>
+
+  <div class="camp-brand" aria-label="Inteli Camp 2026">
+    <img src="../assets/camp-mascot.png" alt="Mascote do Inteli Camp 2026">
+    <span class="cb-word">Inteli<br>Camp<small>2026</small></span>
+  </div>
+
+  <div class="slide-container">
+
+    <!-- SLIDE 1: ALINHAMENTOS -->
+    <section class="slide active">
+      <div class="slide-content">
+        <div class="slide-header cover">
+          <span class="stage-badge">❄️ <span data-case="edicao">Bootcamp de Inverno · Julho 2026</span> · Dia 5 · Sexta</span>
+          <h1 class="slide-title">Dia 5 — Apresentações</h1>
+          <p class="slide-subtitle">O palco é de vocês — 4 minutos livres para contar a história do grupo</p>
+        </div>
+
+        <div class="pitch-grid">
+          <div class="pitch-card">
+            <h3>🕐 Cronograma do dia</h3>
+            <ul>
+              <li><strong>09:00 – 09:40</strong> — Alinhamento das apresentações</li>
+              <li><strong>09:40 – 12:00</strong> — Desenvolvimento final e ensaio</li>
+              <li><strong>13:00 – 13:30</strong> — Abertura institucional e apresentação da banca</li>
+              <li><strong>13:30 – 15:30</strong> — Apresentações dos grupos (pitch de 4 min cada)</li>
+              <li><strong>15:30 – 16:00</strong> — Apuração, certificados e encerramento</li>
+            </ul>
+          </div>
+          <div class="pitch-card">
+            <h3>🎤 O palco é de vocês</h3>
+            <ul>
+              <li><strong>4 minutos livres</strong> — usem como quiserem: demo ao vivo, storytelling, uma cena, um vídeo, o que contar melhor a história do grupo.</li>
+              <li>Não existe roteiro certo. A única régua: a banca sair entendendo o <strong>problema</strong>, vendo a <strong>solução funcionar</strong> e sentindo o <strong>valor</strong>.</li>
+              <li>Ousem — um pitch memorável marca tanto quanto uma boa solução. Só cuidem do relógio: 4 minutos passam voando.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: O QUE A BANCA AVALIA -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">O que a banca avalia</h1>
+            <p class="slide-subtitle">Cinco critérios — prepare a resposta para cada um</p>
+          </div>
+          <span class="stage-badge">Banca · Critérios</span>
+        </div>
+
+        <div class="criteria-list">
+          <div class="crit-item c1">
+            <span class="crit-num">1</span>
+            <div><strong>Definição do Problema</strong> — quão bem o squad compreendeu, aprofundou e articulou a oportunidade de negócio por trás do desafio do parceiro.</div>
+          </div>
+          <div class="crit-item c2">
+            <span class="crit-num">2</span>
+            <div><strong>Coerência Solução-Problema</strong> — a solução construída realmente atende à oportunidade diagnosticada? O uso da IA e a abordagem são justificados?</div>
+          </div>
+          <div class="crit-item c3">
+            <span class="crit-num">3</span>
+            <div><strong>Comunicação e Pitch</strong> — clareza, estrutura e poder de convencimento da apresentação do squad diante da banca avaliadora.</div>
+          </div>
+          <div class="crit-item c4">
+            <span class="crit-num">4</span>
+            <div><strong>Colaboração e Autonomia</strong> — como o squad se organizou, distribuiu responsabilidades e conduziu o desenvolvimento do projeto com independência.</div>
+          </div>
+          <div class="crit-item c5">
+            <span class="crit-num">5</span>
+            <div><strong>Alinhamento Azul &amp; Marca</strong> — a solução contribui para o processo de avaliação de candidatos de forma genuína, refletindo o tom e os valores da Azul.</div>
+          </div>
+        </div>
+
+        <div style="background:#ecfdf5;border:1px dashed #6ee7b7;border-radius:10px;padding:12px 16px;margin-top:14px;font-size:0.9rem;color:#065f46;">
+          <strong>Dica de ensaio:</strong> com apenas 4 minutos, cada segundo conta — ensaiem com cronômetro e priorizem a demo ao vivo com dados reais do parceiro.
+        </div>
+      </div>
+    </section>
+
+<!-- encontro:meta:start -->
+<div class="slide encontro-slide"><div class="sc"><section class="encontro-meta" data-encontro-ficha><h2>Sobre este encontro</h2><p class="encontro-ref">Inteli Camp · Prof. Afonso</p><div class="encontro-item" data-encontro="objetivo"><h3>Objetivo de aprendizagem</h3><p>Ao final do encontro, o estudante deve ser capaz de aplicar ao projeto os conceitos de Inteli Camp.</p></div><div class="encontro-item" data-encontro="estrategia"><h3>Estratégia do encontro</h3><p>Exposição dialogada dos conceitos, alternada com aplicação guiada ao projeto do grupo, e fechamento com verificação do entendimento.</p></div><div class="encontro-item" data-encontro="agenda"><h3>Estrutura do encontro</h3><ol><li>🎯 Goal of the day</li><li>🕐 Schedule of the day</li><li>⚖️ What the panel evaluates</li><li>🚫 Mistakes that compromise the evaluation</li><li>🏁 Deliverable</li></ol></div></section></div></div>
+<!-- encontro:meta:end -->
+</div>
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../home-inteli-camp.html" class="back-home">← Voltar</a>
+      <a href="../materials/lesson-5-material.html" class="back-home material">📖 Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons">
+        <button id="prevBtn" onclick="prevSlide()" aria-label="Slide anterior">←</button>
+      </div>
+      <div class="slide-counter" aria-live="polite" aria-atomic="true"><span id="currentSlide">1</span> / <span id="totalSlides">1</span></div>
+      <div class="nav-buttons">
+        <button id="nextBtn" onclick="nextSlide()" aria-label="Próximo slide">→</button>
+      </div>
+      <button class="a11y-btn" onclick="toggleA11y()" title="Modo leitura acessível (dislexia/TDAH)" aria-label="Alternar modo de leitura acessível" aria-pressed="false">Aa</button>
+      <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Tela cheia" aria-label="Alternar tela cheia">⛶</button>
+    </div>
+  </div>
+
+  <script src="../../../config/inteli-camp-case.js"></script>
+  <script>
+    const CASE = window.INTELI_CAMP_CASE || { edicao: "Bootcamp de Inverno · Julho 2026" };
+    document.querySelectorAll('[data-case]').forEach(el => {
+      const k = el.getAttribute('data-case');
+      if (CASE[k]) el.textContent = CASE[k];
+    });
+
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+    let current = 0;
+    document.getElementById('totalSlides').textContent = total;
+
+    function showSlide(i) {
+      slides.forEach(s => s.classList.remove('active'));
+      slides[i].classList.add('active');
+      document.getElementById('currentSlide').textContent = i + 1;
+      document.getElementById('prevBtn').disabled = i === 0;
+      document.getElementById('nextBtn').disabled = i === total - 1;
+    }
+    function nextSlide() { if (current < total - 1) { current++; showSlide(current); } }
+    function prevSlide() { if (current > 0) { current--; showSlide(current); } }
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    function applyA11y(on) {
+      document.body.classList.toggle('a11y', on);
+      const b = document.querySelector('.a11y-btn');
+      if (b) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.classList.toggle('is-on', on); }
+    }
+    function toggleA11y() {
+      const on = !document.body.classList.contains('a11y');
+      try { localStorage.setItem('inteliCampA11y', on ? '1' : '0'); } catch (e) {}
+      applyA11y(on);
+    }
+    try { if (localStorage.getItem('inteliCampA11y') === '1') applyA11y(true); } catch (e) {}
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+    });
+    showSlide(0);
+  </script>
+<!-- semana:js:start -->
+<script src="../../../js/semana-ano.js" defer></script>
+<!-- semana:js:end -->
+</body>
+</html>

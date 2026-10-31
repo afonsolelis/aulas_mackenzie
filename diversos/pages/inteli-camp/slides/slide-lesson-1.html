@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inteli Camp — Dia 1: Spec & Modelagem do Problema — Slides - Inteli</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="../../../css/inteli-styles.css" rel="stylesheet">
+  <style>
+    :root { --inteli-purple: #2e2640; --inteli-accent: #1863dc; --inteli-highlight: #855ede; --camp-dark: #2e2640; --camp-lavender: #90a5e5; --camp-red: #c00000; }
+    body { margin: 0; padding: 0; overflow: hidden; font-family: "Manrope", sans-serif; background: #f5f7fb; color: var(--inteli-purple); }
+    .slide-container { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+    .slide { width: 100%; height: 100%; display: none; padding: 26px 40px 84px; box-sizing: border-box; position: absolute; }
+    .slide.active { display: flex; flex-direction: column; justify-content: center; animation: slideIn 0.35s ease-in-out; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: translateX(0); } }
+    .slide-content { width: min(1240px, 100%); margin: 0 auto; font-size: 1rem; line-height: 1.45; }
+
+    .slide-header { background: var(--camp-dark); color: white; padding: 15px 22px; border-radius: 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-left: 6px solid var(--camp-lavender); }
+    .slide-header.cover { padding: 30px 28px; flex-direction: column; align-items: flex-start; }
+    .slide-title { font-size: 1.75rem; font-weight: 800; margin: 0; }
+    .slide-header.cover .slide-title { font-size: 2.6rem; }
+    .slide-subtitle { font-size: 1rem; opacity: 0.92; margin: 4px 0 0; }
+    .stage-badge { background: var(--camp-lavender); color: var(--camp-dark); border: 1px solid var(--camp-lavender); padding: 6px 14px; border-radius: 999px; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; flex-shrink: 0; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .col-card { background: white; border-radius: 14px; padding: 16px 18px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); border: 1px solid #e8ecf1; }
+    .col-card.how { border-left: 6px solid var(--inteli-highlight); }
+    .col-card.check { border-left: 6px solid #0d9488; }
+    .col-card h3 { font-size: 1rem; font-weight: 800; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .col-card.how h3 { color: var(--inteli-highlight); }
+    .col-card.check h3 { color: #0d9488; }
+    .col-card ol, .col-card ul { margin: 0; padding-left: 1.2rem; }
+    .col-card li { margin-bottom: 6px; font-size: 0.92rem; line-height: 1.45; }
+    .col-card li strong { color: var(--inteli-purple); }
+    .deliverable { background: #ecfdf5; border: 1px dashed #6ee7b7; border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 0.88rem; line-height: 1.45; color: #065f46; }
+    .deliverable .d-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #047857; margin-bottom: 4px; }
+
+    .case { font-weight: 700; color: var(--inteli-highlight); }
+    .case-box { background: #fffbeb; border: 1px solid #fde68a; border-left: 6px solid #f59e0b; border-radius: 14px; padding: 18px 22px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); }
+    .case-box h3 { font-size: 1rem; font-weight: 800; margin: 0 0 10px; color: #b45309; text-transform: uppercase; letter-spacing: 0.04em; }
+    .case-box p { margin: 0 0 8px; font-size: 1rem; line-height: 1.55; }
+
+    .roadmap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .roadmap-card { background: white; border-radius: 12px; padding: 14px 12px; box-shadow: 0 6px 18px rgba(46,38,64,0.06); border-top: 5px solid; display: flex; flex-direction: column; gap: 6px; }
+    .roadmap-card:nth-child(1) { border-color: #1863dc; }
+    .roadmap-card:nth-child(2) { border-color: #855ede; }
+    .roadmap-card:nth-child(3) { border-color: #0d9488; }
+    .roadmap-card:nth-child(4) { border-color: #f97316; }
+    .roadmap-card:nth-child(5) { border-color: #db2777; }
+    .roadmap-card .day { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+    .roadmap-card .rc-title { font-size: 0.98rem; font-weight: 800; color: var(--inteli-purple); line-height: 1.25; }
+    .roadmap-card .rc-deliv { font-size: 0.78rem; color: #475569; line-height: 1.4; margin-top: auto; }
+    .roadmap-card.is-today { outline: 3px solid #1863dc; outline-offset: 2px; }
+
+    .tool-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .tool-pill { background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; }
+
+    .cover-content { display: flex; flex-direction: column; gap: 14px; }
+    .cover-block { background: white; border-radius: 14px; padding: 16px 20px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); }
+    .cover-block h3 { font-size: 1rem; font-weight: 800; margin: 0 0 8px; color: var(--inteli-accent); text-transform: uppercase; letter-spacing: 0.04em; }
+    .cover-block ul { margin: 0; padding-left: 1.2rem; }
+    .cover-block li { margin-bottom: 5px; font-size: 0.95rem; }
+    .cover-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .prof-layout { display: grid; grid-template-columns: 260px 1fr; gap: 26px; align-items: center; }
+    .prof-photo-wrap { text-align: center; }
+    .prof-photo { width: 190px; height: 190px; border-radius: 50%; object-fit: cover; box-shadow: 0 10px 30px rgba(46,38,64,0.18); border: 5px solid white; }
+    .prof-li { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; background: #0a66c2; color: white; padding: 7px 14px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+    .prof-name { font-size: 1.7rem; font-weight: 800; margin: 0; color: var(--inteli-purple); }
+    .prof-headline { font-size: 0.9rem; color: var(--inteli-accent); font-weight: 700; margin: 4px 0 10px; }
+    .prof-bio { font-size: 0.97rem; line-height: 1.5; margin: 0 0 12px; color: #334155; }
+    .prof-timeline { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .prof-item { background: #f8fafc; border: 1px solid #e8ecf1; border-left: 4px solid var(--inteli-highlight); border-radius: 8px; padding: 8px 12px; }
+    .prof-item .role { font-size: 0.85rem; font-weight: 800; color: var(--inteli-purple); line-height: 1.25; }
+    .prof-item .org { font-size: 0.75rem; color: #64748b; }
+
+    .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .spec-card { background: white; border-radius: 14px; padding: 16px 18px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); border: 1px solid #e8ecf1; }
+    .spec-card h3 { font-size: 0.88rem; font-weight: 800; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--inteli-accent); }
+    .spec-card p, .spec-card li { font-size: 0.9rem; line-height: 1.5; }
+    .spec-card ul { margin: 0; padding-left: 1.1rem; }
+    .spec-card li { margin-bottom: 5px; }
+    .spec-field { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--inteli-highlight); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; font-size: 0.88rem; }
+    .spec-field .field-label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--inteli-highlight); margin-bottom: 2px; }
+    .spec-field .field-hint { color: #64748b; font-style: italic; }
+
+    /* ===== Fundamentos: bússolas, fluxo das 5 visões, de-para, conceitos ===== */
+    .compass-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .compass { background: white; border-radius: 14px; padding: 16px 18px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); border-top: 6px solid; }
+    .compass.swebok { border-color: #1863dc; }
+    .compass.iso { border-color: #0d9488; }
+    .compass h3 { font-size: 1.05rem; font-weight: 800; margin: 2px 0 4px; }
+    .compass .c-tag { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+    .compass p { font-size: 0.92rem; line-height: 1.5; margin: 8px 0; }
+    .compass ul { margin: 6px 0 0; padding-left: 1.1rem; }
+    .compass li { font-size: 0.88rem; margin-bottom: 4px; }
+
+    .layer-flow { display: flex; flex-direction: column; gap: 6px; }
+    .layer { display: grid; grid-template-columns: 200px 1fr; gap: 12px; align-items: center; background: white; border-radius: 10px; padding: 10px 14px; box-shadow: 0 5px 14px rgba(46,38,64,0.05); border-left: 8px solid; }
+    .layer .l-name { font-weight: 800; font-size: 1rem; color: var(--inteli-purple); }
+    .layer .l-q { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; display: block; margin-bottom: 1px; }
+    .layer .l-desc { font-size: 0.86rem; color: #334155; line-height: 1.35; }
+    .layer.l1 { border-color: #1863dc; } .layer.l2 { border-color: #855ede; } .layer.l3 { border-color: #0d9488; } .layer.l4 { border-color: #f97316; } .layer.l5 { border-color: #db2777; }
+
+    .depara { width: 100%; border-collapse: collapse; font-size: 0.82rem; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 18px rgba(46,38,64,0.06); }
+    .depara th, .depara td { text-align: left; padding: 7px 10px; border-bottom: 1px solid #eef2f7; vertical-align: top; line-height: 1.35; }
+    .depara th { background: #f1f4f8; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+    .depara tr:last-child td { border-bottom: none; }
+    .depara .dp-layer { font-weight: 800; color: var(--inteli-purple); white-space: nowrap; }
+
+    .concept-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 14px; align-items: start; }
+    .concept-card { background: white; border-radius: 14px; padding: 16px 18px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); border-left: 6px solid var(--inteli-highlight); }
+    .concept-card h3 { font-size: 0.95rem; font-weight: 800; margin: 0 0 8px; color: var(--inteli-highlight); text-transform: uppercase; letter-spacing: 0.04em; }
+    .concept-card p { font-size: 0.92rem; line-height: 1.5; margin: 0 0 8px; }
+    .concept-card ul { margin: 0; padding-left: 1.1rem; } .concept-card li { font-size: 0.9rem; margin-bottom: 5px; }
+    .ex-azul { background: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #1863dc; border-radius: 10px; padding: 12px 14px; font-size: 0.9rem; line-height: 1.45; color: #1e3a5f; }
+    .ex-azul .ex-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #1863dc; margin-bottom: 6px; }
+    .ex-azul ul { margin: 0; padding-left: 1.1rem; } .ex-azul li { margin-bottom: 4px; }
+    .nfr-axes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 4px; }
+    .nfr-axis { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 8px 10px; font-size: 0.85rem; }
+    .nfr-axis b { color: #0f766e; }
+    .arch-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+    .arch-node { background: white; border: 1px solid #e8ecf1; border-top: 4px solid #f97316; border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; font-weight: 700; color: var(--inteli-purple); text-align: center; box-shadow: 0 4px 12px rgba(46,38,64,0.05); }
+    .arch-arrow { color: #f97316; font-weight: 800; font-size: 1.1rem; }
+    .lovable-badge { display: inline-flex; align-items: center; gap: 8px; background: #faf5ff; border: 1px solid #e9d5ff; color: #7e22ce; font-weight: 800; padding: 8px 16px; border-radius: 999px; font-size: 0.95rem; }
+
+    .timer-panel { position: fixed; top: 16px; left: 18px; z-index: 200; background: rgba(255,255,255,0.98); border: 2px solid #1863dc; border-radius: 14px; padding: 8px 14px; display: none; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(24,99,220,0.18); font-family: "Manrope", sans-serif; }
+    .timer-panel.visible { display: flex; }
+    .timer-display { font-size: 1.6rem; font-weight: 800; color: var(--inteli-purple); font-variant-numeric: tabular-nums; min-width: 84px; text-align: center; letter-spacing: 0.04em; }
+    .timer-panel.warning .timer-display { color: #d97706; }
+    .timer-panel.warning { border-color: #d97706; box-shadow: 0 8px 24px rgba(217,119,6,0.25); }
+    .timer-panel.critical .timer-display { color: #dc2626; }
+    .timer-panel.critical { border-color: #dc2626; box-shadow: 0 8px 24px rgba(220,38,38,0.3); }
+    .timer-panel.done { border-color: #dc2626; background: #fee2e2; animation: flashDone 0.6s ease-in-out infinite; }
+    .timer-panel.done .timer-display { color: #991b1b; }
+    @keyframes flashDone { 0%, 100% { background: #fee2e2; } 50% { background: #fecaca; } }
+    .timer-btn { background: var(--inteli-purple); color: white; border: none; width: 30px; height: 30px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .timer-btn:hover { background: var(--inteli-accent); }
+    .timer-btn.reset { background: #f1f5f9; color: var(--inteli-purple); border: 1px solid #cbd5e1; }
+    .timer-btn.reset:hover { background: #e2e8f0; }
+
+    .slide-footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.97); border-top: 1px solid #dfe5ec; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -2px 10px rgba(46,38,64,0.06); z-index: 100; gap: 12px; }
+    .footer-links { display: flex; gap: 10px; }
+    .back-home { color: var(--inteli-purple); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: #f1f4f8; }
+    .back-home.material { background: #2f8f78 !important; color: white !important; }
+    .back-home.material:hover { background: #267562 !important; color: white !important; }
+    .nav-wrapper { display: flex; align-items: center; gap: 14px; background: #f1f4f8; padding: 7px 18px; border-radius: 30px; }
+    .nav-buttons button { background: var(--inteli-purple); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .nav-buttons button:disabled { background: #caced6; cursor: not-allowed; }
+    .slide-counter { font-weight: 700; color: var(--inteli-purple); min-width: 70px; text-align: center; }
+    .fullscreen-btn { background: #f1f4f8; border: none; font-size: 1.1rem; cursor: pointer; padding: 8px 12px; border-radius: 8px; }
+
+    .nav-buttons button:focus-visible, .fullscreen-btn:focus-visible, .timer-btn:focus-visible, .back-home:focus-visible, .prof-li:focus-visible { outline: 3px solid #1863dc; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      .slide.active { animation: none; }
+      .timer-panel.done { animation: none; }
+    }
+    /* ===== Marca compartilhada Inteli Camp 2026 (alinhamento visual com a Trilha Business) ===== */
+    .camp-brand { position: fixed; top: 12px; right: 20px; z-index: 150; display: flex; align-items: center; gap: 9px; pointer-events: none; }
+    .camp-brand img { height: 42px; width: auto; filter: drop-shadow(0 3px 8px rgba(46,38,64,0.18)); }
+    .camp-brand .cb-word { font-family: "Manrope", sans-serif; font-weight: 800; font-size: 0.82rem; line-height: 0.98; letter-spacing: 0.02em; color: var(--camp-dark); text-transform: uppercase; }
+    .camp-brand .cb-word small { display: block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; color: var(--camp-lavender); }
+    .hl { color: var(--camp-red); font-weight: 800; }
+
+    /* ===== Camada de legibilidade — dislexia/TDAH (não altera o conteúdo) ===== */
+    /* Sem caixa-alta: preserva o contorno das palavras, chave para leitura disléxica */
+    .slide *, .camp-brand .cb-word { text-transform: none !important; }
+    /* Entrelinha um pouco mais folgada por padrão (ajuda todos os alunos) */
+    .slide-content { line-height: 1.55; }
+    /* Modo leitura acessível — ligado pelo botão "Aa" e persistido por aluno */
+    body.a11y .slide-content { letter-spacing: 0.02em; line-height: 1.62; }
+    body.a11y .slide-content p, body.a11y .slide-content li { word-spacing: 0.08em; font-weight: 500; }
+    body.a11y .col-card li, body.a11y .spec-card li, body.a11y .compass li, body.a11y .concept-card li { line-height: 1.5; }
+    .a11y-btn { background: #f1f4f8; border: none; font-size: 0.95rem; font-weight: 800; cursor: pointer; padding: 8px 12px; border-radius: 8px; color: var(--inteli-purple); letter-spacing: 0.02em; }
+    .a11y-btn.is-on { background: var(--inteli-accent); color: #fff; }
+    .a11y-btn:focus-visible { outline: 3px solid #1863dc; outline-offset: 3px; }
+  </style>
+
+<!-- encontro:css:start -->
+<link rel="stylesheet" href="../../../css/encontro.css">
+<!-- encontro:css:end -->
+
+<!-- semana:css:start -->
+<link rel="stylesheet" href="../../../css/semana-ano.css">
+<!-- semana:css:end -->
+</head>
+<body>
+
+  <div class="camp-brand" aria-label="Inteli Camp 2026">
+    <img src="../assets/camp-mascot.png" alt="Mascote do Inteli Camp 2026">
+    <span class="cb-word">Inteli<br>Camp<small>2026</small></span>
+  </div>
+
+  <div class="timer-panel" id="timerPanel">
+    <span style="font-size: 1.1rem;">⏱️</span>
+    <span class="timer-display" id="timerDisplay">20:00</span>
+    <button class="timer-btn" id="timerToggle" title="Iniciar/Pausar" aria-label="Iniciar ou pausar o cronômetro">▶</button>
+    <button class="timer-btn reset" id="timerReset" title="Resetar" aria-label="Resetar o cronômetro">↺</button>
+  </div>
+
+  <div class="slide-container">
+
+    <!-- SLIDE 1: CAPA -->
+    <section class="slide active">
+      <div class="slide-content">
+        <div class="slide-header cover">
+          <span class="stage-badge">❄️ <span data-case="edicao">Bootcamp de Inverno · Julho 2026</span> · Dia 1 · Segunda</span>
+          <h1 class="slide-title">Inteli Camp — Dia 1</h1>
+          <p class="slide-subtitle">Spec & Modelagem do Problema</p>
+        </div>
+
+        <div class="cover-content">
+          <div class="cover-grid">
+            <div class="cover-block">
+              <h3>🎯 O que vamos fazer hoje</h3>
+              <ul>
+                <li>Entender o desafio do parceiro e decompor o problema</li>
+                <li>Aprender o que é uma <strong>spec</strong> e por que ela evita retrabalho</li>
+                <li>Identificar atores, entidades e fluxos da solução</li>
+                <li>Preencher a spec do grupo e ter ela <strong>validada</strong></li>
+              </ul>
+            </div>
+            <div class="cover-block">
+              <h3>🏁 Entregável do dia</h3>
+              <ul>
+                <li><strong>Spec do grupo</strong> preenchida e validada</li>
+                <li>Problema decomposto em atores, entidades e fluxo principal</li>
+                <li>Critério de aceite definido: como saberemos que a solução funciona</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: CURRÍCULO DO PROFESSOR -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Quem vai conduzir</h1>
+            <p class="slide-subtitle">Seu professor no Inteli Camp</p>
+          </div>
+          <span class="stage-badge">Apresentação</span>
+        </div>
+
+        <div class="prof-layout">
+          <div class="prof-photo-wrap">
+            <img class="prof-photo" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1720832174/Captura_de_tela_2024-07-12_215408_kavbwl.png" alt="Foto de Afonso Cesar Lelis Brandão">
+            <div>
+              <a class="prof-li" href="https://www.linkedin.com/in/afonsolelis/" target="_blank" rel="noopener noreferrer">🔗 /in/afonsolelis</a>
+            </div>
+          </div>
+          <div>
+            <h2 class="prof-name">Afonso Cesar Lelis Brandão</h2>
+            <p class="prof-headline">Software Engineer · Data Engineer · Industrial Engineer · Pesquisador (ATAM)</p>
+            <p class="prof-bio">Pesquisador, consultor e professor nas áreas de engenharia de dados e software. Desde 2023 leciona e mentora alunos em Engenharia de Software, Estruturas de Dados, Sistemas ERP e Big Data.</p>
+            <div class="tool-strip" style="margin-bottom: 12px;">
+              <span class="tool-pill">Engenharia de Software</span>
+              <span class="tool-pill">Engenharia de Dados</span>
+              <span class="tool-pill">Big Data & Cloud</span>
+              <span class="tool-pill">ERP</span>
+            </div>
+            <div class="prof-timeline">
+              <div class="prof-item"><div class="role">Professor & Acadêmico</div><div class="org">Inteli · Mackenzie · ESPM · Senac — desde 2023</div></div>
+              <div class="prof-item"><div class="role">Software Eng. & Data Analytics</div><div class="org">Dasa — 2022–2023</div></div>
+              <div class="prof-item"><div class="role">Coordenador / Professor</div><div class="org">UNAMA — 5 cursos de engenharia</div></div>
+              <div class="prof-item"><div class="role">Co-fundador</div><div class="org">1950colab — desde 2016</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: O QUE É UMA SPEC E POR QUE ELA EXISTE -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">O que é uma Spec e por que ela existe</h1>
+            <p class="slide-subtitle">Antes de construir, é preciso entender o que se vai construir</p>
+          </div>
+          <span class="stage-badge">Spec · Conceito</span>
+        </div>
+
+        <div class="spec-grid">
+          <div class="spec-card">
+            <h3>📄 O que é uma Spec</h3>
+            <ul>
+              <li>Documento que descreve <strong>o problema</strong>, não a solução</li>
+              <li>Define quem usa, o que precisa e como saberemos que funcionou</li>
+              <li>Evita o ciclo de <strong>"construir, descobrir que estava errado, reconstruir"</strong></li>
+              <li>Em 5 dias de bootcamp, tempo perdido não volta — spec bem feita é velocidade</li>
+            </ul>
+          </div>
+          <div class="spec-card">
+            <h3>🚫 Sem spec, o que acontece</h3>
+            <ul>
+              <li>O grupo constrói coisas diferentes sem perceber</li>
+              <li>A IA recebe instruções vagas → gera resultados inconsistentes</li>
+              <li>Na hora da apresentação, a banca pergunta "mas quem usa isso?" e ninguém sabe responder</li>
+              <li>Refatorar às 15h de quinta-feira é o pior pesadelo do camp</li>
+            </ul>
+          </div>
+          <div class="spec-card">
+            <h3>✅ Com spec, o que muda</h3>
+            <ul>
+              <li>Todos do grupo falam a mesma língua</li>
+              <li>Os prompts do Dia 3 têm base concreta para partir</li>
+              <li>O critério de aceite já está definido antes de escrever código</li>
+              <li>A apresentação final conta uma história coerente do começo ao fim</li>
+            </ul>
+          </div>
+          <div class="spec-card">
+            <h3>⏱️ Quanto tempo dedicar</h3>
+            <ul>
+              <li>Hoje: <strong>1h para construir a spec</strong> com o briefing do parceiro em mãos</li>
+              <li>Não é um documento longo — é um conjunto de respostas precisas</li>
+              <li>Se não conseguir responder algum campo, é sinal de que falta entendimento: pergunte ao professor</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVO: DUAS BÚSSOLAS — SWEBOK 4.0 + ISO/IEC 25010 -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🧭 Duas bússolas do engenheiro de software</h1>
+            <p class="slide-subtitle">Vocês não precisam decorar — são as referências que os profissionais usam. Hoje, na versão leve.</p>
+          </div>
+          <span class="stage-badge">Fundamentos</span>
+        </div>
+
+        <div class="compass-grid">
+          <div class="compass swebok">
+            <span class="c-tag">O mapa do conhecimento</span>
+            <h3>📚 SWEBOK 4.0</h3>
+            <p>É o guia que organiza <strong>tudo o que um engenheiro de software precisa saber</strong>, dividido em áreas — entre elas <strong>Requisitos</strong> e <strong>Design</strong>, que usaremos hoje.</p>
+            <ul>
+              <li>Pensem nele como o índice de um livro gigante da profissão</li>
+              <li>Hoje abrimos apenas o capítulo de <strong>requisitos</strong></li>
+            </ul>
+          </div>
+          <div class="compass iso">
+            <span class="c-tag">A régua de qualidade</span>
+            <h3>📐 ISO/IEC 25010</h3>
+            <p>É a norma que define <strong>o que torna um software "bom"</strong> — características como usabilidade, desempenho, segurança e confiabilidade.</p>
+            <ul>
+              <li>Serve para escrever os <strong>Requisitos Não Funcionais</strong></li>
+              <li>Responde "funciona <em>bem</em>?", não apenas "funciona?"</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="deliverable" style="margin-top: 14px;">
+          <div class="d-title">Por que isso importa hoje</div>
+          Essas duas referências guiam o caminho que vamos percorrer: da necessidade do parceiro até a tecnologia que vamos usar.
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVO: DA NECESSIDADE DO PARCEIRO À SPEC -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🔄 Da necessidade do parceiro à spec</h1>
+            <p class="slide-subtitle">O parceiro descreve um problema; nós o traduzimos em especificação</p>
+          </div>
+          <span class="stage-badge">Tradução</span>
+        </div>
+
+        <div class="two-col">
+          <div class="col-card how">
+            <h3>🗣️ O que o parceiro diz</h3>
+            <div class="case-box" style="box-shadow: none;">
+              <h3><span data-case="marca">Azul Linhas Aéreas</span></h3>
+              <p data-case="desafio">Criar um agente de IA que apoie o processo seletivo, analisando as entrevistas e organizando um funil de seleção.</p>
+            </div>
+            <p style="margin-top: 10px; font-size: 0.9rem; color: #475569;">Isso é uma <strong>necessidade</strong>: real e legítima, mas ainda vaga para construir.</p>
+          </div>
+          <div class="col-card check">
+            <h3>🧩 O que nós produzimos</h3>
+            <p style="font-size: 0.92rem;">Traduzimos a necessidade em cinco camadas, que respondem uma pergunta cada:</p>
+            <ul style="font-size: 0.92rem;">
+              <li><strong>Por quê?</strong> → Business Drivers</li>
+              <li><strong>O quê?</strong> → Requisitos Funcionais</li>
+              <li><strong>Quão bem?</strong> → Requisitos Não Funcionais</li>
+              <li><strong>Como?</strong> → Arquitetura</li>
+              <li><strong>Com o quê?</strong> → Tecnologia</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVO: DIAGRAMA DAS 5 VISÕES + DE-PARA -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🗺️ As 5 visões: da necessidade à tecnologia</h1>
+            <p class="slide-subtitle">Cada camada responde uma pergunta e prepara a seguinte</p>
+          </div>
+          <span class="stage-badge">Visão geral</span>
+        </div>
+
+        <div class="two-col" style="align-items: start;">
+          <div class="layer-flow">
+            <div class="layer l1"><div><span class="l-q">Por quê</span><span class="l-name">Business Drivers</span></div><div class="l-desc">O motivo de negócio — o que o parceiro ganha com a solução</div></div>
+            <div class="layer l2"><div><span class="l-q">O quê</span><span class="l-name">Requisitos Funcionais</span></div><div class="l-desc">O que a solução precisa fazer</div></div>
+            <div class="layer l3"><div><span class="l-q">Quão bem</span><span class="l-name">Requisitos Não Funcionais</span></div><div class="l-desc">A qualidade esperada — orientada pela ISO/IEC 25010</div></div>
+            <div class="layer l4"><div><span class="l-q">Como</span><span class="l-name">Arquitetura</span></div><div class="l-desc">Como as partes se organizam e se comunicam</div></div>
+            <div class="layer l5"><div><span class="l-q">Com o quê</span><span class="l-name">Tecnologia</span></div><div class="l-desc">As ferramentas concretas que dão vida à solução</div></div>
+          </div>
+
+          <table class="depara">
+            <thead><tr><th>Camada</th><th>Pergunta</th><th>Exemplo — <span data-case="marca">Azul</span></th></tr></thead>
+            <tbody>
+              <tr><td class="dp-layer">Business Driver</td><td>Por quê?</td><td>Acelerar e padronizar o processo seletivo, apoiando contratações melhores</td></tr>
+              <tr><td class="dp-layer">R. Funcional</td><td>O quê?</td><td>Analisar as entrevistas, pontuar candidatos e montar o funil de seleção</td></tr>
+              <tr><td class="dp-layer">R. Não Funcional</td><td>Quão bem?</td><td>Proteger os dados dos candidatos (LGPD), evitar viés e aplicar critérios iguais</td></tr>
+              <tr><td class="dp-layer">Arquitetura</td><td>Como?</td><td>Dados da entrevista → interface → agente de IA → base de critérios</td></tr>
+              <tr><td class="dp-layer">Tecnologia</td><td>Com o quê?</td><td>Lovable, para construir a interface e conectar a IA</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVO: BUSINESS DRIVER -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🎯 O que é um Business Driver</h1>
+            <p class="slide-subtitle">Camada 1 — o "porquê" de negócio</p>
+          </div>
+          <span class="stage-badge">Camada 1 · Por quê</span>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h3>Definição</h3>
+            <p>Um <strong>business driver</strong> é o motivo de negócio que justifica o projeto: o resultado que a organização deseja alcançar.</p>
+            <ul>
+              <li>Responde à pergunta <strong>"por que vale a pena construir isto?"</strong></li>
+              <li>Fala de valor — custo, tempo, satisfação, reputação</li>
+              <li>Não menciona telas nem código</li>
+            </ul>
+          </div>
+          <div class="ex-azul">
+            <div class="ex-title">Exemplo — <span data-case="marca">Azul</span></div>
+            <ul>
+              <li>Acelerar a triagem e reduzir o tempo do processo seletivo</li>
+              <li>Padronizar a avaliação e apoiar decisões de contratação mais justas</li>
+              <li>Liberar os recrutadores para as etapas que exigem julgamento humano</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVO: REQUISITO FUNCIONAL -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">⚙️ O que é um Requisito Funcional</h1>
+            <p class="slide-subtitle">Camada 2 — o "o quê"</p>
+          </div>
+          <span class="stage-badge">Camada 2 · O quê</span>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h3>Definição</h3>
+            <p>Um <strong>requisito funcional</strong> descreve uma ação que a solução <strong>deve realizar</strong> — algo observável para quem a usa.</p>
+            <ul>
+              <li>Costuma começar com um verbo: "o sistema deve..."</li>
+              <li>É verificável: dá para testar se acontece ou não</li>
+              <li>Uma função por requisito, sem ambiguidade</li>
+            </ul>
+          </div>
+          <div class="ex-azul">
+            <div class="ex-title">Exemplo — <span data-case="marca">Azul</span></div>
+            <ul>
+              <li>Analisar as respostas de uma entrevista segundo os critérios de avaliação</li>
+              <li>Pontuar e classificar os candidatos, organizando o funil de seleção</li>
+              <li>Resumir a entrevista comparando o candidato ao perfil da vaga</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVO: REQUISITO NÃO FUNCIONAL (ISO 25010) -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🛡️ O que é um Requisito Não Funcional</h1>
+            <p class="slide-subtitle">Camada 3 — o "quão bem", orientado pela ISO/IEC 25010</p>
+          </div>
+          <span class="stage-badge">Camada 3 · Quão bem</span>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h3>Definição</h3>
+            <p>Um <strong>requisito não funcional</strong> não descreve uma nova função, e sim a <strong>qualidade</strong> com que a solução funciona. É onde entra a ISO/IEC 25010. Num processo seletivo, isso inclui <strong>proteger os dados dos candidatos</strong> e <strong>evitar vieses</strong> na avaliação.</p>
+            <p style="margin: 0 0 6px; font-size: 0.82rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">Quatro características (das oito da norma)</p>
+            <div class="nfr-axes">
+              <div class="nfr-axis"><b>Usabilidade</b> — fácil de entender e usar</div>
+              <div class="nfr-axis"><b>Desempenho</b> — responde rápido</div>
+              <div class="nfr-axis"><b>Segurança</b> — protege os dados</div>
+              <div class="nfr-axis"><b>Confiabilidade</b> — funciona sem falhar</div>
+            </div>
+          </div>
+          <div class="ex-azul">
+            <div class="ex-title">Exemplo — <span data-case="marca">Azul</span></div>
+            <ul>
+              <li><strong>Segurança:</strong> proteger os dados pessoais dos candidatos (LGPD)</li>
+              <li><strong>Confiabilidade:</strong> aplicar os mesmos critérios a todos os candidatos</li>
+              <li><strong>Usabilidade:</strong> deixar claro por que cada candidato foi pontuado</li>
+              <li><strong>Desempenho:</strong> analisar uma entrevista em poucos segundos</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVO: ARQUITETURA -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🏗️ O que é Arquitetura</h1>
+            <p class="slide-subtitle">Camada 4 — o "como"</p>
+          </div>
+          <span class="stage-badge">Camada 4 · Como</span>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h3>Definição</h3>
+            <p>A <strong>arquitetura</strong> mostra <strong>como as partes da solução se organizam e conversam</strong> entre si — um desenho de caixas e setas.</p>
+            <ul>
+              <li>Cada caixa tem uma responsabilidade</li>
+              <li>As setas mostram por onde a informação passa</li>
+              <li>Ainda não é a ferramenta — é a organização das partes</li>
+            </ul>
+          </div>
+          <div class="ex-azul">
+            <div class="ex-title">Exemplo — <span data-case="marca">Azul</span></div>
+            <div class="arch-flow">
+              <span class="arch-node">Dados da<br>entrevista</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node">Interface do<br>recrutador</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node">Agente<br>de IA</span>
+              <span class="arch-arrow">→</span>
+              <span class="arch-node">Base de<br>critérios</span>
+            </div>
+            <p style="margin: 10px 0 0; font-size: 0.85rem;">A base guarda os critérios de avaliação e os perfis de vaga que a IA usa para analisar cada entrevista.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOVO: TECNOLOGIA — LOVABLE -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🧰 Tecnologia — vamos usar o Lovable</h1>
+            <p class="slide-subtitle">Camada 5 — o "com o quê" (e por que ela vem por último)</p>
+          </div>
+          <span class="stage-badge">Camada 5 · Com o quê</span>
+        </div>
+
+        <div class="concept-grid">
+          <div class="concept-card">
+            <h3>Definição</h3>
+            <p>A <strong>tecnologia</strong> é o conjunto de ferramentas concretas que dão vida à arquitetura.</p>
+            <ul>
+              <li>Vem <strong>por último</strong>: primeiro entendemos por quê, o quê, quão bem e como</li>
+              <li>Escolher a ferramenta antes de entender o problema é a principal fonte de retrabalho</li>
+            </ul>
+          </div>
+          <div class="ex-azul">
+            <div class="ex-title">Nossa escolha</div>
+            <p style="margin: 0 0 10px;"><span class="lovable-badge">💜 Lovable</span></p>
+            <ul>
+              <li>Plataforma para criar aplicações web descrevendo o que se quer em linguagem natural</li>
+              <li>Permite ir do protótipo à solução com rapidez, sem começar o código do zero</li>
+              <li>Ideal para o ritmo do camp — foco no problema, não na configuração</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: COMO MODELAR O PROBLEMA -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Como decompor o problema</h1>
+            <p class="slide-subtitle">Atores, entidades, fluxo e critério de aceite</p>
+          </div>
+          <span class="stage-badge">Spec · Método</span>
+        </div>
+
+        <div class="two-col">
+          <div class="col-card how">
+            <h3>🔍 As 4 perguntas da modelagem</h3>
+            <ol>
+              <li><strong>Quem usa?</strong> — identifique o(s) ator(es): quem interage com a solução e com qual objetivo</li>
+              <li><strong>O que entra?</strong> — quais dados ou informações o ator fornece para a IA agir</li>
+              <li><strong>O que sai?</strong> — qual é o output que o ator recebe e o que ele faz com ele</li>
+              <li><strong>Como sabemos que funcionou?</strong> — defina o critério de aceite: uma condição objetiva, mensurável</li>
+            </ol>
+            <div class="deliverable" style="margin-top: 14px;">
+              <div class="d-title">Dica</div>
+              Desenhe o fluxo no papel antes de abrir o computador. Um diagrama de caixa com setas já é suficiente.
+            </div>
+          </div>
+          <div class="col-card check">
+            <h3>📐 Exemplo de decomposição</h3>
+            <div class="spec-field">
+              <div class="field-label">Ator</div>
+              Analista de marketing da empresa parceira
+            </div>
+            <div class="spec-field">
+              <div class="field-label">Entrada</div>
+              Briefing do produto: nome, público-alvo, tom de voz, palavras-chave proibidas
+            </div>
+            <div class="spec-field">
+              <div class="field-label">Saída</div>
+              3 variações de copy para redes sociais, com hashtags e sugestão de formato visual
+            </div>
+            <div class="spec-field">
+              <div class="field-label">Critério de aceite</div>
+              O copy gerado respeita o tom de voz, não contém palavras proibidas e tem menos de 280 caracteres
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: TEMPLATE DA SPEC -->
+    <section class="slide" data-timer="1800">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🔨 Mãos à obra — escrevam a spec</h1>
+            <p class="slide-subtitle">Atividade em grupo · cronômetro de 30 min rodando · preencham um campo de cada vez</p>
+          </div>
+          <span class="stage-badge">⏱️ Metodologia Ativa</span>
+        </div>
+
+        <div class="spec-grid">
+          <div class="spec-field">
+            <div class="field-label">1. Problema central</div>
+            <div class="field-hint">Em uma frase: qual dor real do parceiro esta solução resolve?</div>
+          </div>
+          <div class="spec-field">
+            <div class="field-label">2. Ator principal</div>
+            <div class="field-hint">Quem usa a solução? Qual é o objetivo dessa pessoa ao usá-la?</div>
+          </div>
+          <div class="spec-field">
+            <div class="field-label">3. Entrada</div>
+            <div class="field-hint">Que dados ou informações o ator fornece? São obrigatórios ou opcionais?</div>
+          </div>
+          <div class="spec-field">
+            <div class="field-label">4. Saída</div>
+            <div class="field-hint">O que o ator recebe? Em que formato? Com que nível de detalhe?</div>
+          </div>
+          <div class="spec-field">
+            <div class="field-label">5. Restrições</div>
+            <div class="field-hint">O que a solução NÃO pode fazer? Que palavras, temas ou comportamentos são proibidos?</div>
+          </div>
+          <div class="spec-field">
+            <div class="field-label">6. Critério de aceite</div>
+            <div class="field-hint">Como a banca vai avaliar se a solução funciona? Defina uma condição objetiva e verificável.</div>
+          </div>
+        </div>
+
+        <div class="tool-strip">
+          <span class="tool-pill">⏱️ 30 minutos — iniciem o cronômetro</span>
+          <span class="tool-pill">👥 Grupo completo</span>
+          <span class="tool-pill">📋 Briefing do parceiro em mãos</span>
+          <span class="tool-pill">✋ Chame o professor para validar</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: FECHAMENTO DO DIA -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🎓 Fechamento do Dia 1</h1>
+            <p class="slide-subtitle">Onde chegamos e o que vem amanhã</p>
+          </div>
+          <span class="stage-badge">Fechamento</span>
+        </div>
+
+        <div class="cover-content">
+          <div class="cover-grid">
+            <div class="cover-block">
+              <h3>✅ Hoje você</h3>
+              <ul>
+                <li>Entendeu o desafio do parceiro e decompôs o problema</li>
+                <li>Identificou atores, entradas, saídas e restrições</li>
+                <li>Produziu e validou a <strong>spec do grupo</strong></li>
+                <li>Definiu o critério de aceite da solução</li>
+              </ul>
+            </div>
+            <div class="cover-block">
+              <h3>➡️ Amanhã — Dia 2</h3>
+              <ul>
+                <li><strong>Visita Técnica & Imersão no Parceiro</strong></li>
+                <li>Observar o processo real e confirmar as premissas da spec</li>
+                <li>Voltar com a spec afiada para construir a solução</li>
+              </ul>
+            </div>
+          </div>
+          <div class="case-box">
+            <h3>🧩 Lembre-se</h3>
+            <p class="mb-0">A spec validada hoje é a fundação de tudo que vem depois. Se amanhã, na visita, o grupo perceber que algo mudou, atualizem a spec <strong>antes</strong> de construir.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+<!-- encontro:meta:start -->
+<div class="slide encontro-slide"><div class="sc"><section class="encontro-meta" data-encontro-ficha><h2>Sobre este encontro</h2><p class="encontro-ref">Inteli Camp · Prof. Afonso</p><div class="encontro-item" data-encontro="objetivo"><h3>Objetivo de aprendizagem</h3><p>Ao final do encontro, o estudante deve ser capaz de aplicar ao projeto os conceitos de Inteli Camp.</p></div><div class="encontro-item" data-encontro="estrategia"><h3>Estratégia do encontro</h3><p>Exposição dialogada dos conceitos, alternada com aplicação guiada ao projeto do grupo, e fechamento com verificação do entendimento.</p></div><div class="encontro-item" data-encontro="agenda"><h3>Estrutura do encontro</h3><ol><li>🎯 Goal of the day</li><li>📄 What a spec is and why it exists</li><li>🧭 Two compasses of the software engineer</li><li>🔄 From the partner&#39;s need to the spec</li><li>🗺️ The 5 views: from need to technology</li><li>🧩 The five views in detail</li><li>🔍 How to break down the problem</li><li>📐 Decomposition example</li></ol></div></section></div></div>
+<!-- encontro:meta:end -->
+</div>
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../home-inteli-camp.html" class="back-home">← Voltar</a>
+      <a href="../materials/lesson-1-material.html" class="back-home material">📖 Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons">
+        <button id="prevBtn" onclick="prevSlide()" aria-label="Slide anterior">←</button>
+      </div>
+      <div class="slide-counter" aria-live="polite" aria-atomic="true"><span id="currentSlide">1</span> / <span id="totalSlides">1</span></div>
+      <div class="nav-buttons">
+        <button id="nextBtn" onclick="nextSlide()" aria-label="Próximo slide">→</button>
+      </div>
+      <button class="a11y-btn" onclick="toggleA11y()" title="Modo leitura acessível (dislexia/TDAH)" aria-label="Alternar modo de leitura acessível" aria-pressed="false">Aa</button>
+      <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Tela cheia" aria-label="Alternar tela cheia">⛶</button>
+    </div>
+  </div>
+
+  <script src="../../../config/inteli-camp-case.js"></script>
+  <script>
+    const CASE = window.INTELI_CAMP_CASE || {
+      edicao:   "Bootcamp de Inverno · Julho 2026",
+      marca:    "[marca/organização parceira]",
+      contexto: "[contexto do produto ou serviço]",
+      desafio:  "[descreva aqui o problema real que os alunos vão resolver com IA]",
+      output:   "[tipo de output — ex.: classificação e resumo de candidatos]",
+      publico:  "[público-alvo da solução]"
+    };
+    document.querySelectorAll('[data-case]').forEach(el => {
+      const k = el.getAttribute('data-case');
+      if (CASE[k]) el.textContent = CASE[k];
+    });
+
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+    let current = 0;
+    document.getElementById('totalSlides').textContent = total;
+
+    function showSlide(i) {
+      slides.forEach(s => s.classList.remove('active'));
+      slides[i].classList.add('active');
+      document.getElementById('currentSlide').textContent = i + 1;
+      document.getElementById('prevBtn').disabled = i === 0;
+      document.getElementById('nextBtn').disabled = i === total - 1;
+      handleTimerForSlide(slides[i]);
+    }
+    function nextSlide() { if (current < total - 1) { current++; showSlide(current); } }
+    function prevSlide() { if (current > 0) { current--; showSlide(current); } }
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    function applyA11y(on) {
+      document.body.classList.toggle('a11y', on);
+      const b = document.querySelector('.a11y-btn');
+      if (b) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.classList.toggle('is-on', on); }
+    }
+    function toggleA11y() {
+      const on = !document.body.classList.contains('a11y');
+      try { localStorage.setItem('inteliCampA11y', on ? '1' : '0'); } catch (e) {}
+      applyA11y(on);
+    }
+    try { if (localStorage.getItem('inteliCampA11y') === '1') applyA11y(true); } catch (e) {}
+    document.addEventListener('keydown', e => {
+      if (e.target.closest('.timer-panel')) return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+    });
+
+    const timerPanel = document.getElementById('timerPanel');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerToggle = document.getElementById('timerToggle');
+    const timerReset = document.getElementById('timerReset');
+    let timerInterval = null, timerRemaining = 1200, timerInitial = 1200, timerRunning = false, audioCtx = null;
+    function formatTime(s) { const m = Math.floor(s/60), sec = s%60; return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`; }
+    function updateTimerDisplay() {
+      timerDisplay.textContent = formatTime(timerRemaining);
+      timerPanel.classList.remove('warning','critical','done');
+      if (timerRemaining === 0) timerPanel.classList.add('done');
+      else if (timerRemaining <= 30) timerPanel.classList.add('critical');
+      else if (timerRemaining <= 60) timerPanel.classList.add('warning');
+    }
+    function tickTimer() { if (timerRemaining > 0) { timerRemaining--; updateTimerDisplay(); if (timerRemaining === 0) { stopTimer(); playBeep(); } } }
+    function startTimer() { if (timerRunning) return; timerRunning = true; timerToggle.textContent = '⏸'; timerInterval = setInterval(tickTimer, 1000); }
+    function stopTimer() { timerRunning = false; timerToggle.textContent = '▶'; if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+    function resetTimer() { stopTimer(); timerRemaining = timerInitial; timerPanel.classList.remove('warning','critical','done'); updateTimerDisplay(); }
+    timerToggle.addEventListener('click', () => { if (timerRunning) stopTimer(); else startTimer(); });
+    timerReset.addEventListener('click', resetTimer);
+    function handleTimerForSlide(slide) {
+      const timerVal = slide.getAttribute('data-timer');
+      stopTimer();
+      if (timerVal) { timerInitial = parseInt(timerVal, 10) || 1200; timerRemaining = timerInitial; timerPanel.classList.remove('warning','critical','done'); updateTimerDisplay(); timerPanel.classList.add('visible'); }
+      else { timerPanel.classList.remove('visible','warning','critical','done'); }
+    }
+    function playBeep() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const beepCount = 3, dur = 0.25, gap = 0.12;
+        for (let i = 0; i < beepCount; i++) {
+          const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+          osc.type = 'sine'; osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.0001, audioCtx.currentTime + i*(dur+gap));
+          gain.gain.exponentialRampToValueAtTime(0.35, audioCtx.currentTime + i*(dur+gap) + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + i*(dur+gap) + dur);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + i*(dur+gap)); osc.stop(audioCtx.currentTime + i*(dur+gap) + dur);
+        }
+      } catch (e) { /* silent */ }
+    }
+    showSlide(0);
+  </script>
+<!-- semana:js:start -->
+<script src="../../../js/semana-ano.js" defer></script>
+<!-- semana:js:end -->
+</body>
+</html>

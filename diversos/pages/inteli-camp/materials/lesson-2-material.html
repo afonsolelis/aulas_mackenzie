@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inteli Camp — Dia 2: Visita Técnica — Material - Inteli</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../../../css/inteli-styles.css" rel="stylesheet">
+  <style>
+    .page-header { background: linear-gradient(135deg, #0d9488 0%, #1863dc 100%); color: white; }
+    .study-content { font-size: 1rem; line-height: 1.7; }
+    .study-content h2 { margin-top: 2rem; margin-bottom: 1rem; color: var(--inteli-dark-purple); }
+    .study-content h2:first-child { margin-top: 0; }
+    .rule-box { background: #f8f9fb; border: 1px solid #e8ecf1; border-left: 5px solid #0d9488; border-radius: 0.5rem; padding: 1.2rem 1.4rem; margin: 1.25rem 0; }
+    .rule-box h4 { color: #0e7490; margin: 0 0 0.6rem; font-size: 1.05rem; font-weight: 700; }
+    .rule-box ol, .rule-box ul { margin: 0; padding-left: 1.3rem; }
+    .rule-box li { margin-bottom: 0.4rem; }
+    .warn-box { background: #fef2f2; border: 1px solid #fecaca; border-left: 5px solid #dc2626; border-radius: 0.5rem; padding: 1.2rem 1.4rem; margin: 1.25rem 0; }
+    .warn-box h4 { color: #b91c1c; margin: 0 0 0.6rem; font-size: 1.05rem; font-weight: 700; }
+    .warn-box ul { margin: 0; padding-left: 1.3rem; } .warn-box li { margin-bottom: 0.4rem; }
+    .deliverable-box { background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 5px solid #10b981; border-radius: 0.5rem; padding: 0.9rem 1.2rem; margin: 1rem 0; }
+    .deliverable-box strong.label { color: #047857; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em; display: block; margin-bottom: 0.25rem; }
+    .visit-box { background: #ecfeff; border: 1px solid #a5f3fc; border-left: 5px solid #0891b2; border-radius: 0.5rem; padding: 1.2rem 1.4rem; margin: 1.25rem 0; }
+    .visit-box h4 { color: #0e7490; margin: 0 0 0.6rem; font-size: 1.05rem; font-weight: 700; }
+    .prompt-block { background: #1e1829; color: #e2e8f0; border-radius: 0.5rem; padding: 0.9rem 1.1rem; font-family: monospace; font-size: 0.88rem; line-height: 1.6; margin: 0.8rem 0; }
+    .prompt-block .add { color: #6ee7b7; font-weight: 700; }
+    .tool-pill { display: inline-block; background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; font-size: 0.78rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; margin: 0 4px 6px 0; }
+    .case { font-weight: 700; color: #0e7490; }
+    .test-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+    .test-table th { background: #0d9488; color: white; text-align: left; padding: 0.6rem 0.9rem; }
+    .test-table td { padding: 0.6rem 0.9rem; border-bottom: 1px solid #e8ecf1; vertical-align: top; }
+    .test-table tr:nth-child(even) td { background: #f8f9fb; }
+    .test-table .restr td { background: #fff7ed; }
+
+    /* ===== Camada de legibilidade — dislexia/TDAH (não altera o conteúdo) ===== */
+    /* Sem caixa-alta: preserva o contorno das palavras, chave para leitura disléxica */
+    .study-content *, .page-header * { text-transform: none !important; }
+    /* Modo leitura acessível — botão flutuante "Aa", persiste por aluno (mesma chave dos slides) */
+    body.a11y .study-content { font-size: 1.15rem; line-height: 1.9; letter-spacing: 0.02em; }
+    body.a11y .study-content p, body.a11y .study-content li { word-spacing: 0.08em; }
+    body.a11y .study-content p, body.a11y .study-content ul, body.a11y .study-content ol { max-width: 68ch; }
+    .a11y-fab { position: fixed; right: 20px; bottom: 20px; z-index: 1050; background: #fff; color: var(--inteli-dark-purple, #2e2640); border: 1px solid #d7dee6; box-shadow: 0 6px 20px rgba(46,38,64,0.18); border-radius: 999px; padding: 10px 16px; font-weight: 800; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .a11y-fab .dot { font-size: 0.72rem; font-weight: 700; color: #64748b; }
+    .a11y-fab.is-on { background: #1863dc; color: #fff; border-color: #1863dc; }
+    .a11y-fab.is-on .dot { color: #cfe0ff; }
+    .a11y-fab:focus-visible { outline: 3px solid #1863dc; outline-offset: 3px; }
+    @media print { .a11y-fab { display: none; } }
+  
+  </style>
+
+<!-- encontro:css:start -->
+<link rel="stylesheet" href="../../../css/encontro.css">
+<!-- encontro:css:end -->
+
+<!-- semana:css:start -->
+<link rel="stylesheet" href="../../../css/semana-ano.css">
+<!-- semana:css:end -->
+</head>
+<body>
+  <header class="page-header py-4">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <div>
+          <span class="badge bg-light text-dark">Inteli Camp · Trilha Tech</span>
+          <span class="badge bg-dark">Dia 2 · Terça</span>
+        </div>
+        <h1 class="h3 mb-1 mt-2">Dia 2 — Visita Técnica</h1>
+        <div>Imersão no parceiro para confirmar as premissas da spec</div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="../slides/slide-lesson-3.html" class="btn btn-light">Slides</a>
+        <a href="../../home-inteli-camp.html" class="btn btn-outline-light">← Voltar</a>
+      </div>
+    </div>
+  </header>
+<!-- encontro:meta:start -->
+<div class="container" style="max-width:1100px;margin:24px auto 0;padding:0 16px;"><section class="encontro-meta" data-encontro-ficha><h2>Sobre este encontro</h2><p class="encontro-ref">Inteli Camp · Prof. Afonso</p><div class="encontro-item" data-encontro="objetivo"><h3>Objetivo de aprendizagem</h3><p>Ao final do encontro, o estudante deve ser capaz de aplicar ao projeto os conceitos de Inteli Camp.</p></div><div class="encontro-item" data-encontro="estrategia"><h3>Estratégia do encontro</h3><p>Exposição dialogada dos conceitos, alternada com aplicação guiada ao projeto do grupo, e fechamento com verificação do entendimento.</p></div><div class="encontro-item" data-encontro="agenda"><h3>Estrutura do encontro</h3><ol><li>🎯 Goal of the day</li><li>🎓 Learning objectives</li><li>🎒 Before going — preparation</li><li>👁️ During — what to observe</li><li>🔄 Back in the room — debrief</li><li>➡️ Next day</li></ol></div></section></div>
+<!-- encontro:meta:end -->
+
+
+
+
+
+
+
+  <main class="container py-5">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4 p-lg-5 study-content">
+
+        <h2 id="objetivo">🎯 Objetivo do dia</h2>
+        <p>Sair da sala e observar, no parceiro (<span class="case" data-case="marca">Azul Linhas Aéreas</span>), como o processo realmente acontece. A visita confirma ou corrige as premissas da spec do Dia 1 e devolve ao grupo uma spec afiada — o insumo com que a plataforma será construída amanhã. Construir sobre suposição custa retrabalho; a visita ancora a solução no real.</p>
+
+        <h2 id="objetivos-aprendizagem">🎓 Objetivos de aprendizagem</h2>
+        <div class="rule-box">
+          <h4>O que você conseguirá fazer</h4>
+          <ul>
+            <li>Conduzir uma observação de campo com foco no problema descrito na spec.</li>
+            <li>Distinguir o que o processo <strong>realmente</strong> é do que foi suposto no papel.</li>
+            <li>Formular perguntas que revelam critérios de avaliação, dores e restrições reais.</li>
+            <li>Registrar evidências de modo que sirvam diretamente à construção da solução.</li>
+          </ul>
+        </div>
+
+        <h2 id="preparacao">🎒 Antes de ir — preparação</h2>
+        <p>Uma visita bem preparada rende três vezes mais. Levem a spec e cheguem com perguntas prontas.</p>
+        <div class="rule-box">
+          <h4>O que levar e o que perguntar</h4>
+          <ul>
+            <li>A <strong>spec do Dia 1</strong> impressa ou à mão — é o roteiro da observação.</li>
+            <li>Uma lista curta de <strong>premissas a confirmar</strong> e os papéis divididos (quem pergunta, quem anota, quem observa).</li>
+            <li>Perguntas que valem ouro: como o processo funciona hoje, passo a passo? Quais critérios pesam na decisão? Onde há mais trabalho manual? Que dados existem e em que formato? O que não pode faltar — e o que não pode acontecer?</li>
+          </ul>
+        </div>
+
+        <h2 id="observar">👁️ Durante — o que observar</h2>
+        <div class="visit-box">
+          <h4>Foque no processo real, não no papel</h4>
+          <ul>
+            <li>Como o processo acontece na prática e quais critérios o time usa, e como pesam entre si.</li>
+            <li>Que dados existem e em que formato chegam.</li>
+            <li>Siga o caminho do dado do início ao fim; anote frases exatas de quem vive o problema.</li>
+            <li>Capture exemplos concretos e marque o que surpreendeu — costuma ser requisito escondido.</li>
+          </ul>
+        </div>
+
+        <h2 id="debrief">🔄 Ao voltar — debrief</h2>
+        <p>De volta à sala, transformem o que viram em spec revisada. Ajustar várias coisas de cabeça se perde; registrem por escrito.</p>
+        <div class="rule-box">
+          <h4>Debrief em grupo</h4>
+          <ol>
+            <li>Juntem as anotações de todos num só lugar e comparem com a spec: o que confirmou, o que mudou.</li>
+            <li>Revisem os critérios de avaliação com o que ouviram no parceiro.</li>
+            <li>Ajustem atores, entrada, saída e restrições conforme o real; refinem o critério de aceite.</li>
+            <li>Guardem as evidências — elas justificam decisões no pitch do Dia 5.</li>
+          </ol>
+        </div>
+        <div class="deliverable-box">
+          <strong class="label">Entrega do dia</strong>
+          Spec revisada com o que foi observado, critérios de avaliação confirmados com o parceiro e as evidências (notas, exemplos, restrições reais) organizadas.
+        </div>
+
+        <h2 id="proximo">➡️ Próximo dia</h2>
+        <p><strong>Dia 3 — Prompts &amp; Construção da Plataforma:</strong> transformar a spec revisada no prompt que constrói a solução de triagem no Lovable. Todo requisito observado hoje vira parte do prompt.</p>
+
+      </div>
+    </div>
+  </main>
+
+  <button class="a11y-fab" onclick="toggleA11y()" title="Modo leitura acessível (dislexia/TDAH)" aria-label="Alternar modo de leitura acessível" aria-pressed="false"><span aria-hidden="true">Aa</span> <span class="dot">leitura</span></button>
+
+  <footer class="inteli-footer mt-auto py-4 bg-light border-top">
+    <div class="container text-center">
+      <p class="mb-1">Material criado pelo professor <strong>Afonso Brandão</strong> para o <strong>Inteli</strong>.</p>
+      <small class="text-muted">🔓 Licença de leitura aberta</small>
+    </div>
+  </footer>
+
+  <!-- Metadados do case (fonte única). Para trocar o case, edite config/inteli-camp-case.js -->
+  <script src="../../../config/inteli-camp-case.js"></script>
+  <script>
+    const CASE = window.INTELI_CAMP_CASE || {
+      edicao: "Bootcamp de Inverno · Julho 2026",
+      marca: "[marca/organização parceira]", contexto: "[contexto do produto ou serviço]",
+      desafio: "[descreva aqui o problema real que os alunos vão resolver com IA]",
+      output: "classificação e ranking dos candidatos ao longo do funil de seleção", publico: "[público-alvo da solução]"
+    };
+    document.querySelectorAll('[data-case]').forEach(el => { const k = el.getAttribute('data-case'); if (CASE[k]) el.textContent = CASE[k]; });
+  </script>
+  <script>
+    function applyA11y(on) {
+      document.body.classList.toggle('a11y', on);
+      var b = document.querySelector('.a11y-fab');
+      if (b) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.classList.toggle('is-on', on); }
+    }
+    function toggleA11y() {
+      var on = !document.body.classList.contains('a11y');
+      try { localStorage.setItem('inteliCampA11y', on ? '1' : '0'); } catch (e) {}
+      applyA11y(on);
+    }
+    try { if (localStorage.getItem('inteliCampA11y') === '1') applyA11y(true); } catch (e) {}
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- encontro:pdf:start -->
+<button type="button" class="pdf-export-btn" data-encontro-data="" data-encontro-docente="Afonso" data-encontro-seq="02" title="Exportar esta página em PDF com o nome padronizado">📄 Exportar PDF</button>
+<script src="../../../js/encontro-pdf.js" defer></script>
+<!-- encontro:pdf:end -->
+<!-- semana:js:start -->
+<script src="../../../js/semana-ano.js" defer></script>
+<!-- semana:js:end -->
+</body>
+</html>

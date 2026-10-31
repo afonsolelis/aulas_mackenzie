@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BTG Pactual — AI for Business: do problema de negócio ao fluxo com IA — Slides — Inteli</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="../../../css/inteli-styles.css" rel="stylesheet">
+  <style>
+    /* ===== Tema BTG Pactual — azul institucional escuro ===== */
+    :root {
+      --btg-blue:  #17427a;
+      --btg-deep:  #0b2545;
+      --btg-mid:   #3a6ea5;
+      --btg-soft:  #a9c3e0;
+      --btg-ink:   #12243c;
+      --btg-paper: #eef1f6;
+      --btg-line:  #d6dde8;
+      --btg-muted: #5e7288;
+      --btg-warn:  #b8505a;
+      --btg-ok:    #2e7d55;
+      --btg-gold:  #9a7b3f;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 0; overflow: hidden; font-family: "Manrope", sans-serif; background: var(--btg-paper); color: var(--btg-ink); }
+    .slide-container { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+    .slide { width: 100%; height: 100%; display: none; padding: 92px 52px 88px; position: absolute; top: 0; left: 0; }
+    .slide.active { display: flex; flex-direction: column; justify-content: center; animation: slideIn 0.35s ease-out; }
+    .slide.divider-bg { background: #e2e8f1; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .slide-content { width: min(1240px, 100%); margin: 0 auto; }
+
+    /* ===== Topbar ===== */
+    .btg-topbar {
+      position: fixed; top: 0; left: 0; right: 0; height: 64px;
+      background: #fff; border-bottom: 2px solid var(--btg-blue);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; z-index: 50; box-shadow: 0 2px 12px rgba(11,37,69,0.08);
+    }
+    .btg-topbar img { height: 26px; display: block; }
+    .btg-wordmark { font-size: 1.02rem; font-weight: 900; letter-spacing: 0.04em; color: var(--btg-deep); }
+    /* O botão fixo de exportação em PDF ocupa o canto direito da topbar;
+       sem essa reserva ele cobre o fim da faixa do programa. */
+    .btg-topbar { padding-right: 150px; }
+    .btg-program-tag { color: var(--btg-deep); font-size: 0.74rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+
+    /* ===== Cabeçalho de slide ===== */
+    .slide-header {
+      background: #fff; color: var(--btg-deep); padding: 18px 26px; border-radius: 4px;
+      margin-bottom: 20px; border-left: 6px solid var(--btg-blue);
+      box-shadow: 0 4px 14px rgba(11,37,69,0.10);
+    }
+    .slide-eyebrow { color: var(--btg-blue); font-size: 0.76rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 4px; }
+    .slide-title { font-size: 1.92rem; font-weight: 800; margin: 0 0 3px; line-height: 1.14; color: var(--btg-deep); }
+    .slide-subtitle { font-size: 0.99rem; color: var(--btg-muted); margin: 0; font-weight: 400; }
+
+    /* ===== Boxes ===== */
+    .box { background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; padding: 18px 21px; box-shadow: 0 4px 16px rgba(11,37,69,0.06); }
+    .box.accent { border-top: 3px solid var(--btg-blue); }
+    .box.navy { background: var(--btg-deep); color: #fff; border: none; }
+    .box.navy h3 { color: var(--btg-soft); }
+    .box.navy p, .box.navy li { color: rgba(255,255,255,0.92); }
+    .box h3 { font-size: 0.84rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--btg-deep); margin: 0 0 10px; }
+    .box p { margin: 0 0 9px; font-size: 0.97rem; line-height: 1.58; }
+    .box p:last-child { margin-bottom: 0; }
+    .box ul { margin: 7px 0 0; padding-left: 1.1rem; }
+    .box li { margin-bottom: 7px; font-size: 0.95rem; line-height: 1.52; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 17px; }
+    .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 17px; }
+    .stack { display: grid; gap: 15px; }
+
+    /* ===== Capa ===== */
+    .cover { text-align: center; padding: 20px 40px; }
+    .cover-logo-wrap { display: inline-block; background: #fff; padding: 20px 38px; border-radius: 6px; margin-bottom: 24px; box-shadow: 0 6px 20px rgba(11,37,69,0.12); border-top: 3px solid var(--btg-blue); }
+    .cover-logo { height: 52px; display: block; }
+    .cover-wordmark { font-size: 1.6rem; font-weight: 900; letter-spacing: 0.06em; color: var(--btg-deep); }
+    .cover-eyebrow { color: var(--btg-blue); font-size: 0.82rem; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 12px; }
+    .cover-title { font-size: 2.75rem; font-weight: 900; color: var(--btg-ink); line-height: 1.06; margin: 0 0 10px; letter-spacing: -0.01em; }
+    .cover-subtitle { font-size: 1.16rem; color: var(--btg-mid); font-weight: 500; margin: 0 auto 24px; line-height: 1.5; max-width: 900px; }
+    .cover-divider { width: 78px; height: 3px; background: var(--btg-blue); margin: 0 auto 20px; border-radius: 2px; }
+    .cover-meta { display: inline-flex; gap: 30px; padding: 16px 28px; background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; box-shadow: 0 4px 16px rgba(11,37,69,0.08); }
+    .cover-meta-item { text-align: left; }
+    .cover-meta-label { font-size: 0.67rem; font-weight: 800; color: var(--btg-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 2px; }
+    .cover-meta-value { font-size: 0.97rem; font-weight: 700; color: var(--btg-ink); }
+    /* Sem a marca no topo, a capa ficava com um terço da tela ocupado.
+       A tipografia maior e o respiro entre os blocos recompõem a proporção. */
+    .cover-eyebrow { font-size: 0.92rem; margin-bottom: 20px; }
+    .cover-title { font-size: 3.3rem; margin-bottom: 18px; }
+    .cover-subtitle { font-size: 1.28rem; max-width: 960px; margin-bottom: 30px; }
+    .cover-divider { width: 96px; height: 4px; margin-bottom: 28px; }
+    .cover-meta { gap: 38px; padding: 20px 34px; }
+    .cover-meta-label { font-size: 0.7rem; margin-bottom: 4px; }
+    .cover-meta-value { font-size: 1.02rem; }
+
+    /* ===== Divisor de bloco ===== */
+    .block-divider { text-align: center; padding: 20px; }
+    .block-tag { display: inline-block; background: var(--btg-blue); color: #fff; padding: 8px 22px; border-radius: 2px; font-size: 0.84rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 18px; }
+    .block-divider h1 { font-size: 2.55rem; font-weight: 900; color: var(--btg-ink); margin: 0 0 10px; line-height: 1.1; }
+    .block-sub { font-size: 1.1rem; color: var(--btg-mid); font-weight: 500; max-width: 860px; margin: 0 auto 24px; line-height: 1.6; }
+    .block-clock { display: inline-flex; gap: 26px; padding: 15px 28px; background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; box-shadow: 0 4px 16px rgba(11,37,69,0.08); }
+    .block-clock-item { text-align: left; }
+    .block-clock-label { font-size: 0.63rem; color: var(--btg-muted); font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; }
+    .block-clock-value { font-size: 0.98rem; color: var(--btg-ink); font-weight: 800; }
+
+    /* ===== Agenda ===== */
+    .agenda-row { display: grid; grid-template-columns: 130px 1fr 68px; gap: 14px; align-items: center; background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; padding: 11px 18px; margin-bottom: 8px; box-shadow: 0 2px 8px rgba(11,37,69,0.04); }
+    .agenda-row.eixo { border-left: 4px solid var(--btg-blue); }
+    .agenda-row.pausa { background: var(--btg-paper); }
+    .agenda-time { font-weight: 800; color: var(--btg-deep); font-size: 0.92rem; }
+    .agenda-block { font-size: 0.97rem; color: var(--btg-ink); font-weight: 700; }
+    .agenda-block small { display: block; color: var(--btg-muted); font-weight: 400; font-size: 0.84rem; margin-top: 3px; }
+    .agenda-dur { font-size: 0.83rem; color: var(--btg-muted); font-weight: 700; text-align: right; }
+    /* O dia inteiro cabe numa tela só quando as dez faixas se distribuem em duas
+       colunas; em uma coluna única a lista excede a altura útil em 1280x720. */
+    /* Marcação de quem conduz cada slide: A para Afonso, N para Nicola.
+       Cada tela tem um condutor só; a troca acontece na virada de bloco. */
+    .who {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 21px; height: 21px; min-width: 21px; border-radius: 50%;
+      font-size: 0.7rem; font-weight: 900; color: #fff; margin-right: 7px;
+      vertical-align: middle; letter-spacing: 0; font-family: "Manrope", sans-serif;
+    }
+    .who.a { background: var(--btg-blue); }
+    .who.n { background: var(--btg-ok); }
+    /* Sobre o fundo navy, o azul institucional do badge A perde contraste. */
+    .callout.navy .who.a, .box.navy .who.a { background: #4f86cf; }
+    .callout.navy .who.n, .box.navy .who.n { background: #3fa877; }
+    td .who, .agenda-dur .who { margin-right: 0; }
+    .who-legend { display: inline-flex; gap: 16px; align-items: center; font-size: 0.82rem; color: var(--btg-muted); font-weight: 700; }
+    .persona { display: grid; grid-template-columns: 236px 1fr; gap: 22px; align-items: center; }
+    .persona-img { width: 100%; display: block; border-radius: 6px; border: 1px solid var(--btg-line); background: #fff; }
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; margin-top: 12px; }
+    .stat { background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; padding: 10px 8px; text-align: center; box-shadow: 0 2px 8px rgba(11,37,69,0.05); }
+    .stat b { display: block; font-size: 1.16rem; color: var(--btg-deep); line-height: 1.2; }
+    .stat span { font-size: 0.74rem; color: var(--btg-muted); font-weight: 700; }
+    .dl-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .dl { background: #fff; border: 1px solid var(--btg-line); border-top: 3px solid var(--btg-blue); border-radius: 4px; padding: 15px 17px; box-shadow: 0 4px 16px rgba(11,37,69,0.06); }
+    .dl a { display: inline-block; margin-top: 9px; background: var(--btg-deep); color: #fff; text-decoration: none; font-size: 0.82rem; font-weight: 700; padding: 7px 14px; border-radius: 2px; }
+    .dl a:hover { background: var(--btg-blue); }
+    .dl code { display: block; font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 0.78rem; color: var(--btg-blue); margin-top: 7px; word-break: break-all; }
+    /* ===== Acesso ao deck ===== */
+    .access-url { background: var(--btg-deep); color: #fff; border-radius: 4px; padding: 30px 24px; margin-bottom: 20px; text-align: center; font-size: 3rem; font-weight: 900; letter-spacing: 0.01em; box-shadow: 0 6px 20px rgba(11,37,69,0.16); }
+
+    /* ===== Professores ===== */
+    .prof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    .prof-card { display: grid; grid-template-columns: 200px 1fr; gap: 20px; align-items: start; background: #fff; border: 1px solid var(--btg-line); border-top: 3px solid var(--btg-blue); border-radius: 4px; padding: 20px; box-shadow: 0 4px 16px rgba(11,37,69,0.06); }
+    .prof-photo { width: 200px; height: 200px; object-fit: cover; border-radius: 4px; background: var(--btg-paper); display: block; }
+    .prof-side { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    .prof-link { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; }
+    .prof-qr { width: 112px; height: 112px; display: block; }
+    .prof-link span { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--btg-muted); }
+    .prof-name { font-size: 1.3rem; font-weight: 800; color: var(--btg-deep); line-height: 1.2; }
+    .prof-role { font-size: 0.86rem; font-weight: 700; color: var(--btg-muted); margin: 4px 0 12px; }
+    .prof-cv { margin: 0; padding-left: 1.05rem; }
+    .prof-cv li { margin-bottom: 7px; font-size: 0.9rem; line-height: 1.45; color: var(--btg-ink); }
+    .agenda-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .agenda-2col .agenda-row { grid-template-columns: 108px 1fr 60px; gap: 10px; padding: 9px 14px; }
+
+    /* ===== Pilares ===== */
+    .pillar { background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; padding: 20px 18px 17px; position: relative; box-shadow: 0 4px 16px rgba(11,37,69,0.06); }
+    .pillar-num { position: absolute; top: -13px; left: 15px; width: 30px; height: 30px; border-radius: 50%; background: var(--btg-blue); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 0.9rem; box-shadow: 0 4px 8px rgba(23,66,122,0.32); }
+    .pillar-title { font-size: 1.05rem; font-weight: 800; color: var(--btg-deep); margin: 8px 0 10px; line-height: 1.25; }
+    .pillar-list { margin: 0; padding-left: 1rem; }
+    .pillar-list li { font-size: 0.9rem; color: var(--btg-muted); margin-bottom: 8px; line-height: 1.45; }
+
+    /* ===== Comparação ===== */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; }
+    .compare-col { background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; padding: 18px 21px; }
+    .compare-col.bad { border-top: 3px solid var(--btg-warn); }
+    .compare-col.good { border-top: 3px solid var(--btg-ok); }
+    .compare-label { display: inline-block; padding: 4px 12px; border-radius: 2px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 8px; }
+    .compare-label.bad { background: rgba(184,80,90,0.15); color: #8a1f36; }
+    .compare-label.good { background: rgba(46,125,85,0.16); color: #1f5c3d; }
+    .compare-col p { margin: 0 0 9px; font-size: 0.95rem; line-height: 1.55; }
+    .compare-col ul { margin: 4px 0 0; padding-left: 1.05rem; }
+    .compare-col li { font-size: 0.93rem; line-height: 1.5; margin-bottom: 8px; }
+
+    /* ===== Fluxo ===== */
+    .flow-row { display: grid; gap: 0; align-items: stretch; }
+    .flow-row.cols-4 { grid-template-columns: 1fr 24px 1fr 24px 1fr 24px 1fr; }
+    .flow-row.cols-5 { grid-template-columns: 1fr 20px 1fr 20px 1fr 20px 1fr 20px 1fr; }
+    .flow-step { background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; padding: 14px 15px; box-shadow: 0 2px 8px rgba(11,37,69,0.05); }
+    .flow-step.on { border-top: 3px solid var(--btg-blue); }
+    .flow-tag { display: inline-block; background: var(--btg-paper); border: 1px solid var(--btg-line); color: var(--btg-blue); padding: 1px 7px; border-radius: 2px; font-size: 0.59rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 5px; }
+    .flow-step h4 { margin: 0 0 7px; font-size: 0.93rem; font-weight: 800; color: var(--btg-deep); line-height: 1.3; }
+    .flow-step p { margin: 0; font-size: 0.85rem; color: var(--btg-muted); line-height: 1.45; }
+    .flow-arrow { display: flex; align-items: center; justify-content: center; color: var(--btg-blue); font-weight: 900; font-size: 1rem; }
+
+    /* ===== Chips, passos, tabela, código ===== */
+    .chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 5px; }
+    .chip { background: #fff; border: 1px solid var(--btg-line); padding: 6px 14px; border-radius: 999px; font-size: 0.89rem; font-weight: 700; color: var(--btg-deep); }
+    .chip.blue { background: var(--btg-blue); color: #fff; border-color: var(--btg-blue); }
+
+    .step-box { background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; padding: 14px 16px 14px 50px; position: relative; box-shadow: 0 2px 8px rgba(11,37,69,0.05); }
+    .step-num { position: absolute; top: 50%; left: 13px; transform: translateY(-50%); width: 25px; height: 25px; border-radius: 50%; background: var(--btg-deep); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem; }
+    .step-box h4 { margin: 0 0 5px; font-size: 0.97rem; color: var(--btg-deep); font-weight: 800; }
+    .step-box p { margin: 0; font-size: 0.89rem; color: var(--btg-muted); line-height: 1.5; }
+
+    .btg-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; background: #fff; box-shadow: 0 4px 16px rgba(11,37,69,0.06); }
+    .btg-table th { background: var(--btg-deep); color: #fff; padding: 11px 15px; text-align: left; font-weight: 800; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; }
+    .btg-table td { padding: 11px 15px; border-bottom: 1px solid var(--btg-line); vertical-align: top; line-height: 1.5; }
+    .btg-table tr:nth-child(even) td { background: rgba(238,241,246,0.6); }
+    .btg-table td strong { color: var(--btg-deep); }
+    .btg-table td.mono { font-family: "SFMono-Regular", Consolas, Menlo, monospace; font-size: 0.85rem; }
+
+    .code-block { background: var(--btg-deep); color: #e8eefb; border-radius: 4px; padding: 17px 20px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; font-size: 0.85rem; line-height: 1.62; margin: 0; overflow: hidden; white-space: pre-wrap; }
+    .code-block .k { color: var(--btg-soft); }
+    .code-block .s { color: #b9e4c9; }
+    .code-block .c { color: #8fa6c8; font-style: italic; }
+
+    .callout { background: #fff; border: 1px solid var(--btg-line); border-left: 5px solid var(--btg-blue); border-radius: 4px; padding: 16px 20px; font-size: 0.97rem; line-height: 1.58; box-shadow: 0 2px 8px rgba(11,37,69,0.05); }
+    .callout.navy { background: var(--btg-deep); color: #fff; border-color: var(--btg-blue); }
+    .callout strong { color: var(--btg-deep); }
+    .callout.navy strong { color: var(--btg-soft); }
+    .note-line { display: block; margin-top: 7px; font-size: 0.67rem; color: var(--btg-muted); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; border-top: 1px dashed var(--btg-line); padding-top: 6px; }
+
+    /* ===== Níveis de sensibilidade ===== */
+    .sens-row { display: grid; grid-template-columns: 80px 1fr 1fr; gap: 16px; align-items: start; background: #fff; border: 1px solid var(--btg-line); border-radius: 4px; padding: 13px 17px; margin-bottom: 9px; box-shadow: 0 2px 8px rgba(11,37,69,0.04); }
+    .sens-tag { font-weight: 900; font-size: 0.92rem; color: #fff; text-align: center; border-radius: 2px; padding: 6px 0; }
+    .sens-tag.s0 { background: var(--btg-ok); }
+    .sens-tag.s1 { background: var(--btg-mid); }
+    .sens-tag.s2 { background: var(--btg-gold); }
+    .sens-tag.s3 { background: var(--btg-warn); }
+    .sens-row p { margin: 0; font-size: 0.91rem; line-height: 1.5; color: var(--btg-ink); }
+    .sens-row p.acao { color: var(--btg-muted); }
+    .sens-row strong { color: var(--btg-deep); }
+
+    /* ===== Footer / nav ===== */
+    .slide-footer {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
+      border-top: 1px solid var(--btg-line); padding: 10px 26px;
+      display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 -4px 12px rgba(11,37,69,0.06); z-index: 100; gap: 12px;
+    }
+    .footer-links { display: flex; gap: 10px; }
+    .back-home { color: var(--btg-deep); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 2px; background: var(--btg-paper); border: 1px solid var(--btg-line); font-size: 0.85rem; }
+    .back-home.material { background: #1d6b3f !important; color: #fff !important; border-color: #1d6b3f !important; }
+    .back-home.material:hover { background: #17572f !important; color: #fff !important; }
+    .nav-wrapper { display: flex; align-items: center; gap: 12px; background: var(--btg-paper); padding: 6px 16px; border: 1px solid var(--btg-line); border-radius: 2px; }
+    .nav-buttons button { background: var(--btg-deep); color: #fff; border: none; padding: 8px 14px; border-radius: 2px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.85rem; }
+    .nav-buttons button:disabled { background: #b3bccd; cursor: not-allowed; }
+    .slide-counter { font-weight: 800; color: var(--btg-deep); min-width: 68px; text-align: center; font-size: 0.9rem; }
+    .fullscreen-btn { background: #fff; color: var(--btg-deep); border: 1px solid var(--btg-line); border-radius: 2px; padding: 6px 12px; font-size: 1rem; cursor: pointer; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; font-size: 0.76rem; color: var(--btg-muted); font-weight: 700; }
+
+    /* ===== Rodadas de construção ===== */
+    .slide.rodada-bg { background: #e7f0ea; }
+    .rodada-head { border-left-color: var(--btg-ok) !important; }
+    .rodada-head .slide-eyebrow { color: var(--btg-ok); }
+
+    .timer {
+      background: var(--btg-deep); border-radius: 4px; padding: 14px 18px; text-align: center;
+      box-shadow: 0 4px 16px rgba(11,37,69,0.14);
+    }
+    .timer-display {
+      font-family: "SFMono-Regular", Consolas, Menlo, monospace;
+      font-size: 2.5rem; font-weight: 800; color: #fff; line-height: 1.05; letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+    .timer.acabou .timer-display { color: #ffb4bd; }
+    .timer-controls { display: flex; gap: 8px; justify-content: center; margin-top: 10px; }
+    .timer-controls button {
+      background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.28);
+      border-radius: 2px; padding: 5px 14px; font-family: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    }
+    .timer-controls button:hover { background: rgba(255,255,255,0.22); }
+
+    /* As rodadas carregam quatro passos, o cronômetro e duas caixas de apoio;
+       com a métrica padrão a coluna direita excede a altura útil em 1280x720. */
+    .rodada-bg .slide-header { padding: 14px 24px; margin-bottom: 14px; }
+    .rodada-bg .slide-title { font-size: 1.76rem; }
+    .rodada-bg .step-box { padding: 10px 14px 10px 46px; }
+    .rodada-bg .step-box h4 { font-size: 0.92rem; margin-bottom: 3px; }
+    .rodada-bg .step-box p { font-size: 0.84rem; line-height: 1.42; }
+    .rodada-bg .box { padding: 13px 16px; }
+    .rodada-bg .box h3 { margin-bottom: 7px; }
+    .rodada-bg .box p { font-size: 0.89rem; line-height: 1.48; margin-bottom: 5px; }
+    .rodada-bg .box li { font-size: 0.87rem; line-height: 1.42; margin-bottom: 4px; }
+    .rodada-bg .timer { padding: 10px 14px; }
+    .rodada-bg .timer-display { font-size: 2rem; }
+    .rodada-bg .timer-controls { margin-top: 7px; }
+
+    /* Ajustes de densidade por slide. A agenda traz oito faixas e a tabela da
+       Gem 2 traz cinco linhas com trecho citado: nas duas telas a métrica padrão
+       excede a altura útil em 1280x720. */
+    .slide.dense .slide-header { margin-bottom: 12px; padding: 14px 24px; }
+    .slide.dense .slide-title { font-size: 1.78rem; }
+    .slide.dense .agenda-row { padding: 7px 18px; margin-bottom: 5px; }
+    .slide.dense .agenda-block { font-size: 0.92rem; }
+    .slide.dense .agenda-block small { font-size: 0.79rem; margin-top: 1px; }
+    .slide.dense .btg-table { font-size: 0.87rem; }
+    .slide.dense .btg-table th { padding: 8px 14px; }
+    .slide.dense .btg-table td { padding: 7px 14px; line-height: 1.42; }
+    .slide.dense .callout { padding: 12px 18px; font-size: 0.92rem; }
+    .slide.dense .sens-row { padding: 10px 17px; margin-bottom: 7px; }
+    .slide.dense .sens-row p { font-size: 0.87rem; line-height: 1.45; }
+
+    /* A tela de decomposição empilha cinco passos e a da instrução traz um bloco
+       de código de vinte linhas: com a métrica padrão as duas excedem a altura
+       útil em 1280x720. O ajuste vale só para essas telas. */
+    .slide.compact .slide-header { margin-bottom: 12px; padding: 14px 24px; }
+    .slide.compact .slide-title { font-size: 1.76rem; }
+    .slide.compact .stack { gap: 8px; }
+    .slide.compact .step-box { padding: 9px 13px 9px 44px; }
+    .slide.compact .step-box h4 { font-size: 0.9rem; margin-bottom: 2px; }
+    .slide.compact .step-box p { font-size: 0.83rem; line-height: 1.38; }
+    .slide.compact .code-block { padding: 12px 15px; line-height: 1.46; }
+    .slide.compact .box { padding: 13px 16px; }
+    .slide.compact .box p { font-size: 0.92rem; line-height: 1.5; }
+    .slide.compact .callout { padding: 11px 17px; font-size: 0.91rem; }
+
+    /* Os divisores de bloco carregam pouco texto por desenho; o respiro extra
+       aproxima a ocupação da tela do restante do deck. */
+    .block-divider { padding: 28px 20px; }
+    .block-divider h1 { margin-bottom: 16px; }
+
+    /* A ficha deste encontro traz doze faixas de agenda; com a métrica padrão de
+       css/encontro.css ela transborda a tela em 1280x720. O ajuste vale só para este deck. */
+    .slide .encontro-meta { padding: 14px 20px; }
+    .slide .encontro-meta > h2 { font-size: 0.98rem; }
+    .slide .encontro-meta .encontro-ref { margin-bottom: 8px; }
+    .slide .encontro-item + .encontro-item { margin-top: 8px; padding-top: 8px; }
+    .slide .encontro-item p,
+    .slide .encontro-item li { font-size: 0.76rem; line-height: 1.34; }
+    .slide .encontro-item li { margin-bottom: 0; }
+
+    /* Tela da pesquisa de satisfação: a arte já vem pronta, com QR code; o fundo
+       repete o cinza da imagem para que as margens não apareçam na projeção. */
+    .slide.pesquisa { padding: 64px 0 84px; background: #e6eaeb; }
+    .slide.pesquisa.active { display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+    .pesquisa img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+    /* ===== Da máquina à generalização (contribuição de Rodrigo Nicola) =====
+       Sete telas quase sem texto: a imagem ocupa toda a área entre a topbar e o
+       footer, e a fala fica no roteiro (../notas-professor-btg-ai-for-business.md). */
+    .slide.hist { padding: 64px 0 75px; }
+    .slide.hist.active { display: grid; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr); }
+    .hist-who { position: absolute; top: 80px; left: 26px; z-index: 3; }
+    .hist-who .who { width: 26px; height: 26px; font-size: 0.8rem; margin: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+
+    .hist-photo { background: #080b10; position: relative; }
+    .hist-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 44%; filter: contrast(1.06); display: block; }
+    .hist-photo::after { content: ""; position: absolute; left: 0; right: 0; bottom: 75px; height: 38%; pointer-events: none; background: linear-gradient(to top, rgba(4,12,25,0.82), transparent); }
+    .hist-caption { position: absolute; left: clamp(28px, 5vw, 80px); bottom: calc(75px + clamp(26px, 5vh, 60px)); z-index: 2; margin: 0; color: #fff; font-size: clamp(1rem, 1.45vw, 1.45rem); font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; text-shadow: 0 2px 16px rgba(0,0,0,0.5); }
+
+    .hist-poster { place-items: center; background: radial-gradient(circle at 50% 45%, rgba(58,110,165,0.55), transparent 34%), var(--btg-deep); }
+    /* O pôster é protegido por direito autoral e não fica no repositório: vem da
+       página de uso justo da Wikipédia, que só publica 220x346. A altura limita a
+       ampliação a cerca de 1,3x; acima disso o texto do pôster borra na projeção. */
+    .hist-poster img { display: block; height: min(62vh, 460px); width: auto; max-width: 72vw; box-shadow: 0 32px 80px rgba(0,0,0,0.55); }
+    .hist-poster-fallback { margin: 0; color: #fff; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2.2rem, 5vw, 5.2rem); font-weight: 400; letter-spacing: -0.035em; text-align: center; }
+    .hist-poster-fallback span { display: block; margin-top: 18px; color: var(--btg-soft); font-family: "Manrope", sans-serif; font-size: clamp(0.82rem, 1.1vw, 1.05rem); font-weight: 800; letter-spacing: 0.34em; }
+    /* Atribuição exigida pela licença CC BY 4.0 do diagrama do perceptron. */
+    .hist-credit { position: absolute; left: clamp(26px, 5vw, 76px); bottom: calc(75px + 14px); margin: 0; color: var(--btg-muted); font-size: 0.66rem; font-weight: 600; letter-spacing: 0.02em; }
+
+    .hist-paper { place-items: center; padding-left: clamp(36px, 7vw, 112px); padding-right: clamp(36px, 7vw, 112px);
+      background: linear-gradient(90deg, rgba(18,36,60,0.03) 1px, transparent 1px), linear-gradient(rgba(18,36,60,0.022) 1px, transparent 1px), #f3f0e8;
+      background-size: 64px 64px; }
+    .hist-paper-content { width: min(1120px, 100%); text-align: center; }
+    .hist-year { display: block; margin-bottom: clamp(20px, 4vh, 42px); color: var(--btg-blue); font-size: clamp(0.82rem, 1.1vw, 1.05rem); font-weight: 800; letter-spacing: 0.34em; }
+    .hist-title { margin: 0; color: var(--btg-ink); font-family: Georgia, "Times New Roman", serif; font-size: clamp(2.2rem, 5vw, 5.2rem); font-weight: 400; letter-spacing: -0.035em; line-height: 1.04; text-wrap: balance; }
+    .hist-paper.dartmouth .hist-title { max-width: 1060px; margin-inline: auto; font-size: clamp(1.9rem, 4.1vw, 4.4rem); }
+    .hist-paper.dartmouth em { color: var(--btg-blue); font-style: normal; }
+    .hist-quote { max-width: 880px; margin: clamp(30px, 5vh, 60px) auto 0; color: var(--btg-muted); font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.15rem, 2vw, 2rem); font-style: italic; line-height: 1.45; text-wrap: balance; }
+
+    .hist-diagram { place-items: center; background: #fff; position: relative; }
+    .hist-diagram img { display: block; width: min(86vw, 1440px); max-height: 70vh; object-fit: contain; filter: grayscale(1) contrast(1.12); }
+    .hist-diagram-year { position: absolute; right: clamp(26px, 5vw, 76px); bottom: calc(75px + clamp(20px, 4vh, 48px)); margin: 0; color: var(--btg-blue); font-size: clamp(1rem, 1.55vw, 1.55rem); font-weight: 800; letter-spacing: 0.28em; }
+
+    .hist-conclusion { place-items: center; padding-left: clamp(42px, 8vw, 128px); padding-right: clamp(42px, 8vw, 128px); color: #fff; position: relative;
+      background: radial-gradient(circle at 83% 16%, rgba(58,110,165,0.28), transparent 30%), var(--btg-deep); }
+    .hist-conclusion::before { content: ""; position: absolute; top: 0; left: 0; width: 9px; height: 100%; background: var(--btg-blue); }
+    .hist-conclusion-body { width: min(1080px, 100%); }
+    .hist-conclusion-body p { margin: 0; font-size: clamp(2rem, 5vw, 5.2rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.04; text-wrap: balance; }
+    .hist-conclusion-body p + p { margin-top: clamp(20px, 4vh, 44px); }
+    .hist-conclusion-body p:nth-child(2) { color: var(--btg-soft); }
+    .hist-conclusion-body p:nth-child(3) { color: #7f9dc0; }
+  </style>
+
+<!-- semana:css:start -->
+<link rel="stylesheet" href="../../../css/semana-ano.css">
+<!-- semana:css:end -->
+
+<!-- encontro:css:start -->
+<link rel="stylesheet" href="../../../css/encontro.css">
+<!-- encontro:css:end -->
+</head>
+<body>
+
+  <script>
+    /* Se o arquivo do logo não carregar, a marca
+       permanece legível como texto e nenhuma imagem quebrada aparece em sala. */
+    function btgLogoFallback(img) {
+      const span = document.createElement('span');
+      span.className = img.classList.contains('cover-logo') ? 'cover-wordmark' : 'btg-wordmark';
+      span.textContent = 'BTG Pactual';
+      img.replaceWith(span);
+    }
+    /* Sem rede, o pôster da tela 8 cede lugar ao título e ao ano do filme. */
+    function histPosterFallback(img) {
+      const p = document.createElement('p');
+      p.className = 'hist-poster-fallback';
+      p.innerHTML = 'The Imitation Game<span>2014</span>';
+      img.replaceWith(p);
+    }
+  </script>
+
+  <!-- Topbar -->
+  <div class="btg-topbar">
+    <img src="../assets/btg/btg-pactual-logo.png" alt="Logo do BTG Pactual" onerror="btgLogoFallback(this)">
+    <span class="btg-program-tag">Embaixadores BTG · Inteli Educação Executiva · 09:00 – 13:00</span>
+  </div>
+
+  <div class="slide-container">
+    <!-- ==================== 01 · CAPA ==================== -->
+    <div class="slide divider-bg active">
+      <div class="slide-content cover">
+        <div class="cover-eyebrow">BTG Pactual · AI for Business · Essencial na prática</div>
+        <h1 class="cover-title">Do problema de negócio ao fluxo com IA</h1>
+        <p class="cover-subtitle">Trinta minutos de conceito e terminologia; a partir das nove e quarenta, a sala desenha e constrói um fluxo sobre um caso real, uma análise de contrato e de risco de marca.</p>
+        <div class="cover-divider"></div>
+        <div class="cover-meta">
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Formato</div>
+            <div class="cover-meta-value">Presencial · 09:00 – 13:00</div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Desenho</div>
+            <div class="cover-meta-value">Teoria em 30 min · três rodadas</div>
+          </div>
+          <div class="cover-meta-item">
+            <div class="cover-meta-label">Condução</div>
+            <div class="cover-meta-value">Afonso Brandão e Rodrigo Nicola · Inteli</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 02 · CONTRATO DO DIA ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Abertura · 09:10</div>
+          <h2 class="slide-title">O contrato de entrega do dia</h2>
+          <p class="slide-subtitle">O que você leva às 13h, e o que não cobrimos.</p>
+        </div>
+        <div class="grid-2">
+          <div class="box accent">
+            <h3>Você sai com</h3>
+            <ul>
+              <li>Um fluxo desenhado sobre um problema do seu trabalho.</li>
+              <li>O contexto e as ferramentas de cada etapa.</li>
+              <li>Uma Gem construída e testada sobre esse fluxo.</li>
+              <li>A Carta de Aplicação, com prazo, interlocutor e sinal observável.</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>O programa não cobre</h3>
+            <ul>
+              <li>Programação, API ou integração com sistemas.</li>
+              <li>Escolha de ferramenta corporativa.</li>
+              <li>Parecer jurídico. A análise do dia é exercício de método.</li>
+              <li>Autorização para decidir. Toda saída passa por revisão.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:13px;">
+          A exposição ocupa os trinta minutos que seguem a abertura institucional. O resto do tempo pertence à construção em dupla.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 03 · PROFESSORES ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow">Condução</div>
+          <h2 class="slide-title">Os professores do encontro</h2>
+        </div>
+        <div class="prof-grid">
+          <div class="prof-card">
+            <div class="prof-side">
+              <img class="prof-photo" src="https://media.licdn.com/dms/image/v2/D4D03AQFifWVeVwHmyA/profile-displayphoto-scale_400_400/B4DZ9NoiMFKYAg-/0/1783713901611?e=1792022400&amp;v=beta&amp;t=k4fnnp6hE3Y9KS4_-rm87fkQ-BqwL42gzU0gH4aTvB0" alt="Retrato do professor Afonso Brandão" onerror="this.style.visibility='hidden'">
+              <a class="prof-link" href="https://www.linkedin.com/in/afonsolelis/" target="_blank" rel="noopener"><svg class="prof-qr" viewBox="0 0 31 31" role="img" aria-label="QR code do LinkedIn de Afonso Brandão"><rect width="100%" height="100%" fill="#fff"/><path d="M1,1H2V2H1zM2,1H3V2H2zM3,1H4V2H3zM4,1H5V2H4zM5,1H6V2H5zM6,1H7V2H6zM7,1H8V2H7zM10,1H11V2H10zM15,1H16V2H15zM19,1H20V2H19zM23,1H24V2H23zM24,1H25V2H24zM25,1H26V2H25zM26,1H27V2H26zM27,1H28V2H27zM28,1H29V2H28zM29,1H30V2H29zM1,2H2V3H1zM7,2H8V3H7zM9,2H10V3H9zM10,2H11V3H10zM11,2H12V3H11zM13,2H14V3H13zM15,2H16V3H15zM17,2H18V3H17zM18,2H19V3H18zM21,2H22V3H21zM23,2H24V3H23zM29,2H30V3H29zM1,3H2V4H1zM3,3H4V4H3zM4,3H5V4H4zM5,3H6V4H5zM7,3H8V4H7zM9,3H10V4H9zM10,3H11V4H10zM11,3H12V4H11zM13,3H14V4H13zM16,3H17V4H16zM17,3H18V4H17zM20,3H21V4H20zM23,3H24V4H23zM25,3H26V4H25zM26,3H27V4H26zM27,3H28V4H27zM29,3H30V4H29zM1,4H2V5H1zM3,4H4V5H3zM4,4H5V5H4zM5,4H6V5H5zM7,4H8V5H7zM9,4H10V5H9zM11,4H12V5H11zM12,4H13V5H12zM14,4H15V5H14zM17,4H18V5H17zM18,4H19V5H18zM21,4H22V5H21zM23,4H24V5H23zM25,4H26V5H25zM26,4H27V5H26zM27,4H28V5H27zM29,4H30V5H29zM1,5H2V6H1zM3,5H4V6H3zM4,5H5V6H4zM5,5H6V6H5zM7,5H8V6H7zM10,5H11V6H10zM12,5H13V6H12zM14,5H15V6H14zM17,5H18V6H17zM18,5H19V6H18zM19,5H20V6H19zM20,5H21V6H20zM21,5H22V6H21zM23,5H24V6H23zM25,5H26V6H25zM26,5H27V6H26zM27,5H28V6H27zM29,5H30V6H29zM1,6H2V7H1zM7,6H8V7H7zM10,6H11V7H10zM12,6H13V7H12zM23,6H24V7H23zM29,6H30V7H29zM1,7H2V8H1zM2,7H3V8H2zM3,7H4V8H3zM4,7H5V8H4zM5,7H6V8H5zM6,7H7V8H6zM7,7H8V8H7zM9,7H10V8H9zM11,7H12V8H11zM13,7H14V8H13zM15,7H16V8H15zM17,7H18V8H17zM19,7H20V8H19zM21,7H22V8H21zM23,7H24V8H23zM24,7H25V8H24zM25,7H26V8H25zM26,7H27V8H26zM27,7H28V8H27zM28,7H29V8H28zM29,7H30V8H29zM9,8H10V9H9zM12,8H13V9H12zM15,8H16V9H15zM17,8H18V9H17zM20,8H21V9H20zM21,8H22V9H21zM1,9H2V10H1zM7,9H8V10H7zM9,9H10V10H9zM10,9H11V10H10zM11,9H12V10H11zM12,9H13V10H12zM14,9H15V10H14zM15,9H16V10H15zM18,9H19V10H18zM19,9H20V10H19zM20,9H21V10H20zM22,9H23V10H22zM23,9H24V10H23zM26,9H27V10H26zM27,9H28V10H27zM28,9H29V10H28zM2,10H3V11H2zM3,10H4V11H3zM6,10H7V11H6zM8,10H9V11H8zM9,10H10V11H9zM10,10H11V11H10zM11,10H12V11H11zM13,10H14V11H13zM16,10H17V11H16zM18,10H19V11H18zM19,10H20V11H19zM20,10H21V11H20zM21,10H22V11H21zM24,10H25V11H24zM25,10H26V11H25zM27,10H28V11H27zM28,10H29V11H28zM1,11H2V12H1zM3,11H4V12H3zM5,11H6V12H5zM7,11H8V12H7zM8,11H9V12H8zM10,11H11V12H10zM12,11H13V12H12zM13,11H14V12H13zM14,11H15V12H14zM16,11H17V12H16zM17,11H18V12H17zM18,11H19V12H18zM23,11H24V12H23zM2,12H3V13H2zM3,12H4V13H3zM8,12H9V13H8zM9,12H10V13H9zM10,12H11V13H10zM15,12H16V13H15zM16,12H17V13H16zM17,12H18V13H17zM20,12H21V13H20zM21,12H22V13H21zM24,12H25V13H24zM26,12H27V13H26zM3,13H4V14H3zM4,13H5V14H4zM5,13H6V14H5zM6,13H7V14H6zM7,13H8V14H7zM9,13H10V14H9zM10,13H11V14H10zM11,13H12V14H11zM12,13H13V14H12zM13,13H14V14H13zM15,13H16V14H15zM17,13H18V14H17zM21,13H22V14H21zM23,13H24V14H23zM24,13H25V14H24zM29,13H30V14H29zM1,14H2V15H1zM2,14H3V15H2zM5,14H6V15H5zM8,14H9V15H8zM10,14H11V15H10zM11,14H12V15H11zM14,14H15V15H14zM16,14H17V15H16zM17,14H18V15H17zM18,14H19V15H18zM19,14H20V15H19zM20,14H21V15H20zM21,14H22V15H21zM23,14H24V15H23zM25,14H26V15H25zM28,14H29V15H28zM29,14H30V15H29zM1,15H2V16H1zM4,15H5V16H4zM5,15H6V16H5zM6,15H7V16H6zM7,15H8V16H7zM9,15H10V16H9zM12,15H13V16H12zM14,15H15V16H14zM15,15H16V16H15zM16,15H17V16H16zM17,15H18V16H17zM19,15H20V16H19zM21,15H22V16H21zM22,15H23V16H22zM23,15H24V16H23zM24,15H25V16H24zM26,15H27V16H26zM27,15H28V16H27zM2,16H3V17H2zM4,16H5V17H4zM5,16H6V17H5zM6,16H7V17H6zM12,16H13V17H12zM13,16H14V17H13zM16,16H17V17H16zM17,16H18V17H17zM21,16H22V17H21zM22,16H23V17H22zM23,16H24V17H23zM24,16H25V17H24zM25,16H26V17H25zM27,16H28V17H27zM29,16H30V17H29zM1,17H2V18H1zM3,17H4V18H3zM4,17H5V18H4zM5,17H6V18H5zM7,17H8V18H7zM9,17H10V18H9zM10,17H11V18H10zM11,17H12V18H11zM12,17H13V18H12zM16,17H17V18H16zM17,17H18V18H17zM18,17H19V18H18zM20,17H21V18H20zM24,17H25V18H24zM26,17H27V18H26zM27,17H28V18H27zM1,18H2V19H1zM2,18H3V19H2zM4,18H5V19H4zM5,18H6V19H5zM6,18H7V19H6zM11,18H12V19H11zM12,18H13V19H12zM14,18H15V19H14zM16,18H17V19H16zM17,18H18V19H17zM18,18H19V19H18zM19,18H20V19H19zM20,18H21V19H20zM21,18H22V19H21zM23,18H24V19H23zM24,18H25V19H24zM25,18H26V19H25zM27,18H28V19H27zM28,18H29V19H28zM29,18H30V19H29zM1,19H2V20H1zM2,19H3V20H2zM5,19H6V20H5zM6,19H7V20H6zM7,19H8V20H7zM9,19H10V20H9zM10,19H11V20H10zM11,19H12V20H11zM12,19H13V20H12zM13,19H14V20H13zM16,19H17V20H16zM17,19H18V20H17zM20,19H21V20H20zM21,19H22V20H21zM26,19H27V20H26zM29,19H30V20H29zM1,20H2V21H1zM3,20H4V21H3zM4,20H5V21H4zM6,20H7V21H6zM10,20H11V21H10zM11,20H12V21H11zM14,20H15V21H14zM16,20H17V21H16zM17,20H18V21H17zM19,20H20V21H19zM21,20H22V21H21zM23,20H24V21H23zM24,20H25V21H24zM25,20H26V21H25zM1,21H2V22H1zM6,21H7V22H6zM7,21H8V22H7zM9,21H10V22H9zM10,21H11V22H10zM11,21H12V22H11zM12,21H13V22H12zM15,21H16V22H15zM18,21H19V22H18zM19,21H20V22H19zM21,21H22V22H21zM22,21H23V22H22zM23,21H24V22H23zM24,21H25V22H24zM25,21H26V22H25zM27,21H28V22H27zM28,21H29V22H28zM29,21H30V22H29zM9,22H10V23H9zM10,22H11V23H10zM15,22H16V23H15zM16,22H17V23H16zM18,22H19V23H18zM19,22H20V23H19zM21,22H22V23H21zM25,22H26V23H25zM26,22H27V23H26zM1,23H2V24H1zM2,23H3V24H2zM3,23H4V24H3zM4,23H5V24H4zM5,23H6V24H5zM6,23H7V24H6zM7,23H8V24H7zM11,23H12V24H11zM12,23H13V24H12zM16,23H17V24H16zM17,23H18V24H17zM18,23H19V24H18zM20,23H21V24H20zM21,23H22V24H21zM23,23H24V24H23zM25,23H26V24H25zM26,23H27V24H26zM27,23H28V24H27zM1,24H2V25H1zM7,24H8V25H7zM12,24H13V25H12zM13,24H14V25H13zM15,24H16V25H15zM16,24H17V25H16zM17,24H18V25H17zM20,24H21V25H20zM21,24H22V25H21zM25,24H26V25H25zM1,25H2V26H1zM3,25H4V26H3zM4,25H5V26H4zM5,25H6V26H5zM7,25H8V26H7zM10,25H11V26H10zM11,25H12V26H11zM14,25H15V26H14zM15,25H16V26H15zM17,25H18V26H17zM20,25H21V26H20zM21,25H22V26H21zM22,25H23V26H22zM23,25H24V26H23zM24,25H25V26H24zM25,25H26V26H25zM26,25H27V26H26zM28,25H29V26H28zM1,26H2V27H1zM3,26H4V27H3zM4,26H5V27H4zM5,26H6V27H5zM7,26H8V27H7zM10,26H11V27H10zM11,26H12V27H11zM13,26H14V27H13zM15,26H16V27H15zM16,26H17V27H16zM17,26H18V27H17zM19,26H20V27H19zM20,26H21V27H20zM22,26H23V27H22zM24,26H25V27H24zM26,26H27V27H26zM27,26H28V27H27zM29,26H30V27H29zM1,27H2V28H1zM3,27H4V28H3zM4,27H5V28H4zM5,27H6V28H5zM7,27H8V28H7zM11,27H12V28H11zM12,27H13V28H12zM13,27H14V28H13zM15,27H16V28H15zM16,27H17V28H16zM19,27H20V28H19zM20,27H21V28H20zM22,27H23V28H22zM23,27H24V28H23zM24,27H25V28H24zM25,27H26V28H25zM26,27H27V28H26zM27,27H28V28H27zM28,27H29V28H28zM1,28H2V29H1zM7,28H8V29H7zM10,28H11V29H10zM12,28H13V29H12zM14,28H15V29H14zM16,28H17V29H16zM24,28H25V29H24zM26,28H27V29H26zM27,28H28V29H27zM29,28H30V29H29zM1,29H2V30H1zM2,29H3V30H2zM3,29H4V30H3zM4,29H5V30H4zM5,29H6V30H5zM6,29H7V30H6zM7,29H8V30H7zM9,29H10V30H9zM10,29H11V30H10zM16,29H17V30H16zM18,29H19V30H18zM20,29H21V30H20zM23,29H24V30H23zM24,29H25V30H24zM25,29H26V30H25zM26,29H27V30H26zM27,29H28V30H27z" fill="#0b2545"/></svg><span>LinkedIn</span></a>
+            </div>
+            <div class="prof-body">
+              <div class="prof-name"><span class="who a">A</span>Afonso Brandão</div>
+              <div class="prof-role">Professor · Inteli</div>
+              <ul class="prof-cv">
+                <li>Engenheiro de produção e engenheiro civil, mestre em engenharia de materiais.</li>
+                <li>Doutorando em engenharia da computação no Mackenzie, na linha de redes neurais e sistemas complexos; especialista em ciência de dados pela USP/Esalq.</li>
+                <li>No Inteli desde 2023, nos módulos de aplicação web, arquitetura e governança de dados, ERP, pipelines de dados e dashboards gerenciais.</li>
+                <li>Professor convidado na pós-graduação do Mackenzie e da ESPM, e professor de teste e engenharia de software no Senac.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="prof-card">
+            <div class="prof-side">
+              <img class="prof-photo" src="https://media.licdn.com/dms/image/v2/C4D03AQEfGGm7ce5-ow/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1658754921710?e=1792022400&amp;v=beta&amp;t=MuY33Vn6vsgh_T7NfmD9VZUrPi9E9GeaCY7fTI-W26g" alt="Retrato do professor Rodrigo Nicola" onerror="this.style.visibility='hidden'">
+              <a class="prof-link" href="https://www.linkedin.com/in/rodrigo-mangoni-nicola-537027158/" target="_blank" rel="noopener"><svg class="prof-qr" viewBox="0 0 35 35" role="img" aria-label="QR code do LinkedIn de Rodrigo Nicola"><rect width="100%" height="100%" fill="#fff"/><path d="M1,1H2V2H1zM2,1H3V2H2zM3,1H4V2H3zM4,1H5V2H4zM5,1H6V2H5zM6,1H7V2H6zM7,1H8V2H7zM9,1H10V2H9zM14,1H15V2H14zM17,1H18V2H17zM19,1H20V2H19zM20,1H21V2H20zM21,1H22V2H21zM24,1H25V2H24zM27,1H28V2H27zM28,1H29V2H28zM29,1H30V2H29zM30,1H31V2H30zM31,1H32V2H31zM32,1H33V2H32zM33,1H34V2H33zM1,2H2V3H1zM7,2H8V3H7zM9,2H10V3H9zM10,2H11V3H10zM12,2H13V3H12zM14,2H15V3H14zM21,2H22V3H21zM22,2H23V3H22zM23,2H24V3H23zM24,2H25V3H24zM27,2H28V3H27zM33,2H34V3H33zM1,3H2V4H1zM3,3H4V4H3zM4,3H5V4H4zM5,3H6V4H5zM7,3H8V4H7zM10,3H11V4H10zM11,3H12V4H11zM14,3H15V4H14zM15,3H16V4H15zM16,3H17V4H16zM17,3H18V4H17zM19,3H20V4H19zM21,3H22V4H21zM23,3H24V4H23zM25,3H26V4H25zM27,3H28V4H27zM29,3H30V4H29zM30,3H31V4H30zM31,3H32V4H31zM33,3H34V4H33zM1,4H2V5H1zM3,4H4V5H3zM4,4H5V5H4zM5,4H6V5H5zM7,4H8V5H7zM9,4H10V5H9zM10,4H11V5H10zM12,4H13V5H12zM16,4H17V5H16zM18,4H19V5H18zM19,4H20V5H19zM20,4H21V5H20zM21,4H22V5H21zM23,4H24V5H23zM24,4H25V5H24zM25,4H26V5H25zM27,4H28V5H27zM29,4H30V5H29zM30,4H31V5H30zM31,4H32V5H31zM33,4H34V5H33zM1,5H2V6H1zM3,5H4V6H3zM4,5H5V6H4zM5,5H6V6H5zM7,5H8V6H7zM11,5H12V6H11zM13,5H14V6H13zM14,5H15V6H14zM15,5H16V6H15zM16,5H17V6H16zM18,5H19V6H18zM19,5H20V6H19zM20,5H21V6H20zM21,5H22V6H21zM22,5H23V6H22zM25,5H26V6H25zM27,5H28V6H27zM29,5H30V6H29zM30,5H31V6H30zM31,5H32V6H31zM33,5H34V6H33zM1,6H2V7H1zM7,6H8V7H7zM10,6H11V7H10zM11,6H12V7H11zM12,6H13V7H12zM15,6H16V7H15zM17,6H18V7H17zM18,6H19V7H18zM20,6H21V7H20zM21,6H22V7H21zM23,6H24V7H23zM25,6H26V7H25zM27,6H28V7H27zM33,6H34V7H33zM1,7H2V8H1zM2,7H3V8H2zM3,7H4V8H3zM4,7H5V8H4zM5,7H6V8H5zM6,7H7V8H6zM7,7H8V8H7zM9,7H10V8H9zM11,7H12V8H11zM13,7H14V8H13zM15,7H16V8H15zM17,7H18V8H17zM19,7H20V8H19zM21,7H22V8H21zM23,7H24V8H23zM25,7H26V8H25zM27,7H28V8H27zM28,7H29V8H28zM29,7H30V8H29zM30,7H31V8H30zM31,7H32V8H31zM32,7H33V8H32zM33,7H34V8H33zM9,8H10V9H9zM12,8H13V9H12zM13,8H14V9H13zM18,8H19V9H18zM19,8H20V9H19zM23,8H24V9H23zM24,8H25V9H24zM25,8H26V9H25zM1,9H2V10H1zM3,9H4V10H3zM4,9H5V10H4zM6,9H7V10H6zM7,9H8V10H7zM8,9H9V10H8zM10,9H11V10H10zM15,9H16V10H15zM16,9H17V10H16zM18,9H19V10H18zM19,9H20V10H19zM20,9H21V10H20zM22,9H23V10H22zM24,9H25V10H24zM27,9H28V10H27zM30,9H31V10H30zM32,9H33V10H32zM33,9H34V10H33zM1,10H2V11H1zM2,10H3V11H2zM3,10H4V11H3zM4,10H5V11H4zM5,10H6V11H5zM6,10H7V11H6zM9,10H10V11H9zM10,10H11V11H10zM11,10H12V11H11zM13,10H14V11H13zM14,10H15V11H14zM17,10H18V11H17zM19,10H20V11H19zM20,10H21V11H20zM24,10H25V11H24zM27,10H28V11H27zM28,10H29V11H28zM30,10H31V11H30zM31,10H32V11H31zM33,10H34V11H33zM2,11H3V12H2zM4,11H5V12H4zM5,11H6V12H5zM6,11H7V12H6zM7,11H8V12H7zM10,11H11V12H10zM11,11H12V12H11zM12,11H13V12H12zM14,11H15V12H14zM17,11H18V12H17zM19,11H20V12H19zM21,11H22V12H21zM24,11H25V12H24zM26,11H27V12H26zM28,11H29V12H28zM29,11H30V12H29zM30,11H31V12H30zM32,11H33V12H32zM33,11H34V12H33zM1,12H2V13H1zM3,12H4V13H3zM4,12H5V13H4zM5,12H6V13H5zM6,12H7V13H6zM9,12H10V13H9zM12,12H13V13H12zM16,12H17V13H16zM19,12H20V13H19zM21,12H22V13H21zM24,12H25V13H24zM25,12H26V13H25zM26,12H27V13H26zM27,12H28V13H27zM28,12H29V13H28zM30,12H31V13H30zM2,13H3V14H2zM3,13H4V14H3zM6,13H7V14H6zM7,13H8V14H7zM10,13H11V14H10zM11,13H12V14H11zM13,13H14V14H13zM15,13H16V14H15zM17,13H18V14H17zM18,13H19V14H18zM19,13H20V14H19zM20,13H21V14H20zM21,13H22V14H21zM23,13H24V14H23zM24,13H25V14H24zM25,13H26V14H25zM26,13H27V14H26zM28,13H29V14H28zM29,13H30V14H29zM30,13H31V14H30zM33,13H34V14H33zM1,14H2V15H1zM2,14H3V15H2zM5,14H6V15H5zM8,14H9V15H8zM11,14H12V15H11zM13,14H14V15H13zM14,14H15V15H14zM15,14H16V15H15zM16,14H17V15H16zM19,14H20V15H19zM20,14H21V15H20zM21,14H22V15H21zM22,14H23V15H22zM28,14H29V15H28zM32,14H33V15H32zM1,15H2V16H1zM5,15H6V16H5zM6,15H7V16H6zM7,15H8V16H7zM8,15H9V16H8zM9,15H10V16H9zM10,15H11V16H10zM11,15H12V16H11zM12,15H13V16H12zM13,15H14V16H13zM14,15H15V16H14zM15,15H16V16H15zM18,15H19V16H18zM19,15H20V16H19zM20,15H21V16H20zM21,15H22V16H21zM22,15H23V16H22zM25,15H26V16H25zM27,15H28V16H27zM28,15H29V16H28zM29,15H30V16H29zM30,15H31V16H30zM31,15H32V16H31zM4,16H5V17H4zM5,16H6V17H5zM6,16H7V17H6zM8,16H9V17H8zM9,16H10V17H9zM10,16H11V17H10zM11,16H12V17H11zM14,16H15V17H14zM16,16H17V17H16zM17,16H18V17H17zM21,16H22V17H21zM22,16H23V17H22zM25,16H26V17H25zM26,16H27V17H26zM27,16H28V17H27zM28,16H29V17H28zM30,16H31V17H30zM31,16H32V17H31zM2,17H3V18H2zM6,17H7V18H6zM7,17H8V18H7zM8,17H9V18H8zM9,17H10V18H9zM11,17H12V18H11zM12,17H13V18H12zM19,17H20V18H19zM20,17H21V18H20zM21,17H22V18H21zM22,17H23V18H22zM23,17H24V18H23zM26,17H27V18H26zM27,17H28V18H27zM29,17H30V18H29zM30,17H31V18H30zM31,17H32V18H31zM1,18H2V19H1zM2,18H3V19H2zM3,18H4V19H3zM4,18H5V19H4zM9,18H10V19H9zM11,18H12V19H11zM12,18H13V19H12zM15,18H16V19H15zM16,18H17V19H16zM17,18H18V19H17zM21,18H22V19H21zM23,18H24V19H23zM24,18H25V19H24zM27,18H28V19H27zM29,18H30V19H29zM30,18H31V19H30zM32,18H33V19H32zM33,18H34V19H33zM3,19H4V20H3zM6,19H7V20H6zM7,19H8V20H7zM9,19H10V20H9zM11,19H12V20H11zM13,19H14V20H13zM15,19H16V20H15zM16,19H17V20H16zM19,19H20V20H19zM21,19H22V20H21zM26,19H27V20H26zM28,19H29V20H28zM29,19H30V20H29zM31,19H32V20H31zM32,19H33V20H32zM1,20H2V21H1zM2,20H3V21H2zM5,20H6V21H5zM6,20H7V21H6zM8,20H9V21H8zM9,20H10V21H9zM12,20H13V21H12zM16,20H17V21H16zM17,20H18V21H17zM18,20H19V21H18zM21,20H22V21H21zM23,20H24V21H23zM25,20H26V21H25zM26,20H27V21H26zM29,20H30V21H29zM1,21H2V22H1zM3,21H4V22H3zM4,21H5V22H4zM5,21H6V22H5zM6,21H7V22H6zM7,21H8V22H7zM8,21H9V22H8zM9,21H10V22H9zM13,21H14V22H13zM15,21H16V22H15zM16,21H17V22H16zM18,21H19V22H18zM22,21H23V22H22zM30,21H31V22H30zM31,21H32V22H31zM32,21H33V22H32zM1,22H2V23H1zM3,22H4V23H3zM4,22H5V23H4zM13,22H14V23H13zM14,22H15V23H14zM15,22H16V23H15zM18,22H19V23H18zM20,22H21V23H20zM24,22H25V23H24zM27,22H28V23H27zM30,22H31V23H30zM33,22H34V23H33zM5,23H6V24H5zM6,23H7V24H6zM7,23H8V24H7zM8,23H9V24H8zM12,23H13V24H12zM13,23H14V24H13zM14,23H15V24H14zM17,23H18V24H17zM18,23H19V24H18zM19,23H20V24H19zM22,23H23V24H22zM24,23H25V24H24zM26,23H27V24H26zM27,23H28V24H27zM28,23H29V24H28zM31,23H32V24H31zM32,23H33V24H32zM33,23H34V24H33zM2,24H3V25H2zM4,24H5V25H4zM5,24H6V25H5zM10,24H11V25H10zM15,24H16V25H15zM17,24H18V25H17zM19,24H20V25H19zM20,24H21V25H20zM24,24H25V25H24zM25,24H26V25H25zM27,24H28V25H27zM28,24H29V25H28zM1,25H2V26H1zM7,25H8V26H7zM8,25H9V26H8zM11,25H12V26H11zM14,25H15V26H14zM16,25H17V26H16zM18,25H19V26H18zM19,25H20V26H19zM23,25H24V26H23zM24,25H25V26H24zM25,25H26V26H25zM26,25H27V26H26zM27,25H28V26H27zM28,25H29V26H28zM29,25H30V26H29zM32,25H33V26H32zM33,25H34V26H33zM9,26H10V27H9zM10,26H11V27H10zM11,26H12V27H11zM14,26H15V27H14zM15,26H16V27H15zM16,26H17V27H16zM17,26H18V27H17zM18,26H19V27H18zM20,26H21V27H20zM22,26H23V27H22zM25,26H26V27H25zM29,26H30V27H29zM30,26H31V27H30zM32,26H33V27H32zM1,27H2V28H1zM2,27H3V28H2zM3,27H4V28H3zM4,27H5V28H4zM5,27H6V28H5zM6,27H7V28H6zM7,27H8V28H7zM9,27H10V28H9zM14,27H15V28H14zM18,27H19V28H18zM20,27H21V28H20zM22,27H23V28H22zM24,27H25V28H24zM25,27H26V28H25zM27,27H28V28H27zM29,27H30V28H29zM1,28H2V29H1zM7,28H8V29H7zM9,28H10V29H9zM10,28H11V29H10zM14,28H15V29H14zM15,28H16V29H15zM16,28H17V29H16zM19,28H20V29H19zM21,28H22V29H21zM22,28H23V29H22zM23,28H24V29H23zM24,28H25V29H24zM25,28H26V29H25zM29,28H30V29H29zM30,28H31V29H30zM31,28H32V29H31zM1,29H2V30H1zM3,29H4V30H3zM4,29H5V30H4zM5,29H6V30H5zM7,29H8V30H7zM10,29H11V30H10zM11,29H12V30H11zM15,29H16V30H15zM16,29H17V30H16zM17,29H18V30H17zM21,29H22V30H21zM22,29H23V30H22zM23,29H24V30H23zM24,29H25V30H24zM25,29H26V30H25zM26,29H27V30H26zM27,29H28V30H27zM28,29H29V30H28zM29,29H30V30H29zM31,29H32V30H31zM32,29H33V30H32zM33,29H34V30H33zM1,30H2V31H1zM3,30H4V31H3zM4,30H5V31H4zM5,30H6V31H5zM7,30H8V31H7zM9,30H10V31H9zM10,30H11V31H10zM11,30H12V31H11zM12,30H13V31H12zM13,30H14V31H13zM14,30H15V31H14zM16,30H17V31H16zM17,30H18V31H17zM18,30H19V31H18zM19,30H20V31H19zM21,30H22V31H21zM23,30H24V31H23zM24,30H25V31H24zM25,30H26V31H25zM28,30H29V31H28zM30,30H31V31H30zM31,30H32V31H31zM33,30H34V31H33zM1,31H2V32H1zM3,31H4V32H3zM4,31H5V32H4zM5,31H6V32H5zM7,31H8V32H7zM9,31H10V32H9zM10,31H11V32H10zM11,31H12V32H11zM13,31H14V32H13zM14,31H15V32H14zM16,31H17V32H16zM17,31H18V32H17zM18,31H19V32H18zM22,31H23V32H22zM23,31H24V32H23zM24,31H25V32H24zM25,31H26V32H25zM26,31H27V32H26zM27,31H28V32H27zM28,31H29V32H28zM30,31H31V32H30zM31,31H32V32H31zM1,32H2V33H1zM7,32H8V33H7zM10,32H11V33H10zM15,32H16V33H15zM16,32H17V33H16zM17,32H18V33H17zM18,32H19V33H18zM19,32H20V33H19zM23,32H24V33H23zM24,32H25V33H24zM25,32H26V33H25zM26,32H27V33H26zM28,32H29V33H28zM29,32H30V33H29zM33,32H34V33H33zM1,33H2V34H1zM2,33H3V34H2zM3,33H4V34H3zM4,33H5V34H4zM5,33H6V34H5zM6,33H7V34H6zM7,33H8V34H7zM9,33H10V34H9zM12,33H13V34H12zM13,33H14V34H13zM14,33H15V34H14zM17,33H18V34H17zM18,33H19V34H18zM19,33H20V34H19zM22,33H23V34H22zM24,33H25V34H24zM27,33H28V34H27zM29,33H30V34H29zM31,33H32V34H31z" fill="#0b2545"/></svg><span>LinkedIn</span></a>
+            </div>
+            <div class="prof-body">
+              <div class="prof-name"><span class="who n">N</span>Rodrigo Nicola</div>
+              <div class="prof-role">Professor · Inteli</div>
+              <ul class="prof-cv">
+                <li>Engenheiro mecatrônico pelo Instituto Mauá de Tecnologia e mestre em engenharia mecatrônica pelo ITA.</li>
+                <li>No mestrado, projetou o controle de um simulador de voo montado sobre um braço robótico KUKA, otimizado por algoritmos genéticos.</li>
+                <li>No Mauá, foi pesquisador em veículos autônomos e responsável pelas disciplinas de aprendizado de máquina e de projetos de ciência de dados.</li>
+                <li>No Inteli desde 2022.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 04 · AGENDA ==================== -->
+    <div class="slide dense">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Agenda</div>
+          <h2 class="slide-title">O dia: trinta minutos de teoria e três rodadas</h2>
+          <p class="slide-subtitle">Construção nas faixas com marca azul. A marca da direita diz quem conduz cada faixa, e ela vale para todas as telas do bloco.</p>
+        </div>
+        <p class="who-legend" style="margin:0 0 10px;">
+          <span><span class="who a">A</span>Afonso Brandão</span>
+          <span><span class="who n">N</span>Rodrigo Nicola</span>
+        </p>
+        <div class="agenda-2col">
+          <div>
+            <div class="agenda-row pausa"><div class="agenda-time">09:00 – 09:10</div><div class="agenda-block">Abertura institucional<small>Victor Machado</small></div><div class="agenda-dur">—</div></div>
+            <div class="agenda-row"><div class="agenda-time">09:10 – 09:40</div><div class="agenda-block">Conceitos iniciais<small>Trajetória da IA, mecanismo, token e terminologia</small></div><div class="agenda-dur"><span class="who a">A</span><span class="who n">N</span></div></div>
+            <div class="agenda-row"><div class="agenda-time">09:40 – 10:00</div><div class="agenda-block">O caso e a decomposição<small>Val da Caxirola: do problema às etapas</small></div><div class="agenda-dur"><span class="who a">A</span></div></div>
+            <div class="agenda-row pausa"><div class="agenda-time">10:00 – 10:20</div><div class="agenda-block">Break<small>Tour Inteli (opcional)</small></div><div class="agenda-dur">—</div></div>
+            <div class="agenda-row eixo"><div class="agenda-time">10:20 – 11:10</div><div class="agenda-block">Rodada 1 — Desenho do fluxo<small>Problema da dupla, contexto e ferramentas</small></div><div class="agenda-dur"><span class="who n">N</span></div></div>
+            <div class="agenda-row eixo"><div class="agenda-time">11:10 – 11:40</div><div class="agenda-block">Rodada 2 — A Gem sobre o contrato<small>Criar, instruir e rodar a primeira análise</small></div><div class="agenda-dur"><span class="who a">A</span></div></div>
+          </div>
+          <div>
+            <div class="agenda-row"><div class="agenda-time">11:40 – 11:55</div><div class="agenda-block">Leitura crítica do parecer<small>O que viu, o que passou, o que inventou</small></div><div class="agenda-dur"><span class="who a">A</span></div></div>
+            <div class="agenda-row pausa"><div class="agenda-time">11:55 – 12:00</div><div class="agenda-block">Intervalo<small>Cinco minutos</small></div><div class="agenda-dur">—</div></div>
+            <div class="agenda-row eixo"><div class="agenda-time">12:00 – 12:35</div><div class="agenda-block">Rodada 3 — Contexto e critério<small>Anexar o dossiê, ajustar e reexecutar</small></div><div class="agenda-dur"><span class="who n">N</span></div></div>
+            <div class="agenda-row"><div class="agenda-time">12:35 – 12:45</div><div class="agenda-block">Fechamento<small>Limites, Carta de Aplicação e checklist</small></div><div class="agenda-dur"><span class="who a">A</span><span class="who n">N</span></div></div>
+            <div class="agenda-row"><div class="agenda-time">12:45 – 12:55</div><div class="agenda-block">Perguntas sobre IA<small>Q&amp;A aberto com os dois professores</small></div><div class="agenda-dur"><span class="who a">A</span><span class="who n">N</span></div></div>
+            <div class="agenda-row pausa"><div class="agenda-time">12:55 – 13:00</div><div class="agenda-block">Encerramento<small>Considerações finais</small></div><div class="agenda-dur">—</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 05 · ACESSO AO DECK ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Acesso</div>
+          <h2 class="slide-title">Abra os slides no seu computador</h2>
+          <p class="slide-subtitle">O endereço abaixo abre direto os slides. Pelo site, o caminho tem três passos.</p>
+        </div>
+        <div class="access-url">afonsolelis.github.io/aulas/btg</div>
+        <div class="grid-3">
+          <div class="step-box"><span class="step-num">1</span><h4>Abra o site</h4><p>No navegador, digite afonsolelis.github.io/aulas.</p></div>
+          <div class="step-box"><span class="step-num">2</span><h4>Clique em Diversos</h4><p>É o card das palestras e treinamentos na página inicial.</p></div>
+          <div class="step-box"><span class="step-num">3</span><h4>Abra o card do BTG Pactual</h4><p>Em AI for Business, clique em Slides. O botão Material abre o texto de apoio.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 06 · MOMENTO 1 · DIVISOR ==================== -->
+    <div class="slide divider-bg">
+      <div class="slide-content block-divider">
+        <span class="block-tag">Momento 1</span>
+        <h1>Conceitos iniciais</h1>
+        <p class="block-sub">Do ENIAC ao vocabulário do dia: de onde vem a tecnologia, como ela produz uma resposta e os cinco termos que permitem procurar solução depois da aula. Trinta minutos, conduzidos pelos dois.</p>
+        <div class="block-clock">
+          <div class="block-clock-item"><div class="block-clock-label">Horário</div><div class="block-clock-value">09:10 – 09:40</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Conduzem</div><div class="block-clock-value">Afonso e Rodrigo</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Pergunta que organiza</div><div class="block-clock-value">O que essa tecnologia faz de fato?</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 05–11 · DA MÁQUINA À GENERALIZAÇÃO (Nicola) ====================
+         Sete telas, 09:12 – 09:26. Roteiro de fala, tempos e créditos das imagens em
+         ../notas-professor-btg-ai-for-business.md -->
+    <div class="slide hist hist-photo" aria-label="ENIAC, 1946">
+      <span class="hist-who"><span class="who n">N</span></span>
+      <img src="../assets/historia-ia/eniac-bartik-spence-1946.jpg" alt="Jean Bartik e Frances Spence trabalhando diante dos painéis do ENIAC">
+      <p class="hist-caption">ENIAC · 1946</p>
+    </div>
+
+    <div class="slide hist hist-poster" aria-label="O Jogo da Imitação">
+      <span class="hist-who"><span class="who n">N</span></span>
+      <img src="https://upload.wikimedia.org/wikipedia/en/8/87/The_Imitation_Game_%282014%29.png" alt="Pôster do filme The Imitation Game, de 2014" onerror="histPosterFallback(this)">
+    </div>
+
+    <div class="slide hist hist-paper" aria-label="Computing Machinery and Intelligence, 1950">
+      <span class="hist-who"><span class="who n">N</span></span>
+      <div class="hist-paper-content">
+        <span class="hist-year">1950</span>
+        <h2 class="hist-title">Computing Machinery<br>and Intelligence</h2>
+        <blockquote class="hist-quote">“I propose to consider the question, ‘Can machines think?’”</blockquote>
+      </div>
+    </div>
+
+    <div class="slide hist hist-paper dartmouth" aria-label="Proposta de Dartmouth, 1955">
+      <span class="hist-who"><span class="who n">N</span></span>
+      <div class="hist-paper-content">
+        <span class="hist-year">1955</span>
+        <h2 class="hist-title">A Proposal for the Dartmouth Summer Research Project on <em>Artificial Intelligence</em></h2>
+      </div>
+    </div>
+
+    <div class="slide hist hist-diagram" aria-label="Diagrama do perceptron, 1958">
+      <span class="hist-who"><span class="who n">N</span></span>
+      <img src="../assets/historia-ia/perceptron-rosenblatt-1958.jpg" alt="Diagrama de um perceptron elementar inspirado na formulação de Frank Rosenblatt">
+      <p class="hist-diagram-year">1958</p>
+      <p class="hist-credit">Redesenho de A. Kirdin, S. Sidorov e N. Zolotykh (2022), CC BY 4.0</p>
+    </div>
+
+    <div class="slide hist hist-paper" aria-label="Language Models are Few-Shot Learners, 2020">
+      <span class="hist-who"><span class="who n">N</span></span>
+      <div class="hist-paper-content">
+        <span class="hist-year">2020</span>
+        <h2 class="hist-title">Language Models are<br>Few-Shot Learners</h2>
+      </div>
+    </div>
+
+    <div class="slide hist hist-conclusion" aria-label="Estado atual da inteligência artificial">
+      <span class="hist-who"><span class="who n">N</span></span>
+      <div class="hist-conclusion-body">
+        <p>Generaliza padrões.</p>
+        <p>Não garante verdade.</p>
+        <p>Não assume responsabilidade.</p>
+      </div>
+    </div>
+
+    <!-- ==================== 07 · COMO PRODUZ UMA RESPOSTA ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Conceitos iniciais · Mecanismo</div>
+          <h2 class="slide-title">Como o Gemini produz uma resposta</h2>
+          <p class="slide-subtitle">Entender o mecanismo explica tanto os acertos quanto os erros que veremos no primeiro teste.</p>
+        </div>
+        <div class="flow-row cols-4" style="margin-bottom:13px;">
+          <div class="flow-step on"><span class="flow-tag">Entrada</span><h4>Texto vira tokens</h4><p>Contrato, instrução e anexos são fragmentados.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">Contexto</span><h4>Tudo na mesma janela</h4><p>Instrução, anexos e conversa disputam o mesmo espaço.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">Predição</span><h4>Cada token é escolhido</h4><p>O modelo estima o fragmento seguinte mais provável.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">Saída</span><h4>O texto é montado</h4><p>A resposta reproduz o padrão, sem verificação.</p></div>
+        </div>
+        <div class="grid-2">
+          <div class="box">
+            <h3>Consequência prática</h3>
+            <p>A cláusula fora do anexo não é analisada, e a ausência não aparece como erro.</p>
+          </div>
+          <div class="box">
+            <h3>Consequência de projeto</h3>
+            <p>O que entra no contexto e o quanto a instrução restringe o formato. São as duas alavancas do dia.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 08 · TOKEN E TROCA DE MODELO ==================== -->
+    <div class="slide dense">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Conceitos iniciais · Unidade e escolha</div>
+          <h2 class="slide-title">O token e a troca de modelo</h2>
+          <p class="slide-subtitle">A unidade que define quanto cabe e quanto custa, e o que muda quando se troca o modelo.</p>
+        </div>
+        <div class="grid-1-2">
+          <div class="box accent">
+            <h3>O que é um token</h3>
+            <p>Fragmento entre o caractere e a palavra. Em português, três a quatro caracteres em média.</p>
+            <p>A cobrança e o limite da janela são medidos nessa unidade.</p>
+            <p>O contrato de hoje, com os anexos, fica em quatro mil tokens; o dossiê, em dois mil. Os dois cabem com folga.</p>
+          </div>
+          <table class="btg-table">
+            <thead><tr><th style="width:190px;">Dimensão</th><th>O que muda e quando pesa</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Janela de contexto</strong></td><td>Quanto material cabe de uma vez. Pesa em documento longo ou anexo múltiplo.</td></tr>
+              <tr><td><strong>Raciocínio</strong></td><td>Desempenho em etapas encadeadas. Pesa em instrução longa, com regras de recusa.</td></tr>
+              <tr><td><strong>Custo e latência</strong></td><td>Variam em ordem de grandeza. Pesam em volume alto e uso recorrente.</td></tr>
+              <tr><td><strong>Ferramentas</strong></td><td>Busca, leitura de arquivo e código não existem em todo plano. Pesam em etapa que depende de dado externo.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout navy" style="margin-top:13px;">
+          Excedida a janela, o modelo trabalha com o que coube e não sinaliza a perda. Anote qual modelo produziu cada saída, ou a comparação do fim da manhã perde a referência.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 09 · CONTEXTO ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who n">N</span>Conceitos iniciais · Termo 1 de 5</div>
+          <h2 class="slide-title">Contexto</h2>
+          <p class="slide-subtitle">Tudo o que o modelo tem diante de si ao responder, e nada além.</p>
+        </div>
+        <div class="grid-2-1">
+          <div class="stack" style="gap:11px;">
+            <div class="step-box"><div class="step-num">1</div><h4>A instrução da Gem</h4><p>Volta a cada conversa e define o procedimento que se repete igual.</p></div>
+            <div class="step-box"><div class="step-num">2</div><h4>Os arquivos anexados</h4><p>Critérios e exemplos, que mudam mais que o procedimento.</p></div>
+            <div class="step-box"><div class="step-num">3</div><h4>O que você cola na conversa</h4><p>Contrato, dossiê ou planilha. Saem quando a conversa termina.</p></div>
+            <div class="step-box"><div class="step-num">4</div><h4>O que a ferramenta trouxe</h4><p>O retorno da busca entra na janela como texto novo.</p></div>
+          </div>
+          <div class="stack" style="gap:12px;">
+            <div class="box accent">
+              <h3>Disputa de espaço</h3>
+              <p>Os quatro competem pela mesma janela. Instrução longa reduz o espaço do documento; documento longo reduz o da resposta.</p>
+            </div>
+            <div class="box navy">
+              <h3>Engenharia de contexto</h3>
+              <p>Decidir o que entra, em que formato e em que ordem. Altera a saída mais do que a redação do pedido.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 10 · FERRAMENTA ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who n">N</span>Conceitos iniciais · Termo 2 de 5</div>
+          <h2 class="slide-title">Ferramenta</h2>
+          <p class="slide-subtitle">Função externa que o modelo aciona quando falta algo no contexto.</p>
+        </div>
+        <div class="flow-row cols-4" style="margin-bottom:13px;">
+          <div class="flow-step on"><span class="flow-tag">1</span><h4>Reconhece a falta</h4><p>A instrução manda verificar a certificação, que não está ali.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">2</span><h4>Chama a ferramenta</h4><p>Emite um pedido: buscar tal termo, ler tal arquivo.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">3</span><h4>O resultado volta</h4><p>O retorno entra na janela como texto novo.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">4</span><h4>A resposta é montada</h4><p>Sobre material que não estava lá no início.</p></div>
+        </div>
+        <div class="grid-2">
+          <div class="box"><h3>Exemplos no Gemini</h3><p>Busca na web, leitura de arquivo e execução de código. A disponibilidade varia por plano: confirme na sua conta.</p></div>
+          <div class="box"><h3>Por que declarar na instrução</h3><p>Sem instrução explícita de buscar, ele responde pelo padrão. É assim que uma certificação sai como confirmada sem consulta alguma.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 11 · AGENTE ==================== -->
+    <div class="slide dense">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who n">N</span>Conceitos iniciais · Termo 3 de 5</div>
+          <h2 class="slide-title">Agente</h2>
+          <p class="slide-subtitle">Um modelo que decide sozinho a próxima ação, até atingir um objetivo.</p>
+        </div>
+        <table class="btg-table">
+          <thead><tr><th style="width:230px;">Arranjo</th><th>Quem decide o próximo passo</th><th style="width:290px;">Exemplo no fluxo de hoje</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Conversa</strong></td><td>Você, a cada mensagem enviada.</td><td>Colar uma cláusula e perguntar o que significa.</td></tr>
+            <tr><td><strong>Gem com instrução</strong></td><td>A instrução, sempre na mesma ordem.</td><td>As cinco etapas na sequência escrita.</td></tr>
+            <tr><td><strong>Agente</strong></td><td>O modelo, que escolhe a ferramenta e quando parar.</td><td>Buscar o registro da certificadora antes de pontuar.</td></tr>
+            <tr><td><strong>Fluxo com agentes</strong></td><td>Roteiro fixo entre etapas, com autonomia dentro delas.</td><td>Mapa, due diligence e parecer, cada um com suas ferramentas.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:12px;">
+          Mais autonomia, menos previsibilidade. Em processo que responde a terceiros, o roteiro fixo vale mais do que decidir a ordem.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 12 · SKILL E HARNESS ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who n">N</span>Conceitos iniciais · Termos 4 e 5 de 5</div>
+          <h2 class="slide-title">Skill e harness</h2>
+          <p class="slide-subtitle">O procedimento que se reutiliza, e o ambiente que o executa.</p>
+        </div>
+        <div class="grid-2" style="margin-bottom:13px;">
+          <div class="box accent">
+            <h3>Skill</h3>
+            <p>Procedimento escrito, nomeado e reutilizável, carregado quando a tarefa corresponde à sua descrição.</p>
+            <ul>
+              <li>Tem nome, descrição, passos e arquivos de apoio.</li>
+              <li>Vale para muitos casos, não para um só.</li>
+              <li>A instrução do Consultor é uma skill escrita à mão.</li>
+            </ul>
+          </div>
+          <div class="box accent">
+            <h3>Harness</h3>
+            <p>Ambiente que roda o modelo, monta o contexto e conduz o ciclo de execução.</p>
+            <ul>
+              <li>Decide o que entra na janela a cada passo.</li>
+              <li>Expõe as ferramentas e guarda o que persiste.</li>
+              <li>A Gem é um harness mínimo: instrução, arquivos e conversa.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout navy">
+          Quando o fluxo não funcionar, os cinco termos dizem onde procurar: falta contexto, falta ferramenta, falta procedimento escrito, ou o ambiente não sustenta a etapa.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 13 · MOMENTO 2 · DIVISOR ==================== -->
+    <div class="slide divider-bg">
+      <div class="slide-content block-divider">
+        <span class="block-tag">Momento 2</span>
+        <h1>O fluxo</h1>
+        <p class="block-sub">Um problema de negócio raro cabe numa instrução só. Esta parte do dia trata de parti-lo em etapas e de perguntar, a cada uma, que contexto ela exige e que ferramentas ela usa.</p>
+        <div class="block-clock">
+          <div class="block-clock-item"><div class="block-clock-label">Horário</div><div class="block-clock-value">09:40 – 11:10</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Conduz</div><div class="block-clock-value">Afonso; rodada 1 com Rodrigo</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Pergunta que organiza</div><div class="block-clock-value">De que partes esse problema é feito?</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 14 · O CASO · PERSONA ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>O caso do dia</div>
+          <h2 class="slide-title">Val da Caxirola</h2>
+          <p class="slide-subtitle">Um fabricante pequeno cuja marca depende do que ele fala em público, situação em que o risco de reputação e o risco de contrato são o mesmo risco.</p>
+        </div>
+        <div class="persona">
+          <img src="../assets/caso-caxirola/val-caxirola-funko.svg" class="persona-img" alt="Ilustração de Valdemir Sampaio dos Anjos como boneco colecionável, de camiseta amarela e caxirola de madeira na mão">
+          <div>
+            <div class="grid-2">
+              <div class="box accent">
+                <h3>Quem é</h3>
+                <p>Valdemir Sampaio dos Anjos tem 34 anos e mora no bairro da Liberdade, em Salvador. Avalia caxirolas em vídeos de quarenta segundos, nos quais chacoalha o instrumento perto do microfone e dá nota ao chiado.</p>
+              </div>
+              <div class="box">
+                <h3>O que ele vende</h3>
+                <p>A Oficina Caxi Liberdade fabrica instrumentos de percussão em pequena escala, com onze funcionários. A marca nasceu depois do canal, e é a audiência dele que sustenta a demanda.</p>
+              </div>
+            </div>
+            <div class="stat-row">
+              <div class="stat"><b>890 mil</b><span>seguidores no TikTok</span></div>
+              <div class="stat"><b>11</b><span>funcionários</span></div>
+              <div class="stat"><b>R$ 1,8 mi</b><span>faturamento anual</span></div>
+              <div class="stat"><b>3 anos</b><span>de marca própria</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:12px;">
+          Em vídeo, ele promete madeira de origem legal e rastreável, artesãos pagos acima do piso e embalagem sem plástico. São essas três promessas que justificam o preço que ele cobra, e é por elas que a audiência o acompanha; quando uma delas cai, o preço cai junto.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 15 · O PROBLEMA ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>O caso · O que chegou na mesa</div>
+          <h2 class="slide-title">Uma proposta boa demais para ser simples</h2>
+          <p class="slide-subtitle">A Madeflora, madeireira de grande porte sediada em Sinop, propõe fornecer toda a matéria-prima da oficina por três anos, com preço abaixo do que ele paga hoje.</p>
+        </div>
+        <div class="grid-3" style="margin-bottom:13px;">
+          <div class="pillar">
+            <div class="pillar-num">1</div>
+            <div class="pillar-title">O que ele precisa decidir</div>
+            <ul class="pillar-list">
+              <li>Assinar, negociar ou recusar, e tem uma semana para isso.</li>
+              <li>A proposta reduz em 22% o custo de madeira, o que pesa numa operação desse porte.</li>
+              <li>Não há departamento jurídico nem área de compras para quem delegar a leitura.</li>
+            </ul>
+          </div>
+          <div class="pillar">
+            <div class="pillar-num">2</div>
+            <div class="pillar-title">O que torna a decisão difícil</div>
+            <ul class="pillar-list">
+              <li>São treze cláusulas e dois anexos escritos em linguagem contratual.</li>
+              <li>O risco não se concentra no preço, e sim em pontos espalhados pelo texto.</li>
+              <li>Parte dele só aparece quando o contrato é cruzado com o histórico da empresa.</li>
+            </ul>
+          </div>
+          <div class="pillar">
+            <div class="pillar-num">3</div>
+            <div class="pillar-title">Por que este caso serve de exercício</div>
+            <ul class="pillar-list">
+              <li>Reúne documento longo, critério de marca e verificação externa.</li>
+              <li>Cada uma dessas três frentes corresponde a uma etapa diferente do fluxo.</li>
+              <li>Como o erro de cada etapa aparece num lugar distinto da saída, dá para localizar onde ele nasceu.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout navy">
+          Sem método, o pedido que ele faria a um assistente caberia numa linha: "lê esse contrato e me diz se eu assino". A resposta a um pedido assim não pode ser conferida contra nada, e é justamente dela que partimos para mostrar o que falta.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 16 · DECOMPOSIÇÃO ==================== -->
+    <div class="slide dense compact">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Fluxo · Decomposição</div>
+          <h2 class="slide-title">De um problema grande a etapas tratáveis</h2>
+          <p class="slide-subtitle">Tratável: cabe numa instrução, tem entrada definida e saída conferível.</p>
+        </div>
+        <div class="grid-1-2" style="margin-bottom:12px;">
+          <div class="box navy">
+            <h3>O problema como chega</h3>
+            <p>"Lê esse contrato e me diz se eu assino."</p>
+            <p>Não diz o que entra, o que sai nem quando a resposta está certa.</p>
+          </div>
+          <div class="stack">
+            <div class="step-box"><div class="step-num">1</div><h4>Mapear o que o contrato diz</h4><p>Entra o contrato. Saem obrigações e prazos, com a cláusula ao lado.</p></div>
+            <div class="step-box"><div class="step-num">2</div><h4>Traduzir em rotina</h4><p>Entra o mapa. Saem datas críticas, alertas, responsáveis e custo projetado.</p></div>
+            <div class="step-box"><div class="step-num">3</div><h4>Investigar a contraparte</h4><p>Entram razão social e CNPJ. Saem achados com fonte.</p></div>
+            <div class="step-box"><div class="step-num">4</div><h4>Pontuar a aderência</h4><p>Entram mapa e achados. Sai nota por eixo, com a conta à vista.</p></div>
+            <div class="step-box"><div class="step-num">5</div><h4>Propor o plano de ação</h4><p>Entram os críticos. Saem cláusulas a negociar, com redação pronta.</p></div>
+          </div>
+        </div>
+        <div class="callout">
+          Etapa cuja entrada e saída não cabem em uma linha ainda comporta divisão.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 17 · AS DUAS PERGUNTAS ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Fluxo · Método</div>
+          <h2 class="slide-title">As duas perguntas de cada etapa</h2>
+          <p class="slide-subtitle">Respondidas antes de escrever qualquer linha de instrução.</p>
+        </div>
+        <div class="grid-2" style="margin-bottom:13px;">
+          <div class="box accent">
+            <h3>Qual o contexto necessário?</h3>
+            <ul>
+              <li>Que documento precisa estar na janela.</li>
+              <li>Que critério da casa precisa estar escrito, e onde.</li>
+              <li>O que chega da etapa anterior, e em que formato.</li>
+              <li>O que não pode entrar, por sigilo ou proteção de dados.</li>
+            </ul>
+          </div>
+          <div class="box accent">
+            <h3>Quais ferramentas são necessárias?</h3>
+            <ul>
+              <li>Leitura de arquivo, quando a entrada é documento.</li>
+              <li>Busca na web, quando o dado não existe dentro de casa.</li>
+              <li>Cálculo, quando há conta cujo erro não pode passar.</li>
+              <li>Nenhuma, quando só reorganiza o que já está na janela.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout navy">
+          Sem a primeira resposta, a etapa produz texto plausível sem base; sem a segunda, afirma ter verificado o que não verificou. Os dois erros saem bem formatados, com aparência de acerto.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 18 · O FLUXO COMPLETO ==================== -->
+    <div class="slide dense">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Fluxo · O destino do dia</div>
+          <h2 class="slide-title">O fluxo do Consultor de Marcas e Contratos</h2>
+          <p class="slide-subtitle">Cinco etapas, cada uma com o contexto que exige e a ferramenta que usa. Preenchemos as duas últimas colunas juntos, agora.</p>
+        </div>
+        <table class="btg-table">
+          <thead><tr><th style="width:56px;">Etapa</th><th style="width:230px;">O que faz</th><th>Contexto necessário</th><th style="width:250px;">Ferramentas</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">1</td><td><strong>Mapa do contrato</strong></td><td>O contrato inteiro, com os anexos</td><td>Leitura de arquivo</td></tr>
+            <tr><td class="mono">2</td><td><strong>Gestão e configuração</strong></td><td>O mapa da etapa 1 e a data de assinatura</td><td>Nenhuma; cálculo simples de datas</td></tr>
+            <tr><td class="mono">3</td><td><strong>Due diligence</strong></td><td>Razão social, CNPJ e o dossiê público</td><td>Busca na web e leitura de arquivo</td></tr>
+            <tr><td class="mono">4</td><td><strong>Matriz de aderência</strong></td><td>Etapas 1 e 3, mais os critérios da marca</td><td>Cálculo da média ponderada</td></tr>
+            <tr><td class="mono">5</td><td><strong>Plano de ação</strong></td><td>Os pontos críticos das etapas anteriores</td><td>Nenhuma; redação sobre o que já está na janela</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:12px;">
+          Entre as cinco, a etapa 3 é a única que depende de dado inexistente nos arquivos da casa, e por isso é a única que exige busca. Quando a busca não estiver disponível, ela devolve não encontrado, resposta que vale mais do que uma afirmação sem fonte.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 19 · COFFEE BREAK ==================== -->
+    <div class="slide divider-bg">
+      <div class="slide-content block-divider">
+        <span class="block-tag">Intervalo</span>
+        <h1>Break</h1>
+        <p class="block-sub">Durante o break, há um tour opcional pelo Inteli, que termina com a foto da turma na escadaria. Quem ficar na sala pode fechar o problema da dupla com um dos professores. Na volta, cada dupla desenha o fluxo do próprio caso.</p>
+        <div class="block-clock">
+          <div class="block-clock-item"><div class="block-clock-label">Horário</div><div class="block-clock-value">10:00 – 10:20</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Ao voltar</div><div class="block-clock-value">Rodada 1, às 10:20, com Rodrigo</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 20 · RODADA 1 ==================== -->
+    <div class="slide rodada-bg">
+      <div class="slide-content">
+        <div class="slide-header rodada-head">
+          <div class="slide-eyebrow"><span class="who n">N</span>Rodada 1 · 10:20 – 11:10 · 50 minutos</div>
+          <h2 class="slide-title">Desenhem o fluxo do caso de vocês</h2>
+          <p class="slide-subtitle">O problema é real e é de um dos dois. O produto da rodada é o quadro de etapas, com contexto e ferramentas preenchidos.</p>
+        </div>
+        <div class="grid-2-1">
+          <div class="stack" style="gap:10px;">
+            <div class="step-box"><div class="step-num">1</div><h4>Escolham o problema da dupla</h4><p>Entre os dois, vai à construção o que tiver documento disponível hoje.</p></div>
+            <div class="step-box"><div class="step-num">2</div><h4>Enunciem a decisão em jogo</h4><p>Uma frase, com quem decide identificado e com que frequência a decisão ocorre.</p></div>
+            <div class="step-box"><div class="step-num">3</div><h4>Quebrem em etapas</h4><p>Cada uma com entrada declarada e saída conferível, entre três e seis etapas.</p></div>
+            <div class="step-box"><div class="step-num">4</div><h4>Preencham as duas colunas</h4><p>Para cada etapa: o contexto necessário e as ferramentas exigidas.</p></div>
+          </div>
+          <div class="stack" style="gap:12px;">
+            <div class="timer" data-min="50">
+              <div class="timer-display">50:00</div>
+              <div class="timer-controls">
+                <button type="button" data-timer="start">Iniciar</button>
+                <button type="button" data-timer="reset">Resetar</button>
+              </div>
+            </div>
+            <div class="box accent">
+              <h3>Entrega desta rodada</h3>
+              <ul>
+              <li>A decisão em jogo, em uma frase.</li>
+              <li>O quadro de etapas, numerado.</li>
+              <li>Contexto e ferramentas de cada etapa.</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h3>Chame o professor quando</h3>
+              <p>A decisão em jogo não couber em uma frase, ou uma etapa não disser o que entra e o que sai.</p>
+              <p style="margin-top:6px;color:var(--btg-muted);font-size:0.86rem;">Conduz Rodrigo; Afonso valida os recortes dupla a dupla.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 21 · MOMENTO 3 · DIVISOR ==================== -->
+    <div class="slide divider-bg">
+      <div class="slide-content block-divider">
+        <span class="block-tag">Momento 3</span>
+        <h1>Implementação</h1>
+        <p class="block-sub">O fluxo desenhado vira uma Gem com instrução escrita, arquivos anexados e um teste que se repete. A construção é feita sobre o caso do Val, e o método volta ao caso de cada dupla na rodada seguinte.</p>
+        <div class="block-clock">
+          <div class="block-clock-item"><div class="block-clock-label">Horário</div><div class="block-clock-value">11:10 – 12:35</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Conduz</div><div class="block-clock-value">Afonso; rodada 3 com Rodrigo</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Pergunta que organiza</div><div class="block-clock-value">O que sai, e dá para conferir?</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 22 · O QUE É UMA GEM ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Implementação · Ferramenta</div>
+          <h2 class="slide-title">O que é uma Gem e onde ela vive</h2>
+          <p class="slide-subtitle">Configuração salva do Gemini: nome, instrução e arquivos de conhecimento.</p>
+        </div>
+        <div class="flow-row cols-5" style="margin-bottom:14px;">
+          <div class="flow-step on"><span class="flow-tag">1</span><h4>Painel de Gems</h4><p>As prontas e as que você criou.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">2</span><h4>Nova Gem</h4><p>Nome que diga a função: “Consultor de marcas e contratos”.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">3</span><h4>Instrução</h4><p>O procedimento, sempre igual.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">4</span><h4>Arquivos</h4><p>Critérios, dossiês, modelos de cláusula.</p></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step on"><span class="flow-tag">5</span><h4>Conversa</h4><p>Instrução e arquivos voltam a cada conversa.</p></div>
+        </div>
+        <div class="grid-3">
+          <div class="box"><h3>Não aprende com o uso</h3><p>A correção só se torna permanente na instrução ou no arquivo.</p></div>
+          <div class="box"><h3>Cada conversa começa do zero</h3><p>A instrução e os arquivos voltam; o histórico anterior não.</p></div>
+          <div class="box"><h3>Conta corporativa</h3><p>Use a aprovada pela sua área. As condições de tratamento de dados diferem entre contas.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 23 · A INSTRUÇÃO EM CINCO PARTES ==================== -->
+    <div class="slide compact">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Implementação · Anatomia</div>
+          <h2 class="slide-title">A instrução do Consultor, em cinco partes</h2>
+          <p class="slide-subtitle">A mesma ordem em qualquer Gem, o que torna a falha localizável.</p>
+        </div>
+        <div class="grid-2-1">
+          <div class="box">
+            <h3>Estrutura, em resumo</h3>
+            <pre class="code-block" style="font-size:0.78rem;"><span class="c">// Papel</span>
+Analista de contratos e aderência de marca.
+
+<span class="c">// Entrada</span>
+Um contrato em arquivo e, quando houver, o dossiê
+público da contraparte. Se faltar, peça.
+
+<span class="c">// Procedimento</span>
+1. Mapa do contrato, com a cláusula ao lado de cada item
+2. Gestão: datas críticas, alertas e custo projetado
+3. Due diligence: verificado, indício ou não encontrado
+4. Matriz de aderência, com a conta à vista
+5. Plano de ação, com redação de cláusula pronta
+
+<span class="c">// Saída</span>
+Oito seções fixas, com tabelas nas seções 2, 3 e 5.
+
+<span class="c">// Limites</span>
+Não inventar CNPJ, processo ou certificação.</pre>
+          </div>
+          <div class="stack">
+            <div class="box accent">
+              <h3>Critérios eliminatórios</h3>
+              <p>Condições que reprovam sozinhas, antes de qualquer nota. Sem elas, a média encobre o item que deveria barrar.</p>
+            </div>
+            <div class="box">
+              <h3>Autorização para não decidir</h3>
+              <p>Autorizar o "não encontrado" reduz a afirmação inventada. O que sai assim vai para leitura humana.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 24 · OS ARQUIVOS DO CASO ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Implementação · Material</div>
+          <h2 class="slide-title">Os três arquivos do caso</h2>
+          <p class="slide-subtitle">Baixe os três agora. O material da aula traz os mesmos links, e o contrato e o dossiê são documentos fictícios, escritos para este exercício.</p>
+        </div>
+        <div class="dl-row" style="margin-bottom:14px;">
+          <div class="dl">
+            <h3 style="font-size:0.84rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--btg-deep);margin:0 0 8px;">1 · A instrução</h3>
+            <p style="margin:0;font-size:0.93rem;line-height:1.5;">O texto que vai no campo de instruções da Gem, com os campos entre colchetes para você editar.</p>
+            <a href="../assets/caso-caxirola/gem-consultor-marcas-contratos.txt" download>Baixar a instrução (.txt)</a>
+          </div>
+          <div class="dl">
+            <h3 style="font-size:0.84rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--btg-deep);margin:0 0 8px;">2 · O contrato</h3>
+            <p style="margin:0;font-size:0.93rem;line-height:1.5;">Treze cláusulas e dois anexos, entre a Oficina Caxi Liberdade e a Madeflora. Entra na conversa.</p>
+            <a href="../assets/caso-caxirola/contrato-madeflora-caxi-val.docx" download>Baixar o contrato (.docx)</a>
+          </div>
+          <div class="dl">
+            <h3 style="font-size:0.84rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:var(--btg-deep);margin:0 0 8px;">3 · O dossiê</h3>
+            <p style="margin:0;font-size:0.93rem;line-height:1.5;">Compilado público sobre a contraparte. Só entra na rodada 3, e não antes.</p>
+            <a href="../assets/caso-caxirola/dossie-publico-madeflora.docx" download>Baixar o dossiê (.docx)</a>
+          </div>
+        </div>
+        <div class="callout navy">
+          A ordem importa. A rodada 2 roda sem o dossiê, para que se veja o que a Gem faz quando não tem a informação. A rodada 3 acrescenta o dossiê e compara as duas saídas.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 25 · RODADA 2 ==================== -->
+    <div class="slide rodada-bg">
+      <div class="slide-content">
+        <div class="slide-header rodada-head">
+          <div class="slide-eyebrow"><span class="who a">A</span>Rodada 2 · 11:10 – 11:40 · 30 minutos</div>
+          <h2 class="slide-title">Criem a Gem e rodem sobre o contrato</h2>
+          <p class="slide-subtitle">Primeira execução, sem o dossiê. A saída registrada aqui é a linha de base da comparação do fim da manhã.</p>
+        </div>
+        <div class="grid-2-1">
+          <div class="stack" style="gap:10px;">
+            <div class="step-box"><div class="step-num">1</div><h4>Criem a Gem e colem a instrução</h4><p>Nome que diga a função. A instrução vem do arquivo, sem edição nesta rodada.</p></div>
+            <div class="step-box"><div class="step-num">2</div><h4>Anexem apenas o contrato</h4><p>O dossiê fica de fora. Registrem qual modelo está selecionado.</p></div>
+            <div class="step-box"><div class="step-num">3</div><h4>Rodem e guardem a saída inteira</h4><p>Copiem para o documento da dupla, sem editar e sem resumir.</p></div>
+            <div class="step-box"><div class="step-num">4</div><h4>Confiram cinco afirmações</h4><p>Sorteiem cinco itens do mapa e verifiquem se a cláusula citada diz aquilo mesmo.</p></div>
+          </div>
+          <div class="stack" style="gap:12px;">
+            <div class="timer" data-min="30">
+              <div class="timer-display">30:00</div>
+              <div class="timer-controls">
+                <button type="button" data-timer="start">Iniciar</button>
+                <button type="button" data-timer="reset">Resetar</button>
+              </div>
+            </div>
+            <div class="box accent">
+              <h3>Entrega desta rodada</h3>
+              <ul>
+              <li>A Gem criada, com o modelo anotado.</li>
+              <li>O parecer da primeira execução, inteiro.</li>
+              <li>Cinco afirmações conferidas contra o texto.</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h3>Chame o professor quando</h3>
+              <p>A Gem devolver formato diferente a cada execução, ou afirmar algo sobre a empresa sem o dossiê ter sido anexado.</p>
+              <p style="margin-top:6px;color:var(--btg-muted);font-size:0.86rem;">Conduz Afonso; Rodrigo circula e recolhe os erros.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 26 · LEITURA CRÍTICA ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Parada · 11:40 – 11:55</div>
+          <h2 class="slide-title">Como ler o parecer criticamente</h2>
+          <p class="slide-subtitle">Três perguntas, na ordem em que revelam mais.</p>
+        </div>
+        <div class="grid-3" style="margin-bottom:13px;">
+          <div class="pillar">
+            <div class="pillar-num">1</div>
+            <div class="pillar-title">O que ela afirmou sem base?</div>
+            <ul class="pillar-list">
+              <li>Afirmação sobre a empresa, numa execução sem o dossiê.</li>
+              <li>Certificação dada como válida, sem registro citado.</li>
+              <li>Valor ou prazo que não apareça em cláusula alguma.</li>
+            </ul>
+          </div>
+          <div class="pillar">
+            <div class="pillar-num">2</div>
+            <div class="pillar-title">O que ela deixou passar?</div>
+            <ul class="pillar-list">
+              <li>Compare o mapa com o índice de cláusulas.</li>
+              <li>Veja se as lacunas saíram marcadas como ausentes.</li>
+              <li>Cláusula fora do mapa não foi avaliada.</li>
+            </ul>
+          </div>
+          <div class="pillar">
+            <div class="pillar-num">3</div>
+            <div class="pillar-title">A conta fecha?</div>
+            <ul class="pillar-list">
+              <li>Refaça à mão a média ponderada.</li>
+              <li>Veja se algum eliminatório foi acionado e ignorado.</li>
+              <li>Semáforo que não bate com a nota é falha de instrução.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout navy">
+          Uma saída bem formatada persuade antes de ser conferida. Por isso a conferência por amostra integra o procedimento, em vez de ficar a critério de quem lê.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 27 · ONDE A GEM FALHA ==================== -->
+    <div class="slide dense">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Parada · Falhas conhecidas</div>
+          <h2 class="slide-title">Onde a Gem costuma falhar neste contrato</h2>
+          <p class="slide-subtitle">Quatro padrões observados em execuções anteriores. A coluna da direita indica onde a correção se dirige.</p>
+        </div>
+        <table class="btg-table">
+          <thead><tr><th style="width:300px;">Sintoma na saída</th><th>Por que acontece</th><th style="width:250px;">Onde corrigir</th></tr></thead>
+          <tbody>
+            <tr><td>Trata declaração como garantia contratual</td><td>A cláusula que esvazia a declaração está em outro item, e o modelo classifica pelo trecho mais forte.</td><td>Procedimento: exigir a leitura dos itens seguintes de cada cláusula.</td></tr>
+            <tr><td>Não aponta o que falta no contrato</td><td>Instrução que pede para extrair tende a devolver só o que existe.</td><td>Procedimento: tornar "ausente — lacuna" um valor obrigatório da lista.</td></tr>
+            <tr><td>Afirma certificação sem verificar</td><td>A menção está no próprio contrato, e nada manda confirmar na certificadora.</td><td>Limites e ferramenta: exigir busca e proibir afirmação sem fonte.</td></tr>
+            <tr><td>Nota final alta com item grave presente</td><td>A média pondera e dilui o critério que deveria barrar sozinho.</td><td>Procedimento: avaliar os eliminatórios antes de calcular a média.</td></tr>
+          </tbody>
+        </table>
+        <div class="callout" style="margin-top:12px;">
+          Altere um elemento por vez e repita a execução sobre o mesmo contrato. Com duas mudanças simultâneas, o efeito observado não pode ser atribuído a nenhuma delas.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 28 · O DOSSIÊ E OS TRÊS STATUS ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who n">N</span>Implementação · Contexto</div>
+          <h2 class="slide-title">O que muda quando o dossiê entra</h2>
+          <p class="slide-subtitle">A etapa 3 deixa de operar no vazio, com três respostas possíveis.</p>
+        </div>
+        <div class="grid-3" style="margin-bottom:13px;">
+          <div class="box accent"><h3>Verificado</h3><p>Fonte oficial, com referência e data. É o único status que sustenta reprovação por critério eliminatório.</p></div>
+          <div class="box accent"><h3>Indício</h3><p>Fonte secundária ou não confirmada. Vira pergunta a fazer à contraparte, e não conclusão.</p></div>
+          <div class="box accent"><h3>Não encontrado</h3><p>Busca feita, nada localizado. Entra no relatório como achado: a ausência de registro também informa.</p></div>
+        </div>
+        <div class="callout navy">
+          O dossiê foi montado para que os três apareçam, e traz de propósito um achado grave cuja titularidade não se confirma. Cravar ali é o erro.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 29 · RODADA 3 ==================== -->
+    <div class="slide rodada-bg">
+      <div class="slide-content">
+        <div class="slide-header rodada-head">
+          <div class="slide-eyebrow"><span class="who n">N</span>Rodada 3 · 12:00 – 12:35 · 35 minutos</div>
+          <h2 class="slide-title">Anexem o dossiê, ajustem o critério e comparem</h2>
+          <p class="slide-subtitle">Os parâmetros de marca passam a ser os de vocês, e a comparação com a primeira execução é a evidência do dia.</p>
+        </div>
+        <div class="grid-2-1">
+          <div class="stack" style="gap:10px;">
+            <div class="step-box"><div class="step-num">1</div><h4>Anexem o dossiê e reexecutem</h4><p>Mesmo contrato, mesma instrução. Só o contexto mudou.</p></div>
+            <div class="step-box"><div class="step-num">2</div><h4>Troquem os parâmetros de marca</h4><p>Os critérios eliminatórios e os pesos passam a ser os da sua área.</p></div>
+            <div class="step-box"><div class="step-num">3</div><h4>Corrijam um sintoma por vez</h4><p>Consultem a tabela de falhas e repitam a execução a cada alteração.</p></div>
+            <div class="step-box"><div class="step-num">4</div><h4>Comparem com a rodada 2</h4><p>Marquem o que melhorou, o que continuou igual e o que piorou.</p></div>
+          </div>
+          <div class="stack" style="gap:12px;">
+            <div class="timer" data-min="35">
+              <div class="timer-display">35:00</div>
+              <div class="timer-controls">
+                <button type="button" data-timer="start">Iniciar</button>
+                <button type="button" data-timer="reset">Resetar</button>
+              </div>
+            </div>
+            <div class="box accent">
+              <h3>Entrega desta rodada</h3>
+              <ul>
+              <li>Instrução ajustada, com o registro de cada alteração.</li>
+              <li>Parecer final, com os três status presentes.</li>
+              <li>Comparação com a primeira execução, item a item.</li>
+              </ul>
+            </div>
+            <div class="box">
+              <h3>Chame o professor quando</h3>
+              <p>Uma correção resolver um sintoma e criar outro, ou a nota final continuar alta com eliminatório acionado.</p>
+              <p style="margin-top:6px;color:var(--btg-muted);font-size:0.86rem;">Conduz Rodrigo; Afonso valida as comparações. Troquem os papéis agora.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 30 · FECHAMENTO · DIVISOR ==================== -->
+    <div class="slide divider-bg">
+      <div class="slide-content block-divider">
+        <span class="block-tag">Fechamento</span>
+        <h1>Limites e compromisso</h1>
+        <p class="block-sub">O bloco que converte o que se construiu em sala em algo que sobrevive à segunda-feira.</p>
+        <div class="block-clock">
+          <div class="block-clock-item"><div class="block-clock-label">Horário</div><div class="block-clock-value">12:35 – 12:45</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Conduz</div><div class="block-clock-value">Afonso; checklist com Rodrigo</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">O que abre este bloco</div><div class="block-clock-value">A comparação entre as duas execuções</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 31 · O QUE NÃO SE DELEGA ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Fechamento · Responsabilidade</div>
+          <h2 class="slide-title">O que não se delega ao fluxo</h2>
+          <p class="slide-subtitle">Valem para qualquer solução construída aqui.</p>
+        </div>
+        <div class="grid-2" style="margin-bottom:12px;">
+          <div class="box">
+            <h3>Sobre os dados</h3>
+            <ul>
+              <li>Conta corporativa aprovada, conferida antes do primeiro teste.</li>
+              <li>Documento sob sigilo e dado de cliente não entram na Gem.</li>
+              <li>Contrato de terceiro, só com autorização de quem responde por ele.</li>
+              <li>Registre que arquivos a Gem contém e quando mudaram.</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>Sobre as decisões</h3>
+            <ul>
+              <li>Assinar é decisão de pessoa, em qualquer semáforo.</li>
+              <li>Parecer jurídico permanece com advogado habilitado.</li>
+              <li>Risco regulatório permanece com as áreas competentes.</li>
+              <li>Quem entrega responde, inclusive pelo que a Gem errou.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout navy">
+          O fluxo encurta a leitura e mantém a decisão com quem responde por ela. Uma Gem que decide sozinha transfere responsabilidade para onde ela não pode ser exercida.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 32 · CARTA DE APLICAÇÃO ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who a">A</span>Fechamento · 12:37 · 6 min</div>
+          <h2 class="slide-title">Carta de Aplicação e ciclo de trinta dias</h2>
+          <p class="slide-subtitle">A live de encerramento do ciclo começa pela leitura das cartas escritas nestes seis minutos.</p>
+        </div>
+        <div class="grid-4" style="margin-bottom:13px;">
+          <div class="box accent"><h3>Onde</h3><p>Em que situação do seu trabalho o fluxo entra, com a frequência em que essa situação ocorre.</p></div>
+          <div class="box accent"><h3>A partir de quando</h3><p>Data da primeira execução com documento real, dentro das duas semanas seguintes.</p></div>
+          <div class="box accent"><h3>Com quem</h3><p>Quem revisa a saída e quem precisa ser avisado de que o fluxo passou a existir.</p></div>
+          <div class="box accent"><h3>Qual sinal</h3><p>O que será observável em trinta dias se tiver funcionado, em uma medida que você consiga verificar.</p></div>
+        </div>
+        <div class="grid-2">
+          <div class="box"><h3>Learning Log, dois campos</h3><p>Pressuposto em revisão: que crença sobre a tecnologia você revê hoje, e que decisão passa a tomar de outro modo. Mudança esperada: o sinal observável dessa mudança.</p></div>
+          <div class="box"><h3>Trinta dias depois</h3><p>Live coletiva com três perguntas: o que da carta avançou e o que travou, que caso novo entra no acervo da turma, e que crença foi revista no período.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 33 · CHECKLIST ==================== -->
+    <div class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div class="slide-eyebrow"><span class="who n">N</span>Fechamento · 12:43</div>
+          <h2 class="slide-title">Checklist antes de levar o fluxo para a rotina</h2>
+          <p class="slide-subtitle">O que ficar desmarcado entra na sua agenda da semana.</p>
+        </div>
+        <div class="grid-2">
+          <div class="box">
+            <h3>Construção</h3>
+            <ul>
+              <li>A decisão em jogo está escrita em uma frase.</li>
+              <li>Cada etapa declara seu contexto e sua ferramenta.</li>
+              <li>A instrução tem as cinco partes e limites explícitos.</li>
+              <li>A saída declara seções fixas e o valor para o indeterminado.</li>
+              <li>Os critérios eliminatórios são avaliados antes da média.</li>
+            </ul>
+          </div>
+          <div class="box">
+            <h3>Operação</h3>
+            <ul>
+              <li>Cinco afirmações conferidas contra o documento.</li>
+              <li>As lacunas saíram marcadas como ausentes.</li>
+              <li>O revisor das saídas está nomeado e avisado.</li>
+              <li>A conta usada é a corporativa aprovada pela área.</li>
+              <li>A Carta de Aplicação tem data, interlocutor e sinal observável.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:13px;">
+          O certificado sai no fim do dia, contra o fluxo desenhado e a Gem testada. O Selo de Aplicação depende do Check de Aplicação, trinta dias depois.
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 34 · PERGUNTAS SOBRE IA ==================== -->
+    <div class="slide divider-bg">
+      <div class="slide-content block-divider">
+        <span class="block-tag">Q&amp;A</span>
+        <h1>Perguntas abertas sobre IA</h1>
+        <p class="block-sub">Dez minutos para perguntas sobre o que foi construído hoje e sobre o uso de IA no trabalho de cada um.</p>
+        <div class="block-clock">
+          <div class="block-clock-item"><div class="block-clock-label">Horário</div><div class="block-clock-value">12:45 – 12:55</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Conduzem</div><div class="block-clock-value">Afonso e Rodrigo</div></div>
+          <div class="block-clock-item"><div class="block-clock-label">Em seguida</div><div class="block-clock-value">Encerramento e certificados, 12:55</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 35 · PESQUISA DE SATISFAÇÃO ==================== -->
+    <div class="slide pesquisa" aria-label="Pesquisa de satisfação do encontro">
+      <img src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1790125921/Captura_de_tela_de_2026-09-22_22-10-48_qxzea6.png" alt="Pesquisa de satisfação do dia 23/09: QR code à esquerda e, à direita, o convite para ler o código e dar sua opinião">
+    </div>
+
+<!-- encontro:meta:start -->
+<div class="slide encontro-slide"><div class="sc"><section class="encontro-meta" data-encontro-ficha><h2>Sobre este encontro</h2><p class="encontro-ref">AI for Business: do problema de negócio ao fluxo com IA · 23/09/2026 · Prof. Afonso</p><div class="encontro-item" data-encontro="objetivo"><h3>Objetivo de aprendizagem</h3><p>Ao final do encontro, o participante deve ser capaz de enunciar em uma frase a decisão de negócio que pretende apoiar, parti-la em etapas com entrada declarada e saída conferível, dizer de cada etapa qual contexto ela exige e quais ferramentas ela usa, e construir no Google Gemini uma Gem que execute esse fluxo sobre um documento real, distinguindo na saída o que foi verificado, o que é indício e o que não foi encontrado, e declarando por escrito o que a solução não deve decidir.</p></div><div class="encontro-item" data-encontro="estrategia"><h3>Estratégia do encontro</h3><p>Sessão presencial única de quatro horas, conduzida em alternância por dois professores, com a marca de quem conduz em cada tela. Depois da abertura institucional, trinta minutos formam um só bloco conceitual, conduzido pelos dois: uma sequência visual de sete telas sobre a trajetória da IA, do ENIAC ao GPT-3, seguida do mecanismo do modelo, do token e da troca de modelo, e dos cinco termos que permitem procurar solução depois da aula. A partir das nove e quarenta a sala trabalha sobre um caso único, a análise de um contrato de fornecimento de madeira recebido por um fabricante artesanal cuja marca depende do que o dono fala em público. O caso é primeiro decomposto em plenária, e em seguida cada dupla repete o método sobre um problema do próprio trabalho. A construção se dá em três rodadas cronometradas: o desenho do fluxo, a primeira execução da Gem sobre o contrato sem informação externa, e a reexecução depois de anexado o dossiê público da contraparte, com comparação entre as duas saídas. Enquanto um professor conduz, o outro circula entre as duplas e recolhe os erros que abrem a parada seguinte.</p></div><div class="encontro-item" data-encontro="agenda"><h3>Estrutura do encontro</h3><ol><li>09:00 – 09:10 · Abertura institucional, com Victor Machado.</li><li>09:10 – 09:40 · Conceitos iniciais, com Afonso e Rodrigo: a trajetória da IA do ENIAC ao GPT-3 e o que o estado atual faz e não garante, como a resposta é produzida, o que é um token e que diferença faz trocar de modelo, e os termos contexto, ferramenta, agente, skill e harness, cada um apresentado pela falha que permite diagnosticar.</li><li>09:40 – 10:00 · O caso de Val da Caxirola e a decomposição em plenária: o problema de negócio, as cinco etapas do fluxo e as duas perguntas que cada etapa responde.</li><li>10:00 – 10:20 · Tour opcional pelo campus e foto da turma na escadaria; quem ficar na sala pode fechar o problema da dupla com um dos professores.</li><li>10:20 – 11:10 · Rodada 1, com Rodrigo: cada dupla fecha o problema e desenha o fluxo do próprio caso, com contexto e ferramentas declarados etapa a etapa.</li><li>11:10 – 11:40 · Rodada 2, com Afonso: a Gem é criada, recebe a instrução e roda sobre o contrato sem o dossiê; a saída é guardada como linha de base.</li><li>11:40 – 11:55 · Leitura crítica do parecer, com Afonso: o que a Gem afirmou sem base, o que deixou passar e se a conta da matriz fecha.</li><li>11:55 – 12:00 · Intervalo.</li><li>12:00 – 12:35 · Rodada 3, com Rodrigo: o dossiê é anexado, os critérios de marca passam a ser os da área de cada dupla e a saída é comparada com a da rodada anterior.</li><li>12:35 – 12:45 · Fechamento, com os dois: o que não se delega ao fluxo, Carta de Aplicação e checklist de dez verificações.</li><li>12:45 – 12:55 · Perguntas abertas sobre IA, com os dois.</li><li>12:55 – 13:00 · Encerramento e entrega dos certificados.</li></ol></div></section></div></div>
+<!-- encontro:meta:end -->
+</div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../pages/home_diversos.html" class="back-home">← Diversos</a>
+      <a href="../materials/btg-ai-for-business-material.html" class="back-home material">📖 Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons">
+        <button id="prevBtn" onclick="prevSlide()">← Anterior</button>
+      </div>
+      <span class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">47</span></span>
+      <div class="nav-buttons">
+        <button id="nextBtn" onclick="nextSlide()">Próximo →</button>
+      </div>
+      <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia (F)">⛶</button>
+    </div>
+    <div class="footer-brand">
+      <span>BTG Pactual · Inteli Educação Executiva</span>
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    document.getElementById('totalSlides').textContent = totalSlides;
+
+    function showSlide(n) {
+      slides.forEach((s) => s.classList.remove('active'));
+      currentSlide = Math.max(0, Math.min(n, totalSlides - 1));
+      slides[currentSlide].classList.add('active');
+      document.getElementById('currentSlide').textContent = currentSlide + 1;
+      document.getElementById('prevBtn').disabled = currentSlide === 0;
+      document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+    }
+    // Exposto globalmente para que scripts de captura (Playwright) chamem window.showSlide(idx).
+    window.showSlide = showSlide;
+
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function prevSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+
+    document.addEventListener('keydown', (e) => {
+      // com foco num botão (cronômetro, navegação), a barra de espaço aciona o botão
+      if (e.key === ' ' && e.target && e.target.tagName === 'BUTTON') return;
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); nextSlide(); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prevSlide(); }
+      if (e.key === 'Home') { e.preventDefault(); showSlide(0); }
+      if (e.key === 'End') { e.preventDefault(); showSlide(totalSlides - 1); }
+      if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullScreen(); }
+    });
+
+    showSlide(0);
+
+    // Cronômetro de cada rodada de construção: regressivo, com pausa e reset.
+    document.querySelectorAll('.timer').forEach((caixa) => {
+      const minutos = parseInt(caixa.dataset.min, 10) || 10;
+      const mostrador = caixa.querySelector('.timer-display');
+      const iniciar = caixa.querySelector('[data-timer="start"]');
+      const resetar = caixa.querySelector('[data-timer="reset"]');
+      let restante = minutos * 60;
+      let relogio = null;
+
+      function pintar() {
+        const m = String(Math.floor(restante / 60)).padStart(2, '0');
+        const s = String(restante % 60).padStart(2, '0');
+        mostrador.textContent = m + ':' + s;
+        caixa.classList.toggle('acabou', restante === 0);
+      }
+      function parar() { clearInterval(relogio); relogio = null; iniciar.textContent = 'Iniciar'; }
+
+      iniciar.addEventListener('click', () => {
+        if (relogio) { parar(); return; }
+        iniciar.textContent = 'Pausar';
+        relogio = setInterval(() => {
+          restante = Math.max(0, restante - 1);
+          pintar();
+          if (restante === 0) parar();
+        }, 1000);
+      });
+      resetar.addEventListener('click', () => { parar(); restante = minutos * 60; pintar(); });
+      pintar();
+    });
+  </script>
+<!-- semana:js:start -->
+<script src="../../../js/semana-ano.js" defer></script>
+<!-- semana:js:end -->
+</body>
+</html>

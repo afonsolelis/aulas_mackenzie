@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ambev DS4DM — Módulo 1: Definindo o Problema — Material — Inteli Exec</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="../../../css/inteli-styles.css" rel="stylesheet">
+  <style>
+    :root {
+      --exec-navy: #252640;
+      --exec-deep: #252640;
+      --exec-mid:  #3a3c5c;
+      --exec-gold: #D93B58;
+      --exec-gold-soft: #D9A7B0;
+      --exec-gold-mid: #D95B72;
+      --exec-ink: #252640;
+      --exec-paper: #F0F2F2;
+      --exec-line: #d6d4d8;
+      --exec-muted: #6a6c84;
+    }
+    body {
+      font-family: "Manrope", sans-serif;
+      background: var(--exec-paper);
+      color: var(--exec-ink);
+    }
+
+    /* Topbar Inteli Exec */
+    .exec-topbar {
+      background: #e6eaeb;
+      border-bottom: 2px solid var(--exec-gold);
+      padding: 12px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 12px rgba(37,38,64,0.08);
+    }
+    .exec-topbar img { height: 40px; display: block; }
+    .exec-program-tag {
+      color: var(--exec-deep); font-size: 0.78rem; font-weight: 800;
+      letter-spacing: 0.18em; text-transform: uppercase;
+    }
+
+    /* Page header */
+    .page-header {
+      background: #e6eaeb;
+      color: var(--exec-deep); padding: 48px 0; position: relative;
+      border-bottom: 4px solid var(--exec-gold);
+    }
+    .page-header .badge-exec {
+      display: inline-block; padding: 4px 14px; background: var(--exec-gold);
+      color: white; font-size: 0.72rem; font-weight: 800;
+      letter-spacing: 0.18em; text-transform: uppercase; border-radius: 2px;
+      margin-bottom: 14px;
+    }
+    .page-header h1 {
+      font-size: 2.6rem; font-weight: 900; margin: 0 0 8px; letter-spacing: -0.01em;
+      color: var(--exec-deep);
+    }
+    .page-header .lead { font-size: 1.1rem; color: var(--exec-muted); margin: 0; }
+    .header-actions {
+      position: absolute; top: 24px; right: 28px;
+      display: flex; gap: 10px;
+    }
+    .header-actions .btn { border-radius: 2px; font-weight: 700; font-size: 0.85rem; }
+    .btn-gold { background: var(--exec-gold); color: white; border: none; }
+    .btn-gold:hover { background: var(--exec-gold-mid); color: white; }
+    .btn-outline-gold { background: transparent; color: var(--exec-deep); border: 1px solid var(--exec-deep); }
+    .btn-outline-gold:hover { background: var(--exec-deep); color: white; }
+
+    /* Conteúdo */
+    .study-content {
+      background: white; border-radius: 4px;
+      border: 1px solid var(--exec-line);
+      padding: 40px 48px; margin: 36px 0;
+      box-shadow: 0 4px 16px rgba(37,38,64,0.06);
+    }
+    .study-content h2 {
+      color: var(--exec-deep); font-weight: 800;
+      margin-top: 2.6rem; margin-bottom: 1rem;
+      border-bottom: 2px solid var(--exec-gold);
+      padding-bottom: 6px; display: inline-block;
+      scroll-margin-top: 90px;
+    }
+    .study-content h2:first-of-type { margin-top: 0; }
+    .study-content h3 {
+      color: var(--exec-mid); font-weight: 700; font-size: 1.2rem;
+      margin-top: 1.8rem;
+    }
+    .study-content h4 {
+      color: var(--exec-deep); font-weight: 700; font-size: 1.02rem;
+      margin-top: 1.2rem;
+    }
+    .study-content p { line-height: 1.7; color: var(--exec-ink); }
+    .study-content blockquote {
+      border-left: 3px solid var(--exec-gold-soft);
+      padding: 4px 18px; color: var(--exec-mid);
+      font-style: italic; margin: 18px 0;
+    }
+    .study-content blockquote cite {
+      display: block; font-size: 0.78rem; color: var(--exec-muted);
+      font-style: normal; letter-spacing: 0.05em; margin-top: 6px;
+    }
+
+    .exec-callout {
+      background: var(--exec-paper); border-left: 4px solid var(--exec-gold);
+      padding: 18px 22px; margin: 18px 0; border-radius: 0 4px 4px 0;
+    }
+    .exec-callout strong { color: var(--exec-deep); }
+
+    .pillar-card {
+      background: white; border: 1px solid var(--exec-line); border-radius: 4px;
+      padding: 22px 22px 18px; height: 100%; position: relative;
+      box-shadow: 0 2px 8px rgba(37,38,64,0.05);
+    }
+    .pillar-card .pillar-num {
+      position: absolute; top: -12px; left: 18px;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--exec-gold); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 0.85rem;
+      box-shadow: 0 3px 6px rgba(217,59,88,0.30);
+    }
+    .pillar-card h4 {
+      font-size: 1rem; font-weight: 800; color: var(--exec-deep);
+      margin: 6px 0 8px;
+    }
+    .pillar-card ul { margin: 0; padding-left: 1.1rem; }
+    .pillar-card li { font-size: 0.88rem; color: var(--exec-muted); margin-bottom: 4px; }
+
+    .deliverable-box {
+      background: white; border: 2px solid var(--exec-gold);
+      border-radius: 4px; padding: 24px 28px; margin: 20px 0;
+    }
+    .deliverable-box .db-label {
+      color: var(--exec-gold); font-size: 0.78rem; font-weight: 800;
+      letter-spacing: 0.18em; text-transform: uppercase; margin: 0 0 10px;
+    }
+    .deliverable-box .db-title {
+      border: none; padding: 0; margin: 0 0 8px; font-weight: 700;
+      color: var(--exec-ink); font-size: 1.6rem;
+    }
+
+    /* Mini índice */
+    .mini-toc {
+      background: white;
+      border: 1px solid var(--exec-line);
+      border-left: 4px solid var(--exec-gold);
+      border-radius: 4px;
+      padding: 18px 22px;
+      margin-bottom: 28px;
+    }
+    .mini-toc h5 {
+      font-size: 0.78rem; font-weight: 800; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--exec-gold);
+      margin: 0 0 12px;
+    }
+    .mini-toc ol {
+      columns: 2; column-gap: 28px;
+      margin: 0; padding-left: 1.2rem;
+    }
+    .mini-toc li { margin-bottom: 4px; font-size: 0.92rem; }
+    .mini-toc a { color: var(--exec-deep); text-decoration: none; }
+    .mini-toc a:hover { color: var(--exec-gold); text-decoration: underline; }
+    @media (max-width: 720px) { .mini-toc ol { columns: 1; } }
+
+    /* Timeline da agenda */
+    .timeline {
+      border-left: 2px solid var(--exec-gold-soft);
+      padding-left: 22px; margin: 18px 0 24px;
+    }
+    .timeline-item {
+      position: relative; margin-bottom: 14px;
+    }
+    .timeline-item::before {
+      content: ""; position: absolute; left: -29px; top: 6px;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--exec-gold);
+      box-shadow: 0 0 0 3px white, 0 0 0 4px var(--exec-gold-soft);
+    }
+    .timeline-item .time {
+      font-weight: 800; color: var(--exec-deep); font-size: 0.92rem;
+      letter-spacing: 0.04em;
+    }
+    .timeline-item .desc {
+      color: var(--exec-mid); font-size: 0.92rem;
+    }
+
+    /* Tabela executiva */
+    .exec-table {
+      width: 100%; border-collapse: collapse; margin: 16px 0 22px;
+      font-size: 0.92rem;
+    }
+    .exec-table th {
+      background: var(--exec-deep); color: white;
+      padding: 10px 14px; text-align: left; font-weight: 700;
+      font-size: 0.84rem; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .exec-table td {
+      padding: 10px 14px; border-bottom: 1px solid var(--exec-line);
+      vertical-align: top; color: var(--exec-ink);
+    }
+    .exec-table tr:nth-child(even) td { background: rgba(240,242,242,0.45); }
+    .exec-table tr:hover td { background: rgba(217,167,176,0.10); }
+    .exec-table .tag {
+      display: inline-block; font-size: 0.7rem; font-weight: 800;
+      padding: 2px 8px; border-radius: 2px;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .tag-desc { background: #E1ECF7; color: #1F4E79; }
+    .tag-pred { background: #FCEFD5; color: #8A5A00; }
+    .tag-pres { background: #E4F1E1; color: #2E6E34; }
+
+    /* Mini-case card */
+    .micro-case {
+      background: white;
+      border: 1px solid var(--exec-line);
+      border-radius: 4px;
+      padding: 16px 18px;
+      height: 100%;
+      box-shadow: 0 2px 6px rgba(37,38,64,0.04);
+    }
+    .micro-case .micro-num {
+      display: inline-block; padding: 2px 8px;
+      background: var(--exec-deep); color: white;
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em;
+      border-radius: 2px; margin-bottom: 8px;
+    }
+    .micro-case p { font-size: 0.92rem; margin-bottom: 8px; }
+    .micro-case .answer {
+      font-size: 0.82rem; color: var(--exec-gold);
+      font-weight: 700; border-top: 1px dashed var(--exec-line);
+      padding-top: 6px; margin-top: 6px;
+    }
+
+    .inteli-footer {
+      background: var(--exec-navy) !important; color: rgba(255,255,255,0.85);
+      border-top: 3px solid var(--exec-gold) !important; padding: 24px 0;
+    }
+    .inteli-footer strong { color: var(--exec-gold-soft); }
+    .inteli-footer small { color: rgba(255,255,255,0.6); }
+  </style>
+
+<!-- encontro:css:start -->
+<link rel="stylesheet" href="../../../css/encontro.css">
+<!-- encontro:css:end -->
+
+<!-- semana:css:start -->
+<link rel="stylesheet" href="../../../css/semana-ano.css">
+<!-- semana:css:end -->
+</head>
+<body>
+
+  <!-- Topbar Inteli Exec -->
+  <div class="exec-topbar">
+    <img src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1779227253/Captura_de_tela_2026-05-19_184615_asjkpw.png" alt="Logo Inteli Exec">
+    <span class="exec-program-tag">Ambev · DS4DM · Turma 2</span>
+  </div>
+
+  <!-- Header -->
+  <header class="page-header">
+    <div class="container position-relative">
+      <span class="badge-exec">Módulo 01 · Diagnóstico</span>
+      <h1>Definindo o Problema</h1>
+      <p class="lead">Material de apoio · Pensamento analítico, modelagem e mitigação de vieses · Case Disney+</p>
+    </div>
+    <div class="header-actions">
+      <a href="../slides/slide_ambev-m1-problema.html" class="btn btn-gold btn-sm">🎞️ Slides</a>
+      <a href="../../../../pages/home_diversos.html" class="btn btn-outline-gold btn-sm">← Palestras</a>
+    </div>
+  </header>
+
+<!-- encontro:meta:start -->
+<div class="container" style="max-width:1100px;margin:24px auto 0;padding:0 16px;"><section class="encontro-meta" data-encontro-ficha><h2>Sobre este encontro</h2><p class="encontro-ref">Ambev DS4DM · Prof. Afonso</p><div class="encontro-item" data-encontro="objetivo"><h3>Objetivo de aprendizagem</h3><p>Ao final do encontro, o estudante deve ser capaz de aplicar ao projeto os conceitos de Ambev DS4DM.</p></div><div class="encontro-item" data-encontro="estrategia"><h3>Estratégia do encontro</h3><p>Exposição dialogada dos conceitos, alternada com aplicação guiada ao projeto do grupo, e fechamento com verificação do entendimento.</p></div><div class="encontro-item" data-encontro="agenda"><h3>Estrutura do encontro</h3><ol><li>1 · Como ler este material</li><li>2 · O case que vai guiar o dia</li><li>3 · Objetivo do módulo</li><li>4 · Os 4 pilares do diagnóstico</li><li>5 · Pilar 1 · Pensamento analítico</li><li>6 · Pilar 2 · Modelos de análise</li><li>7 · Pilar 3 · Modelagem de dados</li><li>8 · Pilar 4 · Heurísticas e vieses</li></ol></div></section></div>
+<!-- encontro:meta:end -->
+<main class="container">
+    <div class="study-content">
+
+      <!-- Mini índice -->
+      <nav class="mini-toc">
+        <h5>📑 Mini índice</h5>
+        <ol>
+          <li><a href="#como-ler">Como ler este material</a></li>
+          <li><a href="#case-disney">O case que vai guiar o dia</a></li>
+          <li><a href="#objetivo">Objetivo do módulo</a></li>
+          <li><a href="#pilares">Os 4 pilares do diagnóstico</a></li>
+          <li><a href="#pilar-1">Pilar 1 · Pensamento analítico</a>
+            <ul>
+              <li><a href="#prompt-guidde">5.5 Prompt Engineering para o GUIDDE</a></li>
+            </ul>
+          </li>
+          <li><a href="#pilar-2">Pilar 2 · Modelos de análise</a></li>
+          <li><a href="#pilar-3">Pilar 3 · Modelagem de dados</a></li>
+          <li><a href="#pilar-4">Pilar 4 · Heurísticas e vieses</a></li>
+          <li><a href="#integradora">Atividade integradora · Problem Statement</a>
+            <ul>
+              <li><a href="#prompt-brainstorm">9.6 IA Generativa no Brainstorming</a></li>
+            </ul>
+          </li>
+          <li><a href="#conexoes">Conexões com os próximos módulos</a></li>
+          <li><a href="#glossario">Glossário rápido</a></li>
+          <li><a href="#referencias">Leituras e referências</a></li>
+        </ol>
+      </nav>
+
+      <!-- 1. Como ler este material -->
+      <h2 id="como-ler">1 · Como ler este material</h2>
+      <p>
+        Este é o seu <strong>caderno de bolso</strong> para o Módulo 1 do programa <em>Data Science
+        for Decision Makers</em>. Ele foi pensado para três momentos distintos:
+      </p>
+      <ul>
+        <li><strong>Antes da aula (40–60 min)</strong> — leia as seções <em>O case que vai guiar o dia</em>,
+        <em>Objetivo do módulo</em> e a abertura de cada um dos 4 pilares. Deixe as dinâmicas para fazer ao vivo.</li>
+        <li><strong>Durante a aula</strong> — use o material como referência rápida para frameworks
+        (GUIDDE, SCQA, PIE, 5W2H), tabela de vieses e gabaritos das cartas da Dinâmica 2.</li>
+        <li><strong>Depois da aula (1h)</strong> — releia o entregável (Problem Statement), o glossário
+        e o tópico de conexões para amarrar Módulo 1 ao Data Lab da turma.</li>
+      </ul>
+
+      <div class="exec-callout">
+        <strong>Regra do gerente:</strong> se você só tiver 15 minutos antes da aula, leia
+        <a href="#case-disney">a seção do case Disney+</a> e o quadro do framework GUIDDE em
+        <a href="#pilar-1">Pilar 1</a>. Tudo o mais decanta na dinâmica.
+      </div>
+
+      <h3>Agenda do dia (03/08/2026)</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="time">08:30 – 09:00</span> · <span class="desc">Welcome Coffee &amp; networking</span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">09:00 – 10:00</span> · <span class="desc"><strong>Abertura Ambev</strong> — boas-vindas, expectativas, contrato de turma (1h)</span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">10:00 – 10:55</span> · <span class="desc">Bloco 1 · Pensamento analítico — ancoragem no case + Dinâmica 1: <em>O Briefing Impossível do Bob Iger</em></span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">10:55 – 11:10</span> · <span class="desc">Break</span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">11:10 – 12:30</span> · <span class="desc">Bloco 2 · Modelos de análise — Dinâmica 2: <em>Cartas das 3 Análises no Disney+</em></span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">12:30 – 13:30</span> · <span class="desc">Almoço executivo</span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">13:30 – 14:40</span> · <span class="desc">Bloco 3 · Modelagem de dados — Dinâmica 3: <em>Entrevista com Margaret Gupta</em></span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">14:40 – 16:05</span> · <span class="desc">Bloco 4 · Heurísticas e vieses — Dinâmica 4: <em>Quiz dos Vieses na Sala da Disney</em></span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">16:05 – 16:20</span> · <span class="desc">Break</span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">16:20 – 17:50</span> · <span class="desc"><strong>Atividade integradora</strong> — Problem Statement Disney+ + pitch de 5min</span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">17:50 – 18:00</span> · <span class="desc">Síntese &amp; encerramento — amarração dos 4 pilares</span>
+        </div>
+        <div class="timeline-item">
+          <span class="time">18:00 – 20:00</span> · <span class="desc"><strong>Evento pós-aula</strong> — Happy Hour Inteli Exec (não faz parte da carga horária da aula)</span>
+        </div>
+      </div>
+
+      <!-- 2. O case Disney+ -->
+      <h2 id="case-disney">2 · O case que vai guiar o dia</h2>
+      <p>
+        Todo conteúdo do módulo orbita um único case principal: <strong>Disney+ and Machine Learning in the
+        Streaming Age</strong> (Kellogg School of Management, KE1251). Para garantir a aplicação imediata, usaremos em paralelo o <strong>Caso Espelho Ambev</strong>, trazendo dilemas reais da companhia para cada conceito teórico.
+      </p>
+
+      <h3>2.1 O contexto Disney+ (Laboratório)</h3>
+      <p>
+        Julho de 2019. <strong>Margaret Gupta</strong>, senior data scientist da Walt Disney Company, recebe a missão de apresentar à liderança, em três dias, <em>"o valor potencial de Machine Learning para o Disney+"</em>. O desafio é diagnosticar onde dados criam valor único em um mercado dominado pela Netflix.
+      </p>
+
+      <h3>2.2 O Caso Espelho Ambev (Jogo Real)</h3>
+      <p>
+        <strong>Cenário: Expansão Spaten 600ml via Bees.</strong> Em 2026, a Ambev precisa acelerar o share premium em bares de alta renda. O dilema não é "se" devemos investir, mas "onde". Temos dados do Bees, geolocalização e histórico de sell-out. O desafio do gerente é: <em>como transformar esse "mar de dados" em uma decisão clara de investimento em geladeiras e trade marketing?</em>
+      </p>
+
+      <div class="exec-callout">
+        <strong>O Bees em números (resultados FY2025 da AB InBev, arquivados na SEC):</strong>
+        <ul class="mb-0 mt-2">
+          <li><strong>US$ 52,5 bilhões</strong> de GMV capturado em 2025 (+12% vs 2024);</li>
+          <li><strong>72%</strong> das receitas da AB InBev já passam por plataformas digitais B2B, com mais de 6 milhões de clientes em 29 mercados;</li>
+          <li>No Brasil, o BEES Marketplace cresceu <strong>+78%</strong> em GMV e o Zé Delivery gerou <strong>~67 milhões de pedidos</strong> no ano.</li>
+        </ul>
+        <p class="mb-0 mt-2">E o tamanho do prêmio de decidir bem nesse contexto: segundo a McKinsey, empresas de CPG investem ~20% da receita em trade promotions, <strong>59% delas perdem dinheiro</strong> — e as melhores retornam <strong>5x mais</strong> que as piores.</p>
+      </div>
+
+      <div class="exec-callout">
+        <strong>A Ponte:</strong> Se a Disney decide qual original (Mandalorian) priorizar para reter assinantes, a Ambev decide qual PDV priorizar para instalar o "Ecossistema Spaten" e aumentar o HL incremental. O método (GUIDDE) é o mesmo.
+      </div>
+
+      <blockquote>
+        "What value could Gupta and her team add — and what kind of data would they need to leverage?"
+        <cite>Kellogg KE1251</cite>
+      </blockquote>
+
+      <h3>O tabuleiro competitivo (jul/2019)</h3>
+      <ul>
+        <li><strong>Netflix</strong> · ~60 milhões de assinantes nos EUA, 151 milhões globais. Reportou
+        publicamente que <strong>~80% do consumo da plataforma vinha do motor de recomendação</strong>
+        baseado em ML.</li>
+        <li><strong>Amazon Prime Video</strong> · ~41 milhões de assinantes US, embutido no Prime.</li>
+        <li><strong>Apple TV+</strong> · estreia em novembro/2019, mesma janela do Disney+.</li>
+        <li><strong>HBO Max e Peacock</strong> · ambos anunciados para 2020 (e a CBS já operava o All Access, futuro Paramount+).</li>
+      </ul>
+
+      <h3>Os ativos da Disney (pós-aquisição da Fox, mar/2019)</h3>
+      <ul>
+        <li>Catálogo lendário: Walt Disney Studios, Pixar, Marvel, Lucasfilm (Star Wars), National Geographic.</li>
+        <li><strong>Controle do Hulu</strong> — a fatia herdada da Fox, somada ao acordo com a Comcast (mai/2019), deu à Disney o controle operacional; o Hulu já tinha ~27 milhões de assinantes pagos.</li>
+        <li>ESPN+ no portfólio, com dados próprios de consumo esportivo.</li>
+        <li>Quase um século (desde 1923) de dados de bilheteria, parques temáticos, merchandising e Disney Cruises.</li>
+      </ul>
+
+      <h3>O lançamento</h3>
+      <p>
+        O Disney+ entraria no ar com <strong>7.500 episódios de TV + 500 filmes</strong>, mais o
+        flagship original <em>The Mandalorian</em>. Preço inicial: US$ 6,99/mês ou US$ 69,99/ano —
+        deliberadamente abaixo de Netflix.
+      </p>
+
+      <div class="exec-callout">
+        <strong>O risco que ninguém pode ignorar:</strong> o case cita explicitamente o algoritmo de
+        recrutamento da Amazon que discriminava mulheres como exemplo de <em>"AI bias"</em>. ML não é
+        neutro; é tão bom quanto os dados e os critérios que recebe. Gupta precisa entregar valor
+        <em>sem</em> entregar um escândalo de marca.
+      </div>
+
+      <h3>Por que esse case para uma turma da Ambev?</h3>
+      <p>
+        Disney+ em 2019 e Ambev em 2026 vivem o mesmo dilema estrutural: <strong>uma marca centenária
+        com dados gigantes precisa decidir <em>onde</em> e <em>como</em> dados/ML criam valor que a
+        concorrência não consegue replicar</strong>. Trocando Netflix por entrantes ágeis (HEINEKEN
+        digital, cervejarias craft, marketplaces B2B de bebidas), o paralelo é direto:
+      </p>
+      <ul>
+        <li>Catálogo de marcas Ambev = catálogo Disney+ (vasto, premium, com franquias).</li>
+        <li>App Bees, Zé Delivery, Donus = pontos de contato direto com o consumidor/comprador.</li>
+        <li>Aquisição de cervejarias = aquisição da Fox (mais dados, mais complexidade).</li>
+        <li>Pressão de margem em commodities = pressão de margem na guerra do streaming.</li>
+      </ul>
+
+      <h3>Epílogo do case — leia só depois da atividade integradora 🔒</h3>
+      <p>
+        A história respondeu à pergunta da Gupta — e validou o valor de um problema bem definido.
+        No Investor Day de abril/2019, a Disney não apresentou algoritmo: apresentou <strong>diagnóstico</strong> —
+        meta explícita (60–90 milhões de assinantes até o fiscal 2024), preço deliberado
+        (US$ 6,99 vs US$ 12,99 da Netflix) e o papel dos dados no funil. A ação <strong>subiu ~11% no dia
+        seguinte</strong>, antes de o produto existir. No lançamento (12/nov/2019), o serviço registrou
+        <strong>10 milhões de cadastros em ~24 horas</strong> — e a meta de cinco anos foi superada em
+        <strong>~14 meses</strong> (~95 milhões de assinantes no início de 2021).
+      </p>
+      <div class="exec-callout">
+        <strong>Provocação de leitura:</strong> "10 milhões de cadastros no dia 1" é métrica acionável
+        ou KPI Melancia? O número incluía pré-cadastros e trials gratuitos de 7 dias. Que pergunta a
+        Gupta deveria fazer sobre esses 10 milhões? (Dica: releia a seção de KPIs Melancia no Pilar 1.)
+      </div>
+
+      <!-- 3. Objetivo do módulo -->
+      <h2 id="objetivo">3 · Objetivo do módulo</h2>
+      <p>
+        Capacitar os participantes a <strong>estruturar um problema de negócio ambíguo</strong>
+        usando frameworks de pensamento analítico, identificando onde dados/ML criam valor único e
+        reconhecendo a influência de <strong>vieses cognitivos</strong> em decisões executivas — de
+        forma a entregar um <strong>diagnóstico claro com métricas de sucesso bem definidas</strong>.
+      </p>
+
+      <div class="exec-callout">
+        <strong>Programa:</strong> Data Science for Decision Makers — Turma 2 Ambev<br>
+        <strong>Data:</strong> 3 de agosto de 2026, 09h às 18h (coffee 08h30, almoço 12h30)<br>
+        <strong>Formato:</strong> imersão presencial com case Disney+ guiando os 4 blocos<br>
+        <strong>Entregável:</strong> Problem Statement do Disney+ (GUIDDE) + pitch executivo de 5min (SCQA)
+      </div>
+
+      <p>
+        <strong>Por que escolhemos Disney+ e não um case Ambev?</strong> Três razões: (1) o case
+        Kellogg traz dados públicos, robustos e ricos em ambiguidade — perfeito para exercitar
+        problem framing sem disputas internas; (2) o setor de mídia/streaming tem decisões de
+        portfólio, pricing e churn que mapeiam diretamente para CPG (Consumer Packaged Goods); e (3)
+        ninguém na sala vai tentar resolver com a resposta certa que já existe — todos os 40
+        participantes partem do mesmo nível de informação.
+      </p>
+
+      <h3>Por que este músculo importa — o que dizem as pesquisas</h3>
+      <p>
+        O módulo não nasce de opinião: a evidência de que <em>diagnóstico de problema</em> é o elo
+        fraco da gestão moderna é robusta e vem das fontes que o próprio mercado usa como régua:
+      </p>
+      <table class="exec-table">
+        <thead>
+          <tr><th>Número</th><th>O que significa</th><th>Fonte</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>61%</strong></td><td>do tempo que executivos gastam decidindo é usado de forma ineficaz; numa Fortune 500 típica isso equivale a ~530 mil dias de trabalho gerencial e ~US$ 250 milhões por ano</td><td>McKinsey, <em>Decision making in the age of urgency</em>, 2019</td></tr>
+          <tr><td><strong>85%</strong></td><td>dos executivos C-level admitem que suas empresas são ruins em diagnosticar problemas — e 87% dizem que essa falha tem custo significativo</td><td>Wedell-Wedellsborg, <em>Are You Solving the Right Problems?</em>, HBR, 2017</td></tr>
+          <tr><td><strong>24%</strong></td><td>das empresas Fortune 1000 se consideram de fato data-driven</td><td>NewVantage Partners / Wavestone, 2023</td></tr>
+          <tr><td><strong>23x</strong></td><td>mais chance de superar concorrentes em aquisição de clientes (9x em fidelização, 19x em lucratividade) com uso intensivo de analytics</td><td>McKinsey, <em>DataMatics</em></td></tr>
+          <tr><td><strong>95%</strong></td><td>de correlação entre excelência decisória e desempenho financeiro de primeiro quartil (pesquisa de 10 anos, 1.000+ empresas)</td><td>Bain &amp; Company, <em>Decide &amp; Deliver</em>, 2010</td></tr>
+        </tbody>
+      </table>
+      <div class="exec-callout">
+        <strong>Curiosidade honesta:</strong> a famosa frase de Einstein — <em>"se eu tivesse 1 hora,
+        gastaria 55 minutos definindo o problema"</em> — é <strong>apócrifa</strong> (não há registro
+        confiável de autoria). A versão com origem confirmada é de John Dewey, 1938:
+        <em>"a problem well put is half solved"</em>. Usamos a verdadeira.
+      </div>
+
+      <!-- 4. Pilares -->
+      <h2 id="pilares">4 · Os 4 pilares do diagnóstico</h2>
+      <p>O dia se estrutura em quatro pilares que se complementam — cada um vira um bloco da agenda e tem uma dinâmica própria com o Disney+:</p>
+
+      <div class="row g-4 mt-2">
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">1</div>
+            <h4>Pensamento Analítico</h4>
+            <ul>
+              <li>Mentalidade vs ferramenta</li>
+              <li>Frameworks: 5W2H, SCQA, PIE, <strong>GUIDDE</strong></li>
+              <li>KPIs Melancia e elicitação de requisitos</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">2</div>
+            <h4>Modelos de Análise</h4>
+            <ul>
+              <li>Descritiva, preditiva e prescritiva</li>
+              <li>Data-driven vs decision-driven</li>
+              <li>Mapa de casos Ambev nas 3 classes</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">3</div>
+            <h4>Modelagem de Dados</h4>
+            <ul>
+              <li>Todo dado nasce de um processo (BPMN/SIPOC)</li>
+              <li>3 níveis: conceitual, lógico, físico</li>
+              <li>ISO/IEC 25010 e a cadeia da qualidade até a decisão</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">4</div>
+            <h4>Heurísticas e Vieses</h4>
+            <ul>
+              <li>Sistema 1 e Sistema 2 (Kahneman)</li>
+              <li>6 vieses críticos em comitês</li>
+              <li>4 práticas de mitigação</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Pilar 1 -->
+      <h2 id="pilar-1">5 · Pilar 1 · Pensamento analítico</h2>
+
+      <h3>5.1 Mentalidade, não ferramenta</h3>
+      <p>
+        Pensamento analítico, no contexto executivo, não é "saber rodar Python". É a disciplina
+        mental de <strong>decompor um problema vago em perguntas testáveis</strong> antes de mexer em
+        qualquer dado ou ferramenta. Gupta tinha três dias — não dava para construir nada. Dava para
+        <em>diagnosticar onde construir</em>.
+      </p>
+
+      <div class="exec-callout">
+        <strong>Teste prático:</strong> se você pegar um briefing e em 10 minutos não conseguir
+        escrever a <em>pergunta única</em> que ele precisa responder, você ainda não entendeu o
+        problema. Continue elicitando antes de pedir dado.
+      </div>
+
+      <h3>5.2 Quatro frameworks de problem framing</h3>
+
+      <h4>5.2.1 — 5W2H · o checklist universal</h4>
+      <p>
+        <strong>What, Why, Who, Where, When, How, How much.</strong> Útil como varredura rápida.
+        Vantagem: cobre o básico. Limitação: não força foco em <em>decisão</em>.
+      </p>
+
+      <h4>5.2.2 — SCQA (Barbara Minto) · estrutura de pitch</h4>
+      <p>
+        <strong>Situation → Complication → Question → Answer.</strong> Vem do <em>Pyramid Principle</em>
+        da McKinsey. É a estrutura de comunicação. Você usa SCQA para <em>apresentar</em> o problema,
+        não para descobri-lo. No nosso caso final, o pitch de 5 minutos é em SCQA.
+      </p>
+      <ul>
+        <li><strong>Situation:</strong> Disney+ lança em 4 meses contra Netflix, líder com 80% do consumo via ML.</li>
+        <li><strong>Complication:</strong> Disney tem ativos únicos (Pixar, Marvel, Star Wars) mas zero histórico de comportamento em streaming.</li>
+        <li><strong>Question:</strong> Onde investir capacidade analítica nos primeiros 90 dias para gerar vantagem competitiva sustentável?</li>
+        <li><strong>Answer:</strong> ... (esse é o seu Problem Statement.)</li>
+      </ul>
+
+      <h4>5.2.3 — PIE · Problem · Impact · Evidence</h4>
+      <p>
+        Versão enxuta para reuniões de 1 página. Bom quando você tem 30 segundos para vender que vale
+        a pena estudar o problema.
+      </p>
+
+      <h4>5.2.4 — GUIDDE · o framework do módulo</h4>
+      <p>
+        Este é o framework que <strong>você vai usar no entregável final</strong>. Seis dimensões,
+        seis perguntas. Se você não consegue responder uma delas, o problema ainda está mal
+        diagnosticado.
+      </p>
+
+      <table class="exec-table">
+        <thead>
+          <tr><th>Letra</th><th>Dimensão</th><th>Pergunta-mãe</th><th>Exemplo Disney+</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>G</strong></td><td>Goal</td>
+            <td>Qual é o objetivo de negócio que justifica esse trabalho?</td>
+            <td>Reter assinantes nos 90 primeiros dias após o lançamento.</td>
+          </tr>
+          <tr>
+            <td><strong>U</strong></td><td>Users</td>
+            <td>Quem usa o resultado e que decisão essa pessoa toma com ele?</td>
+            <td>VP de Conteúdo decidindo orçamento da próxima onda de originais.</td>
+          </tr>
+          <tr>
+            <td><strong>I</strong></td><td>Impact</td>
+            <td>Qual o valor monetário ou estratégico se acertarmos? E se errarmos?</td>
+            <td>+5pp de retenção em 90d = ~US$ 350M ARR adicional (estimativa).</td>
+          </tr>
+          <tr>
+            <td><strong>D</strong></td><td>Data</td>
+            <td>Que dados precisamos? O que existe, o que falta, o que é proxy?</td>
+            <td>Eventos de play, pause, abandono, tempo até 1ª sessão, perfil familiar.</td>
+          </tr>
+          <tr>
+            <td><strong>D</strong></td><td>Decision</td>
+            <td>Que decisão muda com o resultado? Se nada muda, abandone o projeto.</td>
+            <td>Priorização de US$ 250M em produção original para 2020/Q2.</td>
+          </tr>
+          <tr>
+            <td><strong>E</strong></td><td>Evaluation</td>
+            <td>Como saberemos que acertamos? Critério objetivo, prazo, baseline.</td>
+            <td>Taxa de retenção D90 vs benchmark Netflix lançamento internacional.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>5.3 KPIs Melancia · verde por fora, vermelho por dentro</h3>
+      <p>
+        <strong>KPI Melancia</strong> é uma métrica que parece saudável quando você olha o número
+        agregado, mas esconde podridão quando você abre. É a métrica que mata projetos analíticos
+        bons porque legitima problemas reais.
+      </p>
+      <ul>
+        <li><strong>Disney+ · KPI melancia clássico:</strong> "horas totais assistidas". Verde porque cresce
+        com base de assinantes. Vermelho porque pode estar concentrada em 20% dos usuários enquanto o
+        restante da base nunca termina um episódio (e cancela em D60).</li>
+        <li><strong>Ambev · KPI melancia clássico:</strong> "volume bruto vendido no trimestre". Verde porque
+        bateu meta. Vermelho porque foi puxado por 3 SKUs em promoção pesada, com margem negativa,
+        canibalizando vendas full-price das marcas premium.</li>
+        <li><strong>Ambev · outro:</strong> "NPS médio nacional". Verde em 72. Vermelho quando você abre por
+        canal: bares parceiros (NPS 38) puxando para baixo enquanto e-commerce (NPS 84) carrega.</li>
+      </ul>
+
+      <div class="exec-callout">
+        <strong>Regra do gerente:</strong> toda métrica agregada merece a pergunta <em>"por qual
+        recorte essa média esconde algo?"</em>. Se a resposta for "não sei", sua próxima ação é abrir
+        os cortes — antes de qualquer modelo.
+      </div>
+
+      <h3>5.4 Seis técnicas de elicitação de requisitos</h3>
+      <ol>
+        <li><strong>Perguntas abertas primeiro, fechadas depois.</strong> Abertas descobrem; fechadas
+        confirmam. Comece sempre com "me conta como…".</li>
+        <li><strong>Cinco Porquês.</strong> Toyota. Cada "porque" puxa a camada de baixo. Se em 5 níveis
+        você não chegou a um motivo de negócio, é porque voltou ao sintoma: refaça.</li>
+        <li><strong>Cenários concretos.</strong> Em vez de "como vocês decidem catálogo?", peça
+        <em>"me conta a última decisão difícil sobre catálogo que vocês tomaram"</em>. Histórias
+        revelam regras tácitas.</li>
+        <li><strong>Critério de sucesso explícito.</strong> "Como você sabe que esse trabalho funcionou?"
+        — se a resposta for vaga, o projeto vai falhar mesmo se a entrega for boa.</li>
+        <li><strong>Stakeholders silenciosos.</strong> Quem <em>não</em> está na sala mas vai ser
+        impactado? Jurídico, compliance, P&amp;D, conselho. Mapeie antes de começar a coletar dado.</li>
+        <li><strong>Restrições e não-objetivos.</strong> "O que esse projeto <em>não</em> vai cobrir?"
+        explicita o escopo. Sem isso, ele explode em 30 dias.</li>
+      </ol>
+
+      <div class="exec-callout">
+        <strong>Dinâmica 1 · O Briefing Impossível do Bob Iger</strong> · ⏱️ 45min · grupos de 4-5
+        <p class="mt-2 mb-2">
+          <em>Cenário:</em> você está no corredor do escritório executivo Disney em julho de 2019.
+          Bob Iger (CEO) cruza com você, para 30 segundos e diz: <strong>"Quero que o Disney+
+          venda mais que a Netflix em três anos. Quero saber como ML ajuda. E quero isso na próxima
+          reunião de board."</strong> — e desaparece pelo corredor.
+        </p>
+        <p class="mb-2">
+          <em>Sua missão (⏱️ 15 min de discussão rigorosa):</em> antes de tocar em ML, em dado, em modelo, sua equipe tem 15 minutos
+          para formular as <strong>10 perguntas de elicitação</strong> que vocês precisam responder
+          (com quem? com que dado? em que ordem?) para virar esse briefing em problema diagnosticável.
+        </p>
+        <p class="mb-2"><em>Perguntas-modelo de saída (exemplos parciais):</em></p>
+        <ul class="mb-2">
+          <li>"Vender mais" = mais assinantes, mais receita, mais hora consumida, ou mais valor de marca?</li>
+          <li>"Três anos" = horizonte de meta ou horizonte do projeto analítico?</li>
+          <li>Qual é a métrica de comparação com a Netflix que o board reconhece como legítima?</li>
+          <li>Quem mais precisa estar de acordo com essa meta antes da reunião de board (CFO? COO? Pixar?)</li>
+        </ul>
+        <p class="mb-2"><em>(⏱️ 15 min de priorização e 15 min de debrief)</em></p>
+        <p class="mb-0">
+          <em>Aprendizado-chave:</em> a maior parte do valor analítico está em fazer a pergunta certa
+          antes de escolher a ferramenta. Bons gerentes elicitam até a meta original ficar nítida.
+        </p>
+      </div>
+
+      <h3 id="prompt-guidde">5.5 Prompt Engineering para o GUIDDE</h3>
+      <p>
+        Para executivos e gerentes, a Inteligência Artificial Generativa (como Claude ou ChatGPT) funciona como um <strong>parceiro de brainstorming</strong>. Se você recebeu um briefing vago da diretoria, use a IA para estruturar o GUIDDE inicial.
+      </p>
+      <div class="exec-callout" style="background: #f8f9fa; border-left-color: var(--exec-navy);">
+        <strong>Prompt Mestre para Diagnóstico:</strong><br>
+        <code style="display:block; margin-top:10px; color: var(--exec-deep);">
+          "Atue como um consultor sênior de estratégia e dados. Recebi este briefing vago da diretoria: [Briefing]. Me ajude a preencher o framework GUIDDE (Goal, Users, Impact, Data, Decision, Evaluation). Seja específico para o contexto da Ambev. Caso falte informação, me faça as 3 perguntas mais críticas para destravar o diagnóstico."
+        </code>
+      </div>
+      <p><strong>Exemplos de uso por área:</strong></p>
+      <ul>
+        <li><strong>Sales (André/Camila):</strong> Use para transformar "vender mais Spaten" em métricas de HL incremental por geladeira.</li>
+        <li><strong>Legal (Alana):</strong> Use para mapear quais entidades de dados (Contratos, Processos, Prazos) precisam ser modeladas para prever riscos regulatórios.</li>
+        <li><strong>Finance (Ana Flávia):</strong> Use para elicitar o impacto financeiro real de uma mudança no mix de produtos por região.</li>
+      </ul>
+
+      <h3>5.6 Maturidade analítica: o modelo do Gartner</h3>
+      <p>
+        Para saber <em>onde sua área está</em>, usamos o <strong>Gartner Analytics Ascendancy
+        Model</strong> — a escadaria clássica em que cada degrau entrega mais valor e exige mais
+        maturidade:
+      </p>
+      <table class="exec-table">
+        <thead>
+          <tr><th>Degrau</th><th>Pergunta</th><th>Entrega típica</th><th>Âncora do case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>N1 · Descritiva</strong></td><td>O que aconteceu?</td><td>Dashboards e relatórios, KPIs por área</td><td>Disney+ no lançamento (nov/2019)</td></tr>
+          <tr><td><strong>N2 · Diagnóstica</strong></td><td>Por que aconteceu?</td><td>Drill-down, investigação de causas</td><td>Por que o churn da coorte de trial subiu?</td></tr>
+          <tr><td><strong>N3 · Preditiva</strong></td><td>O que vai acontecer?</td><td>Modelos no circuito tático, hipóteses testadas</td><td>Onde Gupta quer levar o Disney+ em 12 meses</td></tr>
+          <tr><td><strong>N4 · Prescritiva</strong></td><td>Como fazer acontecer?</td><td>Sistemas recomendam a ação, experimentação como cultura</td><td>Netflix em 2019 — 12 anos à frente</td></tr>
+        </tbody>
+      </table>
+      <div class="exec-callout">
+        <strong>Sem culpa:</strong> segundo o Gartner (2018), <strong>87% das organizações ainda operam
+        nos dois primeiros degraus</strong>. Estar no degrau 1 é a norma — ficar nele é a escolha.
+        A pergunta para levar ao break: <em>na sua área da Ambev, qual é o salto realista em 12 meses?</em>
+      </div>
+
+      <!-- 6. Pilar 2 -->
+      <h2 id="pilar-2">6 · Pilar 2 · Modelos de análise</h2>
+
+      <h3>6.1 As três classes de análise</h3>
+      <p>
+        Toda análise cai em uma de três classes. Saber em qual classe o seu problema vive é
+        pré-requisito para escolher abordagem, capacidade e expectativa de resultado.
+      </p>
+
+      <table class="exec-table">
+        <thead>
+          <tr><th>Classe</th><th>Pergunta típica</th><th>Entregável</th><th>Exemplo Disney+</th><th>Exemplo Ambev</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-desc">Descritiva</span></td>
+            <td>O que aconteceu?</td>
+            <td>Dashboard, relatório</td>
+            <td>Quantos assinantes assistiram <em>Mandalorian</em> nos primeiros 30 dias?</td>
+            <td>Volume vendido por marca/região/canal no trimestre.</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-pred">Preditiva</span></td>
+            <td>O que vai acontecer?</td>
+            <td>Score, forecast, classificação</td>
+            <td>Quais assinantes têm 80%+ de probabilidade de churn em D90?</td>
+            <td>Forecast de demanda SKU por PDV para os próximos 14 dias.</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-pres">Prescritiva</span></td>
+            <td>O que devemos fazer?</td>
+            <td>Recomendação, otimização</td>
+            <td>Qual oferta de retenção enviar a cada assinante de alto risco?</td>
+            <td>Como roteirizar a entrega para minimizar km com SLA &lt;24h?</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>6.2 Data-driven vs Decision-driven</h3>
+      <p>
+        Uma armadilha comum: empresas que se vendem como "data-driven" frequentemente são
+        <em>data-collecting</em>. Coletam tudo, modelam pouco, decidem por intuição. O caminho
+        executivo é o contrário: <strong>decision-driven data</strong> — comece pela decisão que
+        precisa ser tomada e desça até o dado mínimo necessário. O conceito foi formalizado por
+        <strong>Bart de Langhe e Stefano Puntoni</strong> na <em>MIT Sloan Management Review</em> (2021).
+      </p>
+
+      <div class="exec-callout">
+        <strong>O cemitério de analytics — por que tanta análise não vira decisão:</strong> o Gartner
+        estima que <strong>30% dos projetos de GenAI são abandonados após a prova de conceito</strong>
+        (2024) e prevê que <strong>40% dos projetos de IA agêntica serão cancelados até o fim de
+        2027</strong> (2025); a McKinsey mede que apenas <strong>39% das empresas atribuem algum impacto
+        no EBIT à IA</strong> — a maioria, menos de 5% (<em>State of AI</em>, 2025). As causas listadas
+        pelo Gartner — má qualidade de dados, valor de negócio incerto, controles inadequados — são
+        <strong>falhas de diagnóstico, não de tecnologia</strong>: ninguém perguntou "qual decisão esse
+        modelo habilita?" antes de construir.
+      </div>
+
+      <div class="exec-callout">
+        <strong>Diagrama mental:</strong> <em>Decisão → Pergunta → Análise → Dado</em>. Quando alguém
+        começa a apresentação por "olhem que tela linda" (dado), vire o fluxo. Pergunte: <em>"que
+        decisão vai mudar quando eu olhar essa tela?"</em> Se a resposta for nenhuma, o dashboard é
+        decoração.
+      </div>
+
+      <h3>6.3 Mapa de casos Ambev nas 3 classes</h3>
+      <p>Para fixar, mapa de 12 casos típicos da operação Ambev nas três classes:</p>
+
+      <table class="exec-table">
+        <thead>
+          <tr><th>#</th><th>Caso Ambev</th><th>Classe</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Painel de venda diária por marca/SKU</td><td><span class="tag tag-desc">Descritiva</span></td></tr>
+          <tr><td>2</td><td>Forecast de demanda SKU por PDV (14 dias)</td><td><span class="tag tag-pred">Preditiva</span></td></tr>
+          <tr><td>3</td><td>Score de propensão a churn de bar parceiro</td><td><span class="tag tag-pred">Preditiva</span></td></tr>
+          <tr><td>4</td><td>Roteirização ótima da frota de entrega</td><td><span class="tag tag-pres">Prescritiva</span></td></tr>
+          <tr><td>5</td><td>Pricing dinâmico no canal indireto</td><td><span class="tag tag-pres">Prescritiva</span></td></tr>
+          <tr><td>6</td><td>Relatório de NPS mensal por canal</td><td><span class="tag tag-desc">Descritiva</span></td></tr>
+          <tr><td>7</td><td>Próxima melhor oferta no Bees para um cliente</td><td><span class="tag tag-pres">Prescritiva</span></td></tr>
+          <tr><td>8</td><td>Probabilidade de ruptura de estoque em CDD</td><td><span class="tag tag-pred">Preditiva</span></td></tr>
+          <tr><td>9</td><td>Análise de cohort de adesão ao Donus</td><td><span class="tag tag-desc">Descritiva</span></td></tr>
+          <tr><td>10</td><td>Recomendação de mix ideal por perfil de bar</td><td><span class="tag tag-pres">Prescritiva</span></td></tr>
+          <tr><td>11</td><td>Detecção de fraude em programa de fidelidade</td><td><span class="tag tag-pred">Preditiva</span></td></tr>
+          <tr><td>12</td><td>Dashboard de OEE por linha de produção</td><td><span class="tag tag-desc">Descritiva</span></td></tr>
+        </tbody>
+      </table>
+
+      <div class="exec-callout">
+        <strong>Dinâmica 2 · Cartas das 3 Análises no Disney+</strong> · ⏱️ 35min · grupos de 4-5
+        <p class="mt-2 mb-2">
+          <em>Material:</em> 12 cartas físicas (impressas) com pedidos reais que poderiam chegar à
+          mesa de Margaret Gupta. Cada grupo recebe o baralho e tem que distribuir as cartas em três
+          colunas no chão: <span class="tag tag-desc">Descritiva</span>
+          <span class="tag tag-pred">Preditiva</span>
+          <span class="tag tag-pres">Prescritiva</span>.
+        </p>
+        <p class="mb-2"><em>Gabarito de 6 das 12 cartas:</em></p>
+        <ol class="mb-2">
+          <li>"Quero saber quantos assinantes assistiram <em>Frozen 2</em> mês passado." → <span class="tag tag-desc">Descritiva</span> (factual, passado).</li>
+          <li>"Qual é a probabilidade do João cancelar no fim do trial?" → <span class="tag tag-pred">Preditiva</span> (probabilidade futura).</li>
+          <li>"Que oferta envio para o João reter ele?" → <span class="tag tag-pres">Prescritiva</span> (decide ação).</li>
+          <li>"Qual horário tem pico de uso no Disney+?" → <span class="tag tag-desc">Descritiva</span>.</li>
+          <li>"Quando devemos colocar o trailer do <em>Mandalorian</em> no carrossel para cada usuário?" → <span class="tag tag-pres">Prescritiva</span> (otimização individual).</li>
+          <li>"Em que mês a Marvel deve lançar a próxima série para maximizar adesão?" → <span class="tag tag-pres">Prescritiva</span> (decisão otimizada).</li>
+        </ol>
+        <p class="mb-2"><em>(⏱️ 10 min distribuição, ⏱️ 25 min correção cruzada e debrief)</em></p>
+        <p class="mb-0">
+          <em>Aprendizado-chave:</em> a fronteira entre preditiva e prescritiva é onde mora a maior
+          parte do valor — e onde os erros de comunicação acontecem. Gerente precisa saber separar
+          "previsão" de "recomendação".
+        </p>
+      </div>
+
+      <!-- 7. Pilar 3 -->
+      <h2 id="pilar-3">7 · Pilar 3 · Modelagem de dados</h2>
+
+      <h3>7.1 Por que o gerente precisa entender (sem fazer)</h3>
+      <p>
+        Você não vai escrever DDL. Não precisa. Mas vai aprovar projeto, contratar consultoria,
+        questionar dashboard e cobrar dado. Se você não consegue ler um modelo conceitual em uma
+        folha, vai depender da tradução de outros — e tradução custa caro.
+      </p>
+
+      <h3>7.2 Todo dado nasce de um processo</h3>
+      <p>
+        Antes de modelar a tabela, modele o fluxo. Todo dado é o <strong>rastro de um evento de
+        processo</strong> — e modelar o problema é localizar <em>em que etapa do processo a decisão
+        acontece</em> e que evento gera (ou deixa de gerar) o dado que ela precisa. Ferramentas como
+        <strong>BPMN</strong> (notação padrão de processos) e <strong>SIPOC</strong> (Supplier, Input,
+        Process, Output, Customer — herança Six Sigma) servem exatamente para isso, e o gerente só
+        precisa lê-las, não desenhá-las.
+      </p>
+      <p>Veja a cadeia macro do Bees, da encomenda à recompra:</p>
+      <table class="exec-table">
+        <thead>
+          <tr><th>Etapa</th><th>Tipo</th><th>O que acontece</th><th>Dado gerado</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>1 · Pedido</strong></td><td>Evento</td><td>PDV pede 10 cx de Spaten no app Bees</td><td>Sell-in, mix, ticket</td></tr>
+          <tr><td><strong>2 · Roteirização</strong></td><td>Decisão</td><td>Algoritmo monta a rota do caminhão</td><td>Rota, custo, SLA previsto</td></tr>
+          <tr><td><strong>3 · Entrega</strong></td><td>Evento</td><td>Motorista confirma no PDV</td><td>SLA real, devoluções</td></tr>
+          <tr><td><strong>4 · Venda ao consumidor</strong></td><td><strong>Ponto cego</strong></td><td>A Spaten gira (ou não) na geladeira do bar</td><td><em>Nenhum — não nasce no processo</em></td></tr>
+          <tr><td><strong>5 · Recompra</strong></td><td>Métrica</td><td>O PDV pede de novo em 7 dias?</td><td>Frequência, churn de PDV</td></tr>
+        </tbody>
+      </table>
+      <div class="exec-callout">
+        <strong>O ponto cego clássico:</strong> o Bees registra o <strong>sell-in</strong> (pedido do
+        PDV), mas o <strong>sell-out</strong> (consumo no balcão) não nasce no processo — por isso
+        "share na geladeira" exige proxy, pesquisa ou parceria. <em>Se o processo não captura o evento,
+        nenhum dashboard inventa o dado.</em> Espelho Disney+: o log registra o clique do cancelamento,
+        nunca o porquê — motivo de churn vira entrevista, não telemetria.
+      </div>
+
+      <h3>7.3 Os três níveis de modelo</h3>
+      <table class="exec-table">
+        <thead>
+          <tr><th>Nível</th><th>O que descreve</th><th>Quem fala</th><th>Ferramenta típica</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Conceitual</strong></td>
+            <td>Entidades de negócio e como elas se relacionam (sem detalhe técnico)</td>
+            <td>Gerente, PO, arquiteto de negócio</td>
+            <td>Diagrama em papel, Miro, draw.io</td>
+          </tr>
+          <tr>
+            <td><strong>Lógico</strong></td>
+            <td>Tabelas, atributos, chaves, cardinalidades — independente de banco</td>
+            <td>Analista de dados, modelador, arquiteto</td>
+            <td>ERwin, dbdiagram.io, Lucidchart</td>
+          </tr>
+          <tr>
+            <td><strong>Físico</strong></td>
+            <td>DDL real, tipos, índices, particionamento, performance</td>
+            <td>Engenheiro de dados, DBA</td>
+            <td>PostgreSQL, BigQuery, Snowflake, dbt</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="exec-callout">
+        <strong>Regra do gerente:</strong> seu campo de jogo é o nível <em>conceitual</em>. Você
+        precisa saber desenhar entidades em um guardanapo. Se você sabe fazer isso, qualquer
+        consultoria que tente "te impressionar com tabela física" perde força.
+      </div>
+
+      <h3>7.4 Modelo conceitual aplicado ao Disney+</h3>
+      <p>Em uma página, as entidades-chave que o Disney+ precisa modelar para operar:</p>
+
+      <ul>
+        <li><strong>Assinante</strong> · um indivíduo ou conta familiar. Atributos: ID, plano, data de adesão, país, perfil parental.</li>
+        <li><strong>Perfil</strong> · uma identidade dentro de uma conta (até 7 perfis por conta). Importante porque <em>mãe e filho de 8 anos</em> consomem catálogos diferentes.</li>
+        <li><strong>Conteúdo</strong> · um título (filme, episódio, série, doc). Atributos: ID, franquia (Marvel/Pixar/Star Wars/etc), gênero, ano, classificação etária.</li>
+        <li><strong>Catálogo</strong> · o conjunto de conteúdos disponível em um país/período (curadoria e licenciamento variam).</li>
+        <li><strong>Sessão</strong> · uma instância de uso por um perfil — quando começou, em que device, terminou ou abandonou.</li>
+        <li><strong>Evento</strong> · ações dentro da sessão (play, pause, skip, rewind, busca, abertura de carrossel).</li>
+        <li><strong>Recomendação</strong> · uma sugestão feita pela plataforma a um perfil em um momento, com ID do conteúdo e posição na tela.</li>
+        <li><strong>Plano</strong> · estrutura de preço e benefícios (mensal, anual, Disney bundle com Hulu+ESPN+).</li>
+        <li><strong>Pagamento</strong> · evento financeiro associado a um assinante.</li>
+      </ul>
+
+      <p><strong>Relacionamentos principais:</strong></p>
+      <ul>
+        <li>1 Assinante tem N Perfis</li>
+        <li>1 Perfil gera N Sessões</li>
+        <li>1 Sessão contém N Eventos</li>
+        <li>1 Perfil recebe N Recomendações; cada Recomendação aponta para 1 Conteúdo</li>
+        <li>1 Assinante tem 1 Plano vigente e N Pagamentos históricos</li>
+        <li>1 Catálogo contém N Conteúdos (com vigência por país)</li>
+      </ul>
+
+      <div class="exec-callout">
+        <strong>Por que isso importa para Gupta?</strong> Se a entidade <em>Perfil</em> não estiver
+        bem modelada desde o dia 1, as recomendações vão tratar a conta como uma pessoa só — e
+        recomendar <em>Toy Story</em> para o pai que só assiste Marvel. KPI Melancia clássico:
+        engajamento médio bom, churn por frustração alto.
+      </div>
+
+      <h3>7.5 Roteiro de 6 perguntas para entrevistar stakeholder</h3>
+      <ol>
+        <li>Qual é a <strong>decisão</strong> que esse projeto precisa habilitar?</li>
+        <li>Que <strong>entidades</strong> de negócio estão envolvidas? (Cliente, produto, pedido, ...)</li>
+        <li>Como essas entidades se <strong>relacionam</strong>? (Quem tem quantos de quem?)</li>
+        <li>Quais <strong>atributos</strong> dessas entidades são críticos para a decisão?</li>
+        <li>Onde esses dados <strong>vivem hoje</strong>? (Sistema, planilha, "na cabeça da Maria")</li>
+        <li>Que dado <strong>não existe</strong> e precisaria ser criado/coletado?</li>
+      </ol>
+
+      <div class="exec-callout">
+        <strong>Dinâmica 3 · Entrevista com Margaret Gupta</strong> · ⏱️ 45min · duplas
+        <p class="mt-2 mb-2">
+          <em>Cenário:</em> você faz parte do time de Margaret. Ela vai construir um dashboard de
+          "saúde do Disney+ nos primeiros 90 dias" para apresentar semanalmente ao CEO. Mas o dash
+          ainda não foi especificado.
+        </p>
+        <p class="mb-2"><em>(⏱️ 15 min · Rodada A):</em> um entrevista e o outro responde como Gupta.</p>
+        <p class="mb-2"><em>(⏱️ 15 min · Rodada B):</em> os papéis se invertem, com novo cenário — um modelo de churn da base Hulu (~27M) para evitar repetir o erro no Disney+.</p>
+        <p class="mb-2"><em>(⏱️ 15 min · Fechamento):</em> duplas voluntárias desenham no quadro o modelo conceitual extraído.</p>
+        <p class="mb-2"><em>Briefing para quem faz papel de Gupta:</em> você é técnica, tem pressa,
+        responde sempre com 1 frase, e tem 2 obsessões implícitas — (a) não quer KPI melancia, (b)
+        precisa que o dash sobreviva à pergunta do Iger <em>"e daí?"</em>. Você só revela se
+        provocada.</p>
+        <p class="mb-2"><em>Briefing para o analista:</em> use as 6 técnicas de elicitação. Comece
+        aberto. Chegue na decisão. Mapeie entidades. Saída por rodada: rascunho de modelo conceitual
+        + lista das 5 métricas que entram no dash + 3 perguntas em aberto.</p>
+        <p class="mb-0"><em>Rubrica de avaliação (público devolve):</em></p>
+        <ul class="mb-0">
+          <li>Chegou à decisão antes de pedir dado? (0–2)</li>
+          <li>Identificou entidades-chave (Assinante, Perfil, Sessão)? (0–2)</li>
+          <li>Definiu critério de sucesso do dashboard? (0–2)</li>
+          <li>Mapeou stakeholders silenciosos? (0–2)</li>
+          <li>Restrição/não-objetivo explícito? (0–2)</li>
+        </ul>
+      </div>
+
+      <h3>7.6 A régua da solução: ISO/IEC 25010</h3>
+      <p>
+        Cedo ou tarde, a solução encomendada chega — e o gerente precisa de uma régua para
+        <strong>aceitá-la ou devolvê-la</strong> que vá além de "funciona". A norma
+        <strong>ISO/IEC 25010:2023</strong> (família SQuaRE) define o vocabulário padrão de qualidade
+        de produto entre você e o time técnico, em <strong>nove características</strong>. A revisão de
+        2023 adicionou <em>safety</em> e renomeou usabilidade → capacidade de interação e
+        portabilidade → flexibilidade:
+      </p>
+      <table class="exec-table">
+        <thead>
+          <tr><th>#</th><th>Característica</th><th>Pergunta do gerente</th><th>Exemplo do dia</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Adequação funcional</strong></td><td>Faz o que a decisão precisa?</td><td>O recomendador acerta o que a família quer ver?</td></tr>
+          <tr><td>2</td><td><strong>Eficiência de desempenho</strong></td><td>Responde no tempo do ritual?</td><td>Score de PDV pronto <em>antes</em> do S&amp;OP, não depois.</td></tr>
+          <tr><td>3</td><td><strong>Compatibilidade</strong></td><td>Conversa com o ecossistema?</td><td>Databricks, SAP e Bees sem retrabalho manual.</td></tr>
+          <tr><td>4</td><td><strong>Capacidade de interação</strong> <em>(ex-usabilidade)</em></td><td>O gerente usa sem manual?</td><td>Dashboard que precisa de treinamento já falhou.</td></tr>
+          <tr><td>5</td><td><strong>Confiabilidade</strong></td><td>Aguenta o pico?</td><td>O Disney+ caiu no dia do lançamento, sob demanda recorde.</td></tr>
+          <tr><td>6</td><td><strong>Segurança</strong></td><td>Protege dado e acesso?</td><td>LGPD no PDV, COPPA no perfil infantil.</td></tr>
+          <tr><td>7</td><td><strong>Manutenibilidade</strong></td><td>Evolui sem reescrever?</td><td>Trocar a métrica sem refazer o pipeline inteiro.</td></tr>
+          <tr><td>8</td><td><strong>Flexibilidade</strong> <em>(ex-portabilidade)</em></td><td>Escala para novos contextos?</td><td>Do piloto em 1 região para 29 mercados.</td></tr>
+          <tr><td>9</td><td><strong>Proteção (safety)</strong> <em>(nova em 2023)</em></td><td>Evita dano no uso?</td><td>Recomendação imprópria chegando a perfil infantil.</td></tr>
+        </tbody>
+      </table>
+      <div class="exec-callout">
+        <strong>Como o gerente usa isso:</strong> não decore as nove. Na encomenda, escolha as
+        <strong>3 críticas para a sua decisão</strong> e transforme em critério de aceite mensurável —
+        <em>"churn score atualizado até as 6h"</em> é critério; <em>"sistema rápido"</em> é desejo.
+      </div>
+
+      <h3>7.7 Qualidade da solução ≠ qualidade da decisão</h3>
+      <p>
+        A síntese do pilar é uma cadeia de <strong>quatro elos</strong> — cada um depende do anterior,
+        e nenhum garante o seguinte:
+      </p>
+      <table class="exec-table">
+        <thead>
+          <tr><th>Elo</th><th>O que é</th><th>Régua / evidência</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>1 · Qualidade do dado</strong></td><td>Completo, atual e fiel ao processo que o gerou</td><td>Gartner (2021): má qualidade custa em média <strong>US$ 12,9 mi/ano</strong> por organização</td></tr>
+          <tr><td><strong>2 · Qualidade do produto</strong></td><td>As nove características da solução que chega</td><td>ISO/IEC 25010:2023</td></tr>
+          <tr><td><strong>3 · Qualidade em uso</strong></td><td>Benefício real, aceitação e baixo risco no contexto de quem decide</td><td>ISO/IEC 25019:2023 (quality-in-use)</td></tr>
+          <tr><td><strong>4 · Qualidade da decisão</strong></td><td>O processo decisório que transforma análise em escolha</td><td>Lovallo &amp; Sibony (McKinsey, 2010): processo importa <strong>6x mais</strong> que análise</td></tr>
+        </tbody>
+      </table>
+      <div class="exec-callout">
+        <strong>A pegadinha:</strong> dá para ter dado limpo, software ISO-perfeito, adoção alta —
+        <strong>e ainda decidir mal</strong>. O último elo não é técnico: é humano. É exatamente por
+        isso que o próximo pilar é <em>Heurísticas e Vieses</em>.
+      </div>
+
+      <!-- 8. Pilar 4 -->
+      <h2 id="pilar-4">8 · Pilar 4 · Heurísticas e vieses</h2>
+
+      <h3>8.1 Sistema 1 e Sistema 2 (Kahneman)</h3>
+      <p>
+        Daniel Kahneman, Nobel de Economia 2002, descreveu dois modos de pensamento humano:
+      </p>
+      <ul>
+        <li><strong>Sistema 1</strong> · rápido, automático, intuitivo, emocional. Decide em
+        milissegundos. Funciona bem em ambientes estáveis e familiares (dirigir, reconhecer
+        rostos, sentir cheiro de queimado).</li>
+        <li><strong>Sistema 2</strong> · lento, deliberado, esforçado, racional. Calcula impostos,
+        compara propostas, escreve relatório executivo. Custa energia — e por isso é evitado.</li>
+      </ul>
+      <p>
+        Comitês de executivos seniores tendem a <strong>operar em Sistema 1 mascarado de Sistema 2</strong>:
+        chegam com a decisão intuitiva já pronta e usam dado só para confirmar. Esse é o
+        terreno fértil para os vieses abaixo.
+      </p>
+
+      <h3>8.2 Seis vieses críticos em comitê executivo</h3>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">1</div>
+            <h4>Viés de Confirmação</h4>
+            <p style="font-size:0.92rem; color: var(--exec-mid);">Buscar e valorizar evidências que confirmam a hipótese que já temos.</p>
+            <p style="font-size:0.85rem;"><strong>Disney+:</strong> "claro que ML vai funcionar, a Netflix prova". Time só coleta cases de sucesso, ignora limites.</p>
+            <p style="font-size:0.85rem; margin-bottom:0;"><strong>Ambev:</strong> "o Bees vai escalar nesse PDV", apresentado só com dados dos PDVs em que já escalou.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">2</div>
+            <h4>Ancoragem</h4>
+            <p style="font-size:0.92rem; color: var(--exec-mid);">Primeira informação numérica vira referência para todas as próximas.</p>
+            <p style="font-size:0.85rem;"><strong>Disney+:</strong> CFO diz "Netflix gasta US$ 15B/ano em conteúdo". A partir daí, qualquer orçamento que não chegue lá parece "tímido".</p>
+            <p style="font-size:0.85rem; margin-bottom:0;"><strong>Ambev:</strong> "ano passado vendemos X". Toda meta vira X + 5%, ignorando mudança de mercado.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">3</div>
+            <h4>Disponibilidade</h4>
+            <p style="font-size:0.92rem; color: var(--exec-mid);">Eventos vívidos/recentes pesam mais do que dados representativos.</p>
+            <p style="font-size:0.85rem;"><strong>Disney+:</strong> uma queixa viral no Twitter sobre buffering vira "crise de qualidade" mesmo com 99,7% de uptime.</p>
+            <p style="font-size:0.85rem; margin-bottom:0;"><strong>Ambev:</strong> reclamação do dono de bar grande na última feira vira diretriz que canibaliza dezenas de bares menores.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">4</div>
+            <h4>Aversão à Perda</h4>
+            <p style="font-size:0.92rem; color: var(--exec-mid);">Dor de perder é ~2x maior que prazer de ganhar valor equivalente.</p>
+            <p style="font-size:0.85rem;"><strong>Disney+:</strong> resistência a retirar conteúdo legado mesmo com baixo consumo, "porque historicamente sempre teve no Disney Channel".</p>
+            <p style="font-size:0.85rem; margin-bottom:0;"><strong>Ambev:</strong> manter SKU sem giro porque "tirar pode irritar varejistas tradicionais", mesmo sangrando margem.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">5</div>
+            <h4>Excesso de Confiança</h4>
+            <p style="font-size:0.92rem; color: var(--exec-mid);">Subestimar incerteza, especialmente em domínio familiar.</p>
+            <p style="font-size:0.85rem;"><strong>Disney+:</strong> "somos a Disney, qualquer coisa que lançarmos vira sucesso" (até <em>John Carter</em> e <em>The Lone Ranger</em> existirem).</p>
+            <p style="font-size:0.85rem; margin-bottom:0;"><strong>Ambev:</strong> "conhecemos esse consumidor há 80 anos", subestimando o impacto da geração Z em hábito de consumo.</p>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="pillar-card">
+            <div class="pillar-num">6</div>
+            <h4>Status Quo</h4>
+            <p style="font-size:0.92rem; color: var(--exec-mid);">Preferência pela inação ou pela continuidade da regra atual.</p>
+            <p style="font-size:0.85rem;"><strong>Disney+:</strong> insistir na janela de cinema de 90 dias mesmo com o streaming pressionando o modelo de exibição tradicional.</p>
+            <p style="font-size:0.85rem; margin-bottom:0;"><strong>Ambev:</strong> manter estrutura de força de vendas presencial em rotas onde o ROI do digital já superou.</p>
+          </div>
+        </div>
+      </div>
+
+      <h3>8.3 Quatro práticas de mitigação</h3>
+      <ol>
+        <li><strong>Pre-mortem</strong> (Gary Klein) · antes de aprovar, peça à equipe para imaginar
+        que <em>"é 6 meses no futuro e esse projeto falhou catastroficamente. Conta a história do
+        porquê."</em> Vieses cedem quando o cérebro vai para o modo narrativo.</li>
+        <li><strong>Red Team / Segundo time</strong> · designar um grupo cuja missão é
+        <em>derrubar</em> a proposta. Não pode ser o mesmo time que construiu.</li>
+        <li><strong>Decisão escrita antes da reunião</strong> · cada decisor escreve sua decisão em 1
+        parágrafo antes de o comitê discutir. Cancela ancoragem do primeiro a falar e excesso de
+        confiança do mais sênior.</li>
+        <li><strong>Critério de reversão explícito</strong> · "Se em 90 dias a métrica X estiver
+        abaixo de Y, voltamos atrás." Combate aversão à perda futura ("já investimos demais para
+        parar").</li>
+      </ol>
+
+      <div class="exec-callout">
+        <strong>Por que vale o esforço (a evidência):</strong> Lovallo &amp; Sibony analisaram
+        <strong>1.048 decisões de negócio</strong> ao longo de 5 anos (M&amp;A, novos produtos, capex) e
+        mediram: a qualidade do <strong>processo decisório</strong> explica <strong>53%</strong> da
+        variância nos resultados; a qualidade da <strong>análise</strong>, apenas <strong>8%</strong> —
+        <em>"process mattered more than analysis — by a factor of six"</em>. Subir do pior para o melhor
+        quartil em processo melhora o ROI da decisão em <strong>+6,9 pontos percentuais</strong>
+        (<em>The Case for Behavioral Strategy</em>, McKinsey Quarterly, 2010). As quatro práticas acima
+        são exatamente isso: processo.
+      </div>
+
+      <div class="exec-callout">
+        <strong>Dinâmica 4 · Quiz dos Vieses na Sala da Disney</strong> · ⏱️ 35min · individual + plenária
+        <p class="mt-2 mb-2">
+          <em>Material:</em> 8 mini-cenários de comitê Disney+ projetados na tela, um por vez —
+          cenários hipotéticos criados para a aula, alguns situados nos meses seguintes ao lançamento.
+        </p>
+        <p class="mb-2"><em>(⏱️ 15 min · Anotação Individual):</em> Cada participante anota qual viés está em jogo para cada cenário.</p>
+        <p class="mb-2"><em>(⏱️ 20 min · Plenária e Mitigação):</em> Plenária revela o gabarito e discute técnicas de mitigação aplicáveis.</p>
+
+        <p class="mb-2"><strong>Mini-cenários (com gabarito):</strong></p>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="micro-case">
+              <span class="micro-num">Cenário 1</span>
+              <p>O VP de Marketing abre a reunião dizendo: "A Netflix gasta US$ 15B/ano em conteúdo. Nosso budget de US$ 1B é claramente insuficiente." A discussão das próximas 2h gira em torno de como chegar perto desse número.</p>
+              <p class="answer">→ Ancoragem.</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="micro-case">
+              <span class="micro-num">Cenário 2</span>
+              <p>Gupta apresenta dado mostrando que 62% dos cancelamentos ocorrem em D30. A CMO interrompe: "Não pode ser. Minha sobrinha adora Disney+, não saiu do app no fim de semana." Sugere que a métrica está errada.</p>
+              <p class="answer">→ Disponibilidade (caso vívido pessoal vence dado agregado).</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="micro-case">
+              <span class="micro-num">Cenário 3</span>
+              <p>O COO propõe manter no catálogo todas as 47 séries antigas do Disney Channel mesmo com consumo médio de 0,8 horas/assinante/ano. Argumento: "tirar pode gerar percepção de catálogo pobre."</p>
+              <p class="answer">→ Aversão à perda (medo de perder percepção de catálogo &gt; ganho de focar em hits).</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="micro-case">
+              <span class="micro-num">Cenário 4</span>
+              <p>O CEO afirma: "Somos a Disney. Em 3 anos batemos a Netflix em qualquer mercado que decidirmos. Não preciso de modelo de cenário pessimista."</p>
+              <p class="answer">→ Excesso de confiança (subestima incerteza em domínio familiar).</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="micro-case">
+              <span class="micro-num">Cenário 5</span>
+              <p>Time de produto traz 18 estudos de caso de plataformas onde recomendação ML aumentou retenção. Não trazem nenhum estudo onde a recomendação falhou ou foi enviesada.</p>
+              <p class="answer">→ Viés de confirmação (só evidências pró-hipótese).</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="micro-case">
+              <span class="micro-num">Cenário 6</span>
+              <p>O VP de Conteúdo diz: "Esse modelo de janelas de exibição (cinema → home video → streaming) funciona há 30 anos. Não vamos mandar filme direto para o streaming só porque é a moda do momento."</p>
+              <p class="answer">→ Status quo (preferência pela regra atual mesmo sob mudança de mercado).</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="micro-case">
+              <span class="micro-num">Cenário 7</span>
+              <p>Após uma reportagem viral citando que "Disney+ está esfriando", a liderança decide acelerar a estreia de 3 originais ainda em fase de roteiro, antes mesmo da análise de dados de churn ficar pronta.</p>
+              <p class="answer">→ Disponibilidade (manchete recente &gt; dados estruturados).</p>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="micro-case">
+              <span class="micro-num">Cenário 8</span>
+              <p>Reunião começa com o CFO dizendo: "Estimei US$ 350M para o investimento em capacidade analítica nos primeiros 18 meses." A discussão posterior debate "será suficiente?" ou "podemos cortar para US$ 300M?" — ninguém questiona se a estimativa inicial fazia sentido.</p>
+              <p class="answer">→ Ancoragem (número inicial vira o eixo de toda discussão).</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="mt-2 mb-0"><em>Aprendizado-chave:</em> reconhecer o viés é metade do trabalho.
+        A outra metade é ter a coragem (e o método) de nomeá-lo em voz alta na sala. As 4 práticas de
+        mitigação acima existem para tornar isso menos pessoal e mais protocolar.</p>
+      </div>
+
+      <!-- 9. Atividade Integradora -->
+      <h2 id="integradora">9 · Atividade integradora · Problem Statement Disney+</h2>
+
+      <h3>9.1 O desafio</h3>
+      <p>
+        Você é parte do time de Margaret Gupta. Faltam 4 meses para o lançamento do Disney+. A
+        liderança deu o seguinte mandato: <strong>"Apresente em 5 minutos onde Machine Learning vai
+        criar valor único para o Disney+ nos primeiros 12 meses, com métricas, dados necessários e
+        decisões que mudam — e prove que você considerou os riscos."</strong>
+      </p>
+
+      <h3>9.2 Estrutura do entregável (GUIDDE)</h3>
+      <p>Cada grupo entrega 1 página estruturada nas 6 dimensões do GUIDDE:</p>
+
+      <div class="deliverable-box">
+        <p class="db-label">Template · Problem Statement Disney+</p>
+        <p class="db-title">1 página · GUIDDE</p>
+        <p>
+          <strong>G · Goal:</strong> Aumentar a retenção em D90 do Disney+ de _____ para _____ até o final do ano 1.<br>
+          <strong>U · Users:</strong> A decisão é tomada por _______ (cargo) e impacta diretamente _______.<br>
+          <strong>I · Impact:</strong> Cada 1pp de retenção D90 representa ~US$ _____ ARR adicional. Se errarmos, o risco é _______.<br>
+          <strong>D · Data:</strong> Precisamos de eventos de _______ (play, pause, abandono), atributos de _______ (perfil familiar) e _______ (catálogo). O que falta: _______.<br>
+          <strong>D · Decision:</strong> O resultado deste trabalho muda a decisão de _______ (priorização de produção/curadoria/pricing/marketing).<br>
+          <strong>E · Evaluation:</strong> Saberemos que acertamos quando _______ (métrica + threshold + prazo + baseline).<br>
+        </p>
+      </div>
+
+      <h3>9.3 Estrutura do pitch (SCQA · 5 minutos)</h3>
+      <ol>
+        <li><strong>Situation</strong> (45s) — contexto Disney+ em jul/2019: ativos, lançamento, concorrência.</li>
+        <li><strong>Complication</strong> (45s) — o gap que justifica o trabalho. Por que ML, por que agora, por que não outro lugar.</li>
+        <li><strong>Question</strong> (15s) — a pergunta única que vai responder.</li>
+        <li><strong>Answer</strong> (3min) — apresentação do Problem Statement GUIDDE com ênfase em D · Decision e E · Evaluation.</li>
+        <li><strong>Risco</strong> (15s) — qual o principal viés que vocês estão tentando evitar e qual a prática de mitigação adotada.</li>
+      </ol>
+
+      <h3>9.4 Critérios de avaliação</h3>
+      <ul>
+        <li><strong>Clareza da pergunta</strong> (0–3) — em uma frase, dá para entender o problema?</li>
+        <li><strong>Mensurabilidade</strong> (0–3) — a métrica de avaliação é objetiva e tem prazo?</li>
+        <li><strong>Conexão com decisão</strong> (0–3) — fica claro o que muda no negócio com o resultado?</li>
+        <li><strong>Evidência de mitigação de viés</strong> (0–3) — o grupo nomeou ao menos 1 viés e adotou prática.</li>
+        <li><strong>Linguagem executiva</strong> (0–3) — pitch claro, sem jargão técnico, 5 minutos.</li>
+      </ul>
+
+      <h3>9.5 Exemplo parcial (não copie · use como inspiração)</h3>
+      <div class="exec-callout">
+        <p class="mb-2"><strong>G · Goal:</strong> Aumentar retenção em D90 do Disney+ de 65% (baseline estimado a partir de Netflix lançamento int.) para 75% até dez/2020.</p>
+        <p class="mb-2"><strong>U · Users:</strong> VP de Conteúdo Original (decide priorização de US$ 250M de produção 2020/Q2) e VP de Growth (decide gatilhos de retenção no app).</p>
+        <p class="mb-2"><strong>I · Impact:</strong> Cada 1pp de retenção D90 ~ US$ 70M ARR (estimativa). Meta de +10pp = US$ 700M ARR. Risco contrário: cair para 55% = -US$ 700M e erosão de narrativa de "Netflix killer".</p>
+        <p class="mb-2"><strong>D · Data:</strong> Eventos de sessão (play, pause, abandono, tempo até primeira sessão), atributos de perfil familiar (idades, perfis kids), catálogo (franquia, gênero, duração), pagamento (forma, ciclo). Falta: histórico comportamental real (não existe — ...)</p>
+        <p class="mb-0"><strong>D · Decision:</strong> ... <em>(o grupo completa)</em><br>
+        <strong>E · Evaluation:</strong> ... <em>(o grupo completa com critério, prazo e baseline)</em></p>
+      </div>
+
+      <h3 id="prompt-brainstorm">9.6 IA Generativa no Brainstorming</h3>
+      <p>
+        Na fase de ideação, a IA pode ajudar a destravar a "Answer" do seu Problem Statement, sugerindo caminhos analíticos que você talvez não tenha considerado.
+      </p>
+      <div class="exec-callout" style="background: #f8f9fa; border-left-color: var(--exec-navy);">
+        <strong>Prompt para Brainstorming de Soluções:</strong><br>
+        <code style="display:block; margin-top:10px; color: var(--exec-deep);">
+          "Com base no GUIDDE que estruturei: [Cole o seu GUIDDE aqui]. Brainstorme 5 caminhos analíticos diferentes para resolver este problema. Para cada caminho, sugira uma métrica acionável e qual o principal viés que devemos vigiar (ex: Confirmação ou Ancoragem). Foque em soluções que um [Cargo] consiga patrocinar em 3 meses."
+        </code>
+      </div>
+      <p><strong>Exemplos de aplicação:</strong></p>
+      <ul>
+        <li><strong>Maintenance (Alan/Emanuel):</strong> "Como prever quebra de linha sem parar a produção?" → A IA pode sugerir modelos de manutenção preditiva baseados em sensores de vibração.</li>
+        <li><strong>Tech Commercial (Luiz Felipe):</strong> "Otimizar o checkout do Bees" → A IA pode sugerir análise de funil e detecção de fricção em tempo real.</li>
+        <li><strong>Packaging (Leonardo/Thalyck):</strong> "Redução de perda de insumos" → A IA pode sugerir modelos de otimização de corte ou visão computacional para controle de qualidade.</li>
+      </ul>
+
+      <!-- 10. Conexões -->
+      <h2 id="conexoes">10 · Conexões com os próximos módulos</h2>
+      <p>
+        O Problem Statement entregue hoje <strong>não morre quando a aula termina</strong>. Ele alimenta a
+        sequência dos próximos módulos do programa:
+      </p>
+      <ul>
+        <li><strong>Módulo 2 · IA Generativa para Analytics</strong> · você vai usar IA generativa
+        para acelerar o diagnóstico — e o Problem Statement de hoje é o prompt-mestre. Sem a
+        pergunta certa, a IA só acelera o erro.</li>
+        <li><strong>Módulo 3 · Análise Descritiva</strong> · vamos abrir dados de cohort, churn e
+        engajamento com as lentes do Problem Statement de hoje.</li>
+        <li><strong>Data Lab da turma</strong> · cada participante leva o GUIDDE de um problema real
+        da sua área Ambev. O Disney+ é a maquete; o Data Lab é a casa.</li>
+      </ul>
+
+      <!-- NOVO: Guia de Bolso Ambev -->
+      <div class="deliverable-box" style="background: #f8f9fa; border-color: var(--exec-navy);">
+        <p class="db-label" style="color: var(--exec-navy);">🎁 Bônus: Ambev na Prática</p>
+        <h2 class="db-title">Guia de Bolso: Aplicando Amanhã</h2>
+        <p>Use este roteiro para elicitar sua próxima "encomenda" para o time de dados:</p>
+        <table class="exec-table">
+          <tr><td><strong>1. O Ritual</strong></td><td>Em qual ritual essa decisão será tomada? (S&OP, Weekly, VPO?)</td></tr>
+          <tr><td><strong>2. A Pergunta</strong></td><td>Transforme o briefing vago em uma pergunta "Decision-Driven". Ex: <em>"Se o Bees indicar que este PDV tem perfil Spaten, o HL incremental paga a geladeira em 6 meses?"</em></td></tr>
+          <tr><td><strong>3. O GUIDDE</strong></td><td>Preencha as 6 letras. Se travar em uma, você tem um gap de elicitação.</td></tr>
+          <tr><td><strong>4. O Anti-Melancia</strong></td><td>Qual recorte de dado pode nos enganar? (Ex: ignorar volume de marcas de baixo valor no total do PDV).</td></tr>
+        </table>
+      </div>
+
+      <!-- 11. Glossário -->
+      <h2 id="glossario">11 · Glossário rápido</h2>
+      <table class="exec-table">
+        <thead>
+          <tr><th>Termo</th><th>Significado executivo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Problem framing</strong></td><td>Disciplina de transformar problema vago em pergunta única e diagnosticável.</td></tr>
+          <tr><td><strong>KPI Melancia</strong></td><td>Métrica verde no agregado, vermelha quando aberta por recorte relevante.</td></tr>
+          <tr><td><strong>Decision-driven data</strong></td><td>Começar pela decisão a ser tomada e descer até o dado mínimo necessário.</td></tr>
+          <tr><td><strong>GUIDDE</strong></td><td>Framework de 6 dimensões: Goal, Users, Impact, Data, Decision, Evaluation.</td></tr>
+          <tr><td><strong>SCQA</strong></td><td>Estrutura de pitch da Barbara Minto: Situation, Complication, Question, Answer.</td></tr>
+          <tr><td><strong>5 Porquês</strong></td><td>Técnica Toyota para descer das camadas de sintoma até causa de negócio.</td></tr>
+          <tr><td><strong>Modelo conceitual</strong></td><td>Diagrama de entidades de negócio e relacionamentos, sem detalhe técnico.</td></tr>
+          <tr><td><strong>Modelo lógico</strong></td><td>Tabelas, atributos, chaves, cardinalidades — independente de banco.</td></tr>
+          <tr><td><strong>Modelo físico</strong></td><td>DDL real, performance, índices — terreno de engenheiro de dados.</td></tr>
+          <tr><td><strong>Sistema 1 / Sistema 2</strong></td><td>Modos de pensamento de Kahneman: rápido/intuitivo vs lento/deliberado.</td></tr>
+          <tr><td><strong>Viés de confirmação</strong></td><td>Tendência a buscar e valorizar evidências que confirmam a hipótese inicial.</td></tr>
+          <tr><td><strong>Ancoragem</strong></td><td>Primeira informação numérica vira referência para todas as próximas.</td></tr>
+          <tr><td><strong>Aversão à perda</strong></td><td>Dor de perder pesa ~2x o prazer de ganhar valor equivalente.</td></tr>
+          <tr><td><strong>Pre-mortem</strong></td><td>Imaginar que o projeto falhou e contar a história — ferramenta de Gary Klein.</td></tr>
+          <tr><td><strong>Red team</strong></td><td>Time designado para derrubar a proposta antes de ela ir a comitê.</td></tr>
+          <tr><td><strong>Análise descritiva</strong></td><td>O que aconteceu — relatórios, dashboards.</td></tr>
+          <tr><td><strong>Análise preditiva</strong></td><td>O que vai acontecer — scores, forecasts, classificação.</td></tr>
+          <tr><td><strong>Análise prescritiva</strong></td><td>O que devemos fazer — recomendação, otimização.</td></tr>
+          <tr><td><strong>Problem Statement</strong></td><td>Documento de 1 página que estrutura formalmente um problema diagnosticado.</td></tr>
+          <tr><td><strong>Stakeholder silencioso</strong></td><td>Quem não está na sala mas será impactado pela decisão.</td></tr>
+          <tr><td><strong>Sell-in / Sell-out</strong></td><td>Venda para o PDV (nasce no Bees) vs venda do PDV ao consumidor (ponto cego do processo).</td></tr>
+          <tr><td><strong>BPMN / SIPOC</strong></td><td>Notações de modelagem de processo; o gerente lê, não desenha.</td></tr>
+          <tr><td><strong>Maturidade analítica</strong></td><td>Escadaria Gartner: descritiva → diagnóstica → preditiva → prescritiva.</td></tr>
+          <tr><td><strong>ISO/IEC 25010</strong></td><td>Norma com as 9 características de qualidade de produto de software — a régua para aceitar ou devolver uma solução.</td></tr>
+          <tr><td><strong>Qualidade em uso</strong></td><td>Benefício, aceitação e baixo risco no contexto real de quem decide (ISO/IEC 25019).</td></tr>
+        </tbody>
+      </table>
+
+      <!-- 12. Referências -->
+      <h2 id="referencias">12 · Leituras e referências</h2>
+
+      <h3>Case principal</h3>
+      <ul>
+        <li>McTigue, K.; Anderson, T. <em>Disney+ and Machine Learning in the Streaming Age</em>.
+        Kellogg School of Management, Case KE1251 (5-123-001).</li>
+      </ul>
+
+      <h3>Bibliografia executiva</h3>
+      <ul>
+        <li>Kahneman, D. (2011). <em>Thinking, Fast and Slow</em>. Farrar, Straus and Giroux. — base de
+        Sistema 1/2 e vieses.</li>
+        <li>Minto, B. (2009). <em>The Pyramid Principle</em>. Pearson. — origem do SCQA e da estrutura
+        de comunicação executiva.</li>
+        <li>McAfee, A.; Brynjolfsson, E. (2017). <em>Machine, Platform, Crowd</em>. W. W. Norton. —
+        impacto de ML em decisão de negócio.</li>
+        <li>Davenport, T. (2018). <em>The AI Advantage</em>. MIT Press. — capítulos sobre AI em CPG e
+        mídia.</li>
+        <li>Klein, G. (2007). <em>Performing a Project Premortem</em>. Harvard Business Review. — origem
+        da técnica.</li>
+        <li>Sutherland, R. (2019). <em>Alchemy: The Surprising Power of Ideas That Don't Make Sense</em>.
+        WH Allen. — leitura provocativa sobre vieses em marketing.</li>
+      </ul>
+
+      <h3>Exhibits do case (Kellogg KE1251)</h3>
+      <ul>
+        <li>Consulte os exhibits no PDF oficial do case (disponível no Drive da turma) — trazem os
+        dados de assinantes, catálogo e estrutura do mercado de streaming usados nas dinâmicas.</li>
+      </ul>
+
+      <h3>Pesquisas e relatórios citados nos slides</h3>
+      <ul>
+        <li>McKinsey &amp; Company (2019). <em>Decision making in the age of urgency</em>. Global Survey. — tempo decisório e custo da decisão ruim.</li>
+        <li>Lovallo, D.; Sibony, O. (2010). <em>The Case for Behavioral Strategy</em>. McKinsey Quarterly. — processo importa 6x mais que análise.</li>
+        <li>Wedell-Wedellsborg, T. (2017). <em>Are You Solving the Right Problems?</em> Harvard Business Review. — 85% dos C-levels ruins em diagnóstico.</li>
+        <li>Blenko, M.; Mankins, M.; Rogers, P. (2010). <em>Decide &amp; Deliver</em>. Bain &amp; Company. — correlação de 95% entre decisão e desempenho.</li>
+        <li>de Langhe, B.; Puntoni, S. (2021). <em>Leading With Decision-Driven Data Analytics</em>. MIT Sloan Management Review.</li>
+        <li>NewVantage Partners / Wavestone (2023). <em>Data and Analytics Leadership Executive Survey</em>.</li>
+        <li>McKinsey QuantumBlack (2025). <em>The State of AI</em>. — adoção de GenAI vs captura de valor (EBIT).</li>
+        <li>Gartner (2018–2025). Press releases: maturidade de BI/analytics (87%), custo de má qualidade de dados (US$ 12,9 mi/ano), abandono de projetos GenAI (30%) e IA agêntica (40% até 2027).</li>
+        <li>ISO/IEC 25010:2023 — <em>Product quality model</em> · ISO/IEC 25019:2023 — <em>Quality-in-use model</em> (família SQuaRE).</li>
+        <li>Dewey, J. (1938). <em>Logic: The Theory of Inquiry</em>. — "a problem well put is half solved".</li>
+        <li>AB InBev (2026). <em>Full Year &amp; 4Q 2025 Results</em> (6-K, SEC). — números do BEES e Zé Delivery.</li>
+        <li>McKinsey &amp; Company. <em>How analytics can drive growth in consumer-packaged-goods trade promotions</em>. — 59% das promoções perdem dinheiro.</li>
+      </ul>
+
+      <h3>Fontes públicas úteis</h3>
+      <ul>
+        <li>Netflix Investor Relations · histórico de subscribers e shareholder letters.</li>
+        <li>Disney Investor Relations · Form 10-K 2019 e earnings call de 07/nov/2019 (Q4 FY19, dias antes do lançamento do Disney+).</li>
+        <li>Kellogg Insight · artigos derivados do case KE1251.</li>
+        <li>MIT Sloan Management Review · arquivo sobre AI bias e governança.</li>
+      </ul>
+
+      <div class="exec-callout mt-4">
+        <strong>Bom módulo!</strong> Lembre-se: o objetivo do dia não é virar cientista de dados — é
+        sair com a capacidade de <em>fazer a pergunta certa, na ordem certa, para a pessoa certa</em>.
+        Esse é o trabalho do gerente que dá retorno em dado.
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="inteli-footer mt-auto py-4">
+    <div class="container text-center">
+      <p class="mb-1">Material criado pelo professor <strong>Afonso Brandão</strong> para o <strong>Inteli Exec</strong>.</p>
+      <small>🔓 Programa Data Science for Decision Makers — Ambev Turma 2</small>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- encontro:pdf:start -->
+<button type="button" class="pdf-export-btn" data-encontro-data="" data-encontro-docente="Afonso" data-encontro-seq="02" title="Exportar esta página em PDF com o nome padronizado">📄 Exportar PDF</button>
+<script src="../../../js/encontro-pdf.js" defer></script>
+<!-- encontro:pdf:end -->
+<!-- semana:js:start -->
+<script src="../../../js/semana-ano.js" defer></script>
+<!-- semana:js:end -->
+</body>
+</html>

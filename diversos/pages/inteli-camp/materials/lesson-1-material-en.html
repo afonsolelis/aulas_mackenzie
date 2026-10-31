@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inteli Camp — Day 1: Spec & Problem Modeling — Material - Inteli</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../../../css/inteli-styles.css" rel="stylesheet">
+  <style>
+    .page-header { background: linear-gradient(135deg, #1863dc 0%, #855ede 100%); color: white; }
+    .study-content { font-size: 1rem; line-height: 1.7; }
+    .study-content h2 { margin-top: 2rem; margin-bottom: 1rem; color: var(--inteli-dark-purple); }
+    .study-content h2:first-child { margin-top: 0; }
+    .rule-box { background: #f8f9fb; border: 1px solid #e8ecf1; border-left: 5px solid #855ede; border-radius: 0.5rem; padding: 1.2rem 1.4rem; margin: 1.25rem 0; }
+    .rule-box h4 { color: #5c2d91; margin: 0 0 0.6rem; font-size: 1.05rem; font-weight: 700; }
+    .rule-box ol, .rule-box ul { margin: 0; padding-left: 1.3rem; }
+    .rule-box li { margin-bottom: 0.4rem; }
+    .deliverable-box { background: #ecfdf5; border: 1px solid #a7f3d0; border-left: 5px solid #10b981; border-radius: 0.5rem; padding: 0.9rem 1.2rem; margin: 1rem 0; }
+    .deliverable-box strong.label { color: #047857; text-transform: uppercase; font-size: 0.78rem; letter-spacing: 0.05em; display: block; margin-bottom: 0.25rem; }
+    .tool-pill { display: inline-block; background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; font-size: 0.78rem; font-weight: 700; padding: 4px 11px; border-radius: 999px; margin: 0 4px 6px 0; }
+    .case { font-weight: 700; color: #5c2d91; }
+    .field-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+    .field-table th { background: #855ede; color: white; text-align: left; padding: 0.6rem 0.9rem; }
+    .field-table td { padding: 0.6rem 0.9rem; border-bottom: 1px solid #e8ecf1; vertical-align: top; }
+    .field-table tr:nth-child(even) td { background: #f8f9fb; }
+
+    /* ===== Camada de legibilidade — dislexia/TDAH (não altera o conteúdo) ===== */
+    /* Sem caixa-alta: preserva o contorno das palavras, chave para leitura disléxica */
+    .study-content *, .page-header * { text-transform: none !important; }
+    /* Modo leitura acessível — botão flutuante "Aa", persiste por aluno (mesma chave dos slides) */
+    body.a11y .study-content { font-size: 1.15rem; line-height: 1.9; letter-spacing: 0.02em; }
+    body.a11y .study-content p, body.a11y .study-content li { word-spacing: 0.08em; }
+    body.a11y .study-content p, body.a11y .study-content ul, body.a11y .study-content ol { max-width: 68ch; }
+    .a11y-fab { position: fixed; right: 20px; bottom: 20px; z-index: 1050; background: #fff; color: var(--inteli-dark-purple, #2e2640); border: 1px solid #d7dee6; box-shadow: 0 6px 20px rgba(46,38,64,0.18); border-radius: 999px; padding: 10px 16px; font-weight: 800; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+    .a11y-fab .dot { font-size: 0.72rem; font-weight: 700; color: #64748b; }
+    .a11y-fab.is-on { background: #1863dc; color: #fff; border-color: #1863dc; }
+    .a11y-fab.is-on .dot { color: #cfe0ff; }
+    .a11y-fab:focus-visible { outline: 3px solid #1863dc; outline-offset: 3px; }
+    @media print { .a11y-fab { display: none; } }
+  
+  </style>
+
+<!-- encontro:css:start -->
+<link rel="stylesheet" href="../../../css/encontro.css">
+<!-- encontro:css:end -->
+
+<!-- semana:css:start -->
+<link rel="stylesheet" href="../../../css/semana-ano.css">
+<!-- semana:css:end -->
+</head>
+<body>
+  <header class="page-header py-4">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <div>
+          <span class="badge bg-light text-dark">Inteli Camp · Tech Track</span>
+          <span class="badge bg-dark">Day 1 · Monday</span>
+        </div>
+        <h1 class="h3 mb-1 mt-2">Day 1 — Spec & Problem Modeling</h1>
+        <div>Understand the problem before building the solution</div>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="../slides/slide-lesson-1-en.html" class="btn btn-light">Slides</a>
+        <a href="../../home-inteli-camp.html" class="btn btn-outline-light">← Back</a>
+      </div>
+    </div>
+  </header>
+<!-- encontro:meta:start -->
+<div class="container" style="max-width:1100px;margin:24px auto 0;padding:0 16px;"><section class="encontro-meta" data-encontro-ficha><h2>Sobre este encontro</h2><p class="encontro-ref">Inteli Camp · Prof. Afonso</p><div class="encontro-item" data-encontro="objetivo"><h3>Objetivo de aprendizagem</h3><p>Ao final do encontro, o estudante deve ser capaz de aplicar ao projeto os conceitos de Inteli Camp.</p></div><div class="encontro-item" data-encontro="estrategia"><h3>Estratégia do encontro</h3><p>Exposição dialogada dos conceitos, alternada com aplicação guiada ao projeto do grupo, e fechamento com verificação do entendimento.</p></div><div class="encontro-item" data-encontro="agenda"><h3>Estrutura do encontro</h3><ol><li>🎯 Goal of the day</li><li>📄 What a spec is and why it exists</li><li>🧭 Two compasses of the software engineer</li><li>🔄 From the partner&#39;s need to the spec</li><li>🗺️ The 5 views: from need to technology</li><li>🧩 The five views in detail</li><li>🔍 How to break down the problem</li><li>📐 Decomposition example</li></ol></div></section></div>
+<!-- encontro:meta:end -->
+
+
+
+
+
+
+
+  <main class="container py-5">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4 p-lg-5 study-content">
+
+        <h2 id="objetivo">🎯 Goal of the day</h2>
+        <p>Leave the challenge briefing with a <strong>validated spec</strong>: a short, precise document that describes the partner's problem, who experiences it, what the solution receives and delivers, and how we will know it worked. In a five-day bootcamp, lost time does not come back — a well-crafted spec is what turns effort into speed.</p>
+
+        <h2 id="o-que-e-spec">📄 What a spec is and why it exists</h2>
+        <p>A <strong>spec</strong> (short for <em>specification</em>) is a document that describes <strong>the problem</strong>, not the solution. It defines who uses it, what that person needs, and how we will know the need was met. The spec exists to avoid the most expensive cycle in development: building, discovering it was wrong, and rebuilding.</p>
+        <div class="rule-box">
+          <h4>Without a spec vs. with a spec</h4>
+          <ul>
+            <li><strong>Without a spec:</strong> each team member builds different things without realizing it; the AI receives vague instructions and produces inconsistent results; during the presentation, nobody can answer "but who uses this?".</li>
+            <li><strong>With a spec:</strong> everyone speaks the same language; the Day 2 prompts start from a concrete base; the acceptance criteria are already defined before the first line of code is written.</li>
+          </ul>
+        </div>
+
+        <h2 id="bussolas">🧭 Two compasses of the software engineer</h2>
+        <p>Before turning a need into a specification, it helps to know two references that professionals use to orient their work. You do not need to memorize them — think of each as a compass that points the way. Today we use only a light version of each.</p>
+        <div class="rule-box">
+          <h4>The two references</h4>
+          <ul>
+            <li><strong>SWEBOK 4.0 — the map of knowledge.</strong> A guide that organizes everything a software engineer needs to know, divided into areas. Two of those areas, <em>Requirements</em> and <em>Design</em>, are the ones we use today. Think of it as the table of contents of a large book about the profession; we will open only the requirements chapter.</li>
+            <li><strong>ISO/IEC 25010 — the quality ruler.</strong> A standard that defines what makes software "good" through eight quality characteristics, such as usability, performance, security and reliability. It answers the question "does it work <em>well</em>?", not only "does it work?". We use it later to write the non-functional requirements.</li>
+          </ul>
+        </div>
+
+        <h2 id="necessidade-spec">🔄 From the partner's need to the spec</h2>
+        <p>A partner rarely arrives with a specification. They arrive with a <strong>need</strong> — real and legitimate, but still too vague to build. Our job is to translate that need into a precise specification. Consider the challenge described by the partner of this edition, Azul Linhas Aéreas:</p>
+        <div class="rule-box">
+          <h4>What the partner says</h4>
+          <p><em>"Build an AI agent that supports Azul's hiring process, analyzing interviews and organizing a candidate selection funnel."</em></p>
+        </div>
+        <p>This sentence is a starting point, not an instruction that can be built as it stands. To make it buildable, we break the need into five views, each answering a single question: <strong>why</strong> (Business Drivers), <strong>what</strong> (Functional Requirements), <strong>how well</strong> (Non-Functional Requirements), <strong>how</strong> (Architecture) and <strong>with what</strong> (Technology).</p>
+
+        <h2 id="cinco-vistas">🗺️ The 5 views: from need to technology</h2>
+        <p>The five views form a path. Each one answers a question and prepares the next: we only decide the technology after we understand why the solution matters, what it must do, how well it must do it, and how its parts fit together. The table below shows the whole path applied to the Azul case.</p>
+        <table class="field-table">
+          <tr><th>View (layer)</th><th>Question it answers</th><th>Example — Azul</th></tr>
+          <tr><td><strong>Business Drivers</strong></td><td>Why?</td><td>Speed up and standardize hiring, supporting better decisions</td></tr>
+          <tr><td><strong>Functional Requirements</strong></td><td>What?</td><td>Analyze interviews, score candidates and build the selection funnel</td></tr>
+          <tr><td><strong>Non-Functional Requirements</strong></td><td>How well?</td><td>Protect candidate data (LGPD), avoid bias and apply equal criteria</td></tr>
+          <tr><td><strong>Architecture</strong></td><td>How?</td><td>Interview data → interface → AI agent → criteria base</td></tr>
+          <tr><td><strong>Technology</strong></td><td>With what?</td><td>Lovable, to build the interface and connect the AI</td></tr>
+        </table>
+
+        <h2 id="camadas">🧩 The five views in detail</h2>
+        <p>Each view has a simple definition and a concrete example from the Azul case. Read them in order — every view builds on the previous one.</p>
+        <div class="rule-box">
+          <h4>1. Business Drivers — the "why"</h4>
+          <p>A business driver is the business reason that justifies the project: the outcome the organization wants to achieve. It talks about value — cost, time, satisfaction, reputation — and never mentions screens or code. It answers "why is this worth building?".</p>
+          <p><strong>Example — Azul:</strong></p>
+          <ul>
+            <li>Speed up screening and reduce the hiring cycle time</li>
+            <li>Standardize evaluation and support fairer hiring decisions</li>
+            <li>Free recruiters for the steps that require human judgment</li>
+          </ul>
+        </div>
+        <div class="rule-box">
+          <h4>2. Functional Requirements — the "what"</h4>
+          <p>A functional requirement describes an action the solution <strong>must perform</strong> — something observable to whoever uses it. It usually starts with a verb ("the system must..."), it is verifiable (you can test whether it happens), and it describes one function at a time, without ambiguity.</p>
+          <p><strong>Example — Azul:</strong></p>
+          <ul>
+            <li>Analyze an interview's answers against the evaluation criteria</li>
+            <li>Score and rank candidates, organizing the selection funnel</li>
+            <li>Summarize the interview, comparing the candidate to the role profile</li>
+          </ul>
+        </div>
+        <div class="rule-box">
+          <h4>3. Non-Functional Requirements — the "how well"</h4>
+          <p>A non-functional requirement does not describe a new function, but the <strong>quality</strong> with which the solution works. This is where ISO/IEC 25010 comes in: it gives us the characteristics used to define that quality. Four of the standard's eight characteristics are enough for us today:</p>
+          <ul>
+            <li><strong>Usability</strong> — easy to understand and use</li>
+            <li><strong>Performance</strong> — responds fast</li>
+            <li><strong>Security</strong> — protects the data</li>
+            <li><strong>Reliability</strong> — works without failing</li>
+          </ul>
+          <p><strong>Example — Azul:</strong></p>
+          <ul>
+            <li><strong>Security:</strong> protect the candidates' personal data (LGPD)</li>
+            <li><strong>Reliability:</strong> apply the same criteria to every candidate</li>
+            <li><strong>Usability:</strong> make clear why each candidate was scored</li>
+            <li><strong>Performance:</strong> analyze an interview in a few seconds</li>
+          </ul>
+          <p>In a hiring process, quality also means <strong>avoiding bias</strong>: the evaluation must be fair and rely only on the defined criteria, never on characteristics unrelated to the role.</p>
+        </div>
+        <div class="rule-box">
+          <h4>4. Architecture — the "how"</h4>
+          <p>Architecture shows how the parts of the solution are organized and how they talk to each other — a drawing of boxes and arrows. Each box has a single responsibility, and each arrow shows where the information flows. It is not the tool yet; it is the organization of the parts.</p>
+          <p><strong>Example — Azul:</strong> Interview data → recruiter interface → AI agent → criteria base. The criteria base holds the evaluation criteria and role profiles the AI uses to analyze each interview.</p>
+        </div>
+        <div class="rule-box">
+          <h4>5. Technology — the "with what"</h4>
+          <p>Technology is the set of concrete tools that bring the architecture to life. It comes <strong>last</strong>: first we understand why, what, how well and how. Choosing the tool before understanding the problem is the main source of rework.</p>
+          <p><strong>Our choice:</strong> in this edition we will use <span class="tool-pill">💜 Lovable</span>, a platform that lets you build web applications by describing what you want in natural language. It takes the group from prototype to a working solution quickly, without writing the code from scratch — which suits the pace of the camp and keeps the focus on the problem rather than on setup.</p>
+          <p><strong>Example — Azul:</strong> use Lovable to build the recruiter interface and connect it to the AI agent defined in the architecture view.</p>
+        </div>
+
+        <h2 id="modelagem">🔍 How to break down the problem</h2>
+        <p>Modeling means answering four questions, in order. If you cannot answer one of them, it is a sign that understanding is missing — ask the professor before moving on.</p>
+        <div class="rule-box">
+          <h4>The 4 modeling questions</h4>
+          <ol>
+            <li><strong>Who uses it?</strong> Identify the actor: who interacts with the solution and with what objective.</li>
+            <li><strong>What comes in?</strong> Which data or information the actor provides for the AI to act on.</li>
+            <li><strong>What comes out?</strong> What is the output the actor receives and what they do with it.</li>
+            <li><strong>How do we know it worked?</strong> Define the acceptance criteria — an objective, verifiable condition.</li>
+          </ol>
+        </div>
+        <p>Before opening the computer, sketch the flow on paper. A diagram of boxes with arrows (actor → input → AI → output) is already enough to align the team.</p>
+
+        <h2 id="exemplo">📐 Decomposition example</h2>
+        <table class="field-table">
+          <tr><th>Field</th><th>Example</th></tr>
+          <tr><td><strong>Actor</strong></td><td>Marketing analyst at the partner company</td></tr>
+          <tr><td><strong>Input</strong></td><td>Product briefing: name, target audience, tone of voice, prohibited keywords</td></tr>
+          <tr><td><strong>Output</strong></td><td>3 copy variations for social media, with hashtags and a suggested visual format</td></tr>
+          <tr><td><strong>Acceptance criteria</strong></td><td>The copy respects the tone of voice, contains no prohibited words, and is under 280 characters</td></tr>
+        </table>
+
+        <h2 id="template">📋 Spec template — fill it in as a group</h2>
+        <div class="rule-box">
+          <h4>The 6 spec fields</h4>
+          <ol>
+            <li><strong>Core problem:</strong> in one sentence, which real pain of the partner this solution solves.</li>
+            <li><strong>Main actor:</strong> who uses the solution and what that person's objective is.</li>
+            <li><strong>Input:</strong> what data the actor provides; which are required and which are optional.</li>
+            <li><strong>Output:</strong> what the actor receives, in what format, and with what level of detail.</li>
+            <li><strong>Constraints:</strong> what the solution cannot do; prohibited words, topics, or behaviors.</li>
+            <li><strong>Acceptance criteria:</strong> the objective condition by which the panel will assess whether the solution works.</li>
+          </ol>
+        </div>
+
+        <h2 id="entregavel">🏁 Deliverable</h2>
+        <div class="deliverable-box">
+          <strong class="label">Deliverable of the day</strong>
+          Group spec filled in and validated by the professor, with the problem broken down into actor, input, output, and constraints, and an objective acceptance criterion defined.
+        </div>
+        <div><span class="tool-pill">📄 Validated spec</span><span class="tool-pill">🔍 Problem modeling</span><span class="tool-pill">🎯 Acceptance criteria</span></div>
+
+        <h2 id="desafio">🧩 This edition's challenge</h2>
+        <div class="rule-box">
+          <h4>Case briefing</h4>
+          <ul>
+            <li><strong>Partner:</strong> <span class="case" data-case="marca">[partner brand/organization]</span></li>
+            <li><strong>Context:</strong> <span class="case" data-case="contexto">[product or service context]</span></li>
+            <li><strong>Problem:</strong> <span class="case" data-case="desafio">[describe the real problem students will solve with AI]</span></li>
+            <li><strong>Solution output:</strong> <span class="case" data-case="output">[type of output]</span> for <span class="case" data-case="publico">[target audience]</span></li>
+          </ul>
+        </div>
+
+        <h2 id="proximo">➡️ Next day</h2>
+        <p><strong>Day 2 — Prompts from the Model:</strong> turn each spec field into precise instructions for the AI, building parameterizable prompts that guide the solution.</p>
+
+      </div>
+    </div>
+  </main>
+
+  <button class="a11y-fab" onclick="toggleA11y()" title="Accessible reading mode (dyslexia/ADHD)" aria-label="Toggle accessible reading mode" aria-pressed="false"><span aria-hidden="true">Aa</span> <span class="dot">reading</span></button>
+
+  <footer class="inteli-footer mt-auto py-4 bg-light border-top">
+    <div class="container text-center">
+      <p class="mb-1">Material created by professor <strong>Afonso Brandão</strong> for <strong>Inteli</strong>.</p>
+      <small class="text-muted">🔓 Open reading license</small>
+    </div>
+  </footer>
+
+  <!-- Metadados do case (fonte única). Para trocar o case, edite config/inteli-camp-case.js -->
+  <script src="../../../config/inteli-camp-case.js"></script>
+  <script>
+    const CASE = window.INTELI_CAMP_CASE || {
+      edicao: "Winter Bootcamp · July 2026",
+      marca: "[partner brand/organization]", contexto: "[product or service context]",
+      desafio: "[describe here the real problem students will solve with AI]",
+      output: "[type of output — e.g., candidate ranking and summary]", publico: "[target audience of the solution]"
+    };
+    document.querySelectorAll('[data-case]').forEach(el => { const k = el.getAttribute('data-case'); if (CASE[k]) el.textContent = CASE[k]; });
+  </script>
+  <script>
+    function applyA11y(on) {
+      document.body.classList.toggle('a11y', on);
+      var b = document.querySelector('.a11y-fab');
+      if (b) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.classList.toggle('is-on', on); }
+    }
+    function toggleA11y() {
+      var on = !document.body.classList.contains('a11y');
+      try { localStorage.setItem('inteliCampA11y', on ? '1' : '0'); } catch (e) {}
+      applyA11y(on);
+    }
+    try { if (localStorage.getItem('inteliCampA11y') === '1') applyA11y(true); } catch (e) {}
+  </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- encontro:pdf:start -->
+<button type="button" class="pdf-export-btn" data-encontro-data="" data-encontro-docente="Afonso" data-encontro-seq="02" title="Exportar esta página em PDF com o nome padronizado">📄 Exportar PDF</button>
+<script src="../../../js/encontro-pdf.js" defer></script>
+<!-- encontro:pdf:end -->
+<!-- semana:js:start -->
+<script src="../../../js/semana-ano.js" defer></script>
+<!-- semana:js:end -->
+</body>
+</html>

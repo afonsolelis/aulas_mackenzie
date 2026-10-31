@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inteli Camp — Day 3: Prompts from the Model — Slides - Inteli</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="../../../css/inteli-styles.css" rel="stylesheet">
+  <style>
+    :root { --inteli-purple: #2e2640; --inteli-accent: #1863dc; --inteli-highlight: #855ede; --camp-dark: #2e2640; --camp-lavender: #90a5e5; --camp-red: #c00000; }
+    body { margin: 0; padding: 0; overflow: hidden; font-family: "Manrope", sans-serif; background: #f5f7fb; color: var(--inteli-purple); }
+    .slide-container { width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+    .slide { width: 100%; height: 100%; display: none; padding: 26px 40px 84px; box-sizing: border-box; position: absolute; }
+    .slide.active { display: flex; flex-direction: column; justify-content: center; animation: slideIn 0.35s ease-in-out; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: translateX(0); } }
+    .slide-content { width: min(1240px, 100%); margin: 0 auto; font-size: 1rem; line-height: 1.45; }
+
+    .slide-header { background: var(--camp-dark); color: white; padding: 15px 22px; border-radius: 14px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; border-left: 6px solid var(--camp-lavender); }
+    .slide-header.cover { padding: 30px 28px; flex-direction: column; align-items: flex-start; }
+    .slide-title { font-size: 1.75rem; font-weight: 800; margin: 0; }
+    .slide-header.cover .slide-title { font-size: 2.6rem; }
+    .slide-subtitle { font-size: 1rem; opacity: 0.92; margin: 4px 0 0; }
+    .stage-badge { background: var(--camp-lavender); color: var(--camp-dark); border: 1px solid var(--camp-lavender); padding: 6px 14px; border-radius: 999px; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; flex-shrink: 0; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .col-card { background: white; border-radius: 14px; padding: 16px 18px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); border: 1px solid #e8ecf1; border-left: 6px solid #cbd5e1; }
+    .col-card.how { border-left-color: var(--inteli-highlight); }
+    .col-card.check { border-left-color: #0d9488; }
+    .col-card.bad { border-left-color: #dc2626; }
+    .col-card.good { border-left-color: #0d9488; }
+    .col-card h3 { font-size: 1rem; font-weight: 800; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .col-card.how h3 { color: var(--inteli-highlight); }
+    .col-card.check h3 { color: #0d9488; }
+    .col-card.bad h3 { color: #dc2626; }
+    .col-card.good h3 { color: #0d9488; }
+    .col-card ol, .col-card ul { margin: 0; padding-left: 1.2rem; }
+    .col-card li { margin-bottom: 6px; font-size: 0.92rem; line-height: 1.45; }
+    .col-card li strong { color: var(--inteli-purple); }
+    .deliverable { background: #ecfdf5; border: 1px dashed #6ee7b7; border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 0.88rem; line-height: 1.45; color: #065f46; }
+    .deliverable .d-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #047857; margin-bottom: 4px; }
+
+    .case { font-weight: 700; color: var(--inteli-highlight); }
+    .case-box { background: #fffbeb; border: 1px solid #fde68a; border-left: 6px solid #f59e0b; border-radius: 14px; padding: 18px 22px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); }
+    .case-box h3 { font-size: 1rem; font-weight: 800; margin: 0 0 10px; color: #b45309; text-transform: uppercase; letter-spacing: 0.04em; }
+    .case-box p { margin: 0 0 8px; font-size: 1rem; line-height: 1.55; }
+
+    .roadmap-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .roadmap-card { background: white; border-radius: 12px; padding: 14px 12px; box-shadow: 0 6px 18px rgba(46,38,64,0.06); border-top: 5px solid; display: flex; flex-direction: column; gap: 6px; }
+    .roadmap-card:nth-child(1) { border-color: #1863dc; }
+    .roadmap-card:nth-child(2) { border-color: #855ede; }
+    .roadmap-card:nth-child(3) { border-color: #0d9488; }
+    .roadmap-card:nth-child(4) { border-color: #f97316; }
+    .roadmap-card:nth-child(5) { border-color: #db2777; }
+    .roadmap-card .day { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+    .roadmap-card .rc-title { font-size: 0.98rem; font-weight: 800; color: var(--inteli-purple); line-height: 1.25; }
+    .roadmap-card .rc-deliv { font-size: 0.78rem; color: #475569; line-height: 1.4; margin-top: auto; }
+    .roadmap-card.is-today { outline: 3px solid #855ede; outline-offset: 2px; }
+
+    .tool-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .tool-pill { background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; font-size: 0.78rem; font-weight: 700; padding: 5px 12px; border-radius: 999px; }
+
+    .cover-content { display: flex; flex-direction: column; gap: 14px; }
+    .cover-block { background: white; border-radius: 14px; padding: 16px 20px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); }
+    .cover-block h3 { font-size: 1rem; font-weight: 800; margin: 0 0 8px; color: var(--inteli-accent); text-transform: uppercase; letter-spacing: 0.04em; }
+    .cover-block ul { margin: 0; padding-left: 1.2rem; }
+    .cover-block li { margin-bottom: 5px; font-size: 0.95rem; }
+    .cover-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    .prompt-block { background: #1e1829; color: #e2e8f0; border-radius: 12px; padding: 14px 18px; font-family: "Manrope", monospace; font-size: 0.85rem; line-height: 1.6; margin-bottom: 10px; }
+    .prompt-block .ph { color: #a78bfa; font-style: italic; }
+    .prompt-block .kw { color: #7dd3fc; font-weight: 700; }
+    .prompt-label { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 4px; }
+
+    /* ===== Robustness components ===== */
+    .map-grid { display: flex; flex-direction: column; gap: 8px; }
+    .map-row { display: grid; grid-template-columns: 1fr 30px 1fr; align-items: center; gap: 10px; background: white; border-radius: 10px; padding: 10px 14px; box-shadow: 0 5px 14px rgba(46,38,64,0.05); border-left: 6px solid #855ede; }
+    .map-row .tag { font-size: 0.66rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; display: block; margin-bottom: 1px; }
+    .map-row .txt { font-size: 0.9rem; line-height: 1.3; }
+    .map-row .to .txt { font-weight: 700; color: var(--inteli-purple); }
+    .map-row .arrow { text-align: center; color: #855ede; font-weight: 800; font-size: 1.1rem; }
+
+    .reftable { width: 100%; border-collapse: collapse; font-size: 0.85rem; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 6px 18px rgba(46,38,64,0.06); }
+    .reftable th, .reftable td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eef2f7; vertical-align: top; line-height: 1.4; }
+    .reftable th { background: #f1f4f8; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+    .reftable tr:last-child td { border-bottom: none; }
+    .reftable td strong { color: var(--inteli-purple); }
+
+    .warn-box { background: #fef2f2; border: 1px solid #fecaca; border-left: 6px solid #dc2626; border-radius: 14px; padding: 16px 20px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); }
+    .warn-box h3 { font-size: 1rem; font-weight: 800; margin: 0 0 8px; color: #b91c1c; text-transform: uppercase; letter-spacing: 0.04em; }
+    .warn-box ul { margin: 0; padding-left: 1.1rem; } .warn-box li { font-size: 0.9rem; margin-bottom: 5px; line-height: 1.45; }
+
+    .check-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 22px; }
+    .check-list li { display: flex; gap: 9px; align-items: flex-start; font-size: 0.92rem; line-height: 1.4; }
+    .check-list li::before { content: "✓"; color: #0d9488; font-weight: 800; flex-shrink: 0; }
+
+    .spec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .spec-card { background: white; border-radius: 14px; padding: 16px 18px; box-shadow: 0 8px 24px rgba(46,38,64,0.06); border: 1px solid #e8ecf1; }
+    .spec-card h3 { font-size: 0.88rem; font-weight: 800; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--inteli-accent); }
+    .spec-card p, .spec-card li { font-size: 0.9rem; line-height: 1.5; }
+    .spec-card ul, .spec-card ol { margin: 0; padding-left: 1.1rem; }
+    .spec-card li { margin-bottom: 5px; }
+
+    .timer-panel { position: fixed; top: 16px; left: 18px; z-index: 200; background: rgba(255,255,255,0.98); border: 2px solid #1863dc; border-radius: 14px; padding: 8px 14px; display: none; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(24,99,220,0.18); font-family: "Manrope", sans-serif; }
+    .timer-panel.visible { display: flex; }
+    .timer-display { font-size: 1.6rem; font-weight: 800; color: var(--inteli-purple); font-variant-numeric: tabular-nums; min-width: 84px; text-align: center; letter-spacing: 0.04em; }
+    .timer-panel.warning .timer-display { color: #d97706; }
+    .timer-panel.warning { border-color: #d97706; box-shadow: 0 8px 24px rgba(217,119,6,0.25); }
+    .timer-panel.critical .timer-display { color: #dc2626; }
+    .timer-panel.critical { border-color: #dc2626; box-shadow: 0 8px 24px rgba(220,38,38,0.3); }
+    .timer-panel.done { border-color: #dc2626; background: #fee2e2; animation: flashDone 0.6s ease-in-out infinite; }
+    .timer-panel.done .timer-display { color: #991b1b; }
+    @keyframes flashDone { 0%, 100% { background: #fee2e2; } 50% { background: #fecaca; } }
+    .timer-btn { background: var(--inteli-purple); color: white; border: none; width: 30px; height: 30px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+    .timer-btn:hover { background: var(--inteli-accent); }
+    .timer-btn.reset { background: #f1f5f9; color: var(--inteli-purple); border: 1px solid #cbd5e1; }
+    .timer-btn.reset:hover { background: #e2e8f0; }
+
+    .slide-footer { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.97); border-top: 1px solid #dfe5ec; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 -2px 10px rgba(46,38,64,0.06); z-index: 100; gap: 12px; }
+    .footer-links { display: flex; gap: 10px; }
+    .back-home { color: var(--inteli-purple); text-decoration: none; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; border-radius: 10px; background: #f1f4f8; }
+    .back-home.material { background: #2f8f78 !important; color: white !important; }
+    .back-home.material:hover { background: #267562 !important; color: white !important; }
+    .nav-wrapper { display: flex; align-items: center; gap: 14px; background: #f1f4f8; padding: 7px 18px; border-radius: 30px; }
+    .nav-buttons button { background: var(--inteli-purple); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .nav-buttons button:disabled { background: #caced6; cursor: not-allowed; }
+    .slide-counter { font-weight: 700; color: var(--inteli-purple); min-width: 70px; text-align: center; }
+    .fullscreen-btn { background: #f1f4f8; border: none; font-size: 1.1rem; cursor: pointer; padding: 8px 12px; border-radius: 8px; }
+
+    .nav-buttons button:focus-visible, .fullscreen-btn:focus-visible, .timer-btn:focus-visible, .back-home:focus-visible { outline: 3px solid #1863dc; outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      .slide.active { animation: none; }
+      .timer-panel.done { animation: none; }
+    }
+    /* ===== Marca compartilhada Inteli Camp 2026 (alinhamento visual com a Trilha Business) ===== */
+    .camp-brand { position: fixed; top: 12px; right: 20px; z-index: 150; display: flex; align-items: center; gap: 9px; pointer-events: none; }
+    .camp-brand img { height: 42px; width: auto; filter: drop-shadow(0 3px 8px rgba(46,38,64,0.18)); }
+    .camp-brand .cb-word { font-family: "Manrope", sans-serif; font-weight: 800; font-size: 0.82rem; line-height: 0.98; letter-spacing: 0.02em; color: var(--camp-dark); text-transform: uppercase; }
+    .camp-brand .cb-word small { display: block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.14em; color: var(--camp-lavender); }
+    .hl { color: var(--camp-red); font-weight: 800; }
+
+    /* ===== Platform flow (steps) ===== */
+    .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-items: stretch; }
+    .flow-step { background: white; border-radius: 12px; padding: 12px 12px; box-shadow: 0 6px 18px rgba(46,38,64,0.06); border-top: 5px solid var(--camp-lavender); display: flex; flex-direction: column; gap: 5px; position: relative; }
+    .flow-step .fs-num { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+    .flow-step .fs-title { font-size: 0.92rem; font-weight: 800; color: var(--inteli-purple); line-height: 1.2; }
+    .flow-step .fs-desc { font-size: 0.76rem; color: #475569; line-height: 1.35; margin-top: auto; }
+    .flow-step .fs-ico { font-size: 1.3rem; }
+
+    /* ===== Architecture diagram ===== */
+    .arch { display: flex; flex-direction: column; gap: 7px; }
+    .arch-layer { background: white; border-radius: 12px; padding: 9px 14px; box-shadow: 0 5px 14px rgba(46,38,64,0.05); border-left: 6px solid var(--camp-lavender); }
+    .arch-layer .layer-label { font-size: 0.64rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 6px; }
+    .arch-nodes { display: grid; gap: 9px; }
+    .arch-node { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; }
+    .arch-node .n-title { font-weight: 800; font-size: 0.86rem; color: var(--inteli-purple); display: flex; align-items: center; gap: 6px; }
+    .arch-node .n-desc { font-size: 0.72rem; color: #475569; line-height: 1.3; margin-top: 2px; }
+    .arch-node.ai { border-color: #855ede; background: #f5f3ff; }
+    .arch-node.ai .n-title { color: #6d28d9; }
+    .arch-arrow { text-align: center; color: var(--camp-lavender); font-weight: 800; font-size: 0.95rem; line-height: 0.5; margin: -1px 0; }
+    .arch-tag { display: inline-block; font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 7px; border-radius: 999px; background: #eef2ff; color: #3730a3; }
+
+    /* ===== Camada de legibilidade — dislexia/TDAH (não altera o conteúdo) ===== */
+    /* Sem caixa-alta: preserva o contorno das palavras, chave para leitura disléxica */
+    .slide *, .camp-brand .cb-word { text-transform: none !important; }
+    /* Entrelinha um pouco mais folgada por padrão (ajuda todos os alunos) */
+    .slide-content { line-height: 1.55; }
+    /* Modo leitura acessível — ligado pelo botão "Aa" e persistido por aluno */
+    body.a11y .slide-content { letter-spacing: 0.02em; line-height: 1.62; }
+    body.a11y .slide-content p, body.a11y .slide-content li { word-spacing: 0.08em; font-weight: 500; }
+    body.a11y .col-card li, body.a11y .spec-card li, body.a11y .compass li, body.a11y .concept-card li { line-height: 1.5; }
+    .a11y-btn { background: #f1f4f8; border: none; font-size: 0.95rem; font-weight: 800; cursor: pointer; padding: 8px 12px; border-radius: 8px; color: var(--inteli-purple); letter-spacing: 0.02em; }
+    .a11y-btn.is-on { background: var(--inteli-accent); color: #fff; }
+    .a11y-btn:focus-visible { outline: 3px solid #1863dc; outline-offset: 3px; }
+  
+  </style>
+
+<!-- encontro:css:start -->
+<link rel="stylesheet" href="../../../css/encontro.css">
+<!-- encontro:css:end -->
+
+<!-- semana:css:start -->
+<link rel="stylesheet" href="../../../css/semana-ano.css">
+<!-- semana:css:end -->
+</head>
+<body>
+
+  <div class="camp-brand" aria-label="Inteli Camp 2026">
+    <img src="../assets/camp-mascot.png" alt="Mascote do Inteli Camp 2026">
+    <span class="cb-word">Inteli<br>Camp<small>2026</small></span>
+  </div>
+
+  <div class="timer-panel" id="timerPanel">
+    <span style="font-size: 1.1rem;">⏱️</span>
+    <span class="timer-display" id="timerDisplay">20:00</span>
+    <button class="timer-btn" id="timerToggle" title="Start/Pause" aria-label="Start or pause the timer">▶</button>
+    <button class="timer-btn reset" id="timerReset" title="Reset" aria-label="Reset the timer">↺</button>
+  </div>
+
+  <div class="slide-container">
+
+    <!-- SLIDE 1: COVER -->
+    <section class="slide active">
+      <div class="slide-content">
+        <div class="slide-header cover">
+          <span class="stage-badge">❄️ <span data-case="edicao">Winter Bootcamp · July 2026</span> · Day 3 · Wednesday</span>
+          <h1 class="slide-title">Inteli Camp — Day 3</h1>
+          <p class="slide-subtitle">Prompts from the Model — the prompt that builds the platform</p>
+        </div>
+
+        <div class="cover-content">
+          <div class="cover-grid">
+            <div class="cover-block">
+              <h3>🎯 What we'll do today</h3>
+              <ul>
+                <li>Turn the spec (revised in yesterday's visit) into a <strong>prompt that describes the platform</strong>, not a one-off task</li>
+                <li>Design the solution flow: spreadsheet → screening → invitation → video → decision</li>
+                <li>Define the <strong>architecture</strong> and the AI screening rule</li>
+                <li>Generate the first version in <strong>Lovable</strong> and iterate</li>
+              </ul>
+            </div>
+            <div class="cover-block">
+              <h3>🏁 Deliverable of the day</h3>
+              <ul>
+                <li>Platform-building prompt written and parameterized</li>
+                <li>First version generated in Lovable, with the main flow navigable</li>
+                <li>Screening rule returning structured output with no sensitive attributes</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: LEARNING OBJECTIVES -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Learning objectives</h1>
+            <p class="slide-subtitle">What you'll be able to do by the end of the day</p>
+          </div>
+          <span class="stage-badge">Objectives</span>
+        </div>
+
+        <div class="two-col">
+          <div class="col-card how">
+            <h3>✅ By the end, you can</h3>
+            <ul>
+              <li>Derive from the <strong>spec</strong> a prompt that describes a <strong>product</strong>, not an answer</li>
+              <li>Structure the building prompt: objective, users, screens, data, rules and constraints</li>
+              <li>Read an <strong>architecture</strong> diagram and map each part to the prompt</li>
+              <li>Specify AI screening with <strong>structured output</strong></li>
+              <li>Recognize <strong>bias and privacy</strong> risks in a platform that filters people</li>
+            </ul>
+          </div>
+          <div class="col-card check">
+            <h3>🧭 Why it matters</h3>
+            <ul>
+              <li>In Lovable, the prompt is the platform's <strong>blueprint</strong> — the better the blueprint, the better the build</li>
+              <li>A robust platform is <strong>predictable, fair and testable</strong></li>
+              <li>It's the bridge between the spec (Day 1) and the working MVP (Day 4)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: WEEK ROADMAP -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Week Roadmap</h1>
+            <p class="slide-subtitle">Where we are in the journey</p>
+          </div>
+          <span class="stage-badge">Day 3/5</span>
+        </div>
+
+        <div class="roadmap-grid">
+          <div class="roadmap-card">
+            <span class="day">Day 1 · Mon</span>
+            <span class="rc-title">Spec & Modeling</span>
+            <span class="rc-deliv">✅ Spec validated, acceptance criteria set</span>
+          </div>
+          <div class="roadmap-card">
+            <span class="day">Day 2 · Tue</span>
+            <span class="rc-title">Technical Visit</span>
+            <span class="rc-deliv">✅ Visit done, spec revised</span>
+          </div>
+          <div class="roadmap-card is-today">
+            <span class="day">Day 3 · Wed</span>
+            <span class="rc-title">Prompts & Platform</span>
+            <span class="rc-deliv"><strong>Today:</strong> building prompt + 1st version in Lovable</span>
+          </div>
+          <div class="roadmap-card">
+            <span class="day">Day 4 · Thu</span>
+            <span class="rc-title">Sprint, Refinement & Tests</span>
+            <span class="rc-deliv">Working MVP, tested and refined</span>
+          </div>
+          <div class="roadmap-card">
+            <span class="day">Day 5 · Fri</span>
+            <span class="rc-title">Presentations</span>
+            <span class="rc-deliv">Pitch to the panel</span>
+          </div>
+        </div>
+
+        <div class="tool-strip">
+          <span class="tool-pill">✍️ Product Prompt</span>
+          <span class="tool-pill">🗂️ Day 1 Spec</span>
+          <span class="tool-pill">💜 Lovable</span>
+          <span class="tool-pill">🔁 Test and iterate</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: FROM A REQUEST TO A PRODUCT -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">From a request to a product</h1>
+            <p class="slide-subtitle">Today the prompt doesn't answer a question — it describes a system</p>
+          </div>
+          <span class="stage-badge">Key shift</span>
+        </div>
+
+        <div class="two-col">
+          <div class="col-card bad">
+            <h3>❌ Task prompt</h3>
+            <div class="prompt-block" style="margin-bottom:10px;">Evaluate this candidate: <span class="ph">[answer]</span></div>
+            <ul>
+              <li>Solves <strong>one</strong> case, once</li>
+              <li>Takes no spreadsheet, stores nothing, notifies no one</li>
+              <li>Not a solution the HR team at <span data-case="marca">Azul Linhas Aéreas</span> uses day to day</li>
+            </ul>
+          </div>
+          <div class="col-card good">
+            <h3>✅ Product prompt</h3>
+            <div class="prompt-block" style="margin-bottom:10px;"><span class="kw">Build</span> a <span class="kw">platform</span> that takes a spreadsheet of candidates, <span class="kw">screens</span> them by the role's criteria and invites those approved to record a video.</div>
+            <ul>
+              <li>Describes <strong>screens, data, rules and integrations</strong></li>
+              <li>Runs at scale: dozens of candidates per role</li>
+              <li>It's what <strong>Lovable</strong> turns into a real application</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="deliverable">
+          <div class="d-title">The shift</div>
+          AI screening still exists — but now as <strong>one part</strong> of the platform, not the whole product.
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: FROM SPEC TO BUILDING PROMPT -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">From spec to building prompt</h1>
+            <p class="slide-subtitle">Each part of the Day 1 spec becomes a part of the platform blueprint</p>
+          </div>
+          <span class="stage-badge">Bridge · from spec to prompt</span>
+        </div>
+
+        <div class="map-grid">
+          <div class="map-row">
+            <div class="from"><span class="tag">Spec — Business Driver</span><span class="txt">Why the solution exists</span></div>
+            <div class="arrow">→</div>
+            <div class="to"><span class="tag">Prompt — Product objective</span><span class="txt">The platform's purpose</span></div>
+          </div>
+          <div class="map-row">
+            <div class="from"><span class="tag">Spec — Actors</span><span class="txt">Who uses it (HR, candidate)</span></div>
+            <div class="arrow">→</div>
+            <div class="to"><span class="tag">Prompt — Users and screens</span><span class="txt">What each role sees and does</span></div>
+          </div>
+          <div class="map-row">
+            <div class="from"><span class="tag">Spec — Functional Requirements</span><span class="txt">What the solution does</span></div>
+            <div class="arrow">→</div>
+            <div class="to"><span class="tag">Prompt — Features</span><span class="txt">Upload, screening, invite, video</span></div>
+          </div>
+          <div class="map-row">
+            <div class="from"><span class="tag">Spec — Entities</span><span class="txt">Candidate, role, evaluation</span></div>
+            <div class="arrow">→</div>
+            <div class="to"><span class="tag">Prompt — Data model</span><span class="txt">Database fields and relations</span></div>
+          </div>
+          <div class="map-row">
+            <div class="from"><span class="tag">Spec — Non-Functional Requirements</span><span class="txt">Expected quality (ISO 25010)</span></div>
+            <div class="arrow">→</div>
+            <div class="to"><span class="tag">Prompt — Constraints</span><span class="txt">LGPD, anti-bias, usability</span></div>
+          </div>
+        </div>
+
+        <div class="deliverable">
+          <div class="d-title">Principle</div>
+          Nothing in the platform comes from nowhere — every screen and rule traces back to a spec decision.
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: THE SCREENING PLATFORM (FLOW) -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">The screening platform</h1>
+            <p class="slide-subtitle">The candidate's path, from spreadsheet upload to the HR decision</p>
+          </div>
+          <span class="stage-badge">Solution</span>
+        </div>
+
+        <div class="flow">
+          <div class="flow-step"><span class="fs-ico">📥</span><span class="fs-num">Step 1</span><span class="fs-title">Spreadsheet upload</span><span class="fs-desc">HR uploads an Excel/CSV with the role's candidates</span></div>
+          <div class="flow-step"><span class="fs-ico">🧮</span><span class="fs-num">Step 2</span><span class="fs-title">AI screening</span><span class="fs-desc">Scores each candidate by the role's criteria and builds the ranking</span></div>
+          <div class="flow-step"><span class="fs-ico">✉️</span><span class="fs-num">Step 3</span><span class="fs-title">Automatic invite</span><span class="fs-desc">Approved candidates get an email to record a presentation video</span></div>
+          <div class="flow-step"><span class="fs-ico">🎥</span><span class="fs-num">Step 4</span><span class="fs-title">Video collection</span><span class="fs-desc">The candidate submits the video, attached to their profile</span></div>
+          <div class="flow-step"><span class="fs-ico">🧑‍⚖️</span><span class="fs-num">Step 5</span><span class="fs-title">Human decision</span><span class="fs-desc">The recruiter reviews ranking and videos and decides who moves on</span></div>
+        </div>
+
+        <div class="case-box" style="margin-top:14px;">
+          <h3>📌 Scope for <span data-case="marca">Azul Linhas Aéreas</span></h3>
+          <p class="mb-0">Instead of HR reading spreadsheet by spreadsheet, AI screening ranks candidates by fit to the role and automates the invitation to the next stage — the final decision remains with the HR team.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: PLATFORM ARCHITECTURE -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🏗️ Platform architecture</h1>
+            <p class="slide-subtitle">The layers Lovable generates from your prompt</p>
+          </div>
+          <span class="stage-badge">Architecture</span>
+        </div>
+
+        <div class="arch">
+          <div class="arch-layer">
+            <div class="layer-label">Users</div>
+            <div class="arch-nodes" style="grid-template-columns:1fr 1fr;">
+              <div class="arch-node"><div class="n-title">🧑‍💼 Recruiter (HR)</div><div class="n-desc">Uploads the spreadsheet, follows the ranking and decides</div></div>
+              <div class="arch-node"><div class="n-title">🧑‍🎓 Candidate</div><div class="n-desc">Gets the email invite and submits the video</div></div>
+            </div>
+          </div>
+          <div class="arch-arrow">▼</div>
+          <div class="arch-layer">
+            <div class="layer-label">Interface — Frontend <span class="arch-tag">generated in Lovable</span></div>
+            <div class="arch-nodes" style="grid-template-columns:1fr 1fr 1fr;">
+              <div class="arch-node"><div class="n-title">📥 Upload</div><div class="n-desc">Imports the candidate spreadsheet</div></div>
+              <div class="arch-node"><div class="n-title">📊 Ranking panel</div><div class="n-desc">Candidates ordered, with score and rationale</div></div>
+              <div class="arch-node"><div class="n-title">🎥 Video gallery</div><div class="n-desc">Gathers the videos received per candidate</div></div>
+            </div>
+          </div>
+          <div class="arch-arrow">▼</div>
+          <div class="arch-layer">
+            <div class="layer-label">Processing</div>
+            <div class="arch-nodes" style="grid-template-columns:1fr 26px 1.4fr;align-items:center;">
+              <div class="arch-node"><div class="n-title">🧹 Ingestion</div><div class="n-desc">Reads and validates the spreadsheet fields</div></div>
+              <div class="arch-arrow" style="font-size:1.1rem;">→</div>
+              <div class="arch-node ai"><div class="n-title">🤖 Screening engine (AI)</div><div class="n-desc">Scores each candidate by the role's criteria and returns score + rationale</div></div>
+            </div>
+          </div>
+          <div class="arch-arrow">▼</div>
+          <div class="arch-layer">
+            <div class="layer-label">Data and integrations</div>
+            <div class="arch-nodes" style="grid-template-columns:1fr 1fr 1fr;">
+              <div class="arch-node"><div class="n-title">🗄️ Database</div><div class="n-desc">Candidates, roles, scores, status and videos</div></div>
+              <div class="arch-node"><div class="n-title">✉️ Email service</div><div class="n-desc">Sends the invite to approved candidates</div></div>
+              <div class="arch-node"><div class="n-title">🎞️ Storage</div><div class="n-desc">Keeps the submitted videos</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: ANATOMY OF THE BUILDING PROMPT -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Anatomy of the building prompt</h1>
+            <p class="slide-subtitle">Seven parts that make the AI build the right platform</p>
+          </div>
+          <span class="stage-badge">Prompt · Concept</span>
+        </div>
+
+        <div class="two-col">
+          <div class="col-card how">
+            <h3>🔧 The 7 parts</h3>
+            <ol>
+              <li><strong>Objective:</strong> what the platform solves and for whom</li>
+              <li><strong>Users:</strong> the roles (recruiter, candidate)</li>
+              <li><strong>Screens and flow:</strong> upload, panel, videos — and the order</li>
+              <li><strong>Data:</strong> the entities and fields (candidate, role, score)</li>
+              <li><strong>Business rules:</strong> how screening scores and who passes</li>
+              <li><strong>Constraints:</strong> LGPD, anti-bias, usability (from the NFRs)</li>
+              <li><strong>Definition of done:</strong> when the platform is acceptable</li>
+            </ol>
+          </div>
+          <div class="col-card check">
+            <h3>📋 Example — prompt excerpt</h3>
+            <div class="prompt-block">
+              <span class="kw">Build</span> a web platform for candidate screening.<br>
+              <span class="kw">Users</span>: recruiter and candidate.<br>
+              <span class="kw">Screens</span>: (1) spreadsheet upload, (2) ranking panel, (3) video gallery.<br>
+              <span class="kw">Data</span>: candidate <span class="ph">(name, email, education, answers)</span>, role, evaluation.<br>
+              <span class="kw">Rule</span>: score each candidate 0–5 by the role's criteria; approved ones get an email to record a video.<br>
+              <span class="kw">Constraints</span>: do not use age, gender or origin; follow LGPD.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: SCREENING UNDER THE HOOD -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Screening under the hood</h1>
+            <p class="slide-subtitle">Inside the platform, the AI evaluates each candidate and returns structured data</p>
+          </div>
+          <span class="stage-badge">AI component</span>
+        </div>
+
+        <div class="two-col">
+          <div class="col-card how">
+            <h3>🧱 Why structured output</h3>
+            <ul>
+              <li>Free text feeds neither the ranking nor the email trigger</li>
+              <li>A fixed format (JSON) becomes <strong>data</strong>: the platform sorts, filters and decides the invite</li>
+              <li>Always ask for: <strong>score per criterion + rationale + recommendation</strong></li>
+            </ul>
+            <div class="prompt-block" style="margin-top:10px;">
+              <span class="kw">For each candidate, reply in JSON</span>:<br>
+              { "candidate": <span class="ph">...</span>, "score": <span class="ph">0-5</span>,<br>
+              &nbsp;&nbsp;"rationale": <span class="ph">...</span>, "recommendation": <span class="ph">invite|review</span> }
+            </div>
+          </div>
+          <div class="col-card check">
+            <h3>📊 What the panel receives</h3>
+            <table class="reftable">
+              <thead><tr><th>Candidate</th><th>Score</th><th>Recommendation</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Ana</strong></td><td>5</td><td>Invite to video</td></tr>
+                <tr><td><strong>Bruno</strong></td><td>4</td><td>Invite to video</td></tr>
+                <tr><td><strong>Carla</strong></td><td>2</td><td>Review — below cutoff</td></tr>
+              </tbody>
+            </table>
+            <div class="deliverable" style="margin-top:10px;">
+              <div class="d-title">Trigger</div>
+              Score ≥ cutoff → the platform sends the email invite automatically.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: RESPONSIBLE AI IN SCREENING -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Responsible AI in screening</h1>
+            <p class="slide-subtitle">In a platform that filters people and sends emails, this is not optional</p>
+          </div>
+          <span class="stage-badge">Ethics · NFR</span>
+        </div>
+
+        <div class="two-col" style="align-items:start;">
+          <div class="warn-box">
+            <h3>⚠️ Four mandatory safeguards</h3>
+            <ul>
+              <li><strong>Bias:</strong> screening ignores age, gender, origin and appearance — it evaluates only what relates to the role.</li>
+              <li><strong>Privacy (LGPD):</strong> the spreadsheet carries personal data; use only what's needed and protect access.</li>
+              <li><strong>Human decision:</strong> the AI <em>recommends</em>, the recruiter <em>decides</em>. Never an automatic rejection.</li>
+              <li><strong>Communication:</strong> the email is an invite, not a promise — and the candidate should know AI is in the process.</li>
+            </ul>
+          </div>
+          <div class="col-card check">
+            <h3>🔗 Where it enters the platform</h3>
+            <ul>
+              <li>They are <strong>constraints</strong> of the building prompt — straight from the spec's NFRs (Day 1)</li>
+              <li>They connect to ISO/IEC 25010: <strong>security</strong> and reliability</li>
+              <li>Write it explicitly — in the screening rule and in data access control</li>
+            </ul>
+            <div class="prompt-block" style="margin-top:10px;">
+              <span class="kw">Constraints</span>: evaluate only role-related competencies; do not expose sensitive data; flag uncertainty instead of inventing.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: ITERATE IN LOVABLE -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Iterate in Lovable</h1>
+            <p class="slide-subtitle">The platform isn't born ready — each round fixes one part</p>
+          </div>
+          <span class="stage-badge">Iteration</span>
+        </div>
+
+        <div class="two-col">
+          <div class="col-card how">
+            <h3>🔁 The cycle</h3>
+            <ol>
+              <li><strong>Write</strong> the building prompt with the 7 parts</li>
+              <li><strong>Generate</strong> the platform in Lovable</li>
+              <li><strong>Navigate</strong> the flow with a sample spreadsheet</li>
+              <li><strong>Locate</strong> what broke: missing screen, wrong field, loose rule</li>
+              <li><strong>Adjust only that part</strong> of the prompt and generate again</li>
+            </ol>
+          </div>
+          <div class="col-card check">
+            <h3>🧪 Test spreadsheet</h3>
+            <ul>
+              <li>A <strong>strong</strong> candidate (should be invited)</li>
+              <li>A <strong>weak</strong> candidate (should fall below the cutoff)</li>
+              <li>A <strong>borderline</strong> candidate or with missing data</li>
+              <li>If the platform misses the edge case, the fix is in the screening rule</li>
+            </ul>
+            <div class="deliverable" style="margin-top:10px;">
+              <div class="d-title">Bridge to Day 4</div>
+              Refinement and testing happen tomorrow, in the development sprint.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: PARAMETERIZATION AND COMMON FAILURES -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Parameterization and common failures</h1>
+            <p class="slide-subtitle">A platform that serves many roles — and what tends to break</p>
+          </div>
+          <span class="stage-badge">Robustness</span>
+        </div>
+
+        <div class="two-col" style="align-items:start;">
+          <div class="col-card how">
+            <h3>🎛️ Parameterization</h3>
+            <ul>
+              <li>Mark what changes: <code>[role]</code>, <code>[criteria]</code>, <code>[cutoff score]</code></li>
+              <li>The same platform now serves <strong>several roles</strong> at <span data-case="marca">Azul Linhas Aéreas</span></li>
+              <li>In Lovable, each parameter becomes a configurable field</li>
+              <li>Test with different roles to ensure it stays valid</li>
+            </ul>
+          </div>
+          <div>
+            <table class="reftable">
+              <thead><tr><th>Failure</th><th>Cause</th><th>Fix in the prompt</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Generic screen</strong></td><td>Prompt didn't describe the fields</td><td>List the screens and each one's fields</td></tr>
+                <tr><td><strong>No email sent</strong></td><td>Trigger not specified</td><td>Describe: score ≥ cutoff → send invite</td></tr>
+                <tr><td><strong>Inconsistent screening</strong></td><td>No criteria or examples</td><td>Define criteria and calibrate with examples</td></tr>
+                <tr><td><strong>Signs of bias</strong></td><td>No attribute constraint</td><td>Forbid age/gender/origin in the rule</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: HANDS ON (STRUCTURED SPRINT) -->
+    <section class="slide" data-timer="1800">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🔨 Hands on — write the prompt and generate in Lovable</h1>
+            <p class="slide-subtitle">Group sprint · 30-min timer · write, generate and test the flow</p>
+          </div>
+          <span class="stage-badge">⏱️ Active Learning</span>
+        </div>
+
+        <div class="spec-grid">
+          <div class="spec-card">
+            <h3>🧭 Sprint steps</h3>
+            <ol>
+              <li>Write the building prompt with the 7 parts</li>
+              <li>Generate the platform in Lovable</li>
+              <li>Upload a spreadsheet with 3 candidates: strong, weak and borderline</li>
+              <li>Walk the flow and adjust one part at a time</li>
+            </ol>
+          </div>
+          <div class="spec-card">
+            <h3>👥 Group roles</h3>
+            <ul>
+              <li><strong>Who writes</strong> the prompt (keeps the single version)</li>
+              <li><strong>Who generates and navigates</strong> in Lovable</li>
+              <li><strong>Who records</strong> what changed each iteration</li>
+            </ul>
+          </div>
+          <div class="spec-card">
+            <h3>✋ Call the professor when</h3>
+            <ul>
+              <li>The flow doesn't close after 2 adjustments</li>
+              <li>Screening shows any sign of bias</li>
+              <li>You don't know which part of the prompt to fix</li>
+            </ul>
+          </div>
+          <div class="spec-card">
+            <h3>🏁 Acceptance criteria</h3>
+            <div class="deliverable" style="margin-top:0;">
+              <div class="d-title">Done when</div>
+              The spreadsheet imports, the <strong>ranking</strong> shows with score and rationale, and approved candidates trigger the <strong>invite</strong> — with no protected attributes used.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: CHECKLIST -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">Checklist — is the building prompt robust?</h1>
+            <p class="slide-subtitle">Answer "yes" to all before considering the platform ready</p>
+          </div>
+          <span class="stage-badge">Self-assessment</span>
+        </div>
+
+        <div class="col-card check">
+          <ul class="check-list">
+            <li>Does it have a clear platform <strong>objective</strong>?</li>
+            <li>Does it define the <strong>users</strong> (recruiter and candidate)?</li>
+            <li>Does it describe the <strong>screens and flow</strong> in the right order?</li>
+            <li>Does it specify the <strong>data</strong> (entities and fields)?</li>
+            <li>Does the <strong>screening rule</strong> say how to score and who passes?</li>
+            <li>Does it ask for <strong>structured output</strong> (JSON/table)?</li>
+            <li>Does it describe the <strong>email invite trigger</strong>?</li>
+            <li>Does it carry <strong>constraints</strong> for bias and privacy?</li>
+            <li>Is it <strong>parameterized</strong> for other roles?</li>
+            <li>Does it make clear the <strong>decision is human</strong>?</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 15: DAY WRAP-UP -->
+    <section class="slide">
+      <div class="slide-content">
+        <div class="slide-header">
+          <div>
+            <h1 class="slide-title">🎓 Day 3 wrap-up</h1>
+            <p class="slide-subtitle">Where we got and what comes next</p>
+          </div>
+          <span class="stage-badge">Wrap-up</span>
+        </div>
+
+        <div class="cover-content">
+          <div class="cover-grid">
+            <div class="cover-block">
+              <h3>✅ Today you</h3>
+              <ul>
+                <li>Turned the spec into a prompt that <strong>builds the platform</strong></li>
+                <li>Defined the architecture and the screening flow</li>
+                <li>Specified the screening rule with structured output</li>
+                <li>Generated and iterated the first version in Lovable</li>
+              </ul>
+            </div>
+            <div class="cover-block">
+              <h3>➡️ Next days</h3>
+              <ul>
+                <li><strong>Day 4 (Thu):</strong> development sprint, refinement and tests of the platform</li>
+                <li><strong>Day 5 (Fri):</strong> presentation to the panel</li>
+              </ul>
+            </div>
+          </div>
+          <div class="case-box">
+            <h3>📌 Before tomorrow</h3>
+            <p class="mb-0">Record the building prompt and the test spreadsheet used. Tomorrow the sprint begins: arrive with the platform generating a first version of the screening funnel.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+<!-- encontro:meta:start -->
+<div class="slide encontro-slide"><div class="sc"><section class="encontro-meta" data-encontro-ficha><h2>Sobre este encontro</h2><p class="encontro-ref">Inteli Camp · Prof. Afonso</p><div class="encontro-item" data-encontro="objetivo"><h3>Objetivo de aprendizagem</h3><p>Ao final do encontro, o estudante deve ser capaz de aplicar ao projeto os conceitos de Inteli Camp.</p></div><div class="encontro-item" data-encontro="estrategia"><h3>Estratégia do encontro</h3><p>Exposição dialogada dos conceitos, alternada com aplicação guiada ao projeto do grupo, e fechamento com verificação do entendimento.</p></div><div class="encontro-item" data-encontro="agenda"><h3>Estrutura do encontro</h3><ol><li>🎯 Goal of the day</li><li>✅ Learning objectives</li><li>🔀 From a request to a product</li><li>📋 From the spec to the building prompt</li><li>🧭 The screening platform</li><li>🏗️ Platform architecture</li><li>🔧 Anatomy of the building prompt</li><li>📊 Screening under the hood: structured output</li></ol></div></section></div></div>
+<!-- encontro:meta:end -->
+</div>
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../home-inteli-camp.html" class="back-home">← Back</a>
+      <a href="../materials/lesson-2-material.html" class="back-home material">📖 Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons">
+        <button id="prevBtn" onclick="prevSlide()" aria-label="Previous slide">←</button>
+      </div>
+      <div class="slide-counter" aria-live="polite" aria-atomic="true"><span id="currentSlide">1</span> / <span id="totalSlides">1</span></div>
+      <div class="nav-buttons">
+        <button id="nextBtn" onclick="nextSlide()" aria-label="Next slide">→</button>
+      </div>
+      <button class="a11y-btn" onclick="toggleA11y()" title="Accessible reading mode (dyslexia/ADHD)" aria-label="Toggle accessible reading mode" aria-pressed="false">Aa</button>
+      <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen" aria-label="Toggle fullscreen">⛶</button>
+    </div>
+  </div>
+
+  <script src="../../../config/inteli-camp-case.js"></script>
+  <script>
+    const CASE = window.INTELI_CAMP_CASE || {
+      edicao:   "Winter Bootcamp · July 2026",
+      marca:    "[partner brand/organization]",
+      contexto: "[context of the product or service]",
+      desafio:  "[describe here the real problem students will solve with AI]",
+      output:   "[type of output — e.g., candidate ranking and summary]",
+      publico:  "[target audience of the solution]"
+    };
+    document.querySelectorAll('[data-case]').forEach(el => {
+      const k = el.getAttribute('data-case');
+      if (CASE[k]) el.textContent = CASE[k];
+    });
+
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+    let current = 0;
+    document.getElementById('totalSlides').textContent = total;
+
+    function showSlide(i) {
+      slides.forEach(s => s.classList.remove('active'));
+      slides[i].classList.add('active');
+      document.getElementById('currentSlide').textContent = i + 1;
+      document.getElementById('prevBtn').disabled = i === 0;
+      document.getElementById('nextBtn').disabled = i === total - 1;
+      handleTimerForSlide(slides[i]);
+    }
+    function nextSlide() { if (current < total - 1) { current++; showSlide(current); } }
+    function prevSlide() { if (current > 0) { current--; showSlide(current); } }
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    function applyA11y(on) {
+      document.body.classList.toggle('a11y', on);
+      const b = document.querySelector('.a11y-btn');
+      if (b) { b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.classList.toggle('is-on', on); }
+    }
+    function toggleA11y() {
+      const on = !document.body.classList.contains('a11y');
+      try { localStorage.setItem('inteliCampA11y', on ? '1' : '0'); } catch (e) {}
+      applyA11y(on);
+    }
+    try { if (localStorage.getItem('inteliCampA11y') === '1') applyA11y(true); } catch (e) {}
+    document.addEventListener('keydown', e => {
+      if (e.target.closest('.timer-panel')) return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') nextSlide();
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') prevSlide();
+    });
+
+    const timerPanel = document.getElementById('timerPanel');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerToggle = document.getElementById('timerToggle');
+    const timerReset = document.getElementById('timerReset');
+    let timerInterval = null, timerRemaining = 1200, timerInitial = 1200, timerRunning = false, audioCtx = null;
+    function formatTime(s) { const m = Math.floor(s/60), sec = s%60; return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`; }
+    function updateTimerDisplay() {
+      timerDisplay.textContent = formatTime(timerRemaining);
+      timerPanel.classList.remove('warning','critical','done');
+      if (timerRemaining === 0) timerPanel.classList.add('done');
+      else if (timerRemaining <= 30) timerPanel.classList.add('critical');
+      else if (timerRemaining <= 60) timerPanel.classList.add('warning');
+    }
+    function tickTimer() { if (timerRemaining > 0) { timerRemaining--; updateTimerDisplay(); if (timerRemaining === 0) { stopTimer(); playBeep(); } } }
+    function startTimer() { if (timerRunning) return; timerRunning = true; timerToggle.textContent = '⏸'; timerInterval = setInterval(tickTimer, 1000); }
+    function stopTimer() { timerRunning = false; timerToggle.textContent = '▶'; if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
+    function resetTimer() { stopTimer(); timerRemaining = timerInitial; timerPanel.classList.remove('warning','critical','done'); updateTimerDisplay(); }
+    timerToggle.addEventListener('click', () => { if (timerRunning) stopTimer(); else startTimer(); });
+    timerReset.addEventListener('click', resetTimer);
+    function handleTimerForSlide(slide) {
+      const timerVal = slide.getAttribute('data-timer');
+      stopTimer();
+      if (timerVal) { timerInitial = parseInt(timerVal, 10) || 1200; timerRemaining = timerInitial; timerPanel.classList.remove('warning','critical','done'); updateTimerDisplay(); timerPanel.classList.add('visible'); }
+      else { timerPanel.classList.remove('visible','warning','critical','done'); }
+    }
+    function playBeep() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const beepCount = 3, dur = 0.25, gap = 0.12;
+        for (let i = 0; i < beepCount; i++) {
+          const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+          osc.type = 'sine'; osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.0001, audioCtx.currentTime + i*(dur+gap));
+          gain.gain.exponentialRampToValueAtTime(0.35, audioCtx.currentTime + i*(dur+gap) + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + i*(dur+gap) + dur);
+          osc.connect(gain).connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + i*(dur+gap)); osc.stop(audioCtx.currentTime + i*(dur+gap) + dur);
+        }
+      } catch (e) { /* silent */ }
+    }
+    showSlide(0);
+  </script>
+<!-- semana:js:start -->
+<script src="../../../js/semana-ano.js" defer></script>
+<!-- semana:js:end -->
+</body>
+</html>
