@@ -75,7 +75,7 @@ try {
     await espera(p, () => !document.querySelector('#tela-sala').hidden, null, `${nome} entrou na sala`);
     alunos.push(p);
   }
-  await espera(alunos[0], () => document.querySelector('#conteudo').textContent.includes('O lakehouse que a demonstração colocou no ar'), null, 'aluno lê o caso no lobby');
+  await espera(alunos[0], () => document.querySelector('#conteudo').textContent.includes('O servidor de ingestão que a turma montou'), null, 'aluno lê o caso no lobby');
   await shot(alunos[0], 'aluno-lobby');
 
   const fase = (p, texto) => espera(p, (t) => document.querySelector('#selo-fase').textContent.startsWith(t), texto, `aluno em "${texto}"`);
@@ -131,7 +131,7 @@ try {
 
   await acao('avancar');
   await fase(alunos[0], 'Fechamento');
-  await espera(alunos[0], () => document.querySelector('#conteudo').textContent.includes('Três decisões sobre o lakehouse'), null, 'aluno vê o fechamento');
+  await espera(alunos[0], () => document.querySelector('#conteudo').textContent.includes('Três decisões sobre o servidor de ingestão'), null, 'aluno vê o fechamento');
   const cartoes = await painel.locator('#projecao .opcao .troca').count();
   confere(cartoes >= 12, `fechamento projeta as doze táticas por extenso (${cartoes})`);
   await shot(painel, 'painel-fechamento');

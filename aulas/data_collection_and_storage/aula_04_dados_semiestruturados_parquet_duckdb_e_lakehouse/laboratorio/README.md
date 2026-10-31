@@ -1,288 +1,616 @@
-# Laboratório da Aula 04: lakehouse raw, bronze, silver e gold com DuckDB sobre o MinIO
+# Aula 04 · Laboratório: servidor de ingestão com fila, DuckDB e ClickHouse
 
-Data Collection and Storage, MBA Engenharia de Dados, Mackenzie. Aula de 31/10/2026, 8h30 às 12h10.
+Data Collection and Storage · MBA Engenharia de Dados · 31/10/2026, 8h30 às 12h10
 
-Na disciplina, os quatro buckets da Aula 01 têm papéis fixos: `raw` guarda os bytes como a fonte entregou; `bronze` guarda o que já foi extraído, em JSON Lines, ainda sem tipos garantidos; `silver` guarda Parquet tipado e deduplicado; `gold` guarda as tabelas de consumo. O job desta aula lê o `raw` sem alterá-lo, extrai os lotes TXT de telemetria para o bronze, lê o bronze dos livros e da PTAX que a Aula 03 gravou, e escreve silver e gold.
+Roteiro da construção em etapas. A explicação de cada etapa e os prompts CREATE completos estão no material da aula: `../material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html`. O formato é o da Aula 03: o prompt vai para o agente e, enquanto ele trabalha, a aula explica e justifica o que o prompt pediu. Depois o grupo revisa o artefato e segue.
 
-Este roteiro acompanha o material da aula (`../material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html`). O material traz a explicação e os sete prompts CREATE completos; aqui ficam os comandos, na ordem em que são executados.
-
-O código do job não está nesta pasta. Ele nasce durante a aula, pelos prompts, dentro do repositório do grupo. Os arquivos `sql/*.sql` são exemplos de leitura e escrita validados; o job pode reaproveitá-los ou reescrevê-los.
+O código do grupo nasce ao vivo, pelos prompts, no repositório do grupo, na pasta `aula_04_ingestao/`. Esta pasta traz os arquivos de apoio, os dados de entrada e, em `referencia/`, o servidor de referência que o professor usa na demonstração.
 
 ## Arquivos de apoio
 
-| Arquivo | Para que serve |
+| Arquivo | Uso |
 |---|---|
-| `docker-compose.yml` | MinIO local (imagem `ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z`) e um serviço que cria os buckets `raw`, `bronze`, `silver` e `gold` |
-| `.env.example` | Variáveis do MinIO local e do job; os nomes `S3_*` são os mesmos da Aula 02 |
-| `requirements.txt` | `duckdb`, `boto3`, `beautifulsoup4`, `pytest` e `pytz` (exigido pelo DuckDB para entregar `TIMESTAMPTZ` ao Python), nas versões validadas |
-| `AGENTS.md` | Regras para o agente de código: escopo, prefixos somente leitura, idempotência, comandos, segredos, gates |
-| `Dockerfile` | Imagem modelo do job, com a extensão `httpfs` já instalada |
-| `railway.json` | Configuração como código do serviço: build por Dockerfile, `cronSchedule` e `restartPolicyType` |
-| `sql/rodar_sql.py` | Executa um `.sql` no DuckDB criando o secret S3 a partir do `.env`; com `--var DATA=D`, deriva `DATA_SEGUINTE` (D+1) |
-| `sql/01_raw_telemetria.sql` | Schema on read dos lotes TXT da Aula 02: um arquivo vira linhas, as linhas são classificadas nos cinco formatos, retransmissões e manifesto |
-| `sql/02_raw_bronze_livros_ptax.sql` | Schema on read do JSON da PTAX no raw, do HTML de detalhe como texto e do JSON Lines do bronze (Aula 03) |
-| `sql/03_bronze_telemetria.sql` | Bronze da telemetria: extração por expressão regular, uma linha reconhecida por registro em JSON Lines, linhas não reconhecidas em quarentena |
-| `sql/04_silver_telemetria.sql` | Silver de posições (uma por caminhão e minuto) e de alertas do tacógrafo, tipadas, em UTC, deduplicadas e com origem |
-| `sql/05_silver_ptax.sql` | Silver da PTAX (`silver/ptax/ptax.parquet`), contrato combinado com a Aula 05 |
-| `sql/06_silver_livros.sql` | Silver dos livros (`silver/livros/data_coleta=D/`), contrato combinado com a Aula 05 |
-| `sql/07_gold.sql` | Gold: jornada diária por caminhão (horas de direção, velocidade média, quilometragem aproximada, alertas acima de 5h30) e preço do livro em BRL por dia (`ASOF JOIN` com o último fechamento da PTAX) |
-| `sql/08_parquet_inspecao.sql` | Row groups, estatísticas min/max, a mesma pergunta em TXT, JSON Lines e Parquet, poda de partição no raw e na silver |
-| `.gitignore` | Impede que `.env`, `.env.railway`, `.venv/` e Parquet local entrem no Git |
+| `docker-compose.yml` | RustFS (`rustfs/rustfs:1.0.4`, API S3 na porta 9000, console na 9001), `rustfs-init` (buckets `raw`, `bronze`, `silver`, `gold`, `teste`), cliente `mc` para olhar o lake, RabbitMQ (`rabbitmq:4.3.6-management`, portas 5672 e 15672) e ClickHouse (`clickhouse/clickhouse-server:26.8.15.10`, porta 8123) |
+| `.env.example` | variáveis dos três serviços e do servidor de ingestão; copie para `.env` |
+| `requirements.txt` | dependências Python validadas em 30/10/2026 |
+| `AGENTS.md` | regras para o agente de código, incluindo o registro de prompts |
+| `dados/dados_aula_04.zip` | dados completos da aula (991.897 bytes): 1.000 livros, 40 boletins PTAX e um dia de telemetria, organizados em `entrada/` |
+| `enviar_entrada.py` | lê `entrada/` e envia tudo pelo contrato público (HTTP e fila); serve para qualquer servidor que siga o contrato |
+| `referencia/` | servidor de referência (gabarito do professor para a demonstração) com `src/` e `tests/` |
+| `sql/001_db_ingestion.sql` | DDL da tabela de pouso, executado pelo ClickHouse na primeira subida |
+| `sql/duckdb_cast.sql` | contagens de raw, bronze e manifestos e JSON cast no DuckDB lendo o bronze |
+| `sql/clickhouse_cast.sql` | JSON cast no ClickHouse (`JSONExtract*`, `CAST AS JSON`) |
+| `sql/silver_livros_ptax.sql` | silver de livros e PTAX para a Aula 05, gerado a partir do bronze |
+| `sql/rodar_sql.py` | executa um `.sql` no DuckDB com o secret S3 montado a partir do `.env` |
+| `fixtures/` | dados pequenos para os testes e exemplos de envelope |
 
-### Contrato das camadas da telemetria
+## Arquitetura
 
-| Camada | Objeto | Grão | O que se promete |
-|---|---|---|---|
-| Raw | `raw/telemetria/data=D/hora=H/caminhao=CAM-XXXX/lote_HHMM.txt` (D, H e HHMM em UTC, início da janela) | um lote de 15 minutos por caminhão | bytes como o provedor entregou; gravado pela Aula 02; o job só lê |
-| Bronze | `bronze/telemetria/data_local=D/linhas.jsonl` (D no horário de Brasília) | uma linha reconhecida do TXT | `arquivo_origem`, `numero_linha`, `janela_utc`, `caminhao_arquivo`, `formato` (1 a 5) e os campos da linha como texto (`caminhao`, `data_hora_txt`, `latitude_txt`, `longitude_txt`, `velocidade_txt`, `tac_mot_txt`, `temp_bau_txt`, `duracao_txt`, `status_txt`, `texto`) |
-| Bronze | `bronze/telemetria_quarentena/data_local=D/nao_reconhecidas.jsonl` | uma linha que nenhum formato explica | `arquivo_origem`, `numero_linha`, `janela_utc`, `caminhao_arquivo` e a `linha` original |
-| Silver | `silver/posicoes/data_local=D/posicoes.parquet` | caminhão e minuto (UTC); entre cópias do mesmo minuto, a do lote mais recente | `caminhao`, `minuto_utc`, `instante_utc` (TIMESTAMPTZ), `data_local`, `latitude`, `longitude`, `velocidade_kmh`, `direcao_continua_min` (só formato 1), `temp_bau_c` (só firmware novo), `formato`, `janela_utc`, `arquivo_origem`, `numero_linha`, `processado_em` |
-| Silver | `silver/alertas_tacografo/data_local=D/alertas.parquet` | caminhão e instante do alerta | `caminhao`, `instante_utc`, `data_local`, `direcao_continua_min`, `acima_de_5h30`, `status`, `janela_utc`, `arquivo_origem`, `numero_linha`, `processado_em` |
-| Gold | `gold/jornada_caminhao_diaria/jornada_caminhao_diaria.parquet` | caminhão e dia no horário de Brasília | `minutos_com_posicao`, `horas_direcao`, `velocidade_media_kmh`, `km_aproximados`, `maior_direcao_continua_min`, `alertas_acima_5h30` |
-
-Rádio (formato 2) e erro do enlace (formato 4) ficam só no bronze. As tabelas de livros e PTAX não mudam e seguem o contrato combinado com a Aula 05.
-
-### O que foi validado em 16/10/2026
-
-- `docker compose config` e `docker compose up` com a imagem e a tag acima: os quatro buckets foram criados pelo `minio-init` (portas remapeadas por variável, porque a 9000 estava ocupada na máquina da preparação).
-- Lotes TXT de sete dias (24/10 a 30/10/2026, no horário de Brasília) gerados pelo `gerar_lotes.py` da Aula 02 com `--caminhoes 20 --inicio 2026-10-24T00:00 --horas 168 --seed 42 --firmware-novo 2026-10-28` (a data do firmware foi antecipada para que `TEMP_BAU` aparecesse na semana; o padrão do gerador é 2027-03-01), carregados no bucket `raw` com a chave e os metadados do contrato: 13.440 objetos, 13.779.255 bytes, e 168 manifestos em JSON Lines particionados pelo início da execução. Dois defeitos foram inseridos de propósito no caminhão `CAM-0451`: o lote das 11h15 de 27/10 cortado no meio da última linha, e duas posições repetidas no começo do lote seguinte (uma delas, 23h59 de 26/10, no lote das 00h00 de 27/10).
-- Todos os arquivos `sql/*.sql` rodaram com `duckdb==1.5.6` contra o MinIO local. `05`, `06` e a parte de livros do `07` rodaram sobre um bronze sintético mínimo no formato da Aula 03; a validação com dados reais da PTAX e do books.toscrape.com é a de 03/10/2026.
-- O dia local D vai das 03h UTC de D às 02h59 UTC de D+1. Com as quatro partições escritas no caminho, `read_text` abriu os 1.920 lotes do dia (1.924 `GET`). O mesmo dia lido pelo glob da semana inteira, sem filtro de partição, fez 13.454 `GET`; com filtro em `filename`, também (o filtro em `filename` não poda arquivos); com filtro nas colunas `data` e `hora`, 1.934 `GET`, porque a poda acontece mas o glob ainda lista o bucket. Os tempos estão no material, exemplo numérico 4.
-- Com uma lista de globs, as colunas do caminho (`data`, `hora`) chegam como texto; o `03` declara o tipo. `?` no glob de `s3://` é tratado como início de query string e não encontra nada; use classes como `0[3-9]`.
-- A classificação por expressão regular ancorada reconheceu 31.285 de 31.286 linhas do dia 27/10 (22.413 no formato 1, 6.388 no 3, 1.475 de rádio, 936 de erro do enlace, 73 alertas); a linha truncada foi para a quarentena com o arquivo e o número da linha.
-- A silver do dia 27/10 ficou com 28.799 posições (1.440 minutos para 19 caminhões e 1.439 para o caminhão do lote truncado) e descartou as duas cópias inseridas: uma pela deduplicação, outra pelo filtro de data local. Com os lotes do gerador sem alteração, nenhum minuto aparece em dois lotes.
-- A partir de 28/10, seis caminhões trazem `TEMP_BAU` (1.932 linhas no dia 28); uma expressão sem o trecho opcional rejeitaria essas linhas.
-- Reprocessar 27/10 com `03`, `04` e `07` manteve os 28 objetos de bronze, silver e gold com os mesmos nomes e tamanhos.
-- Durante as medições, rajadas de cerca de 13 mil requisições seguidas esgotaram as conexões locais e o DuckDB recebeu `Failure when receiving data from the peer`; com pausas entre as consultas, o erro não se repetiu.
-- Um lote com um byte fora do UTF-8 (`ã` em Latin-1 numa mensagem de rádio) derrubou a leitura do dia inteiro: `read_text: could not read content of file ... as valid UTF-8 encoded text`. `read_blob` com `try(decode(content))` identifica o arquivo sem parar a leitura.
-- `COPY ... (PARTITION_BY ...)` para `s3://` falha na segunda execução sem opção de sobrescrita; com `APPEND`, cria arquivos novos com UUID e duplica linhas (preparação de 03/10/2026). Por isso os exemplos gravam um objeto de nome fixo por data.
-- `coletado_em` com deslocamento (`2026-10-03T09:31:12-03:00`) foi inferido por `read_json_auto` como `TIMESTAMP` 12:31:12 sem fuso; lido como texto com `columns` e convertido com `CAST(... AS TIMESTAMPTZ)`, ficou 09:31:12-03, que é o valor correto.
-- A coleta de sábado (03/10/2026) recebeu na gold o fechamento PTAX de sexta (02/10/2026, venda 6,91210) pelo `ASOF JOIN`. `CotacaoMoedaPeriodo` rotula o fechamento como `Fechamento`; `CotacaoMoedaDia`, como `Fechamento PTAX`.
-- O `Dockerfile` foi construído e executado contra o MinIO local em 03/10/2026; a extensão `httpfs` carregou a partir da imagem e o processo terminou com código 0.
-
-O deploy no Railway não foi executado nesta validação. Os comandos da Etapa 8 seguem a documentação do Railway consultada em 03/10/2026.
-
-## Pré-requisitos (feitos nas Aulas 01 a 03)
-
-- Codespace aberto no repositório do grupo.
-- Agente de código de sua preferência (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot) lendo o `AGENTS.md`.
-- MinIO publicado no Railway com domínio público para a porta 9000, e o bucket `raw` com dados da Aula 02 (`raw/telemetria/...`) e da Aula 03 (PTAX e páginas do books.toscrape.com).
-
-Rode um prompt por vez e revise antes do próximo. Nenhuma chave de API entra no Git.
-
-## Etapa 1. Criar a pasta da aula no repositório do grupo
-
-```bash
-cd /workspaces/<repositorio-do-grupo>
-mkdir -p aula_04_lakehouse/{docs/adr,specs,src,tests,sql}
-cd aula_04_lakehouse
-
-BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/data_collection_and_storage/aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/laboratorio
-for f in docker-compose.yml .env.example requirements.txt AGENTS.md Dockerfile railway.json .gitignore; do
-  curl -fsSLO "$BASE/$f"
-done
-for f in rodar_sql.py 01_raw_telemetria.sql 02_raw_bronze_livros_ptax.sql 03_bronze_telemetria.sql 04_silver_telemetria.sql 05_silver_ptax.sql 06_silver_livros.sql 07_gold.sql 08_parquet_inspecao.sql; do
-  curl -fsSL -o "sql/$f" "$BASE/sql/$f"
-done
-touch src/__init__.py
-ls -la . sql
+```text
+curl / produtor --HTTP POST /ingest--> API (FastAPI) --valida envelope--> publica na fila --+
+                                        400, 413, 422 se inválido; 202 depois do ack do broker  |
+produtor --AMQP publish------------------------------------------------> fila ingestao (durável)
+                                                                                                |
+                         consumidor (thread no mesmo processo) <--------------------------------+
+                           valida de novo; inválido vai para raw/ingestao_rejeitados/ e recebe ack
+                           válido: acumula em memória; flush a cada FLUSH_N envelopes ou FLUSH_SEGUNDOS
+                             1. raw: os envelopes como chegaram  -> raw/ingestao/data_tag=X/data=D/lote_<HHMMSS>_<id>.jsonl
+                             2. bronze: uma linha por objeto     -> bronze/ingestao/data_tag=X/data=D/lote_<HHMMSS>_<id>.parquet
+                             3. clickhouse-connect insere o lote -> ingestao.db_ingestion
+                             4. manifesto do lote                -> raw/_manifestos/ingestao/data=D/lote_<HHMMSS>_<id>.json
+                             5. ack (multiple) das mensagens do lote
 ```
 
-Gate: sete arquivos na raiz, nove em `sql/`.
+Por que essa ordem:
 
-## Etapa 2. Subir o MinIO local e trazer uma cópia do raw do Railway
+- raw antes de tudo: é o que chegou, sem interpretação. Se a extração tiver erro, o raw permite refazer o bronze.
+- bronze antes do ClickHouse: o bronze é o histórico tipável e o backup; com ele dá para recriar a tabela do ClickHouse.
+- manifesto depois do ClickHouse: ele é o recibo do lote e registra o resultado de todos os destinos. Manifesto com `"status": "ok"` quer dizer lote completo. Arquivos de lote sem manifesto `ok` vêm de um flush interrompido; como não houve ack, a fila reentrega as mensagens e elas entram de novo num lote novo. Se o ClickHouse falhar, o servidor grava o manifesto com `"status": "erro_clickhouse"` e o erro, e não dá ack.
+- ack por último: a mensagem só sai da fila quando está no raw, no bronze, no ClickHouse e no manifesto. Se o processo cair entre o manifesto e o ack, o lote volta e é gravado de novo: entrega pelo menos uma vez.
 
-Se o MinIO da Aula 02 ainda estiver rodando no Codespace, pare-o antes (`docker compose down` na pasta da Aula 02), porque as portas 9000 e 9001 são as mesmas.
+Envelope (contrato desta aula, só a casca):
+
+```json
+{"data_tag": "livros", "data": {"upc": "a897fe39b1053632", "titulo": "A Light in the Attic", "preco_gbp": 51.77}}
+{"data_tag": "ptax", "data": [{"moeda": "GBP", "dataHoraCotacao": "2026-10-29 10:10:54.921", "tipoBoletim": "Abertura"}]}
+{"data_tag": "telemetria", "data": {"arquivo": "entrada/telemetria/CAM-0451_20261029T0600.txt", "numero_linha": 1, "linha": "CAM-0451|29/10/26 06:00:31|..."}}
+```
+
+- `data_tag` obrigatório, texto, em `DOMINIOS` do `.env`. Desconhecido: 422.
+- `data` obrigatório: objeto, ou lista não vazia de objetos (cada objeto vira uma linha). Outro tipo: 422.
+- Campo extra no envelope: 422. O envelope é fechado; o conteúdo de `data` é aberto e não é validado nesta aula (Aula 07).
+- Corpo que não é JSON: 400. Corpo acima de `HTTP_MAX_BYTES` (1 MiB): 413.
+- O servidor acrescenta o `timestamp` (unix em milissegundos); o produtor não manda.
+
+Tabela de pouso (`sql/001_db_ingestion.sql`):
+
+```sql
+CREATE TABLE IF NOT EXISTS ingestao.db_ingestion
+(
+    timestamp UInt64,                  -- unix em milissegundos, hora da ingestão
+    data_json String,                  -- o dado recebido, como texto JSON
+    data_tag  LowCardinality(String)   -- o domínio
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMM(fromUnixTimestamp64Milli(toInt64(timestamp)))
+ORDER BY (data_tag, timestamp);
+```
+
+## Horário
+
+A teoria entra dentro das etapas. O TBL fica às 11h30.
+
+| Horário | Parte |
+|---|---|
+| 8h30 às 8h45 | abertura: ingestão por puxar (Aulas 02 e 03) e por empurrar; a arquitetura inteira |
+| 8h45 às 9h00 | Etapa 00: pasta, compose (RustFS, RabbitMQ, ClickHouse), buckets, venv, dados em `entrada/`, `docs/prompts.md` |
+| 9h00 às 9h10 | Etapa 01: persona e objetivos |
+| 9h10 às 9h30 | Etapa 02: contrato do envelope |
+| 9h30 às 9h45 | Etapa 03: requisitos |
+| 9h45 às 10h10 | Etapa 04: modelo de dados, DDL e layout do lake |
+| 10h10 às 10h30 | Etapa 05: arquitetura e ADRs |
+| 10h30 às 10h40 | Etapa 06: plano, tarefas e testes vermelhos |
+| 10h40 às 10h50 | Etapa 07: contrato e API |
+| 10h50 às 11h05 | Etapa 08: consumidor e gravadores (raw, bronze, ClickHouse, manifesto) |
+| 11h05 às 11h15 | Etapa 09: produtores lendo `entrada/`, execução e teste de queda |
+| 11h15 às 11h30 | Etapa 10: JSON cast e silver para a Aula 05 |
+| 11h30 às 12h00 | TBL |
+| 12h00 às 12h10 | fechamento |
+| semana | ATAM e Railway |
+
+## Etapas e artefatos
+
+| Etapa | Tema | Artefato |
+|---|---|---|
+| 00 | Preparação | pasta, três serviços no ar, buckets, venv, `entrada/`, `docs/prompts.md` |
+| 01 | Persona e objetivos | `docs/00_persona.md`, `docs/01_objetivos.md` |
+| 02 | Contrato do envelope | `specs/01_contrato_envelope.md`, `specs/exemplos/*.json` |
+| 03 | Requisitos | `specs/02_requisitos.md` (RF com Dado/Quando/Então, RNF com número) |
+| 04 | Modelo de dados | `specs/03_modelo_de_dados.md` (tabela e layout raw, bronze, manifesto), `sql/001_db_ingestion.sql` |
+| 05 | Arquitetura e ADRs | `docs/arquitetura.md`, `docs/adr/ADR-001` a `ADR-005` |
+| 06 | Plano, tarefas e testes vermelhos | `specs/plan.md`, `specs/tasks.md`, `tests/` |
+| 07 | Código: contrato e API | `src/contrato.py`, `src/api.py` |
+| 08 | Código: consumidor e gravadores | `src/consumidor.py`, `src/lake.py`, `src/clickhouse.py` |
+| 09 | Produtores e execução | `src/produtores/*.py` lendo `entrada/`, gate de contagens, teste de queda |
+| 10 | JSON cast e silver | `sql/duckdb_cast.sql`, `sql/clickhouse_cast.sql`, `sql/silver_livros_ptax.sql` |
+| semana | ATAM e Railway | `docs/atam.md`, servidor e serviços no Railway |
+
+Árvore final:
+
+```text
+aula_04_ingestao/
+├── AGENTS.md
+├── docker-compose.yml  .env.example  requirements.txt
+├── entrada/                         (do zip; não versionar)
+│   ├── livros/livros.jsonl
+│   ├── ptax/cotacoes.jsonl
+│   └── telemetria/*.txt
+├── docs/
+│   ├── prompts.md
+│   ├── 00_persona.md
+│   ├── 01_objetivos.md
+│   ├── arquitetura.md
+│   ├── adr/ADR-001 ... ADR-005
+│   └── atam.md                      (semana)
+├── specs/
+│   ├── 01_contrato_envelope.md
+│   ├── exemplos/*.json
+│   ├── 02_requisitos.md
+│   ├── 03_modelo_de_dados.md
+│   ├── plan.md, tasks.md
+├── sql/
+│   ├── 001_db_ingestion.sql
+│   ├── duckdb_cast.sql, clickhouse_cast.sql, silver_livros_ptax.sql
+│   └── rodar_sql.py
+├── fixtures/
+├── src/
+│   ├── contrato.py, api.py, consumidor.py, lake.py, clickhouse.py, servidor.py
+│   └── produtores/
+└── tests/
+```
+
+## 1. Etapa 00 · Preparar a pasta e subir os serviços
+
+No Codespace do repositório do grupo, na raiz:
 
 ```bash
+mkdir -p aula_04_ingestao/{docs/adr,specs/exemplos,sql,src/produtores,tests}
+# copie para aula_04_ingestao/ os arquivos de apoio desta pasta (incluindo sql/, fixtures/ e enviar_entrada.py)
+cd aula_04_ingestao
+printf '.env\n.env.*\n!.env.example\n.venv/\n__pycache__/\n.pytest_cache/\nentrada/\n' >> .gitignore
 cp .env.example .env
-SENHA=$(openssl rand -base64 24)
-sed -i "s|^MINIO_ROOT_PASSWORD=.*|MINIO_ROOT_PASSWORD=$SENHA|; s|^S3_SECRET_KEY=.*|S3_SECRET_KEY=$SENHA|" .env
-unset SENHA
+git check-ignore .env            # deve imprimir: .env
+printf '# Registro de prompts\n' > docs/prompts.md
+```
 
-docker compose config -q && echo "compose ok"
+O `.env.example` já vem com valores que funcionam no ambiente local: `admin` e `admin123` no RustFS (`S3_ACCESS_KEY` e `S3_SECRET_KEY`, o mesmo par do login no console), `ingestao` e `ingestao123` no RabbitMQ e no ClickHouse. Servem só para o Codespace ou o notebook. No Railway, ou em qualquer lugar acessível por outras pessoas, troque todas as senhas (`openssl rand -base64 24`).
+
+```bash
+docker compose config --quiet && echo "compose ok"
 docker compose up -d
-docker compose ps -a
-docker compose logs minio-init
+docker compose up -d --wait rustfs rabbitmq clickhouse   # volta quando os três estão healthy
+docker compose ps
+docker compose logs rustfs-init                          # deve listar raw, bronze, silver, gold e teste
 ```
 
-Gates: `minio` aparece como `healthy`; `minio-init` termina com `Exited (0)` e o log lista `bronze/`, `gold/`, `raw/` e `silver/`; `git status` não lista `.env`.
+O `docker compose up -d --wait` sem nomes de serviço devolve código 1 mesmo com tudo no ar, porque o `rustfs-init` termina depois de criar os buckets (Compose 5.6.1). Por isso o `--wait` vai com os três serviços nomeados.
 
-Registre os aliases do `mc` dentro do contêiner. O alias `railway` sem chaves na linha de comando pede os valores de forma interativa, e eles não ficam no histórico do shell:
+O `rustfs-init` e o serviço `mc` usam o cliente `mc` da imagem do MinIO (`ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z`), que fala S3 com qualquer servidor compatível. O `mc` não sobe com o `up`; ele roda sob demanda:
 
 ```bash
-docker compose exec minio sh -c 'mc alias set local http://localhost:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"'
-docker compose exec minio mc alias set railway https://<dominio-da-porta-9000>
-docker compose exec minio mc ls railway/raw
+docker compose run --rm mc ls lake                        # os cinco buckets
+docker compose run --rm mc tree --files lake/raw          # árvore de um bucket
 ```
 
-Copie o raw e o bronze do Railway para o MinIO local. O desenvolvimento acontece sobre a cópia; os dados do Railway continuam intocados:
+Dados de entrada (o mesmo zip do rodapé dos slides):
 
 ```bash
-docker compose exec minio mc mirror railway/raw local/raw
-docker compose exec minio mc mirror railway/bronze local/bronze
-docker compose exec minio mc du local/raw
-docker compose exec minio mc du local/bronze
-docker compose exec minio mc ls --recursive local/raw/telemetria | head -20
+unzip -o dados_aula_04.zip            # cria entrada/livros, entrada/ptax e entrada/telemetria
+ls entrada/telemetria | wc -l         # 1920
+wc -l entrada/livros/livros.jsonl entrada/ptax/cotacoes.jsonl   # 1000 e 40
 ```
 
-Anote os prefixos que aparecem. Os exemplos SQL assumem, da Aula 02, `raw/telemetria/data=AAAA-MM-DD/hora=HH/caminhao=CAM-XXXX/lote_HHMM.txt` (data, hora e HHMM em UTC, início da janela de 15 minutos) e `raw/_manifestos/telemetria/.../*.jsonl`; da Aula 03, `raw/ptax/moeda=GBP/data=AAAA-MM-DD/*.json`, `raw/books_toscrape/data=AAAA-MM-DD/livro=<slug>/detalhe.html`, `bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl` e `bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl`. Se o grupo gravou com outros nomes, ajuste os caminhos nos `.sql` antes de seguir. Os caminhos e colunas de `silver/livros` e `silver/ptax` não mudam: a Aula 05 depende deles.
-
-Se o raw do grupo tiver poucas horas de telemetria, gere mais lotes com o gerador da Aula 02 e carregue com o coletor do grupo, como na Aula 02. Para ter um dia local completo, a coleta precisa cobrir das 0h às 23h59 no horário de Brasília.
-
-## Etapa 3. Ambiente Python
+Ambiente Python:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-python -c "import duckdb, boto3, bs4, pytest, pytz; print(duckdb.__version__)"
+pip install -r requirements.txt
 ```
 
-## Etapa 4. Schema on read no raw e no bronze, antes de escrever a spec
-
-Escolha um dia local completo (`mc ls local/raw/telemetria/`; o dia D precisa das partições D e D+1):
-
-```bash
-python sql/rodar_sql.py sql/01_raw_telemetria.sql --var DATA=<AAAA-MM-DD>
-python sql/rodar_sql.py sql/02_raw_bronze_livros_ptax.sql
-python sql/rodar_sql.py sql/03_bronze_telemetria.sql --var DATA=<AAAA-MM-DD>
-python sql/rodar_sql.py sql/04_silver_telemetria.sql --var DATA=<AAAA-MM-DD>
-```
-
-Observe e anote para a spec: quantos lotes e linhas o dia tem; quantas linhas cabem em cada um dos cinco formatos; que linhas foram para a quarentena e de que arquivo; quantas posições se repetem entre lotes; a diferença entre a partição em UTC e o horário de Brasília dentro das linhas; o envelope `value` da PTAX no raw; o UPC extraído do HTML de detalhe comparado com o bronze; e o tipo que a inferência deu a `coletado_em`.
-
-## Etapa 5. Prompts SDD no agente de código
-
-```bash
-claude            # ou o agente que você usa
-```
-
-No Claude Code, crie antes um `CLAUDE.md` que importe as regras: `echo "@AGENTS.md" > CLAUDE.md`. Outros agentes leem o `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto.
-
-Execute os prompts do material, seção 11, um por vez. Depois de cada um, faça a revisão indicada antes de seguir.
-
-| Prompt | Artefato | Gate antes do próximo |
-|---|---|---|
-| 1. Persona | `docs/00_persona.md` | duas personas de consumo, com decisão e frequência |
-| 2. Objetivos de negócio | `docs/01_objetivos_negocio.md` | métricas sem números inventados |
-| 3. Especificação | `specs/spec.md` | contrato de cada tabela bronze, silver e gold; todo RF/RNF com Dado/Quando/Então |
-| 4. Plano | `specs/plan.md` | C4 em Mermaid, layout dos buckets, estratégia de idempotência |
-| 5. Tarefas | `specs/tasks.md` | cada tarefa com RF/RNF e teste |
-| 6. Implementação | `src/`, `tests/` | `python -m pytest -q` sem falhas, tarefa a tarefa |
-| 7. Validação ATAM | `docs/atam.md`, `docs/adr/` | seis cenários de seis partes com evidência medida |
-
-## Etapa 6. Rodar o job contra o MinIO local
+Conferir o ClickHouse e a tabela criada pelo DDL montado em `docker-entrypoint-initdb.d`:
 
 ```bash
 set -a; source .env; set +a
-python -m pytest -q
-DATA_PROCESSAMENTO=<AAAA-MM-DD> python -m src.job_lakehouse
-DATA_PROCESSAMENTO=<AAAA-MM-DD> python -m src.job_lakehouse   # segunda vez: mesmo resultado
-
-docker compose exec minio mc ls --recursive local/bronze/telemetria
-docker compose exec minio mc ls --recursive local/silver
-docker compose exec minio mc ls --recursive local/gold
+docker compose exec clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" \
+  -q "SELECT version(); SHOW CREATE TABLE ingestao.db_ingestion"
 ```
 
-Gates:
+O DDL só roda na primeira subida, com o volume vazio. Se a tabela mudar depois, rode o arquivo de novo pelo `clickhouse-client` (`< sql/001_db_ingestion.sql`) ou recrie o volume com autorização.
 
-- A segunda execução não muda o número de objetos em `bronze/telemetria`, `silver` e `gold` nem a contagem de linhas da partição.
-- Toda linha do bronze e da silver tem `arquivo_origem` e `numero_linha`.
-- O resumo mostra quantas linhas foram para a quarentena.
-- O processo termina sozinho e imprime o tempo total.
+Consoles: RustFS em `http://localhost:9001/rustfs/console/` (login `admin` / `admin123`), RabbitMQ em `http://localhost:15672` e ClickHouse em `http://localhost:8123/play`. No Codespace, abra as portas encaminhadas (seção 13).
 
-Meça em vez de citar números:
+## 2. Agente
 
 ```bash
-docker compose exec minio mc du local/raw/telemetria
-docker compose exec minio mc du local/bronze/telemetria
-docker compose exec minio mc du local/silver/posicoes
-python sql/rodar_sql.py sql/08_parquet_inspecao.sql --var DATA=<AAAA-MM-DD>
+echo "@AGENTS.md" > CLAUDE.md    # só no Claude Code
 ```
 
-Registre no `docs/atam.md` os bytes de cada camada, os bytes lidos, as requisições e o tempo das consultas do `EXPLAIN ANALYZE`, com a data e o volume em que foram medidos.
+Use o agente de código de sua preferência, aberto nesta pasta. Outros agentes leem o `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto. Rode os prompts das Etapas 01 a 10 do material, um por vez, e faça a revisão "Revise antes de seguir" depois de cada um. Ao fim de cada etapa, o agente acrescenta em `docs/prompts.md` o prompt literal, a data e os arquivos gerados.
 
-## Etapa 7. Testar a imagem do job localmente
+## 3. Dados de entrada
+
+Os produtores leem a pasta `entrada/`, na raiz de `aula_04_ingestao/`, criada pelo `dados_aula_04.zip`:
+
+| Pasta | Conteúdo | Como entra |
+|---|---|---|
+| `entrada/livros/livros.jsonl` | 1.000 livros coletados do books.toscrape.com em 30/10/2026, no contrato do bronze da Aula 03 | um `POST /ingest` por linha |
+| `entrada/ptax/cotacoes.jsonl` | 40 boletins PTAX GBP de 20/10 a 29/10/2026 (API Olinda do BCB), com `moeda` | uma mensagem na fila com a lista |
+| `entrada/telemetria/*.txt` | 1.920 lotes de 29/10/2026, 20 caminhões, 31.265 linhas (gerador da Aula 02) | uma mensagem na fila por linha, `{"arquivo", "numero_linha", "linha"}` |
+
+As fixtures desta pasta continuam para os testes:
+
+| Arquivo | Conteúdo |
+|---|---|
+| `fixtures/livros.jsonl` | 20 livros (as 20 primeiras linhas da coleta) |
+| `fixtures/ptax_cotacoes.jsonl` | 5 boletins de 29/10/2026 |
+| `fixtures/telemetria/*.txt` | 12 lotes do caminhão CAM-0451, 29/10/2026 das 6h00 às 8h45, 200 linhas |
+| `fixtures/exemplos/valido_*.json` | 3 envelopes válidos, um por domínio |
+| `fixtures/exemplos/invalido_*` | 7 inválidos (6 com 422 e 1 com 400), o código esperado está no nome |
+
+`enviar_entrada.py` envia a pasta inteira usando só o contrato público: `POST /ingest` para livros e a fila `ingestao` com o envelope JSON para PTAX e telemetria. Ele não conhece o lake nem o ClickHouse, por isso funciona com o servidor de referência e com o servidor do grupo.
 
 ```bash
-docker build -t aula04-job .
-docker run --rm --env-file .env --network host -e DATA_PROCESSAMENTO=<AAAA-MM-DD> aula04-job
-echo "código de saída: $?"
+python enviar_entrada.py                                   # tudo
+python enviar_entrada.py --so livros                       # um domínio
+python enviar_entrada.py --so telemetria --limite-telemetria 2000
 ```
 
-Gate: o contêiner termina com código 0 e o resumo aparece no log. Se ele não terminar, o cron do Railway vai pular as execuções seguintes.
+No fim ele imprime, por `data_tag`, as mensagens enviadas e as linhas esperadas no destino.
 
-## Etapa 8. Publicar o job no Railway como serviço com cron
+## 4. Servidor de referência (demonstração do professor)
 
-Dentro de `aula_04_lakehouse/`, ligue a pasta ao projeto da Aula 01 e crie o serviço do job:
+`referencia/` é o gabarito do professor para a demonstração. Os alunos constroem o servidor deles pelos prompts, na pasta `aula_04_ingestao/`; a referência serve para mostrar o resultado esperado e para conferir números.
+
+Nesta pasta do laboratório, com o `.env` preenchido, os serviços no ar e `entrada/` descompactada:
 
 ```bash
-npm i -g @railway/cli        # se ainda não estiver instalado no Codespace
-railway login --browserless
-railway link                 # escolha o projeto onde está o serviço minio
-railway add --service lakehouse-job
-railway service              # selecione lakehouse-job
+pip install -r requirements.txt
+cd referencia
+python -m pytest -q                  # 19 testes, sem rede
+python -m src.servidor               # API em :8000 e consumidor da fila no mesmo processo
 ```
 
-Variáveis do serviço. As credenciais usam referência ao serviço `minio` (sintaxe `${{SERVICE_NAME.VAR}}` do Railway), então nenhuma senha passa pelo terminal. As aspas simples impedem o shell de interpretar `${{...}}`:
+Em outro terminal, na pasta do laboratório:
 
 ```bash
-railway variable set 'S3_ACCESS_KEY=${{minio.MINIO_ROOT_USER}}'
-railway variable set 'S3_SECRET_KEY=${{minio.MINIO_ROOT_PASSWORD}}'
-railway variable set S3_ENDPOINT_URL=https://<dominio-da-porta-9000>
-railway variable set S3_REGION=us-east-1 BUCKET_RAW=raw BUCKET_BRONZE=bronze BUCKET_SILVER=silver BUCKET_GOLD=gold
-railway variable list
+python enviar_entrada.py
 ```
 
-Crie os buckets de destino no MinIO do Railway, uma vez:
+O servidor lê o `.env` da pasta do laboratório (a busca sobe de `referencia/src/` até achar o arquivo). Os produtores próprios da referência também existem e leem `../entrada/`: `python -m src.produtores.livros_http`, `python -m src.produtores.ptax_fila` e `python -m src.produtores.telemetria_fila`.
+
+## 5. Etapa 07 · Gate da API
+
+Com o servidor no ar (`python -m src.servidor` ou o comando definido no `plan.md`):
 
 ```bash
-docker compose exec minio mc mb --ignore-existing railway/bronze railway/silver railway/gold
+curl -s -w ' %{http_code}\n' localhost:8000/health
+for f in fixtures/exemplos/*; do
+  printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/ingest \
+    -H 'content-type: application/json' --data-binary @"$f")"; echo "$f"
+done
+# esperado: 202 para valido_*, 422 para invalido_422_*, 400 para invalido_400_*
+head -c 1100000 /dev/zero | tr '\0' ' ' > /tmp/grande.json
+curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:8000/ingest --data-binary @/tmp/grande.json   # 413
 ```
 
-O `railway.json` desta pasta define o build por Dockerfile, `cronSchedule` e `restartPolicyType`. Confira o horário antes do deploy: o cron do Railway usa UTC, execuções precisam estar a pelo menos 5 minutos de distância, e se a execução anterior ainda estiver rodando a seguinte é pulada.
+## 6. Etapa 09 · Gate de contagens
+
+Depois de rodar os três produtores (ou `python enviar_entrada.py`), a mesma contagem em quatro lugares, por `data_tag`: o que foi enviado, o ClickHouse, o bronze e o raw. Mensagens e linhas não são a mesma coisa: o envelope de PTAX com 40 boletins é uma mensagem no raw e 40 linhas no bronze e no ClickHouse.
+
+ClickHouse:
 
 ```bash
-cat railway.json
-railway up . --path-as-root --service lakehouse-job --ci
-railway logs
+docker compose exec clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" -q "
+  SELECT data_tag, count() AS linhas, uniqExact(timestamp, data_json) AS distintas
+  FROM ingestao.db_ingestion GROUP BY data_tag ORDER BY data_tag"
 ```
 
-Depois do deploy, abra o serviço no painel do Railway, em Settings, e confira se o campo Cron Schedule mostra a expressão do `railway.json`. Se não mostrar, preencha o campo manualmente com a mesma expressão.
-
-Gates:
-
-- O log do build mostra o uso do Dockerfile.
-- Na primeira execução agendada, o log mostra o resumo e o fim do processo.
-- `docker compose exec minio mc ls --recursive railway/silver` lista as partições da data processada.
-
-Rede privada (opcional, a testar): o Railway resolve `SERVICE_NAME.railway.internal` entre serviços do mesmo projeto, com HTTP. Trocar `S3_ENDPOINT_URL` para `http://minio.railway.internal:9000` evita o proxy público e o 502 esporádico visto na Aula 02. Se o job não conectar, volte ao domínio público e registre o resultado no `docs/atam.md`.
-
-## Etapa 9. Entrega
-
-Na pasta `aula_04_lakehouse/` do repositório do grupo:
-
-- `AGENTS.md`, `docs/00_persona.md`, `docs/01_objetivos_negocio.md`, `docs/atam.md`, `docs/adr/ADR-001-*.md`;
-- `specs/spec.md`, `specs/plan.md`, `specs/tasks.md`;
-- `src/` com o job, `tests/` com testes passando, `sql/` com as consultas usadas;
-- `Dockerfile` e `railway.json`;
-- silver e gold no MinIO do Railway, com a saída de `mc ls --recursive railway/silver railway/gold` colada em `docs/atam.md`;
-- print ou log da execução agendada do cron (sem segredos).
-
-Antes do commit:
+Bronze, raw e manifestos, pelo DuckDB (consultas 1, 1a e 1b de `sql/duckdb_cast.sql`):
 
 ```bash
-git status --short
-git diff --staged -- . ':!.env.example' | grep -nE "SECRET_KEY=|PASSWORD=|ACCESS_KEY=" && echo "PARE: possível segredo no diff"
+python sql/rodar_sql.py sql/duckdb_cast.sql
 ```
 
-## Encerrar
+Fila vazia e rejeitados:
 
 ```bash
-docker compose down        # mantém os dados no volume
-docker compose down -v     # apaga também o volume local (só quando quiser recomeçar)
+docker compose exec rabbitmq rabbitmqctl list_queues name messages messages_unacknowledged
+docker compose run --rm mc ls --recursive lake/raw/ingestao_rejeitados/
 ```
 
-Ao fim da disciplina, decida com o grupo se o serviço `lakehouse-job` continua agendado. Cada execução consome crédito do Railway; se o projeto final não usar o job, apague o serviço no painel e confira em `railway logs` que nenhuma execução nova aparece.
+Teste de queda (no meio da carga de telemetria):
+
+```bash
+python -m src.servidor & SERVIDOR=$!
+python enviar_entrada.py --so telemetria &            # ou o produtor do grupo
+sleep 3; kill -9 $SERVIDOR                            # derruba sem flush e sem ack
+docker compose exec rabbitmq rabbitmqctl list_queues name messages messages_unacknowledged
+python -m src.servidor                                # reinicia; a fila reentrega o que não teve ack
+```
+
+Depois da drenagem, refaça as contagens. Nada se perde. Linhas repetidas só aparecem se o processo cair entre a gravação e o ack; a consulta 7 de cada arquivo de cast mostra quantas, e o lote repetido aparece com dois manifestos.
+
+Checklist:
+
+- [ ] `pytest -q` verde
+- [ ] curl: 202, 422, 400 e 413 nos casos esperados
+- [ ] por `data_tag`: linhas esperadas = linhas no ClickHouse = linhas no bronze = linhas derivadas do raw
+- [ ] envelopes no raw = mensagens enviadas; um manifesto `ok` por lote, e a soma de `linhas` dos manifestos = linhas no ClickHouse
+- [ ] fila com 0 mensagens e 0 sem ack depois da drenagem
+- [ ] envelope inválido publicado direto na fila aparece em `raw/ingestao_rejeitados/` com o motivo
+- [ ] teste de queda: nenhuma linha perdida; duplicadas contadas e explicadas
+- [ ] `git status --short` não lista `.env` nem `entrada/`
+
+## 7. Etapa 10 · JSON cast e silver
+
+```bash
+python sql/rodar_sql.py sql/duckdb_cast.sql
+docker compose exec -T clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" \
+  --time --multiquery < sql/clickhouse_cast.sql
+python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-30   # dia da coleta dos livros do zip
+```
+
+O silver sai do bronze, no mesmo contrato que a Aula 05 lê:
+
+- `s3://silver/livros/data_coleta=D/livros.parquet`: `upc`, `url`, `titulo`, `categoria`, `avaliacao` (TINYINT), `preco_gbp` (DECIMAL(10,2)), `em_estoque` (BOOLEAN), `qtd_estoque` (INTEGER), `coletado_em` (TIMESTAMPTZ), `arquivo_origem`, `processado_em`; um por `upc`, fica a coleta mais recente;
+- `s3://silver/ptax/ptax.parquet`: `moeda`, `data_hora_cotacao` (TIMESTAMP), `tipo_boletim`, `cotacao_compra` e `cotacao_venda` (DECIMAL(12,5)), `arquivo_origem`, `processado_em`; um por (`moeda`, `data_hora_cotacao`, `tipo_boletim`).
+
+`arquivo_origem` passa a ser o Parquet do bronze de onde a linha veio.
+
+## 8. Layout esperado no lake (RustFS)
+
+A organização segue a da Aula 03: `raw` guarda o que chegou, sem interpretação; `bronze` guarda o extraído, uma linha por registro; a chave tem partições no formato `nome=valor`; a data da partição é a do recebimento em `America/Sao_Paulo`; cada lote grava um manifesto.
+
+```text
+raw/ingestao/data_tag=livros/data=AAAA-MM-DD/lote_<HHMMSS>_<id>.jsonl
+raw/ingestao/data_tag=ptax/data=AAAA-MM-DD/lote_<HHMMSS>_<id>.jsonl
+raw/ingestao/data_tag=telemetria/data=AAAA-MM-DD/lote_<HHMMSS>_<id>.jsonl
+raw/ingestao_rejeitados/data=AAAA-MM-DD/rejeitado_<HHMMSS>_<id>.json
+raw/_manifestos/ingestao/data=AAAA-MM-DD/lote_<HHMMSS>_<id>.json
+bronze/ingestao/data_tag=livros/data=AAAA-MM-DD/lote_<HHMMSS>_<id>.parquet
+bronze/ingestao/data_tag=ptax/data=AAAA-MM-DD/lote_<HHMMSS>_<id>.parquet
+bronze/ingestao/data_tag=telemetria/data=AAAA-MM-DD/lote_<HHMMSS>_<id>.parquet
+silver/livros/data_coleta=AAAA-MM-DD/livros.parquet
+silver/ptax/ptax.parquet
+```
+
+- raw: um JSON Lines por lote e por `data_tag`, uma linha por envelope: `{"recebido_em_ms": ..., "envelope": <o corpo recebido>}`. Quebras de linha do corpo viram espaço (num JSON válido elas só separam tokens), para caber em uma linha.
+- bronze: um Parquet ZSTD por lote e por `data_tag`, com `timestamp` (UBIGINT, unix ms) e `data_json` (VARCHAR), uma linha por objeto de `data`. `data_tag` e `data` vêm do caminho.
+- O mesmo nome de lote liga o raw, o bronze e o manifesto. `HHMMSS` é a hora do primeiro envelope do lote em Brasília; o sufixo aleatório evita colisão entre lotes do mesmo segundo. A chave não é determinística como as da Aula 03: aqui o dado é empurrado, e um lote reentregue pode ter outra composição. O manifesto faz o papel de registro.
+- manifesto: `lote`, `data`, horários do primeiro e do último envelope, início e fim do flush, `mensagens`, `linhas`, contagem por `data_tag`, a lista de `arquivos` (camada, chave, registros, bytes, SHA-256), o destino no ClickHouse, os tempos de cada passo em ms, `status` (`ok` ou `erro_clickhouse`) e `erro`.
+- Cada objeto leva os metadados `sha256` e `lote` (`mc stat` mostra).
+- rejeitado: um JSON por envelope recusado pelo consumidor, com `recebido_em_ms`, `motivo` e o `corpo` como chegou.
+
+## 9. O que foi validado em 30/10/2026
+
+Servidor de referência (`referencia/`) montado e medido na preparação. Máquina: notebook Intel Core i5-1345U (12 threads), 15 GiB de RAM, Linux, Docker 29.9.2, Compose 5.6.1, Python 3.12.3. Serviços e servidor na mesma máquina, sem rede entre eles. Cliente sequencial, uma conexão keep-alive. Mediana (p50) e percentil 95 (p95).
+
+Dados usados: os do `dados_aula_04.zip`. 1.000 livros coletados do books.toscrape.com em 30/10/2026 (páginas de detalhe, 50 categorias, 1 s entre requisições, 25 minutos); 40 boletins PTAX GBP de 20/10 a 29/10/2026 (API Olinda, 8 dias úteis, 5 boletins por dia); um dia de telemetria do gerador da Aula 02 (`--inicio 2026-10-29T00:00 --horas 24`, 20 caminhões, 1.920 lotes, 31.265 linhas, 1.956.243 bytes).
+
+A primeira rodada usou MinIO e gravava só um Parquet por lote em `raw/`. A segunda, com RustFS 1.0.4 e a organização raw, bronze e manifesto, refez as medidas que dependem do armazenamento e do flush. As demais (latência HTTP, JSON cast, tamanho no ClickHouse) não passam pelo lake na escrita e ficaram da primeira rodada, marcadas como "MinIO".
+
+### Segunda rodada: RustFS e lake organizado
+
+Roteiro executado de ponta a ponta: `docker compose up`, buckets pelo `rustfs-init`, `pytest` da referência (19 testes), servidor de referência, `unzip` do pacote, `python enviar_entrada.py`, contagens, envelopes inválidos pela fila, teste de queda, os quatro arquivos de `sql/` e os comandos da seção 13.
+
+RustFS:
+
+- Imagem `rustfs/rustfs:1.0.4` (publicada em 25/10/2026; `rustfs --version` = 1.0.4). A 1.0.3 é de 17/10/2026.
+- Variáveis: `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`, `RUSTFS_ADDRESS` (padrão `:9000`), `RUSTFS_CONSOLE_ENABLE`, `RUSTFS_CONSOLE_ADDRESS` (padrão `:9001`).
+- `GET /health` na porta 9000 responde 200 com a versão; é o healthcheck do compose (a imagem tem `curl`).
+- Console em `http://localhost:9001/rustfs/console/`. A raiz `http://localhost:9001/` responde 403. Login com `admin` / `admin123` abriu o navegador de buckets; o console só fez requisições à porta 9001.
+- `mc` (imagem do MinIO), boto3 1.43.123 e DuckDB 1.5.6 com `httpfs` (`URL_STYLE 'path'`, `USE_SSL false`, `REGION 'us-east-1'`) leram e gravaram sem ajuste. O RustFS sem `RUSTFS_SERVER_DOMAINS` só aceita endereçamento por caminho (path-style).
+
+Gate de contagens com o pacote inteiro (`enviar_entrada.py`, `FLUSH_N=500`, `FLUSH_SEGUNDOS=2`):
+
+| data_tag | Enviadas | Linhas esperadas | ClickHouse | Bronze (arquivos) | Raw: envelopes (arquivos) |
+|---|---|---|---|---|---|
+| livros | 1.000 por HTTP (1,9 s) | 1.000 | 1.000 | 1.000 (2) | 1.000 (2) |
+| ptax | 1 pela fila | 40 | 40 | 40 (1) | 1 (1) |
+| telemetria | 31.265 pela fila (11,4 s) | 31.265 | 31.265 | 31.265 (63) | 31.265 (63) |
+
+65 manifestos, todos `ok`, somando 32.266 mensagens e 32.305 linhas. Fila com 0 mensagens e 0 sem ack. Raw com 66 objetos e 7.757.890 bytes, bronze com 66 objetos e 702.664 bytes, manifestos com 85.881 bytes. Três envelopes inválidos publicados direto na fila foram para `raw/ingestao_rejeitados/data=2026-10-30/` (136, 156 e 179 bytes).
+
+Custo de um flush por passo (mediana de 30 repetições; 10 com 5.000 linhas):
+
+| Linhas no lote | raw (PUT do JSON Lines) | bronze (DuckDB + PUT) | ClickHouse (INSERT) | manifesto (PUT) | total |
+|---|---|---|---|---|---|
+| 1 | 7,0 ms | 10,5 ms | 5,0 ms | 7,7 ms | 30,8 ms |
+| 500 | 8,0 ms | 10,7 ms | 5,7 ms | 7,5 ms | 31,6 ms |
+| 5.000 | 18,5 ms | 12,4 ms | 8,0 ms | 7,4 ms | 45,9 ms |
+
+Na primeira rodada o flush tinha dois passos: Parquet direto no MinIO (5,2, 5,3 e 6,5 ms) e INSERT (4,0, 4,0 e 6,0 ms), cerca de 9 a 13 ms. O mesmo `COPY ... TO 's3://...'` do DuckDB, agora contra o RustFS, levou 7,6, 7,2 e 7,8 ms. O flush ficou cerca de 3,4 vezes mais caro porque faz três PUTs em vez de um e porque cada PUT no RustFS custa uns 2 ms a mais nesta máquina. O custo fixo continua dominando: 5.000 linhas custam 1,5 vez o de uma linha.
+
+Comparação com a primeira rodada:
+
+| Medida | MinIO, lake só com Parquet | RustFS, raw + bronze + manifesto |
+|---|---|---|
+| Flush de 500 linhas (lake + ClickHouse) | cerca de 9,3 ms | 31,6 ms |
+| Dia de telemetria na fila, `FLUSH_N=500`, tempo para drenar | 3,84 s (8.147 linhas/s) | 6,19 s e 5,98 s (5.049 e 5.226 linhas/s) |
+| Objetos gravados pelo dia de telemetria | 63 | 189 (63 raw, 63 bronze, 63 manifestos) |
+| Bytes do dia de telemetria no lake | 619.050 (Parquet) | raw 7.347.808; bronze 617.737; manifestos 82.579 |
+| POST até a linha no ClickHouse, `FLUSH_N=500`, `FLUSH_SEGUNDOS=2` | p50 2.030 ms, p95 2.039 ms | p50 2.053 ms, p95 2.086 ms |
+| O mesmo com `FLUSH_N=1` | p50 34 ms, p95 52 ms | p50 49 ms, p95 61 ms |
+
+O raw é o dado sem compressão: o dia de telemetria em envelopes ocupa 3,8 vezes o TXT original e 12 vezes o bronze. Com pouco tráfego, a latência continua sendo `FLUSH_SEGUNDOS` mais o flush.
+
+Queda (kill -9 do servidor no meio da carga de telemetria, `FLUSH_N=500`, reinício e drenagem):
+
+| Momento do kill | Publicadas | ClickHouse | Bronze | Raw (envelopes) | Manifestos | Duplicadas | Perdidas |
+|---|---|---|---|---|---|---|---|
+| com 10.000 linhas no ClickHouse | 31.265 | 31.265 | 31.265 (63 arquivos) | 31.265 (63) | 63 | 0 | 0 |
+| entre o manifesto e o ack (pausa de 3 s, só no script de medição) | 31.265 | 31.765 | 31.765 (64) | 31.765 (64) | 64 | 500 em cada destino | 0 |
+
+No segundo caso, o lote repetido aparece com dois manifestos `ok` e as mesmas mensagens. A pausa existe só no script de medição; o servidor de referência não tem esse gancho.
+
+Silver (`sql/silver_livros_ptax.sql --var DATA=2026-10-30`, lendo o bronze): 1.000 livros, 1.000 UPCs, preço de 10,00 a 59,99, nenhum sem `arquivo_origem`; 40 boletins PTAX, 5 por dia de 20/10 a 29/10/2026. `DESCRIBE` igual ao contrato: `avaliacao` TINYINT, `preco_gbp` DECIMAL(10,2), `em_estoque` BOOLEAN, `qtd_estoque` INTEGER, `coletado_em` TIMESTAMP WITH TIME ZONE, `data_hora_cotacao` TIMESTAMP, `cotacao_compra` e `cotacao_venda` DECIMAL(12,5). `duckdb_cast.sql`, `clickhouse_cast.sql` e `rodar_sql.py` rodaram sem erro contra o RustFS; a venda média do Fechamento deu 6,95758 no DuckDB (DECIMAL) e 6,95757 no ClickHouse (Float64).
+
+### Primeira rodada (MinIO, lake só com Parquet)
+
+Contrato e DDL:
+
+- `PARTITION BY toYYYYMM(fromUnixTimestamp64Milli(toInt64(timestamp)))` aceito pelo ClickHouse 26.8.15.10 sem ajuste; `1793452800123` cai na partição `202610`.
+- Os 10 exemplos de `fixtures/exemplos/` devolveram o código do nome do arquivo (3 com 202, 6 com 422, 1 com 400); corpo de 1,1 MB devolveu 413.
+
+Latência do `POST /ingest` (1.000 requisições por caso, depois de 50 de aquecimento):
+
+| Caso | Corpo | p50 | p95 |
+|---|---|---|---|
+| inválido, `data_tag` desconhecida (422) | 317 B | 0,53 ms | 1,00 ms |
+| inválido, `data` vazia (422) | 34 B | 0,50 ms | 0,98 ms |
+| válido, um objeto (202) | 319 B | 1,51 ms | 2,19 ms |
+| válido, lista de 10 livros (202) | 2.922 B | 1,55 ms | 2,08 ms |
+| válido, lista de 100 livros (202) | 28.932 B | 2,47 ms | 3,62 ms |
+
+O 422 não toca a fila. A diferença para o 202, cerca de 1 ms, é a publicação com confirmação do broker.
+
+Do POST até a linha aparecer no ClickHouse (MinIO; 30 POSTs, consulta ao ClickHouse a cada 10 ms):
+
+| Configuração | p50 | p95 |
+|---|---|---|
+| `FLUSH_N=500`, `FLUSH_SEGUNDOS=2`, sem outro tráfego | 2.030 ms | 2.039 ms |
+| `FLUSH_N=1` (flush a cada envelope), sem outro tráfego | 34 ms | 52 ms |
+| `FLUSH_N=500`, `FLUSH_SEGUNDOS=2`, durante a carga de 31.265 linhas de telemetria | 145 ms | 2.039 ms |
+
+Com pouco tráfego, quem dispara o flush é o relógio: a latência é `FLUSH_SEGUNDOS` mais uns 30 ms. Durante a carga, o lote enche antes e a latência cai para a casa de 150 ms.
+
+Micro-lote (MinIO, lake só com Parquet): fila pré-carregada com o dia de telemetria (31.265 mensagens), consumidor sobe e drena. O tempo inclui a subida do servidor (cerca de 1 s).
+
+| `FLUSH_N` | Tempo para drenar | Linhas/s | INSERTs | Partes criadas | Partes ativas ao fim | Objetos no lake | Bytes no lake |
+|---|---|---|---|---|---|---|---|
+| 1 | 524,5 s | 60 | 31.265 | 31.265 | 5 | 31.265 | 33.339.527 |
+| 500 | 3,8 s | 8.147 | 63 | 63 | 3 | 63 | 619.050 |
+| 5.000 | 3,3 s | 9.554 | 7 | 7 | 2 | 7 | 567.283 |
+
+Com `FLUSH_N=1`, o ClickHouse fez cerca de 19.600 merges durante os 9 minutos para manter as partes ativas em 5 (contagem por minuto em `system.part_log`). O lake guardou 54 vezes mais bytes que com `FLUSH_N=500`, porque cada Parquet de uma linha carrega cabeçalho, rodapé e metadados.
+
+Mesma carga menor (2.000 mensagens): `FLUSH_N=1` levou 22,0 s (91 linhas/s, 2.000 partes, 399 merges); `FLUSH_N=500`, 0,48 s (4 partes); `FLUSH_N=5000`, 2,53 s, porque o lote nunca enche e o flush espera os 2 s.
+
+Tamanho do dia de telemetria (31.265 linhas):
+
+| Forma | Bytes |
+|---|---|
+| TXT original (1.920 arquivos) | 1.956.243 |
+| JSON Lines `{"timestamp", "data"}` | 5.847.088 |
+| JSON Lines com gzip | 550.383 |
+| Parquet ZSTD no lake (63 arquivos, `FLUSH_N=500`, MinIO) | 631.827 |
+| Parquet ZSTD em um arquivo só | 580.547 |
+| ClickHouse, LZ4 padrão, depois de `OPTIMIZE FINAL` | 1.012.247 comprimido, 5.253.229 descomprimido |
+
+O envelope JSON triplica o texto original (nomes de campo e escapes repetidos em cada linha). O Parquet ZSTD guarda o mesmo dia em um terço do TXT.
+
+JSON cast (MinIO; tempo de consulta, mediana de 5 execuções depois de uma de aquecimento):
+
+| Consulta | Dados reais (1.000 livros) | Livros x1.000 (1.000.000 linhas) |
+|---|---|---|
+| DuckDB `->>` com `CAST` sobre o Parquet do lake | 3,8 ms | 211 ms |
+| DuckDB `json_extract_string` / `json_extract` | 3,9 ms | 194 ms |
+| DuckDB `from_json` com estrutura declarada | 3,5 ms | 130 ms |
+| DuckDB sobre Parquet já tipado (silver) | | 7,5 ms |
+| ClickHouse `JSONExtractString` / `JSONExtractFloat` | 3,4 ms | 146 ms |
+| ClickHouse `simpleJSONExtract*` | 4,6 ms | 75 ms |
+| ClickHouse `CAST(data_json AS JSON)` na consulta | 6,4 ms | 957 ms |
+| ClickHouse coluna do tipo `JSON` (subcolunas na escrita) | | 21 ms |
+| ClickHouse coluna `JSON` com tipo declarado (`data.preco_gbp.:Float64`) | | 16 ms |
+
+Telemetria (contar linhas por caminhão com expressão regular sobre `linha`): 8,7 ms no DuckDB e 12,6 ms no ClickHouse; 2.396 das 31.265 linhas não têm caminhão (`#RADIO` e `ERR SAT`).
+
+Com mil livros, todas as formas respondem em poucos milissegundos. Com um milhão de linhas, `CAST AS JSON` na hora da consulta é a mais lenta (o texto é convertido de novo a cada consulta) e a coluna do tipo `JSON` é a mais rápida (as subcolunas já estão separadas no disco). A coluna `JSON` inferiu `coletado_em` como `DateTime` e converteu `2026-10-30T19:27:52-03:00` para `2026-10-30 22:27:52` em UTC: o deslocamento original se perde.
+
+## 10. Semana · ATAM e Railway
+
+- `docs/atam.md` com os cenários: ClickHouse fora por 20 minutos, RustFS fora, processo morto entre a gravação e o ack, produtor que manda 10 vezes o volume normal, payload que muda de forma (`linha` vira `texto`), envelope com `data_tag` nova. Cada cenário com estímulo, resposta esperada, medida e evidência (comando e número).
+- Railway: o plano de teste permite até cinco serviços. O object storage (o grupo usa no Railway o que já tem desde a Aula 01), RabbitMQ, ClickHouse e o servidor de ingestão somam quatro. Confira quantos o grupo já usa antes de criar.
+
+## 11. Entregável
+
+Pasta `aula_04_ingestao/` no repositório do grupo com `AGENTS.md`, `docs/` (prompts, persona, objetivos, arquitetura, cinco ADRs), `specs/` (contrato, exemplos, requisitos, modelo, plano, tarefas), `sql/`, `src/` rodando, `tests/` passando e o gate da Etapa 09 registrado em `docs/prompts.md` com os números do grupo.
+
+## 12. Encerrar
+
+```bash
+docker compose down          # mantém os volumes com os dados locais
+docker compose down -v       # apaga também os volumes (pede autorização no agente)
+```
+
+## 13. Mostrar o resultado
+
+Comandos testados em 30/10/2026 com o servidor de referência, depois de `python enviar_entrada.py`. Rode na pasta do `docker-compose.yml`, com o `.env` carregado no terminal:
+
+```bash
+set -a; source .env; set +a
+```
+
+ClickHouse pelo `clickhouse-client` dentro do contêiner (sessão interativa; saia com `exit`):
+
+```bash
+docker compose exec clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" --database ingestao
+```
+
+Dentro da sessão:
+
+```sql
+SHOW TABLES;
+DESCRIBE db_ingestion;
+
+SELECT data_tag, count() AS linhas
+FROM db_ingestion
+GROUP BY data_tag
+ORDER BY data_tag;
+
+SELECT timestamp,
+       fromUnixTimestamp64Milli(toInt64(timestamp), 'America/Sao_Paulo') AS recebido_em,
+       data_tag, data_json
+FROM db_ingestion WHERE data_tag = 'livros' ORDER BY timestamp LIMIT 5
+FORMAT Vertical;
+
+SELECT * FROM db_ingestion WHERE data_tag = 'ptax' ORDER BY timestamp LIMIT 5 FORMAT Vertical;
+
+SELECT * FROM db_ingestion WHERE data_tag = 'telemetria' ORDER BY timestamp LIMIT 5 FORMAT Vertical;
+
+SELECT JSONExtractString(data_json, 'titulo')   AS titulo,
+       JSONExtractString(data_json, 'categoria') AS categoria,
+       JSONExtractFloat(data_json, 'preco_gbp')  AS preco_gbp
+FROM db_ingestion
+WHERE data_tag = 'livros'
+ORDER BY preco_gbp DESC
+LIMIT 5;
+```
+
+Resultado esperado com o pacote inteiro: `livros 1000`, `ptax 40`, `telemetria 31265`; o livro mais caro é "The Perfect Play (Play by Play #1)", Romance, 59.99.
+
+A mesma contagem sem entrar na sessão (`-q`) e pela interface HTTP:
+
+```bash
+docker compose exec clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" \
+  --database ingestao -q "SELECT data_tag, count() AS linhas FROM db_ingestion GROUP BY data_tag ORDER BY data_tag"
+
+curl -s -u "$CLICKHOUSE_USER:$CLICKHOUSE_PASSWORD" 'http://localhost:8123/?database=ingestao' \
+  --data-binary 'SELECT data_tag, count() AS linhas FROM db_ingestion GROUP BY data_tag ORDER BY data_tag FORMAT PrettyCompact'
+```
+
+Interface web do ClickHouse: `http://localhost:8123/play`. Preencha usuário e senha do `.env` (`ingestao` / `ingestao123` no padrão) e rode `SELECT data_tag, count() FROM ingestao.db_ingestion GROUP BY data_tag`.
+
+Console do RustFS: `http://localhost:9001/rustfs/console/`, login `admin` / `admin123`. O navegador mostra os buckets `raw`, `bronze`, `silver`, `gold` e `teste` com a contagem de objetos.
+
+Árvore do lake (o serviço `mc` do compose já entra com o alias `lake`):
+
+```bash
+docker compose run --rm mc tree --files lake/raw/ingestao
+docker compose run --rm mc tree --files lake/bronze
+docker compose run --rm mc tree --files lake/raw/_manifestos
+docker compose run --rm mc tree --files lake/silver
+docker compose run --rm mc du --depth 2 lake/raw lake/bronze     # bytes por prefixo
+```
+
+Abrir um manifesto (copie a chave de um da listagem):
+
+```bash
+docker compose run --rm mc ls --recursive lake/raw/_manifestos/ingestao/
+docker compose run --rm mc cat lake/raw/_manifestos/ingestao/data=AAAA-MM-DD/lote_HHMMSS_xxxxxxxx.json
+docker compose run --rm mc stat lake/bronze/ingestao/data_tag=ptax/data=AAAA-MM-DD/lote_HHMMSS_xxxxxxxx.parquet   # metadados sha256 e lote
+```
+
+Resumo de todos os manifestos, raw e bronze pelo DuckDB: `python sql/rodar_sql.py sql/duckdb_cast.sql` (consultas 1, 1a e 1b).
+
+No Codespaces, os comandos acima rodam no terminal do próprio Codespace e usam `localhost` sem nada a configurar. Só o que abre no navegador precisa de porta encaminhada (aba Ports; o Codespaces costuma encaminhar sozinho quando a porta abre):
+
+| Porta | Serviço | Endereço no navegador |
+|---|---|---|
+| 9001 | console do RustFS | `/rustfs/console/` na URL encaminhada |
+| 8123 | ClickHouse HTTP e `/play` | `/play` na URL encaminhada |
+| 15672 | console do RabbitMQ | raiz da URL encaminhada |
+| 8000 | API de ingestão (`/docs` da FastAPI) | `/docs` na URL encaminhada |
+
+As portas 9000 (API S3) e 5672 (AMQP) não precisam de encaminhamento: só o servidor e os scripts, dentro do Codespace, falam com elas. Localmente o console do RustFS só fez requisições à porta 9001. O acesso pelas URLs encaminhadas do Codespaces não foi testado na preparação.

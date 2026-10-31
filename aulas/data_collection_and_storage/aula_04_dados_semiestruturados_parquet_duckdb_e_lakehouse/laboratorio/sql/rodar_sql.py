@@ -1,19 +1,16 @@
 """Executa um arquivo .sql no DuckDB com o secret S3 montado a partir do .env.
 
-Uso (na pasta laboratorio/ ou na pasta da aula no repositório do grupo):
-    python sql/rodar_sql.py sql/02_raw_bronze_livros_ptax.sql
-    python sql/rodar_sql.py sql/03_bronze_telemetria.sql --var DATA=2026-10-27
+Uso (na pasta do grupo):
+    python sql/rodar_sql.py sql/duckdb_cast.sql
+    python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-31
 
 Os arquivos .sql não contêm credenciais. Este utilitário lê .env, cria um
 secret temporário (só existe nesta conexão) e executa as instruções do arquivo
-na ordem, imprimindo o resultado de cada SELECT, DESCRIBE ou EXPLAIN.
+na ordem, imprimindo o resultado e o tempo de cada uma.
 Variáveis no formato {{NOME}} dentro do .sql são substituídas por --var NOME=valor.
-Quando DATA é informada, {{DATA_SEGUINTE}} (D+1) é derivada dela: o dia D no
-horário de Brasília termina às 02h59 UTC de D+1, e a telemetria é particionada em UTC.
 """
 
 import argparse
-import datetime
 import os
 import pathlib
 import sys
@@ -45,7 +42,7 @@ def exigir(nome: str) -> str:
 def criar_secret(con: duckdb.DuckDBPyConnection) -> None:
     con.sql("INSTALL httpfs")
     con.sql("LOAD httpfs")
-    # S3_ENDPOINT_URL tem esquema (http://localhost:9000); o DuckDB quer host:porta
+    # S3_ENDPOINT_URL tem esquema (http://localhost:9000, o RustFS); o DuckDB quer host:porta
     # em ENDPOINT e o esquema em USE_SSL.
     url = urlparse(exigir("S3_ENDPOINT_URL"))
     if url.scheme not in ("http", "https") or not url.netloc:
@@ -53,7 +50,7 @@ def criar_secret(con: duckdb.DuckDBPyConnection) -> None:
     use_ssl = url.scheme == "https"
     con.execute(
         f"""
-        CREATE OR REPLACE TEMPORARY SECRET minio_lake (
+        CREATE OR REPLACE TEMPORARY SECRET lake (
             TYPE s3,
             PROVIDER config,
             KEY_ID '{exigir("S3_ACCESS_KEY")}',
@@ -76,9 +73,6 @@ def main() -> None:
     carregar_env(pathlib.Path(".env"))
     texto = pathlib.Path(args.arquivo_sql).read_text(encoding="utf-8")
     variaveis = dict(par.split("=", 1) for par in args.var)
-    if "DATA" in variaveis and "DATA_SEGUINTE" not in variaveis:
-        data = datetime.date.fromisoformat(variaveis["DATA"])
-        variaveis["DATA_SEGUINTE"] = (data + datetime.timedelta(days=1)).isoformat()
     for nome, valor in variaveis.items():
         texto = texto.replace("{{" + nome + "}}", valor)
     if "{{" in texto:

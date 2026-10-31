@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Aula 04 - TBL - Lakehouse com DuckDB - Data Collection 2026</title>
-  <meta name="description" content="Sala de Team-Based Learning da Aula 04: tres decisoes sobre o lakehouse com DuckDB sobre o MinIO montado na demonstracao, com quatro taticas de ganho e custo declarados em cada questao.">
+  <title>Aula 04 - TBL - Servidor de ingestao - Data Collection 2026</title>
+  <meta name="description" content="Sala de Team-Based Learning da Aula 04: tres decisoes sobre o servidor de ingestao com fila RabbitMQ, lake no RustFS com raw, bronze e manifesto, DuckDB e ClickHouse montado pela turma, com quatro taticas de ganho e custo declarados em cada questao.">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,8 +26,8 @@
   <main>
     <section id="tela-entrada">
       <span class="selo">Team-Based Learning &middot; 31/10/2026</span>
-      <h1 style="margin-top:12px">O lakehouse que a demonstração colocou no ar</h1>
-      <p style="margin-top:12px">Um caso e três decisões sobre o lakehouse que a demonstração montou com DuckDB sobre o MinIO, ligando os cinco blocos teóricos da manhã ao job do grupo. Em cada questão você decide sozinho, ouve a turma e decide outra vez. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.</p>
+      <h1 style="margin-top:12px">O servidor de ingestão que a turma montou</h1>
+      <p style="margin-top:12px">Um caso e três decisões sobre o servidor de ingestão que a turma montou de manhã, com a fila RabbitMQ, o lake no RustFS, com raw em JSON Lines, bronze em Parquet gravado pelo DuckDB e um manifesto por lote, e a tabela db_ingestion no ClickHouse. Em cada questão você decide sozinho, ouve a turma e decide outra vez. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.</p>
       <form id="form-entrada" style="margin-top:18px">
         <label for="nome">Como você quer aparecer para o professor</label>
         <input id="nome" type="text" maxlength="24" autocomplete="off" autocapitalize="words"
@@ -263,9 +263,9 @@
       <div class="bloco">${htmlVozes(s.justificativas1, 'As hipóteses declaradas pela turma')}</div>
       <div class="bloco"><h2>Perguntas que organizam a discussão</h2>
         <div class="roteiro">
-          <div><b>1 · Atributo de qualidade</b><span>Qual atributo a sua tática protege (custo de leitura, rastreabilidade, frescor da gold, simplicidade de operação) e qual ela sacrifica?</span></div>
-          <div><b>2 · Evidência</b><span>Que medida no <code>EXPLAIN ANALYZE</code>, no <code>mc ls</code> ou no <code>railway logs</code> mostraria que a tática funciona?</span></div>
-          <div><b>3 · Custo assumido</b><span>Quem paga o custo: o grupo que opera o job, o crédito do Railway ou quem lê a silver e a gold na Aula 05?</span></div>
+          <div><b>1 · Atributo de qualidade</b><span>Qual atributo a sua tática protege (tempo até consultável, durabilidade, rastreabilidade, simplicidade de operação) e qual ela sacrifica?</span></div>
+          <div><b>2 · Evidência</b><span>Que medida no <code>system.query_log</code>, na contagem por <code>data_tag</code>, no painel do RabbitMQ ou no <code>mc ls</code> mostraria que a tática funciona?</span></div>
+          <div><b>3 · Custo assumido</b><span>Quem paga o custo: o time que produz o dado, o grupo que opera o servidor ou quem consulta o ClickHouse e a silver na Aula 05?</span></div>
           <div><b>4 · Reversibilidade</b><span>Se a decisão estiver errada no projeto final, quanto custa desfazê-la?</span></div>
         </div></div>`;
   }
@@ -335,8 +335,8 @@
     const totalMudancas = qs.reduce((a, q) =>
       a + (q.trajetos || []).filter(x => x.de !== x.para).reduce((b, x) => b + x.pessoas, 0), 0);
     return `<div class="bloco destaque"><span class="selo">Fechamento</span>
-        <h2 style="margin-top:10px">Três decisões sobre o lakehouse</h2>
-        <p>A primeira questão tratou do que faz os arquivos da silver formarem uma tabela; a segunda, do que o job faz quando um arquivo do raw não pode ser lido; a terceira, de quando o job roda e de quanto ele lê a cada execução. Foram ${totalMudancas} ${totalMudancas === 1 ? 'mudança' : 'mudanças'} de decisão. Cada tática escolhida protege um atributo de qualidade e expõe outro, e essa troca vira um ADR e um cenário ATAM no projeto do grupo.</p></div>
+        <h2 style="margin-top:10px">Três decisões sobre o servidor de ingestão</h2>
+        <p>A primeira questão tratou da mudança de payload sob um contrato que vale só para o envelope; a segunda, da ordem dos destinos quando o ClickHouse cai; a terceira, da forma da tabela para quem consulta. Foram ${totalMudancas} ${totalMudancas === 1 ? 'mudança' : 'mudanças'} de decisão. Cada tática escolhida protege um atributo de qualidade e expõe outro, e essa troca vira um ADR e um cenário ATAM no projeto do grupo.</p></div>
       ${blocos}`;
   }
 

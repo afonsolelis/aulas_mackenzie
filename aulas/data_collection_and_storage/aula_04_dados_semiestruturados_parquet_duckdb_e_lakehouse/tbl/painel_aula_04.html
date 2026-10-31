@@ -17,7 +17,7 @@
       <img src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Mackenzie">
       <div>
         <span class="sub">Painel do professor &middot; Data Collection &middot; Aula 04</span>
-        <div class="titulo" id="fase-titulo">TBL — O lakehouse da Aula 04</div>
+        <div class="titulo" id="fase-titulo">TBL — O servidor de ingestão da Aula 04</div>
       </div>
     </div>
     <div class="estados">
@@ -287,7 +287,7 @@
   function desenhar() {
     const sufixo = ['lobby','revelacao'].includes(s.fase) ? '' : ` · questão ${s.questao}/${s.total_questoes}`;
     $('#selo-fase').textContent = (NOMES_FASE[s.fase] || s.fase) + sufixo;
-    $('#fase-titulo').textContent = 'TBL — ' + (DESCRICAO[s.fase] || 'O lakehouse da Aula 04');
+    $('#fase-titulo').textContent = 'TBL — ' + (DESCRICAO[s.fase] || 'O servidor de ingestão da Aula 04');
     $('#fase-descricao').textContent = (DESCRICAO[s.fase] || '') + (s.categoria && sufixo ? ' · ' + s.categoria : '');
     $('#fase-instrucao').textContent = INSTRUCAO[s.fase] || '';
     $('#btn-avancar').textContent = ROTULO_AVANCAR[s.fase] || 'Avançar fase';
@@ -324,7 +324,7 @@
         htmlBarras(s.rodada1, 'Primeira decisão · distribuição', true) +
         htmlVozes(s.justificativas1, 'Hipóteses declaradas na primeira decisão') +
         `<h3 style="margin-top:18px">Condução</h3>
-         <p style="text-align:left">Chame primeiro quem escolheu a alternativa menos votada e peça o <b>custo</b> que ela assume, não o benefício. Depois peça a quem escolheu a mais votada que responda à objeção. Puxe os blocos da manhã: as 31.286 linhas de um dia em cinco formatos, com uma na quarentena, o Parquet com 3% dos bytes do JSON Lines, as 13.454 requisições do glob amplo contra 1.924 com as partições no caminho, o objeto de nome fixo por data e as regras do cron do Railway.</p>`;
+         <p style="text-align:left">Chame primeiro quem escolheu a alternativa menos votada e peça o custo que ela assume, não o benefício. Depois peça a quem escolheu a mais votada que responda à objeção. Puxe as medições da manhã: o 202 em 1,5 ms e o 422 em 0,5 ms, o flush de 500 linhas em 31,6 ms com raw, bronze, ClickHouse e manifesto, a drenagem a cerca de 5.100 linhas/s, os cerca de 2 s até a linha ficar consultável, as 500 linhas duplicadas pelo kill entre o manifesto e o ack, com 64 manifestos para 63 lotes, e os 146 ms do JSONExtract contra 20,8 ms da coluna JSON, que perdeu o -03:00.</p>`;
     } else if (s.fase === 'voto2') {
       html = htmlQuestao(s.rodada1, null, s.dado_novo ? s.dado_novo.pergunta : null) +
         htmlBarras(s.rodada1, 'Primeira decisão · distribuição', true) +
@@ -339,8 +339,8 @@
         htmlTrajetos(s.trajetos, 'Mudanças de decisão nesta questão') +
         htmlVozes(s.justificativas2, 'O que a turma declarou na segunda decisão');
     } else {
-      html = `<span class="selo">Consolidado</span><h2 style="margin-top:12px">Três decisões sobre o lakehouse</h2>
-        <p style="text-align:left">A primeira questão tratou do formato da silver; a segunda, do arquivo inválido no raw; a terceira, do agendamento e da janela de leitura do job. Cada tática protege um atributo de qualidade e expõe outro, e essa troca vira um ADR e um cenário ATAM no projeto do grupo.</p>` +
+      html = `<span class="selo">Consolidado</span><h2 style="margin-top:12px">Três decisões sobre o servidor de ingestão</h2>
+        <p style="text-align:left">A primeira questão tratou da mudança de payload sob o contrato do envelope; a segunda, da ordem dos destinos quando o ClickHouse cai; a terceira, da forma da tabela para consulta. Cada tática protege um atributo de qualidade e expõe outro, e essa troca vira um ADR e um cenário ATAM no projeto do grupo.</p>` +
         htmlConsolidado();
     }
     $('#projecao').innerHTML = html;
@@ -389,7 +389,7 @@
     } else {
       $('#tempo-grande').textContent = relogio(restante);
       $('#tempo-etiqueta').textContent = restante === 0
-        ? (fase === 'discussao' ? 'Tempo da discussão encerrado' : 'Tempo encerrado — a votação desta rodada está fechada')
+        ? (fase === 'discussao' ? 'Tempo da discussão encerrado' : 'Tempo encerrado: a votação desta rodada está fechada')
         : (DESCRICAO[fase] || 'Fase em andamento') + ' · questão ' + (s ? s.questao : 1);
     }
     $('#cronometro').classList.toggle('acabando', restante !== null && restante > 0 && restante <= 60);
