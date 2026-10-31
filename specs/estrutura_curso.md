@@ -103,7 +103,7 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 | 01 | 10/10/2026 | `aula_01_arquitetura_de_software_de_dados_e_spec_driven_development` | Arquitetura de Software de Dados e Spec-Driven Development |
 | 02 | 17/10/2026 | `aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio` | Tipos de Storage e Coleta em Object Storage com MinIO |
 | 03 | 24/10/2026 | `aula_03_apis_rest_web_scraping_e_ingestao_no_minio` | APIs REST, Web Scraping e Ingestão no MinIO |
-| 04 | 31/10/2026 | `aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse` | Dados Semiestruturados, Parquet, DuckDB e Lakehouse |
+| 04 | 31/10/2026 | `aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse` | Arquitetura de Ingestão com Fila, DuckDB e ClickHouse |
 | 05 | 07/11/2026 | `aula_05_modelagem_de_dados_relacional_e_dimensional` | Modelagem de Dados Relacional e Dimensional |
 | 06 | 14/11/2026 | `aula_06_streaming_com_rabbitmq_e_clickhouse` | Streaming com RabbitMQ e ClickHouse |
 | 07 | 28/11/2026 | `aula_07_validacao_com_pydantic_e_testes_integrados` | Validação com Pydantic e Testes Integrados |

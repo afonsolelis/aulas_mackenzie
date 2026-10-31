@@ -1,31 +1,55 @@
 -- =====================================================================
--- TBL — Data Collection and Storage 2026.2 · Aula 04 (31/10/2026)
--- Caso: O lakehouse que a demonstração colocou no ar
+-- TBL: Data Collection and Storage 2026.2 · Aula 04 (31/10/2026, 11h30)
+-- Caso: O servidor de ingestão que a turma montou
 --
--- Três questões sobre a arquitetura que a demonstração da manhã montou
--- (job em Python com DuckDB in-process lendo os lotes TXT de telemetria
--- do raw e o bronze dos livros e da PTAX, bronze da telemetria em JSON
--- Lines com quarentena, silver em Parquet com um objeto de nome fixo por
--- data, gold recalculada a cada execução, dia local lido pelas partições
--- UTC escritas no caminho, imagem no Railway com cron 15 * * * *):
---   1. Formato da silver              — Parquet solto, formato de tabela,
---      arquivo de banco DuckDB ou Postgres. Retoma os blocos 2 e 3
---      (Parquet por dentro; lake, warehouse e lakehouse).
---   2. Lote inválido no raw           — um byte fora do UTF-8 derruba o dia.
---      Retoma os blocos 1 e 5 (schema on read no TXT, quarentena,
---      read_text e read_blob, deduplicação).
---   3. Agendamento e janela de leitura — cron horário, diário, incremental
---      ou por evento. Retoma os blocos 4 e 5 (requisições por leitura,
---      regras do cron do Railway, idempotência).
+-- Três questões sobre a arquitetura de ingestão que a turma montou de
+-- manhã (um processo Python sempre no ar; POST /ingest valida o envelope
+-- e publica na fila RabbitMQ ingestao, com 202 ou 422; o consumidor
+-- junta micro-lotes de N=500 envelopes ou T=2 s e, a cada flush, grava
+-- Parquet no MinIO com DuckDB, insere em ingestao.db_ingestion no
+-- ClickHouse e só então dá o ack; contrato só do envelope, com data_tag
+-- em telemetria, livros e ptax; JSON cast no DuckDB e no ClickHouse):
+--   1. Contrato e mudança de payload: o envelope continua válido e o
+--      payload muda de forma. Retoma as etapas 02 e 04 (envelope fechado
+--      e payload aberto, schema on read, rejeitados pela fila).
+--   2. Ordem dos destinos: o ClickHouse cai com a fila cheia. Retoma as
+--      etapas 05, 08 e 09 (lake antes do ClickHouse, ack depois de
+--      gravar, at-least-once, reentrega).
+--   3. Forma da tabela para consulta: JSONExtract em toda consulta.
+--      Retoma as etapas 04 e 10 (tabela de três colunas, String contra
+--      tipo JSON, JSON cast medido).
 --
 -- Cada questão traz quatro táticas com ganho e custo declarados, e
 -- nenhuma é correta: o que se mede é o deslocamento entre a decisão
 -- individual e a decisão posterior à discussão.
 --
+-- Números do caso e das táticas: medições da preparação (30/10/2026,
+-- ClickHouse 26.8.15.10, RabbitMQ 4.3.6, DuckDB 1.5.6, MinIO local,
+-- telemetria de 24 h do gerar_lotes.py da Aula 02 com 31.265 linhas,
+-- 1.000 livros reais, 40 boletins PTAX reais).
+--
 -- A questão 2 traz um dado novo, liberado só quando a discussão é aberta:
--- uma semana do job no Railway, em cenário construído para a discussão e
--- coerente com as medições da preparação da aula (sete dias de lotes do
--- gerar_lotes.py da Aula 02, 20 caminhões, DuckDB 1.5.6, MinIO local).
+-- um ensaio de queda do ClickHouse em cenário construído para a
+-- discussão e coerente com as medições. Contas do cenário:
+--   * taxa assumida: 50 mensagens de telemetria por segundo, publicadas
+--     direto na fila (sem o cabeçalho recebido_em_ms);
+--   * queda de 20 min = 1.200 s, logo 50 x 1.200 = 60.000 mensagens;
+--   * tamanho: o dia de telemetria em JSON Lines deu 5.847.088 B para
+--     31.265 linhas (187 B por linha); o envelope tem tamanho parecido,
+--     cerca de 190 B, logo 60.000 x 190 B = 11,4 MB, cerca de 11 MB;
+--   * comportamento do consumidor de referência (src/consumidor.py): na
+--     exceção, descarta o lote sem ack, fecha a conexão (o broker
+--     devolve as mensagens à fila) e espera 5 s. Com a fila acima de 500
+--     mensagens, o lote enche na hora, o lake grava (5,2 ms medidos) e o
+--     INSERT falha por conexão recusada; ciclo de cerca de 5 s, logo
+--     1.200 / 5 = cerca de 240 ciclos, cada um com um Parquet das mesmas
+--     500 mensagens da cabeça da fila: 240 x 500 = 120.000 linhas
+--     repetidas no lake; as outras 60.000 - 500 = 59.500 não chegam ao
+--     lake durante a queda;
+--   * sem o cabeçalho, o consumidor marca timestamp na hora em que
+--     consome, então cada reentrega recebe timestamp novo;
+--   * drenagem na volta: 60.000 / 8.147 linhas/s (N=500 medido) = 7,4 s,
+--     mais as 50 msg/s que continuam chegando, cerca de 8 s.
 --
 -- Usa as tabelas e RPCs hubtbl_* já instaladas no Supabase compartilhado.
 -- NÃO execute hubtbl-schema.sql nem hubtbl-funcoes.sql.
@@ -53,7 +77,7 @@ begin
 end $$;
 
 insert into hubtbl_sessions (slug, titulo)
-values ('mack-dcs-a04-2026-2', 'TBL — O lakehouse que a demonstração colocou no ar')
+values ('mack-dcs-a04-2026-2', 'TBL: o servidor de ingestão que a turma montou')
 on conflict (slug) do update set titulo = excluded.titulo;
 
 insert into hubtbl_host_tokens (session_slug, token)
@@ -66,21 +90,21 @@ on conflict (session_slug) do update set token = excluded.token;
 insert into hubtbl_casos (session_slug, caso_titulo, caso_texto, contexto)
 values (
   'mack-dcs-a04-2026-2',
-  'O lakehouse que a demonstração colocou no ar',
-  'A demonstração desta manhã montou o lakehouse da disciplina sobre o MinIO do grupo. Um job em Python abre o DuckDB dentro do próprio processo, lê no bucket raw os lotes TXT de telemetria dos caminhões da transportadora e lê no bronze o JSON Lines dos livros e da PTAX. Grava três camadas: o bronze da telemetria, com uma linha do TXT por registro e uma quarentena para as linhas que nenhum dos cinco formatos explica; a silver, em Parquet tipado com arquivo_origem em toda linha; e a gold, com a jornada diária de cada caminhão (horas de direção, alertas acima de 5h30, velocidade média e quilometragem aproximada) e o preço de cada livro em reais por dia. No Codespace, o job roda contra a cópia local do MinIO; no Railway, roda como serviço com cron.
+  'O servidor de ingestão que a turma montou',
+  'Nesta manhã, cada grupo montou um servidor de ingestão: um processo Python que fica no ar e recebe dados por dois caminhos. Pelo HTTP, o POST /ingest valida o envelope, publica a mensagem na fila ingestao do RabbitMQ e responde 202; envelope inválido recebe 422. Pela fila, qualquer sistema publica direto. Uma thread do mesmo processo consome a fila, valida o envelope de novo, porque a fila aceita qualquer coisa, e grava o inválido em raw/ingestao_rejeitados/ com ack. O válido entra num micro-lote em memória.
 
-As decisões já tomadas são estas: cada data no bronze e na silver é um único objeto de nome fixo, como silver/posicoes/data_local=D/posicoes.parquet, substituído a cada reprocessamento; a gold é recalculada inteira a cada execução; o dia D no horário de Brasília é lido pelas partições do raw das 03h UTC de D às 02h59 UTC de D+1, escritas no caminho; a silver fica com uma posição por caminhão e minuto, a do lote mais recente; o cron é 15 * * * *, em UTC, com restartPolicyType NEVER, e o job processa as três fontes numa execução só.
+O flush acontece a cada 500 envelopes ou 2 segundos, o que vier primeiro, e segue uma ordem fixa: o DuckDB grava o lote em Parquet no MinIO, em raw/ingestao/data_tag=X/data=D/, que serve de histórico e backup; o clickhouse-connect insere o lote em ingestao.db_ingestion; só então o consumidor dá o ack. A tabela tem três colunas: timestamp (UInt64, unix em milissegundos, hora da ingestão), data_json (String, o objeto recebido como texto) e data_tag (LowCardinality). O contrato vale só para o envelope: data_tag em telemetria, livros ou ptax, e data como objeto ou lista não vazia de objetos. O conteúdo de data não é validado. A leitura extrai os campos com JSONExtract no ClickHouse ou com ->> no DuckDB, e o DuckDB gera a partir do lake a silver de livros e PTAX que a Aula 05 vai usar.
 
-A preparação mediu, sobre sete dias de lotes do gerador da Aula 02 (20 caminhões, 1.920 lotes por dia): 31.286 linhas num dia, das quais 31.285 casaram com um dos cinco formatos e uma, cortada no fim de um lote, foi para a quarentena sem erro; a semana de posições com 79,8 MB em JSON Lines e 2,1 MB em Parquet com ZSTD; cerca de 1.924 GET para ler um dia de lotes com as partições no caminho e 5 GET na silver. Um lote com um byte fora do UTF-8 fez o read_text recusar a leitura do dia inteiro. O cron do Railway pula a execução seguinte quando a anterior ainda roda.
+A preparação mediu: o POST /ingest responde 202 em 1,51 ms e 422 em 0,53 ms (p50); um dia de telemetria, 31.265 mensagens, drena a 8.147 linhas/s com N=500 e a 60 linhas/s com N=1, que cria uma parte no MergeTree e um objeto no lake por mensagem; a linha fica consultável cerca de 2 s depois do POST com N=500 e o servidor ocioso; um kill entre o INSERT e o ack deixou 500 linhas duplicadas no lake e no ClickHouse, sem perda. O ClickHouse 26.8 vem com async_insert ligado, e cada INSERT esperava pelo menos 50 ms até o cliente desligar a opção. Em 1 milhão de linhas, o preço médio por categoria levou 146 ms com JSONExtract sobre String e 20,8 ms numa coluna do tipo JSON, que inferiu coletado_em como DateTime e perdeu o -03:00.
 
-A partir da Aula 05, a silver dos livros e da PTAX alimenta o modelo relacional e o esquema estrela, e o contrato dessas tabelas não pode mudar sem aviso. As três questões revisam o job antes que o cron acumule meses de execução. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.',
+As três questões revisam o servidor antes que ele receba fontes reais. A Aula 06 aprofunda a fila e o ClickHouse, e a Aula 07 trata do schema de cada domínio. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo declarados.',
   '[
-    {"rotulo":"Raw da telemetria","valor":"1.920 lotes por dia","nota":"20 caminhões × 96 janelas de 15 min · cerca de 1 KB cada"},
-    {"rotulo":"Linhas por dia","valor":"31.286 em 5 formatos","nota":"1 em quarentena · 28.799 posições na silver"},
-    {"rotulo":"Formato","valor":"2,1 MB contra 79,8 MB","nota":"Parquet ZSTD contra JSON Lines · posições da semana"},
-    {"rotulo":"Leitura de um dia","valor":"1.924 GET contra 5","nota":"lotes TXT com partições no caminho contra silver em Parquet"},
-    {"rotulo":"Byte fora do UTF-8","valor":"derruba o dia","nota":"read_text recusa o lote · read_blob identifica sem parar"},
-    {"rotulo":"Cron do Railway","valor":"15 * * * *","nota":"UTC · a execução seguinte é pulada se a anterior roda"}
+    {"rotulo":"POST /ingest","valor":"202 em 1,51 ms","nota":"p50 · 422 em 0,53 ms · 1.000 requisições por caso"},
+    {"rotulo":"Micro-lote","valor":"8.147 contra 60 linhas/s","nota":"N=500 contra N=1 · 63 contra 31.265 partes no MergeTree"},
+    {"rotulo":"Até consultável","valor":"cerca de 2 s","nota":"p50 de 2.030 ms com N=500 e T=2 s · 34 ms com N=1"},
+    {"rotulo":"Kill entre INSERT e ack","valor":"500 duplicadas","nota":"em cada destino · nenhuma mensagem perdida"},
+    {"rotulo":"Lake de um dia","valor":"632 KB contra 5,8 MB","nota":"63 Parquet ZSTD contra JSON Lines · telemetria"},
+    {"rotulo":"JSON cast","valor":"146 ms contra 20,8 ms","nota":"JSONExtract em String contra coluna JSON · 1 milhão de linhas"}
   ]'::jsonb
 )
 on conflict (session_slug) do update set
@@ -89,38 +113,38 @@ on conflict (session_slug) do update set
   contexto    = excluded.contexto;
 
 -- ---------------------------------------------------------------------
--- Questão 1 — Formato da silver
+-- Questão 1: contrato e mudança de payload
 -- ---------------------------------------------------------------------
 insert into hubtbl_questoes (session_slug, ordem, categoria, titulo, pergunta, alternativas)
 values (
   'mack-dcs-a04-2026-2', 1,
-  'Formato da silver',
-  'O que faz arquivos virarem tabela',
-  'A silver é um conjunto de arquivos Parquet, um por data, que a Aula 05 vai ler como se fosse tabela. Não há transação envolvendo vários arquivos, nem histórico de versões, nem registro do esquema vigente em cada momento. Que forma a silver assume daqui para a frente?',
+  'Contrato e mudança de payload',
+  'O payload da telemetria mudou de forma',
+  'O time da telemetria passa a mandar o campo texto no lugar de linha e acrescenta um campo firmware. O envelope continua válido, as mensagens chegam pela fila e entram no lake e no ClickHouse. A consulta da manhã, que extrai o caminhão com JSONExtractString sobre o campo linha, recebe texto vazio nas linhas novas, sem erro, e elas se somam às 2.396 linhas sem caminhão que a medição já registrava. Que tática o servidor adota para mudança de payload?',
   '[
     {
-      "letra":"A","titulo":"Parquet com nome fixo por data","tatica":"Manter o ADR-001",
-      "texto":"A silver continua como está: um objeto Parquet por data, substituído no reprocessamento, com o contrato de colunas escrito na spec e conferido por teste.",
-      "ganho":"Qualquer motor que leia Parquet lê a silver, e a gravação de um objeto é atômica: quem lê vê a data antiga ou a nova. Nada novo para operar.",
-      "custo":"Sem histórico, um reprocessamento errado sobrescreve a data sem volta. Uma mudança de esquema convive com arquivos antigos sem registro de quando mudou, e uma atualização de várias datas não é atômica."
+      "letra":"A","titulo":"Aceitar e resolver na leitura","tatica":"Manter o contrato só do envelope",
+      "texto":"O servidor continua sem olhar o conteúdo de data. Quem consulta trata as duas formas, por exemplo com coalesce entre linha e texto, e documenta a mudança na consulta.",
+      "ganho":"Nenhuma mensagem é recusada, a fonte muda sem coordenar com o servidor, e o texto original fica no lake e no ClickHouse para reprocessar quando a leitura for corrigida.",
+      "custo":"A consulta erra em silêncio até alguém notar o texto vazio. Cada leitor descobre a mudança sozinho e acumula um ramo por forma, e o mesmo vale para livros e PTAX, de que a silver da Aula 05 depende."
     },
     {
-      "letra":"B","titulo":"Formato de tabela aberto","tatica":"Iceberg ou Delta sobre o MinIO",
-      "texto":"A silver passa a ser uma tabela Apache Iceberg ou Delta Lake no mesmo bucket, com um log de metadados sobre os Parquet. O DuckDB tem extensões para os dois; a escrita pela versão usada precisa ser testada antes de entrar na spec.",
-      "ganho":"Transação envolvendo vários arquivos, leitura de uma versão anterior e evolução de esquema registrada, sem sair do object storage nem dos formatos abertos.",
-      "custo":"Mais um componente com versão própria, e o suporte de escrita do DuckDB não foi verificado na preparação. A Aula 05 e o ClickHouse da Aula 06 precisam ler o mesmo formato, e versões antigas exigem limpeza periódica."
+      "letra":"B","titulo":"Schema registrado por domínio","tatica":"422 para o que não casa",
+      "texto":"Cada data_tag ganha um schema registrado no servidor, e o objeto que não casa é recusado com 422 no HTTP. A mudança só passa depois que o time registra a nova forma.",
+      "ganho":"O produtor HTTP recebe 422 com o motivo no momento do envio, em cerca de 0,5 ms, e nada com forma desconhecida entra no lake nem no ClickHouse.",
+      "custo":"O contrato deixa de valer só para o envelope e antecipa o trabalho da Aula 07, e toda mudança de fonte passa por registro e deploy. A telemetria chega pela fila, onde não existe 422: as mensagens vão para raw/ingestao_rejeitados/ e o produtor só descobre se alguém olhar."
     },
     {
-      "letra":"C","titulo":"Arquivo de banco do DuckDB","tatica":"Um .duckdb no bucket",
-      "texto":"O job grava silver e gold como tabelas de um único arquivo de banco do DuckDB, que sobe para o bucket ao fim de cada execução e é baixado no início da próxima.",
-      "ganho":"Tabelas de verdade, com tipos, restrições e transação dentro do arquivo, e consultas da Aula 05 sem glob nem partição.",
-      "custo":"O arquivo inteiro é reescrito a cada hora e cresce sem poda. Só o DuckDB lê o formato, duas execuções simultâneas sobrescrevem uma à outra, e uma falha no upload deixa a cópia anterior valendo sem aviso."
+      "letra":"C","titulo":"Versão declarada no envelope","tatica":"Campo data_version",
+      "texto":"O envelope ganha o campo data_version, gravado com cada linha. O produtor sobe a versão quando muda o payload, e os leitores tratam cada versão separadamente.",
+      "ganho":"A mudança fica declarada em cada linha e o leitor filtra por versão sem adivinhar a forma. O servidor continua sem validar o payload.",
+      "custo":"O envelope fechado muda: hoje um campo extra recebe 422, então todos os produtores e a tabela, com uma coluna nova ou a versão dentro do data_json, precisam acompanhar. Ninguém confere a versão declarada, e um time que esquece de subi-la volta ao problema."
     },
     {
-      "letra":"D","titulo":"Silver no Postgres da Aula 05","tatica":"Warehouse a partir da silver",
-      "texto":"O job lê o raw e o bronze com o DuckDB e grava silver e gold direto em tabelas do Postgres que a Aula 05 vai usar, com esquema declarado e chave primária.",
-      "ganho":"Transação, chave primária contra duplicata, permissões por tabela e SQL imediato para a Aula 05, sem arquivo intermediário.",
-      "custo":"O lakehouse fica reduzido a raw e bronze: o ClickHouse da Aula 06 e outros motores deixam de ler a silver pela API S3. Mais um serviço para pagar e operar no Railway."
+      "letra":"D","titulo":"Quarentena por forma divergente","tatica":"Comparar com o último schema visto",
+      "texto":"O consumidor guarda, por data_tag, o conjunto de chaves do último lote aceito e grava em raw/ingestao_quarentena/, com ack, os objetos cujas chaves divergem, até alguém aprovar a forma nova.",
+      "ganho":"A mudança aparece na primeira mensagem, sem que o produtor avise, e o ClickHouse só recebe a forma nova depois de revisada. Vale também para o caminho da fila.",
+      "custo":"Toda a telemetria nova deixa de chegar ao ClickHouse até a aprovação. O último schema visto é estado que precisa sobreviver ao reinício, um campo opcional ausente vira falso alarme, e a comparação roda no processo da API: com o consumidor ocupado, o p95 do 422 subiu de 1 para 10 ms."
     }
   ]'::jsonb
 )
@@ -130,52 +154,53 @@ on conflict (session_slug, ordem) do update set
   dado_novo = excluded.dado_novo;
 
 -- ---------------------------------------------------------------------
--- Questão 2 — Lote inválido no raw
--- O dado novo é uma semana do job no Railway, liberada na discussão.
+-- Questão 2: ordem dos destinos e queda do ClickHouse
+-- O dado novo é um ensaio de queda, liberado na discussão (contas no
+-- cabeçalho deste arquivo).
 -- ---------------------------------------------------------------------
 insert into hubtbl_questoes (session_slug, ordem, categoria, titulo, pergunta, alternativas, dado_novo)
 values (
   'mack-dcs-a04-2026-2', 2,
-  'Lote inválido no raw',
-  'Um byte fora do UTF-8 derruba o dia',
-  'Um lote do raw chega com um byte fora do UTF-8, e o read_text interrompe a leitura do dia inteiro. Outro lote chegou cortado no meio da última linha, e essa linha foi para a quarentena sem nenhum erro. O job não pode alterar o raw. Que política o job adota para lote inválido?',
+  'Ordem dos destinos',
+  'O ClickHouse caiu com a fila cheia',
+  'Hoje o flush grava o lake, depois o ClickHouse, e só então dá o ack. Se o INSERT falha, o consumidor descarta o lote sem ack, a fila reentrega as mensagens e o consumidor tenta de novo depois de 5 s. A entrega é pelo menos uma vez: no kill entre o INSERT e o ack, 500 linhas ficaram duplicadas em cada destino. O lake é o histórico e o backup, e o ClickHouse é onde o analista consulta. Que ordem de gravação e que regra de ack o servidor adota?',
   '[
     {
-      "letra":"A","titulo":"Falhar o dia e avisar","tatica":"Parar na primeira falha",
-      "texto":"O job interrompe o processamento do dia, termina com código diferente de 0 e registra no log o caminho do lote e o erro. Nada é gravado no bronze, na silver nem na gold daquele dia até alguém resolver o lote.",
-      "ganho":"A gold nunca mostra jornada calculada sem parte dos lotes, e a falha fica visível no histórico do Railway. Testar é simples: basta um lote com byte inválido na fixture.",
-      "custo":"Um lote entre 1.920 trava o dia inteiro, e o cron repete a falha a cada hora até alguém agir. Como o raw é somente leitura para o job, resolver exige intervenção manual no bucket."
+      "letra":"A","titulo":"Lake, ClickHouse e ack","tatica":"Manter a ordem atual",
+      "texto":"O flush continua gravando o lake, inserindo no ClickHouse e dando o ack só depois dos dois. Se qualquer destino falha, o lote volta para a fila.",
+      "ganho":"Uma mensagem só sai da fila quando está nos dois destinos, e a fila segura tudo durante uma queda: a queda simulada da manhã terminou com 0 mensagens perdidas. Um consumidor e uma regra só.",
+      "custo":"Uma queda do ClickHouse também para o lake, que deveria ser o backup. Cada nova tentativa grava o lote no lake outra vez, e o tempo até consultável passa a ser a duração da queda."
     },
     {
-      "letra":"B","titulo":"Validar, pular e seguir","tatica":"Lista de lotes válidos",
-      "texto":"Antes da extração, o job lê os lotes do dia com read_blob, separa com try(decode(content)) os que não são UTF-8, passa ao read_text só a lista dos válidos e registra os inválidos no resumo da execução.",
-      "ganho":"O bronze e a silver continuam atualizados, e um lote perdido custa 15 minutos de um caminhão. O lote ruim fica nomeado no log.",
-      "custo":"Os lotes são lidos duas vezes, uma para validar e outra para extrair. O resumo só ajuda se alguém o ler, e a gold mostra menos horas de direção para aquele caminhão sem indicar que faltou dado."
+      "letra":"B","titulo":"Lake e ack, carregador separado","tatica":"ClickHouse derivado do lake",
+      "texto":"O consumidor grava o lake e dá o ack. Um carregador separado lista a cada 30 s os arquivos novos em raw/ingestao/, insere no ClickHouse e guarda o nome do último arquivo carregado.",
+      "ganho":"A queda do ClickHouse para só o carregador: o lake continua recebendo e a fila continua andando. O ClickHouse vira derivado do lake e pode ser recriado a partir dele.",
+      "custo":"O tempo até consultável sobe de cerca de 2 s para até 32 s. O estado do carregador é um ponto novo de falha, um arquivo carregado duas vezes duplica no ClickHouse, e há mais um processo para operar."
     },
     {
-      "letra":"C","titulo":"Quarentena com marca na gold","tatica":"Registro de inválidos e completude",
-      "texto":"O job pula o lote inválido, grava caminho e erro na quarentena da telemetria e acrescenta à gold de jornada uma coluna com os minutos sem posição de cada caminhão e dia, somando lotes pulados e linhas em quarentena.",
-      "ganho":"Quem consome a gold sabe quando uma jornada foi calculada com menos de 1.440 minutos, e a engenharia ganha uma fila de lotes e linhas para investigar sem tocar no raw.",
-      "custo":"Mais um contrato para manter e testar. O consumidor precisa olhar a coluna, e a quarentena cresce se ninguém a esvaziar."
+      "letra":"C","titulo":"Uma fila por destino","tatica":"Dois consumidores independentes",
+      "texto":"Uma exchange fanout copia cada mensagem para duas filas, uma do lake e outra do ClickHouse, cada uma com seu consumidor, seu micro-lote e seu ack. A Aula 06 aprofunda exchanges.",
+      "ganho":"Cada destino segue no seu ritmo: a queda do ClickHouse acumula mensagens só na fila dele, e o lake continua gravando com o atraso de 2 s. O tempo até consultável não muda fora da queda.",
+      "custo":"Durante a queda os destinos divergem, e a conferência de contagens por data_tag passa a ser obrigatória. Cada fila tem sua reentrega e suas duplicatas, e o grupo opera dois consumidores e duas filas."
     },
     {
-      "letra":"D","titulo":"Ler com substituição e marcar","tatica":"decode com replace",
-      "texto":"O job lê os lotes com read_blob e decode(content, ''replace''), que troca o byte inválido por ? e segue, e marca no bronze as linhas que vieram de um lote com substituição.",
-      "ganho":"Nenhum lote é perdido por um byte. Se o byte estiver numa mensagem de rádio, que nenhuma gold usa, a jornada não muda.",
-      "custo":"Se o byte cair numa linha de posição, ela deixa de casar e vai para a quarentena. O texto do rádio fica alterado no bronze, e a origem do problema, como um firmware que grava em Latin-1, só aparece se alguém olhar a marca."
+      "letra":"D","titulo":"ClickHouse primeiro, lake diário","tatica":"Exportação diária do ClickHouse",
+      "texto":"O flush insere no ClickHouse e dá o ack. Um job diário exporta o dia anterior de db_ingestion para Parquet no lake, um arquivo por data_tag e dia.",
+      "ganho":"O caminho do flush faz uma gravação em vez de duas, 4,0 ms em vez de 9,2 ms medidos, e o lake recebe um arquivo por domínio e dia em vez de 63 arquivos por dia de telemetria.",
+      "custo":"Até a exportação, o ClickHouse é a única cópia, e uma queda dele continua parando o consumidor. O lake passa a guardar o que a tabela guardou, e um erro na tabela vai junto para o backup."
     }
   ]'::jsonb,
   '{
-    "titulo":"Uma semana do job no Railway",
-    "texto":"O grupo deixou o job agendado por sete dias com a política de falhar o dia e cruzou o railway logs, a listagem da silver e a gold. Os números são de um cenário construído para a discussão, coerente com as medições da preparação da aula.",
+    "titulo":"Um ensaio de queda do ClickHouse",
+    "texto":"Numa sexta-feira à tarde, com o servidor da manhã no ar e a ordem atual, o contêiner do ClickHouse ficou parado por 20 minutos enquanto a telemetria chegava pela fila a 50 mensagens por segundo. O grupo cruzou o painel do RabbitMQ, o log do servidor, a listagem do lake e as contagens do ClickHouse. Os números são de um cenário construído para a discussão, coerente com as medições da preparação da aula.",
     "evidencias":[
-      "O objeto raw/telemetria/data=2026-10-27/hora=14/caminhao=CAM-1060/lote_1415.txt chegou com trânsito gravado em Latin-1 numa mensagem de rádio. Todas as execuções que processavam o dia 27 falharam dali em diante: 13 seguidas, de 14h15 a 2h15 UTC.",
-      "Na virada do dia em Brasília, o job passou a processar o dia 28 e voltou a terminar com código 0. O bronze e a silver de 27/10 ficaram com a versão das 13h15 UTC, e nenhum alerta foi disparado.",
-      "Relido com decode(content, ''replace''), o lote teve as 15 posições reconhecidas: o byte estava só na linha de rádio. A jornada do CAM-1060 em 27/10 não mudou.",
-      "A gold de preços dos livros, que não depende da telemetria, também deixou de ser atualizada nessas 13 execuções, porque o job processa as três fontes numa execução só.",
-      "Na mesma semana, 9 linhas cortadas no fim de lotes foram para a quarentena sem nenhum registro no log, e ninguém abriu a quarentena. Três caminhões ficaram com menos de 1.440 minutos em algum dia."
+      "A fila acumulou 60.000 mensagens em 20 minutos (50 por segundo durante 1.200 s), cerca de 11 MB a 190 bytes por mensagem. O POST /ingest continuou respondendo 202, porque a API só depende da fila, e nenhum produtor percebeu a queda.",
+      "O consumidor entrou num ciclo de cerca de 5 s: recebia as 500 mensagens da cabeça da fila, gravava o Parquet no lake, falhava no INSERT, descartava o lote sem ack e esperava. Foram cerca de 240 ciclos e 240 arquivos no lake com as mesmas 500 mensagens, ou 120.000 linhas repetidas.",
+      "As outras 59.500 mensagens só chegaram ao lake depois que o ClickHouse voltou. Durante a queda, o backup ficou parado junto com o destino que ele deveria cobrir.",
+      "A telemetria é publicada direto na fila, sem o cabeçalho recebido_em_ms, e o consumidor marca o timestamp na hora em que consome. Cada reentrega recebeu um timestamp novo, e a deduplicação pelo par timestamp e data_json não reconhece as cópias do lake.",
+      "Quando o ClickHouse voltou, a fila drenou em cerca de 8 s (60.000 mensagens a 8.147 linhas/s), e o ClickHouse terminou sem perda e sem duplicata. O log registrou cerca de 240 exceções, e nenhum alerta foi disparado."
     ],
-    "pergunta":"Diante do que a semana registrou, qual política permanece? Declare se a sua escolha anterior sobrevive a este dado e por quê."
+    "pergunta":"Diante do que o ensaio registrou, qual ordem permanece? Declare se a sua escolha anterior sobrevive a este dado e por quê."
   }'::jsonb
 )
 on conflict (session_slug, ordem) do update set
@@ -184,38 +209,38 @@ on conflict (session_slug, ordem) do update set
   dado_novo = excluded.dado_novo;
 
 -- ---------------------------------------------------------------------
--- Questão 3 — Agendamento e janela de leitura
+-- Questão 3: forma da tabela para consulta
 -- ---------------------------------------------------------------------
 insert into hubtbl_questoes (session_slug, ordem, categoria, titulo, pergunta, alternativas)
 values (
   'mack-dcs-a04-2026-2', 3,
-  'Agendamento e janela de leitura',
-  'Quando o job roda e quanto ele lê',
-  'O job roda a cada hora e reprocessa o dia local corrente inteiro, lendo os lotes do dia com as partições escritas no caminho: até 1.920 objetos por execução e até 46.080 por dia, para 1.920 gravados pela coleta. A gold de jornada muda a cada lote que chega, e a de preços muda uma vez por coleta. Que agendamento e que janela de leitura o grupo adota?',
+  'Forma da tabela para consulta',
+  'Extrair o JSON na escrita ou na leitura',
+  'Os analistas consultam livros, PTAX e telemetria em db_ingestion e escrevem JSONExtract em toda consulta. Na medição com 1 milhão de linhas, o preço médio por categoria levou 146 ms com JSONExtract sobre String, 75 ms com simpleJSONExtract, 957 ms com CAST para JSON na consulta e 20,8 ms numa coluna do tipo JSON. O Parquet tipado, lido pelo DuckDB, levou 7,5 ms. Que forma a tabela assume para quem consulta?',
   '[
     {
-      "letra":"A","titulo":"Cron horário reprocessando a data","tatica":"Manter 15 * * * *",
-      "texto":"O job continua a cada hora, relendo os lotes do dia local com as partições fixas no caminho e regravando o bronze e a silver do dia e a gold inteira.",
-      "ganho":"A gold fica no máximo uma hora atrás da coleta, e cada execução é idempotente: uma execução pulada se corrige na seguinte.",
-      "custo":"24 execuções por dia e até 46.080 lotes lidos, com consumo de crédito proporcional. Se uma execução passar de uma hora, a seguinte é pulada."
+      "letra":"A","titulo":"Três colunas e uma view por domínio","tatica":"Extração na leitura, escondida",
+      "texto":"A tabela fica como está. Cada domínio ganha uma view, como ingestao.livros, que faz o JSONExtract e entrega colunas com nome e tipo ao analista.",
+      "ganho":"Nada muda na escrita nem no servidor, o analista consulta colunas e não JSON, e uma fonte nova ganha uma view sem tocar na tabela.",
+      "custo":"A view não guarda nada: toda consulta continua pagando a extração, 146 ms por milhão de linhas contra 20,8 ms. Cada mudança de payload, como a da questão 1, exige editar a view, e um tipo errado só aparece na leitura."
     },
     {
-      "letra":"B","titulo":"Cron diário da data fechada","tatica":"Uma execução por dia",
-      "texto":"O job roda uma vez por dia, por exemplo às 6h15 UTC (3h15 em Brasília), e processa o dia anterior já completo, com todas as partições do dia local fechadas.",
-      "ganho":"Uma execução e 1.920 lotes lidos por dia, e a silver de cada data é gravada uma vez, com todos os lotes.",
-      "custo":"A gold do dia corrente não existe, e a de ontem só aparece de madrugada. Uma falha só é percebida no dia seguinte."
+      "letra":"B","titulo":"data_json com o tipo JSON","tatica":"Subcolunas inferidas na escrita",
+      "texto":"A coluna data_json passa a ser do tipo JSON do ClickHouse, que separa cada caminho em subcolunas tipadas no INSERT. A migração é um INSERT ... SELECT da tabela atual.",
+      "ganho":"A consulta medida cai de 146 ms para 20,8 ms, e o armazenamento comprimido caiu de 97,6 MB para 23,4 MB na amostra de 1 milhão de linhas. A migração levou 1,02 s por milhão de linhas.",
+      "custo":"Os tipos são inferidos na inserção: coletado_em virou DateTime em UTC e perdeu o -03:00. O texto exato que chegou deixa de existir no ClickHouse, e um produtor que mande o preço como texto muda o tipo da subcoluna."
     },
     {
-      "letra":"C","titulo":"Incremental com estado","tatica":"Ler só o que chegou",
-      "texto":"O job guarda num objeto de controle a lista das chaves do raw já processadas e, a cada hora, lê só os lotes novos, combinando-os com o bronze e a silver anteriores do dia.",
-      "ganho":"Cada execução lê cerca de 80 lotes novos em vez de até 1.920, e o custo fica pequeno mesmo com a frota crescendo.",
-      "custo":"O estado vira parte do sistema: se ele se perder ou divergir, o job pula ou repete objetos. A deduplicação passa a misturar silver anterior e objetos novos, e o teste de reprocessamento fica mais difícil."
+      "letra":"C","titulo":"Materialized view por domínio","tatica":"Colunas tipadas na inserção",
+      "texto":"A tabela de três colunas continua sendo a entrada. Para cada domínio, uma materialized view extrai as colunas na hora do INSERT e grava numa tabela tipada, como ingestao.livros_tipado.",
+      "ganho":"O analista consulta colunas nativas sem extrair nada na leitura, como o Parquet tipado que o DuckDB leu em 7,5 ms (o equivalente no ClickHouse não foi medido). A landing segue genérica, e uma fonte nova entra sem DDL nela.",
+      "custo":"Cada domínio e cada mudança de payload pedem DDL, e a view só vale para o que entrar depois dela, sem carga do histórico. Por padrão, um erro de conversão na view faz falhar o INSERT do lote inteiro, e o consumidor entra no ciclo de reentrega da questão 2."
     },
     {
-      "letra":"D","titulo":"Disparo pelo coletor","tatica":"Execução por evento",
-      "texto":"O coletor da Aula 02, ao terminar de gravar os lotes da hora, chama o job, ou o MinIO notifica a chegada de objetos novos. O cron sai.",
-      "ganho":"A gold fica pronta logo depois da coleta, sem o atraso fixo do minuto 15, e o job não roda quando não há coleta nova.",
-      "custo":"Coletor e job ficam acoplados: se o coletor falhar, o job não roda, e um disparo duplo roda o job duas vezes ao mesmo tempo. A regra do cron que pula a execução sobreposta deixa de proteger."
+      "letra":"D","titulo":"Uma tabela por domínio","tatica":"O servidor escreve tabelas tipadas",
+      "texto":"O consumidor deixa a tabela de três colunas e insere cada data_tag numa tabela própria, com tipos declarados e ORDER BY do domínio, como upc para livros e caminhão e hora para telemetria.",
+      "ganho":"Tipos declarados, ORDER BY pensado para as consultas de cada domínio e SQL direto para o analista, sem JSON na leitura.",
+      "custo":"O servidor passa a conhecer o payload e o contrato deixa de ser só do envelope. Uma fonte nova exige DDL, código e deploy, e um payload que mude, como o da questão 1, falha no INSERT e trava o lote de todos os domínios."
     }
   ]'::jsonb
 )

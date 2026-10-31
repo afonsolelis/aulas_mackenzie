@@ -1,55 +1,85 @@
-# AGENTS.md (modelo para aula_04_lakehouse/)
+# AGENTS.md · aula_04_ingestao
 
-Copie este arquivo para a raiz de `aula_04_lakehouse/` no repositório do grupo e ajuste o que estiver entre `<>`.
+Regras para o agente de código nesta pasta, qualquer que seja o agente escolhido (Claude Code, Codex CLI, Gemini CLI, Cursor, Copilot ou outro). Leia este arquivo antes de qualquer etapa.
 
 ## Escopo
 
-- Projeto: job batch que lê o bucket `raw` (bytes como a fonte entregou: lotes TXT de telemetria de caminhões da Aula 02, JSON da PTAX e HTML da Aula 03), extrai a telemetria para JSON Lines no bucket `bronze`, lê o bronze dos livros e da PTAX gravado pela Aula 03, grava Parquet tipado no bucket `silver` e tabelas de consumo no bucket `gold`, usando DuckDB com a extensão httpfs sobre a API compatível com S3 do MinIO.
-- Trabalhe somente dentro de `aula_04_lakehouse/`. Não edite as pastas das outras aulas.
-- Fontes de verdade, nesta ordem: `docs/00_persona.md`, `docs/01_objetivos_negocio.md`, `specs/spec.md`, `specs/plan.md`, `specs/tasks.md`.
-- Preserve os identificadores `RF-xx`, `RNF-xx` e `T-xx`. Não renumere.
+- Projeto: servidor de ingestão. Um processo Python que fica no ar com uma API HTTP (`POST /ingest`) e um consumidor da fila `ingestao` do RabbitMQ. Cada envelope válido vai, em micro-lote, para o lake (Parquet no MinIO, gravado pelo DuckDB) e para a tabela `ingestao.db_ingestion` do ClickHouse, nessa ordem, e só então recebe ack.
+- Domínios desta aula: `telemetria` (linhas dos TXT da Aula 02), `livros` e `ptax` (bronze da Aula 03).
+- Trabalhe somente dentro de `aula_04_ingestao/`.
+- Uma etapa por vez. Mostre o plano antes de editar e pare ao fim da etapa.
 
-## Regras do lakehouse
+## Sequência das etapas
 
-- O bucket `raw` é somente leitura para este job. Nunca escreva, mova ou apague objetos nele.
-- No bucket `bronze`, o job escreve só nos prefixos `telemetria/` e `telemetria_quarentena/`. Os prefixos `books_toscrape/` e `ptax/` são da Aula 03 e são somente leitura.
-- Os caminhos e colunas de `silver/livros/data_coleta=D/` e `silver/ptax/` são o contrato da Aula 05. Não renomeie.
-- A telemetria no raw é particionada pelo início da janela em UTC (`data=`, `hora=`, `lote_HHMM`), e as linhas trazem o horário de Brasília. O dia D local vai das 03h UTC de D às 02h59 UTC de D+1: escreva essas partições no caminho da leitura, não use glob sobre o bucket inteiro.
-- Linha de TXT que nenhum dos cinco formatos do contrato explica vai para `bronze/telemetria_quarentena/data_local=D/`, com arquivo e número da linha. Não descarte em silêncio.
-- Toda linha da silver carrega `arquivo_origem` (caminho do objeto bruto) e `processado_em`; na telemetria, também `numero_linha`.
-- Escrita em `bronze/telemetria*`, `silver` e `gold` é idempotente: reprocessar a mesma data substitui o objeto da partição, não acrescenta arquivos. Não use a opção `APPEND` do `COPY`.
-- Um arquivo bruto inválido não derruba o lote inteiro sem registro: ele é listado no log com o caminho e o erro, e a decisão (pular ou falhar) segue a spec.
-- O job processa uma data, imprime um resumo e termina com código 0 (sucesso) ou diferente de 0 (falha). Nada de laços infinitos nem `sleep` de espera: o cron do Railway pula a execução seguinte se a anterior não terminou.
+| Etapa | Artefato |
+|---|---|
+| 00 | preparação; `docs/prompts.md` |
+| 01 | `docs/00_persona.md`, `docs/01_objetivos.md` |
+| 02 | `specs/01_contrato_envelope.md`, `specs/exemplos/*.json` |
+| 03 | `specs/02_requisitos.md` |
+| 04 | `specs/03_modelo_de_dados.md`, `sql/001_db_ingestion.sql` |
+| 05 | `docs/arquitetura.md`, `docs/adr/ADR-001` a `ADR-005` |
+| 06 | `specs/plan.md`, `specs/tasks.md`, testes vermelhos em `tests/` |
+| 07 | `src/contrato.py`, `src/api.py` |
+| 08 | `src/consumidor.py`, `src/lake.py`, `src/clickhouse.py` |
+| 09 | `src/produtores/*.py` e execução com o gate de contagens |
+| 10 | `sql/duckdb_cast.sql`, `sql/clickhouse_cast.sql`, `sql/silver_livros_ptax.sql` |
+| semana | `docs/atam.md` e execução no Railway |
 
-## Regras de trabalho
+Não pule etapa: cada uma lê os artefatos das anteriores. Nenhum código em `src/` antes da Etapa 07.
 
-- Mostre o plano de alteração antes de editar arquivos.
-- Execute uma etapa por vez e pare ao final dela, aguardando revisão humana.
-- Não invente números, SLAs, volumes ou limites. Quando faltar um valor, escreva "hipótese, validação pendente".
-- Separe fato, lacuna e suposição em toda análise.
-- Toda tarefa de código vem acompanhada de teste em `tests/` e só termina com `pytest` passando.
+## Registro de prompts
 
-## Comandos permitidos
+Ao fim de cada etapa, acrescente em `docs/prompts.md` uma seção com: número e nome da etapa, data, o prompt recebido copiado literalmente (sem corrigir digitação) e a lista de arquivos criados ou alterados. Nunca registre segredos; se o prompt contiver um, pare e avise.
 
-- `python -m pytest -q`
-- `python -m src.job_lakehouse` (ou o ponto de entrada definido em `specs/plan.md`)
-- `python sql/rodar_sql.py sql/<arquivo>.sql --var DATA=AAAA-MM-DD`
-- `docker compose up -d`, `docker compose ps`, `docker compose logs minio`
-- `docker compose exec minio mc ...` apenas para leitura (`ls`, `stat`, `cat`, `du`, `find`)
-- `docker build -t aula04-job .` e `docker run --rm --env-file .env --network host aula04-job`
+## Fontes de verdade
 
-Peça autorização antes de: instalar pacotes fora do `requirements.txt`, apagar objetos em qualquer bucket, rodar `docker compose down -v`, qualquer comando `railway`.
+- Precedência, da mais forte para a mais fraca: contrato do envelope (`specs/01_contrato_envelope.md`) > requisitos (`specs/02_requisitos.md`) > modelo de dados (`specs/03_modelo_de_dados.md`) > ADR (`docs/adr/`) > `specs/plan.md` > `specs/tasks.md`.
+- `docker-compose.yml`, `.env.example`, `requirements.txt` e `sql/001_db_ingestion.sql` desta pasta.
+- Os campos do bronze da Aula 03 e o contrato do silver lido pela Aula 05 não mudam: não renomeie nem traduza.
+- Se dois documentos se contradisserem, pare e pergunte.
+
+## Regras de conteúdo
+
+- Não invente números, SLAs, volumes ou limites. Valor sem origem recebe a marcação "hipótese, validação pendente".
+- Separe fato, lacuna e suposição.
+- Preserve os IDs existentes: P1, OBJ-01, RF-01, RNF-01, T-01, ADR-001.
+- Toda escolha técnica aponta para um RF ou RNF.
+- O contrato desta aula valida só o envelope (`data_tag` e `data`). O conteúdo de `data` não é validado aqui; o schema por domínio fica para a Aula 07.
+- Assuntos da Aula 06 (DLX, prefetch ajustado, exchanges, ReplacingMergeTree, TTL) aparecem só como "a Aula 06 aprofunda".
+- Mermaid sem ponto e vírgula em rótulos e mensagens (quebra a renderização). Valide cada bloco antes de terminar.
+- Toda ADR nasce com status "Proposta". Aceitar é decisão do grupo.
+
+## Regras do servidor
+
+- A API não grava no lake nem no ClickHouse: valida, publica na fila com confirmação do broker e responde 202. Corpo que não é JSON recebe 400; envelope inválido, 422; corpo acima de `HTTP_MAX_BYTES`, 413.
+- O consumidor valida o envelope de novo. Inválido vai para `raw/ingestao_rejeitados/data=AAAA-MM-DD/` com o motivo e recebe ack.
+- Ordem do flush: lake, ClickHouse, ack. Nunca dê ack antes de gravar nos dois.
+- `timestamp` é a hora da ingestão em unix milissegundos, dada pelo servidor. O produtor não manda timestamp.
+- Flush por `FLUSH_N` envelopes ou `FLUSH_SEGUNDOS`, o que vier primeiro. O `prefetch_count` do consumidor é pelo menos `FLUSH_N`.
+- Mensagens persistentes, fila durável, conexão pika usada por uma thread só.
 
 ## Segredos
 
-- Credenciais vêm de variáveis de ambiente (`S3_ENDPOINT_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`). Nunca escreva valores reais em código, SQL, testes, documentação ou mensagens de commit.
-- O secret do DuckDB é criado em tempo de execução como `TEMPORARY`, a partir das variáveis. Não use secret persistente em disco.
-- `.env` e `.env.railway` estão no `.gitignore`. Se uma chave aparecer no diff, pare e avise.
+- Credenciais só no `.env` (ou `.env.railway`), que não são versionados.
+- Nunca escreva segredos em código, testes, logs, prompts, `docs/prompts.md` ou commits.
+- Não leia nem imprima o conteúdo do `.env`. Use os nomes das variáveis.
+
+## Comandos permitidos
+
+- `python`, `pytest`, `pip install -r requirements.txt`, `uvicorn`
+- `docker compose up -d`, `docker compose up -d --wait minio rabbitmq clickhouse`, `docker compose ps`, `docker compose logs <serviço>`
+- `docker compose exec minio mc ...` (somente leitura e criação de buckets), `docker compose exec clickhouse clickhouse-client ...` (consultas e o DDL de `sql/`)
+- `curl` contra `http://localhost:8000`
+- `git status`, `git diff`
+
+Peça autorização antes de: apagar objetos, buckets ou tabelas, purgar a fila, rodar `docker compose down -v`, apontar para o Railway, instalar pacotes fora do `requirements.txt`, fazer commit ou push.
 
 ## Gates
 
-1. `python -m pytest -q` sem falhas.
-2. Rodar o job duas vezes para a mesma data não muda a contagem de objetos nem a contagem de linhas do bronze da telemetria e da silver.
-3. Toda linha da silver tem `arquivo_origem` preenchido e apontando para um objeto que existe em `raw` ou `bronze`.
-4. O processo termina sozinho; o tempo de execução aparece no resumo final.
-5. Nenhum segredo em `git diff --staged`.
+- Testes são escritos antes do código (Etapa 06) e falham por falta de implementação, não por erro no teste.
+- Não altere um teste para fazê-lo passar. Se o teste estiver errado, pare e explique.
+- Testes do contrato não acessam a rede; usam `specs/exemplos/` e `fixtures/`.
+- Testes de integração usam os serviços locais e o bucket `teste`, nunca `raw` com dados das aulas.
+- Gate da Etapa 09: mensagens publicadas = linhas no ClickHouse = linhas no lake, por `data_tag`.
+- Uma tarefa só é marcada como concluída em `specs/tasks.md` com o teste passando e o comando de verificação anotado.
