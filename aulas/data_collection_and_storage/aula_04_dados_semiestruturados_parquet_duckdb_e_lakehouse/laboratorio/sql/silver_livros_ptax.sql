@@ -1,7 +1,7 @@
 -- Aula 04 · Silver de livros e PTAX a partir do histórico da ingestão (contrato da Aula 05).
 -- Uso: python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-31
 -- DATA é a data da coleta dos livros (dia de coletado_em no horário de Brasília).
--- arquivo_origem passa a ser o Parquet do lake de onde a linha veio.
+-- Lê o bronze (bronze/ingestao/data_tag=X/...). arquivo_origem é o Parquet do bronze de onde a linha veio.
 
 SET TimeZone = 'America/Sao_Paulo';
 
@@ -22,7 +22,7 @@ COPY (
                                       "avaliacao":"BIGINT","preco_gbp":"DOUBLE","em_estoque":"BOOLEAN",
                                       "qtd_estoque":"BIGINT","coletado_em":"VARCHAR"}') AS l,
                timestamp, filename
-        FROM read_parquet('s3://raw/ingestao/data_tag=livros/*/*.parquet', hive_partitioning = true, filename = true)
+        FROM read_parquet('s3://bronze/ingestao/data_tag=livros/*/*.parquet', hive_partitioning = true, filename = true)
     )
     WHERE CAST(CAST(l.coletado_em AS TIMESTAMPTZ) AS DATE) = DATE '{{DATA}}'
     -- reentrega ou recoleta: fica a coleta mais recente; empate, a ingestão mais recente
@@ -44,7 +44,7 @@ COPY (
         SELECT from_json(data_json, '{"moeda":"VARCHAR","dataHoraCotacao":"VARCHAR","tipoBoletim":"VARCHAR",
                                       "cotacaoCompra":"DOUBLE","cotacaoVenda":"DOUBLE"}') AS p,
                timestamp, filename
-        FROM read_parquet('s3://raw/ingestao/data_tag=ptax/*/*.parquet', hive_partitioning = true, filename = true)
+        FROM read_parquet('s3://bronze/ingestao/data_tag=ptax/*/*.parquet', hive_partitioning = true, filename = true)
     )
     QUALIFY row_number() OVER (PARTITION BY moeda, data_hora_cotacao, tipo_boletim ORDER BY timestamp DESC) = 1
     ORDER BY data_hora_cotacao

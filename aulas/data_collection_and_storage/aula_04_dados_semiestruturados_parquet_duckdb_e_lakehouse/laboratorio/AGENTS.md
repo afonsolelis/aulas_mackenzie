@@ -4,8 +4,8 @@ Regras para o agente de código nesta pasta, qualquer que seja o agente escolhid
 
 ## Escopo
 
-- Projeto: servidor de ingestão. Um processo Python que fica no ar com uma API HTTP (`POST /ingest`) e um consumidor da fila `ingestao` do RabbitMQ. Cada envelope válido vai, em micro-lote, para o lake (Parquet no MinIO, gravado pelo DuckDB) e para a tabela `ingestao.db_ingestion` do ClickHouse, nessa ordem, e só então recebe ack.
-- Domínios desta aula: `telemetria` (linhas dos TXT da Aula 02), `livros` e `ptax` (bronze da Aula 03).
+- Projeto: servidor de ingestão. Um processo Python que fica no ar com uma API HTTP (`POST /ingest`) e um consumidor da fila `ingestao` do RabbitMQ. Cada envelope válido vai, em micro-lote, para o lake no RustFS (raw em JSON Lines e bronze em Parquet escrito pelo DuckDB), para a tabela `ingestao.db_ingestion` do ClickHouse e para um manifesto do lote, nessa ordem, e só então recebe ack.
+- Domínios desta aula: `telemetria` (linhas dos TXT da Aula 02), `livros` e `ptax` (bronze da Aula 03), lidos da pasta `entrada/` (do `dados_aula_04.zip`).
 - Trabalhe somente dentro de `aula_04_ingestao/`.
 - Uma etapa por vez. Mostre o plano antes de editar e pare ao fim da etapa.
 
@@ -17,12 +17,12 @@ Regras para o agente de código nesta pasta, qualquer que seja o agente escolhid
 | 01 | `docs/00_persona.md`, `docs/01_objetivos.md` |
 | 02 | `specs/01_contrato_envelope.md`, `specs/exemplos/*.json` |
 | 03 | `specs/02_requisitos.md` |
-| 04 | `specs/03_modelo_de_dados.md`, `sql/001_db_ingestion.sql` |
+| 04 | `specs/03_modelo_de_dados.md` (tabela e layout raw, bronze, manifesto), `sql/001_db_ingestion.sql` |
 | 05 | `docs/arquitetura.md`, `docs/adr/ADR-001` a `ADR-005` |
 | 06 | `specs/plan.md`, `specs/tasks.md`, testes vermelhos em `tests/` |
 | 07 | `src/contrato.py`, `src/api.py` |
 | 08 | `src/consumidor.py`, `src/lake.py`, `src/clickhouse.py` |
-| 09 | `src/produtores/*.py` e execução com o gate de contagens |
+| 09 | `src/produtores/*.py` lendo `entrada/` e execução com o gate de contagens |
 | 10 | `sql/duckdb_cast.sql`, `sql/clickhouse_cast.sql`, `sql/silver_livros_ptax.sql` |
 | semana | `docs/atam.md` e execução no Railway |
 
@@ -36,6 +36,7 @@ Ao fim de cada etapa, acrescente em `docs/prompts.md` uma seção com: número e
 
 - Precedência, da mais forte para a mais fraca: contrato do envelope (`specs/01_contrato_envelope.md`) > requisitos (`specs/02_requisitos.md`) > modelo de dados (`specs/03_modelo_de_dados.md`) > ADR (`docs/adr/`) > `specs/plan.md` > `specs/tasks.md`.
 - `docker-compose.yml`, `.env.example`, `requirements.txt` e `sql/001_db_ingestion.sql` desta pasta.
+- `entrada/` é dado de entrada: leia, nunca altere nem versione.
 - Os campos do bronze da Aula 03 e o contrato do silver lido pela Aula 05 não mudam: não renomeie nem traduza.
 - Se dois documentos se contradisserem, pare e pergunte.
 
@@ -54,7 +55,11 @@ Ao fim de cada etapa, acrescente em `docs/prompts.md` uma seção com: número e
 
 - A API não grava no lake nem no ClickHouse: valida, publica na fila com confirmação do broker e responde 202. Corpo que não é JSON recebe 400; envelope inválido, 422; corpo acima de `HTTP_MAX_BYTES`, 413.
 - O consumidor valida o envelope de novo. Inválido vai para `raw/ingestao_rejeitados/data=AAAA-MM-DD/` com o motivo e recebe ack.
-- Ordem do flush: lake, ClickHouse, ack. Nunca dê ack antes de gravar nos dois.
+- Layout do lake (organização da Aula 03), com `D` = data do recebimento em America/Sao_Paulo e o mesmo nome de lote nas três chaves:
+  - raw: `raw/ingestao/data_tag=X/data=D/lote_<HHMMSS>_<id>.jsonl`, um envelope por linha, como chegou, com `recebido_em_ms`;
+  - bronze: `bronze/ingestao/data_tag=X/data=D/lote_<HHMMSS>_<id>.parquet`, uma linha por objeto de `data`, colunas `timestamp` e `data_json`;
+  - manifesto: `raw/_manifestos/ingestao/data=D/lote_<HHMMSS>_<id>.json`, com lote, mensagens e linhas por `data_tag`, chaves gravadas, bytes e SHA-256 de cada arquivo, tempos e status.
+- Ordem do flush: raw, bronze, ClickHouse, manifesto, ack. Nunca dê ack antes de gravar tudo. Se o ClickHouse falhar, grave o manifesto com status de erro e não dê ack.
 - `timestamp` é a hora da ingestão em unix milissegundos, dada pelo servidor. O produtor não manda timestamp.
 - Flush por `FLUSH_N` envelopes ou `FLUSH_SEGUNDOS`, o que vier primeiro. O `prefetch_count` do consumidor é pelo menos `FLUSH_N`.
 - Mensagens persistentes, fila durável, conexão pika usada por uma thread só.
@@ -68,8 +73,9 @@ Ao fim de cada etapa, acrescente em `docs/prompts.md` uma seção com: número e
 ## Comandos permitidos
 
 - `python`, `pytest`, `pip install -r requirements.txt`, `uvicorn`
-- `docker compose up -d`, `docker compose up -d --wait minio rabbitmq clickhouse`, `docker compose ps`, `docker compose logs <serviço>`
-- `docker compose exec minio mc ...` (somente leitura e criação de buckets), `docker compose exec clickhouse clickhouse-client ...` (consultas e o DDL de `sql/`)
+- `docker compose up -d`, `docker compose up -d --wait rustfs rabbitmq clickhouse`, `docker compose ps`, `docker compose logs <serviço>`
+- `docker compose run --rm mc ...` (somente leitura: `ls`, `tree`, `cat`, `stat`, `du`), `docker compose exec clickhouse clickhouse-client ...` (consultas e o DDL de `sql/`)
+- `python enviar_entrada.py` (envia `entrada/` pelo contrato público)
 - `curl` contra `http://localhost:8000`
 - `git status`, `git diff`
 
@@ -81,5 +87,5 @@ Peça autorização antes de: apagar objetos, buckets ou tabelas, purgar a fila,
 - Não altere um teste para fazê-lo passar. Se o teste estiver errado, pare e explique.
 - Testes do contrato não acessam a rede; usam `specs/exemplos/` e `fixtures/`.
 - Testes de integração usam os serviços locais e o bucket `teste`, nunca `raw` com dados das aulas.
-- Gate da Etapa 09: mensagens publicadas = linhas no ClickHouse = linhas no lake, por `data_tag`.
+- Gate da Etapa 09: por `data_tag`, linhas esperadas = linhas no ClickHouse = linhas no bronze, e envelopes no raw = mensagens enviadas; um manifesto `ok` por lote.
 - Uma tarefa só é marcada como concluída em `specs/tasks.md` com o teste passando e o comando de verificação anotado.

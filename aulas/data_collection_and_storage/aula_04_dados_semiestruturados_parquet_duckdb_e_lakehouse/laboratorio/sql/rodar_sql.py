@@ -42,7 +42,7 @@ def exigir(nome: str) -> str:
 def criar_secret(con: duckdb.DuckDBPyConnection) -> None:
     con.sql("INSTALL httpfs")
     con.sql("LOAD httpfs")
-    # S3_ENDPOINT_URL tem esquema (http://localhost:9000); o DuckDB quer host:porta
+    # S3_ENDPOINT_URL tem esquema (http://localhost:9000, o RustFS); o DuckDB quer host:porta
     # em ENDPOINT e o esquema em USE_SSL.
     url = urlparse(exigir("S3_ENDPOINT_URL"))
     if url.scheme not in ("http", "https") or not url.netloc:
@@ -50,7 +50,7 @@ def criar_secret(con: duckdb.DuckDBPyConnection) -> None:
     use_ssl = url.scheme == "https"
     con.execute(
         f"""
-        CREATE OR REPLACE TEMPORARY SECRET minio_lake (
+        CREATE OR REPLACE TEMPORARY SECRET lake (
             TYPE s3,
             PROVIDER config,
             KEY_ID '{exigir("S3_ACCESS_KEY")}',

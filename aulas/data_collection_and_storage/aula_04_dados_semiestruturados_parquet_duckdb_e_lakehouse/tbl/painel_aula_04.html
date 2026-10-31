@@ -324,7 +324,7 @@
         htmlBarras(s.rodada1, 'Primeira decisão · distribuição', true) +
         htmlVozes(s.justificativas1, 'Hipóteses declaradas na primeira decisão') +
         `<h3 style="margin-top:18px">Condução</h3>
-         <p style="text-align:left">Chame primeiro quem escolheu a alternativa menos votada e peça o <b>custo</b> que ela assume, não o benefício. Depois peça a quem escolheu a mais votada que responda à objeção. Puxe as medições da manhã: o 202 em 1,5 ms e o 422 em 0,5 ms, as 8.147 linhas/s do micro-lote de 500 contra 60 com N=1, os cerca de 2 s até a linha ficar consultável, as 500 linhas duplicadas pelo kill entre o INSERT e o ack, e os 146 ms do JSONExtract contra 20,8 ms da coluna JSON, que perdeu o -03:00.</p>`;
+         <p style="text-align:left">Chame primeiro quem escolheu a alternativa menos votada e peça o custo que ela assume, não o benefício. Depois peça a quem escolheu a mais votada que responda à objeção. Puxe as medições da manhã: o 202 em 1,5 ms e o 422 em 0,5 ms, o flush de 500 linhas em 31,6 ms com raw, bronze, ClickHouse e manifesto, a drenagem a cerca de 5.100 linhas/s, os cerca de 2 s até a linha ficar consultável, as 500 linhas duplicadas pelo kill entre o manifesto e o ack, com 64 manifestos para 63 lotes, e os 146 ms do JSONExtract contra 20,8 ms da coluna JSON, que perdeu o -03:00.</p>`;
     } else if (s.fase === 'voto2') {
       html = htmlQuestao(s.rodada1, null, s.dado_novo ? s.dado_novo.pergunta : null) +
         htmlBarras(s.rodada1, 'Primeira decisão · distribuição', true) +
@@ -389,7 +389,7 @@
     } else {
       $('#tempo-grande').textContent = relogio(restante);
       $('#tempo-etiqueta').textContent = restante === 0
-        ? (fase === 'discussao' ? 'Tempo da discussão encerrado' : 'Tempo encerrado — a votação desta rodada está fechada')
+        ? (fase === 'discussao' ? 'Tempo da discussão encerrado' : 'Tempo encerrado: a votação desta rodada está fechada')
         : (DESCRICAO[fase] || 'Fase em andamento') + ' · questão ' + (s ? s.questao : 1);
     }
     $('#cronometro').classList.toggle('acabando', restante !== null && restante > 0 && restante <= 60);
