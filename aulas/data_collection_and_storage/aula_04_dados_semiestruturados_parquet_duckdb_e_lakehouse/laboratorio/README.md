@@ -109,9 +109,9 @@ A teoria entra dentro das etapas. O TBL fica às 11h30.
 | 04 | Modelo de dados | `specs/03_modelo_de_dados.md` (tabela e layout raw, bronze, manifesto), `sql/001_db_ingestion.sql` |
 | 05 | Arquitetura e ADRs | `docs/arquitetura.md`, `docs/adr/ADR-001` a `ADR-005` |
 | 06 | Plano, tarefas e testes vermelhos | `specs/plan.md`, `specs/tasks.md`, `tests/` |
-| 07 | Código: contrato e API | `src/contrato.py`, `src/api.py` |
-| 08 | Código: consumidor e gravadores | `src/consumidor.py`, `src/lake.py`, `src/clickhouse.py` |
-| 09 | Produtores e execução | `src/produtores/*.py` lendo `entrada/`, gate de contagens, teste de queda |
+| 07 | Código: contrato e API | `src/config.py`, `src/contrato.py`, `src/api.py` |
+| 08 | Código: consumidor e gravadores | `src/consumidor.py`, `src/lake.py`, `src/clickhouse.py`, `src/servidor.py` |
+| 09 | Produtores e execução | `src/produtores/*.py` lendo `entrada/`, `src/conferir.py`, gate de contagens, teste de queda |
 | 10 | JSON cast e silver | `sql/duckdb_cast.sql`, `sql/clickhouse_cast.sql`, `sql/silver_livros_ptax.sql` |
 | semana | ATAM e Railway | `docs/atam.md`, servidor e serviços no Railway |
 
@@ -144,7 +144,8 @@ aula_04_ingestao/
 │   └── rodar_sql.py
 ├── fixtures/
 ├── src/
-│   ├── contrato.py, api.py, consumidor.py, lake.py, clickhouse.py, servidor.py
+│   ├── config.py, contrato.py, api.py, consumidor.py, lake.py,
+│   │   clickhouse.py, servidor.py, conferir.py
 │   └── produtores/
 └── tests/
 ```
@@ -286,6 +287,13 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:8000/ingest --data-bi
 
 ## 6. Etapa 09 · Gate de contagens
 
+As contagens abaixo valem para a carga do zip num ClickHouse e num lake vazios. Se o gate da Etapa 07 já rodou, os 3 envelopes válidos dele entram junto: livros 1.001, ptax 45 e telemetria 31.266, com 3 lotes a mais. Para conferir os números exatos, zere antes da carga:
+
+```bash
+docker compose exec clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" -q "TRUNCATE TABLE ingestao.db_ingestion"
+docker compose run --rm mc rm --recursive --force lake/raw/ingestao lake/raw/_manifestos lake/bronze/ingestao
+```
+
 Depois de rodar os três produtores (ou `python enviar_entrada.py`), a mesma contagem em quatro lugares, por `data_tag`: o que foi enviado, o ClickHouse, o bronze e o raw. Mensagens e linhas não são a mesma coisa: o envelope de PTAX com 40 boletins é uma mensagem no raw e 40 linhas no bronze e no ClickHouse.
 
 ClickHouse:
@@ -312,18 +320,19 @@ docker compose run --rm mc ls --recursive lake/raw/ingestao_rejeitados/
 Teste de queda (no meio da carga de telemetria):
 
 ```bash
-python -m src.servidor & SERVIDOR=$!
+# na pasta do laboratório, com o servidor de referência; na pasta do grupo, sem o PYTHONPATH
+PYTHONPATH=referencia python -m src.servidor & SERVIDOR=$!
 python enviar_entrada.py --so telemetria &            # ou o produtor do grupo
 sleep 3; kill -9 $SERVIDOR                            # derruba sem flush e sem ack
 docker compose exec rabbitmq rabbitmqctl list_queues name messages messages_unacknowledged
-python -m src.servidor                                # reinicia; a fila reentrega o que não teve ack
+PYTHONPATH=referencia python -m src.servidor          # reinicia; a fila reentrega o que não teve ack
 ```
 
 Depois da drenagem, refaça as contagens. Nada se perde. Linhas repetidas só aparecem se o processo cair entre a gravação e o ack; a consulta 7 de cada arquivo de cast mostra quantas, e o lote repetido aparece com dois manifestos.
 
 Checklist:
 
-- [ ] `pytest -q` verde
+- [ ] `python -m pytest -q` verde
 - [ ] curl: 202, 422, 400 e 413 nos casos esperados
 - [ ] por `data_tag`: linhas esperadas = linhas no ClickHouse = linhas no bronze = linhas derivadas do raw
 - [ ] envelopes no raw = mensagens enviadas; um manifesto `ok` por lote, e a soma de `linhas` dos manifestos = linhas no ClickHouse

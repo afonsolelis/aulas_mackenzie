@@ -96,9 +96,9 @@ try {
   };
 
   const votos = [
-    [[0, 'o Parquet com nome fixo já é atômico por data'], [1, 'o formato de tabela dá histórico e transação']],
-    [[0, 'falhar a data evita média com dado faltando'], [1, 'pular o inválido mantém a silver atualizada']],
-    [[0, 'o cron horário mantém a gold perto da coleta'], [1, 'o cron diário lê cada data uma vez só']],
+    [[0, 'resolver na leitura não recusa nenhuma mensagem'], [1, 'schema por domínio avisa o produtor com 422']],
+    [[0, 'ack só depois de tudo mantém o manifesto como recibo'], [1, 'o carregador separa a queda do ClickHouse do lake']],
+    [[0, 'a view por domínio não muda a escrita'], [1, 'a coluna JSON lê sete vezes mais rápido']],
   ];
   for (let q = 1; q <= 3; q++) {
     await acao('avancar');

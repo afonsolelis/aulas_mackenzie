@@ -1,5 +1,5 @@
 -- Aula 04 · Silver de livros e PTAX a partir do histórico da ingestão (contrato da Aula 05).
--- Uso: python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-31
+-- Uso: python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-30
 -- DATA é a data da coleta dos livros (dia de coletado_em no horário de Brasília).
 -- Lê o bronze (bronze/ingestao/data_tag=X/...). arquivo_origem é o Parquet do bronze de onde a linha veio.
 

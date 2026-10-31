@@ -20,9 +20,9 @@ Regras para o agente de código nesta pasta, qualquer que seja o agente escolhid
 | 04 | `specs/03_modelo_de_dados.md` (tabela e layout raw, bronze, manifesto), `sql/001_db_ingestion.sql` |
 | 05 | `docs/arquitetura.md`, `docs/adr/ADR-001` a `ADR-005` |
 | 06 | `specs/plan.md`, `specs/tasks.md`, testes vermelhos em `tests/` |
-| 07 | `src/contrato.py`, `src/api.py` |
-| 08 | `src/consumidor.py`, `src/lake.py`, `src/clickhouse.py` |
-| 09 | `src/produtores/*.py` lendo `entrada/` e execução com o gate de contagens |
+| 07 | `src/config.py`, `src/contrato.py`, `src/api.py` |
+| 08 | `src/consumidor.py`, `src/lake.py`, `src/clickhouse.py`, `src/servidor.py` |
+| 09 | `src/produtores/*.py` lendo `entrada/`, `src/conferir.py` e execução com o gate de contagens |
 | 10 | `sql/duckdb_cast.sql`, `sql/clickhouse_cast.sql`, `sql/silver_livros_ptax.sql` |
 | semana | `docs/atam.md` e execução no Railway |
 

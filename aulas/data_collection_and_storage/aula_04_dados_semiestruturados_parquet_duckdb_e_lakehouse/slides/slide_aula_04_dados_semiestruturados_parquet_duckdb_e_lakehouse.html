@@ -392,7 +392,7 @@
             <span class="etapa-rotulo">Terminal do Codespace</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
             <pre class="etapa-pre etapa-pre-codigo"><code>mkdir -p aula_04_ingestao/{docs/adr,specs/exemplos,sql,src/produtores,tests}
-# copie para aula_04_ingestao/ os arquivos de apoio do laboratório (incluindo sql/, fixtures/ e enviar_entrada.py)
+# copie para aula_04_ingestao/ os arquivos de apoio do laboratório (sql/, fixtures/, enviar_entrada.py e dados/dados_aula_04.zip)
 cd aula_04_ingestao
 printf '.env\n.env.*\n!.env.example\n.venv/\n__pycache__/\n.pytest_cache/\nentrada/\n' &gt;&gt; .gitignore
 cp .env.example .env
@@ -406,7 +406,7 @@ docker compose ps
 docker compose logs rustfs-init                          # raw, bronze, silver, gold e teste
 docker compose run --rm mc ls lake
 
-unzip -o dados_aula_04.zip       # baixado do rodapé dos slides; cria entrada/
+unzip -o dados_aula_04.zip       # o zip copiado de dados/ (ou baixado do rodapé); cria entrada/
 ls entrada/telemetria | wc -l    # 1920
 
 python3 -m venv .venv
@@ -451,7 +451,7 @@ docker compose logs rustfs-init</code></pre>
         <div>
           <span class="deck-kicker">Etapa 00 &middot; Teoria &middot; Componentes</span>
           <h2 class="deck-title">Object storage, broker e banco colunar</h2>
-          <p class="deck-summary">Cada serviço do compose resolve uma parte diferente do problema. Nenhum deles substitui o outro: o lake guarda barato e para sempre, a fila segura o que ainda não foi gravado, o banco responde consultas.</p>
+          <p class="deck-summary">Cada serviço do compose resolve uma parte diferente do problema. Nenhum deles substitui o outro: o lake guarda o histórico a custo baixo, a fila segura o que ainda não foi gravado, o banco responde consultas.</p>
         </div>
         <div class="df-termos df-c3"><article class="df-termo"><h3>RustFS &middot; object storage</h3><p>Guarda arquivos inteiros (objetos) por chave, pela API S3. Aqui recebe raw, bronze, manifestos e rejeitados. Imagem <code>rustfs/rustfs:1.0.4</code>, portas 9000 (API S3) e 9001 (console).</p></article><article class="df-termo"><h3>RabbitMQ &middot; broker de mensagens</h3><p>Recebe mensagens de quem produz, guarda em filas e entrega a quem consome. Aqui, uma fila durável chamada <code>ingestao</code>. Versão 4.3.6, portas 5672 (AMQP) e 15672 (console).</p></article><article class="df-termo"><h3>ClickHouse &middot; banco colunar</h3><p>Banco SQL que guarda cada coluna separada e comprimida, feito para agregar milhões de linhas. Aqui, a tabela <code>ingestao.db_ingestion</code>. Versão 26.8.15.10, porta HTTP 8123.</p></article></div>
         <div class="de-dois">
@@ -717,13 +717,13 @@ engenheiro de dados que opera o servidor de ingestão</code></pre>
         <div>
           <span class="deck-kicker">Etapa 01 &middot; Teoria &middot; Objetivos</span>
           <h2 class="deck-title">Objetivos que um comando mede</h2>
-          <p class="deck-summary">Um objetivo vale quando o grupo sabe que comando roda para conferir. A meta pode ficar como hipótese até a medição; o que não pode é faltar o jeito de medir.</p>
+          <p class="deck-summary">Um objetivo vale quando o grupo sabe que comando roda para conferir. A meta pode ficar como hipótese até a medição, mas o comando que a mede precisa estar escrito.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa"><span class="de-rotulo">OBJ-01 &middot; fonte nova sem DDL</span><p>Medida: passos até a fonte nova gravar. Comando: acrescentar a tag em <code>DOMINIOS=telemetria,livros,ptax</code> no <code>.env</code> e reiniciar o servidor.</p><p>Nenhum <code>CREATE TABLE</code>: a tabela de pouso não conhece os campos, só a etiqueta.</p></div>
           <div class="de-caixa"><span class="de-rotulo">OBJ-02 &middot; dado consultável em segundos</span><p>Medida: tempo entre o 202 do POST e a linha no ClickHouse. Comando: POST com marca única e consulta a cada 10 ms até a linha aparecer.</p><p>Referência medida em 30/10/2026 com o RustFS, sem outro tráfego, <code>FLUSH_SEGUNDOS=2</code>: p50 de 2.053 ms.</p></div>
         </div>
-        <div class="deck-callout"><strong>Meta do grupo</strong><p>Os números da preparação servem de referência, não de meta. A meta fica como "hipótese, validação pendente" até o grupo medir no próprio Codespace, na Etapa 09.</p></div>
+        <div class="deck-callout"><strong>Meta do grupo</strong><p>Os números da preparação são referência. A meta fica como "hipótese, validação pendente" até o grupo medir no próprio Codespace, na Etapa 09.</p></div>
       </div>
     </div>
 
@@ -748,19 +748,20 @@ Você é engenheiro de dados responsável pelo contrato entre quem produz e
 quem consome. Escreve regras verificáveis, sem código.
 
 <span class="k">[R] Pedido</span>
-Crie specs/01_contrato_envelope.md e copie fixtures/exemplos/ para
-specs/exemplos/:
+Crie specs/01_contrato_envelope.md e a pasta specs/exemplos/:
 1. O envelope: campos data_tag e data, tipos, obrigatoriedade.
-2. Regras CT-01...: data_tag está em DOMINIOS; data é objeto ou lista
-   não vazia de objetos; envelope fechado (campo extra é recusado);
-   corpo HTTP até HTTP_MAX_BYTES (1 MiB); o produtor não manda
-   timestamp de ingestão.
-3. O que o servidor acrescenta: timestamp unix em milissegundos.
+2. Regras CT-01...: data_tag está em DOMINIOS (do .env); data é objeto
+   ou lista não vazia de objetos; envelope fechado (campo extra é
+   recusado); corpo HTTP até HTTP_MAX_BYTES (1 MiB); o produtor não
+   manda timestamp de ingestão.
+3. O que o servidor acrescenta: timestamp unix em milissegundos, a hora
+   em que a API recebeu o envelope.
 4. Respostas: 202 aceito, 422 envelope inválido (com o motivo), 413
    corpo grande demais, 400 corpo que não é JSON.
 5. O que o contrato não cobre: os campos dentro de data.
-6. Exemplos: os 10 arquivos de specs/exemplos/ (3 válidos, 6 com 422,
-   1 com 400; o código esperado está no nome), citados nas regras.
+6. Exemplos: copie para specs/exemplos/ os 10 arquivos de
+   fixtures/exemplos/ sem mudar os nomes (o código esperado está no
+   nome) e cite cada um na regra que ele exercita.
 
 <span class="k">[E] Exemplos</span>
 specs/exemplos/valido_livros_objeto.json
@@ -768,18 +769,17 @@ specs/exemplos/valido_livros_objeto.json
  "titulo": "A Light in the Attic", "preco_gbp": 51.77, ...}}
 specs/exemplos/invalido_422_data_tag_desconhecida.json
 {"data_tag": "vendas", "data": {"id": 1}}
--&gt; 422, motivo: data_tag 'vendas' fora de DOMINIOS
+resposta 422, motivo: data_tag desconhecida: 'vendas'
 
 <span class="k">[A] Ajustes</span>
-- Toda regra CT tem pelo menos um exemplo inválido; se faltar, crie
-  outro arquivo no mesmo padrão de nome (invalido_&lt;código&gt;_&lt;caso&gt;).
-- Os campos dentro de data são os do bronze da Aula 03 e da linha de
-  telemetria da Aula 02; não renomeie nem traduza.
+- São 3 válidos (um por domínio, o de ptax com lista) e 7 inválidos:
+  sem data_tag, tag desconhecida, data texto, data lista vazia, lista
+  com texto, campo extra timestamp (422) e corpo que não é JSON (400).
 - Nada de código. Nada de schema por domínio (Aula 07).
 
 <span class="k">[T] Tipo de saída</span>
 Markdown com até 90 linhas, tabela "regra | exemplo que viola |
-resposta".
+resposta", mais os arquivos copiados.
 
 <span class="k">[E] Extras</span>
 Leia AGENTS.md, docs/00_persona.md e fixtures/. Mostre o plano, espere
@@ -804,8 +804,9 @@ meu ok, escreva, registre o prompt e pare.</code></pre>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Trecho do prompt da Etapa 02</span>
-            <pre class="is-wrap etapa-pre"><code>data_tag está em DOMINIOS; data é objeto ou lista não vazia de
-objetos; envelope fechado (campo extra é recusado)</code></pre>
+            <pre class="is-wrap etapa-pre"><code>data_tag está em DOMINIOS (do .env); data é objeto
+ou lista não vazia de objetos; envelope fechado (campo extra é
+recusado)</code></pre>
           </div>
         </div>
       </div>
@@ -882,7 +883,7 @@ DOMINIOS=telemetria,livros,ptax</code></pre>
             <p style="margin-top:8px;">A fila não tem para quem responder. O consumidor grava o rejeitado em <code>raw/ingestao_rejeitados/data=D/</code> e dá ack.</p>
           </div>
         </div>
-        <div class="deck-callout"><strong>Medido em 30/10/2026</strong><p>Três mensagens inválidas publicadas direto na fila (tag <code>vendas</code>, <code>data</code> vazia e um texto que não é JSON) viraram três arquivos de 175, 152 e 132 bytes em <code>raw/ingestao_rejeitados/</code>. A fila terminou com 0 mensagens e 0 sem ack. A Aula 06 troca esse desvio por uma DLX.</p></div>
+        <div class="deck-callout"><strong>Medido em 30/10/2026</strong><p>Três mensagens inválidas publicadas direto na fila (tag <code>vendas</code>, <code>data</code> vazia e um texto que não é JSON) viraram três arquivos de 136, 156 e 179 bytes em <code>raw/ingestao_rejeitados/</code>. A fila terminou com 0 mensagens e 0 sem ack. A Aula 06 troca esse desvio por uma DLX.</p></div>
       </div>
     </div>
 
@@ -948,13 +949,14 @@ consegue verificar.
 Crie specs/02_requisitos.md com:
 1. Requisitos funcionais RF-01... no formato Dado, Quando, Então:
    receber por HTTP e publicar na fila; receber pela fila; recusar
-   envelope inválido (HTTP 422; fila: raw/ingestao_rejeitados com o
-   motivo); gravar cada lote no lake (raw em JSON Lines e bronze em
-   Parquet); inserir no ClickHouse; gravar o manifesto do lote;
-   confirmar (ack) a mensagem só depois de tudo gravado.
+   envelope inválido (HTTP 400, 413 ou 422; fila: objeto em
+   raw/ingestao_rejeitados/ com o motivo e ack); gravar cada lote no
+   raw (JSON Lines) e no bronze (Parquet); inserir no ClickHouse;
+   gravar o manifesto do lote; confirmar (ack) a mensagem só depois
+   de tudo gravado.
 2. Requisitos não funcionais RNF-01... com número e forma de medir:
    tempo até consultável, perda zero com o processo derrubado, fonte
-   nova sem DDL, reprocesso do ClickHouse a partir do lake.
+   nova sem DDL, reprocesso do ClickHouse a partir do bronze.
 3. Matriz RF/RNF x OBJ.
 
 <span class="k">[E] Exemplos</span>
@@ -1039,7 +1041,7 @@ espere meu ok, escreva, registre o prompt e pare.</code></pre>
         </div>
         <div class="de-dois">
           <div class="de-caixa"><span class="de-rotulo">Síncrono &middot; alternativa descartada</span><ol><li>recebe o POST</li><li>grava raw e bronze no lake</li><li>insere no ClickHouse</li><li>responde 200</li></ol><p style="margin-top:8px;">O produtor espera todas as gravações. Se o ClickHouse está fora, o produtor recebe erro e precisa guardar o dado.</p></div>
-          <div class="de-caixa is-forte"><span class="de-rotulo">Assíncrono &middot; o servidor da aula</span><ol><li>recebe o POST e valida o envelope</li><li>publica na fila e espera a confirmação do broker</li><li>responde 202</li><li>o consumidor grava depois, em lote</li></ol><p style="margin-top:8px;">O produtor espera só a fila. O 202 promete que o dado está guardado, não que já está consultável.</p></div>
+          <div class="de-caixa is-forte"><span class="de-rotulo">Assíncrono &middot; o servidor da aula</span><ol><li>recebe o POST e valida o envelope</li><li>publica na fila e espera a confirmação do broker</li><li>responde 202</li><li>o consumidor grava depois, em lote</li></ol><p style="margin-top:8px;">O produtor espera só a fila. O 202 confirma que o dado está guardado na fila; ele fica consultável depois do flush.</p></div>
         </div>
         <div class="deck-callout"><strong>Dois relógios diferentes</strong><p>Medido em 30/10/2026: o POST válido responde em 1,51 ms (p50, primeira rodada, com MinIO; o POST não toca o lake); a linha aparece no ClickHouse em 2.053 ms (p50, RustFS, sem outro tráfego). O primeiro número é do produtor; o segundo, do analista.</p></div>
       </div>
@@ -1051,7 +1053,7 @@ espere meu ok, escreva, registre o prompt e pare.</code></pre>
         <div>
           <span class="deck-kicker">Etapa 03 &middot; Teoria &middot; Garantia de entrega</span>
           <h2 class="deck-title">No máximo uma vez, pelo menos uma vez</h2>
-          <p class="deck-summary">A garantia de entrega depende de um único detalhe: o ack vem antes ou depois de gravar. Com processo que pode morrer a qualquer instante, não existe a terceira opção de graça.</p>
+          <p class="deck-summary">A garantia de entrega depende de um único detalhe: o ack vem antes ou depois de gravar. Com processo que pode morrer a qualquer instante, entregar exatamente uma vez exige deduplicação, assunto da Aula 06.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa"><span class="de-rotulo">At-most-once &middot; ack antes de gravar</span><p>A mensagem sai da fila assim que chega. Se o processo morre antes de gravar, o dado some. Nunca duplica, pode perder.</p></div>
@@ -1127,23 +1129,23 @@ Crie specs/03_modelo_de_dados.md e confira sql/001_db_ingestion.sql:
      SHA-256 de cada arquivo, tempos de cada passo e status;
    - raw/ingestao_rejeitados/data=D/rejeitado_&lt;HHMMSS&gt;_&lt;id&gt;.json, com
      recebido_em_ms, motivo e corpo.
-3. Uma linha por objeto de data (lista vira várias linhas, todas com o
-   mesmo timestamp do envelope).
+3. Uma linha por objeto de data. Uma lista vira várias linhas, todas
+   com o timestamp do envelope (a hora em que a API o recebeu).
 4. Como recriar o bronze a partir do raw e a tabela do ClickHouse a
    partir do bronze, em comandos.
 
 <span class="k">[E] Exemplos</span>
-| timestamp     | data_tag | data_json                                   |
-|---------------|----------|---------------------------------------------|
+| timestamp     | data_tag | data_json                                    |
+|---------------|----------|----------------------------------------------|
 | 1793452800123 | livros   | {"upc":"a897fe39b1053632","preco_gbp":51.77} |
 
 <span class="k">[A] Ajustes</span>
 - Não troque nomes nem tipos das três colunas.
 - Explique por que unix em milissegundos e não segundos nem DateTime.
 - Diga o que se perde guardando data_json como String e o que se ganha.
+- Nada de colunas por domínio (é a discussão do TBL).
 - Diga por que a chave do lote não é determinística, ao contrário das
   chaves da Aula 03.
-- Nada de colunas por domínio (é a discussão do TBL).
 
 <span class="k">[T] Tipo de saída</span>
 Markdown com até 100 linhas, com o DDL em bloco sql.
@@ -1203,7 +1205,7 @@ ORDER BY (data_tag, timestamp);</code></pre>
         </table>
         <div class="de-dois">
           <div class="de-caixa is-forte"><span class="de-rotulo">Ganhos</span><ul><li>Fonte nova sem DDL nem migração.</li><li>Nenhuma linha recusada por tipo: o texto entra como veio.</li><li>Um único caminho de gravação para todos os domínios.</li></ul></div>
-          <div class="de-caixa"><span class="de-rotulo">Custos</span><ul><li>Nomes e tipos dos campos só aparecem na consulta.</li><li>Toda consulta extrai do JSON; campo renomeado na fonte quebra o leitor, não o servidor.</li><li>O <code>timestamp</code> não é chave única: o par <code>(timestamp, data_json)</code> é que identifica a linha.</li></ul></div>
+          <div class="de-caixa"><span class="de-rotulo">Custos</span><ul><li>Nomes e tipos dos campos só aparecem na consulta.</li><li>Toda consulta extrai do JSON; campo renomeado na fonte passa pelo servidor e quebra a consulta do leitor.</li><li>O <code>timestamp</code> não é chave única: o par <code>(timestamp, data_json)</code> é que identifica a linha.</li></ul></div>
         </div>
       </div>
     </div>
@@ -1439,7 +1441,8 @@ e registra cada decisão com alternativas.
    ADR-002 raw e bronze antes do ClickHouse
    ADR-003 manifesto do lote depois do ClickHouse e ack só depois de
            tudo gravado
-   ADR-004 micro-lote por tamanho ou tempo (N e T no .env)
+   ADR-004 micro-lote por tamanho ou tempo (FLUSH_N e FLUSH_SEGUNDOS
+           no .env, prefetch_count pelo menos FLUSH_N)
    ADR-005 tabela de três colunas com data_json String
 
 <span class="k">[E] Exemplos</span>
@@ -1449,7 +1452,8 @@ sequenceDiagram
   participant Q as Fila ingestao
   participant C as Consumidor
   P-&gt;&gt;A: POST /ingest
-  A-&gt;&gt;Q: publish (persistente)
+  A-&gt;&gt;Q: publish persistente
+  Q--&gt;&gt;A: confirmação do broker
   A--&gt;&gt;P: 202
   Q-&gt;&gt;C: entrega
   C-&gt;&gt;C: acumula até N ou T
@@ -1462,7 +1466,8 @@ sequenceDiagram
 <span class="k">[A] Ajustes</span>
 - Cada ADR liga a um RF ou RNF.
 - Sem ponto e vírgula dentro de rótulo Mermaid.
-- Prefetch, DLX e deduplicação ficam como "Aula 06" nas consequências.
+- DLX, prefetch ajustado e deduplicação ficam como "Aula 06" nas
+  consequências.
 
 <span class="k">[T] Tipo de saída</span>
 Markdown; arquitetura.md com até 120 linhas; cada ADR com até 40.
@@ -1493,7 +1498,8 @@ registre o prompt e pare.</code></pre>
             <pre class="is-wrap etapa-pre"><code>ADR-002 raw e bronze antes do ClickHouse
 ADR-003 manifesto do lote depois do ClickHouse e ack só depois de
         tudo gravado
-ADR-004 micro-lote por tamanho ou tempo (N e T no .env)</code></pre>
+ADR-004 micro-lote por tamanho ou tempo (FLUSH_N e FLUSH_SEGUNDOS
+        no .env, prefetch_count pelo menos FLUSH_N)</code></pre>
           </div>
         </div>
       </div>
@@ -1643,19 +1649,23 @@ Você é engenheiro de software. Quebra a construção em tarefas de até
 
 <span class="k">[R] Pedido</span>
 1. specs/plan.md e specs/tasks.md (T-01...), cada tarefa com RF/RNF,
-   arquivo e teste que a fecha.
+   arquivo e teste que a fecha. O plan.md diz o comando que sobe o
+   servidor (python -m src.servidor).
 2. tests/test_contrato.py: um teste por arquivo de specs/exemplos/
-   (válido aceita, inválido recusa com o motivo; o código esperado
-   está no nome do arquivo).
+   (valido_* aceita; invalido_422_* recusa com EnvelopeInvalido e o
+   motivo; invalido_400_* recusa com CorpoNaoJson).
 3. tests/test_api.py: POST válido devolve 202, inválido 422, corpo que
    não é JSON 400, corpo grande 413 (com a publicação na fila
    substituída por um dublê).
 4. tests/test_integracao.py: com os três serviços do compose, publica
    20 envelopes e confere 20 linhas no ClickHouse e no lake (marcado
    com pytest.mark.integracao).
-Rode pytest -q e mostre que os testes falham pelo motivo certo.
+Rode python -m pytest -q e mostre que os testes falham pelo motivo certo.
 
 <span class="k">[E] Exemplos</span>
+EXEMPLOS = Path("specs/exemplos")
+DOMINIOS = frozenset({"telemetria", "livros", "ptax"})
+
 @pytest.mark.parametrize("arquivo", sorted(EXEMPLOS.glob("invalido_422_*.json")))
 def test_envelope_invalido_e_recusado(arquivo):
     with pytest.raises(EnvelopeInvalido):
@@ -1664,7 +1674,10 @@ def test_envelope_invalido_e_recusado(arquivo):
 <span class="k">[A] Ajustes</span>
 - Ainda não escreva src/. Os testes importam de src.contrato, src.api,
   src.consumidor.
-- Testes de integração usam o bucket teste e uma fila de teste.
+- validar recebe o corpo em bytes, porque o 400 (corpo que não é JSON)
+  também é regra do contrato.
+- Testes de integração usam o bucket teste e uma fila de teste, nunca
+  raw nem a fila ingestao.
 
 <span class="k">[T] Tipo de saída</span>
 Markdown para plan e tasks; Python para tests/.
@@ -1688,11 +1701,11 @@ meu ok, escreva, rode, registre o prompt e pare.</code></pre>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Testes do contrato e da API com dublê da fila</li><li>Teste de integração com os três serviços</li></ol></div>
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Na volta ao artefato</span><p><code>pytest -q</code> vermelho por <code>ImportError</code> de <code>src.contrato</code>, e não por erro de sintaxe no teste.</p></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Na volta ao artefato</span><p><code>python -m pytest -q</code> vermelho por <code>ImportError</code> de <code>src.contrato</code>, e não por erro de sintaxe no teste.</p></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Trecho do prompt da Etapa 06</span>
-            <pre class="is-wrap etapa-pre"><code>Rode pytest -q e mostre que os testes falham pelo motivo certo.</code></pre>
+            <pre class="is-wrap etapa-pre"><code>Rode python -m pytest -q e mostre que os testes falham pelo motivo certo.</code></pre>
           </div>
         </div>
       </div>
@@ -1710,7 +1723,7 @@ meu ok, escreva, rode, registre o prompt e pare.</code></pre>
           <div class="de-caixa"><span class="de-rotulo"><code>test_contrato.py</code></span><p>Um caso por arquivo: 3 válidos devolvem a etiqueta e a lista de objetos; 6 inválidos levantam <code>EnvelopeInvalido</code> com o motivo; o <code>.txt</code> levanta <code>CorpoNaoJson</code>.</p></div>
           <div class="de-caixa"><span class="de-rotulo"><code>test_api.py</code></span><p>O <code>TestClient</code> da FastAPI (por isso o <code>httpx</code> no requirements) chama <code>POST /ingest</code>. A publicação na fila é trocada por um dublê, uma função falsa que só anota o que receberia.</p></div>
         </div>
-        <div class="deck-callout"><strong>Referência da preparação</strong><p><code>pytest -q</code> com 15 testes verdes: o contrato com os 10 exemplos e a API com 202, 422, 400 e 413, usando um publicador falso. Nenhum serviço no ar.</p></div>
+        <div class="deck-callout"><strong>Referência da preparação</strong><p><code>python -m pytest -q</code> com 19 testes verdes: o contrato com os 10 exemplos, a API com 202, 422, 400 e 413 usando um publicador falso e o layout do lake. Nenhum serviço no ar.</p></div>
       </div>
     </div>
 
@@ -1724,7 +1737,7 @@ meu ok, escreva, rode, registre o prompt e pare.</code></pre>
         </div>
         <div class="de-tres">
           <div class="de-caixa"><span class="de-rotulo">Isolamento</span><p>Bucket <code>teste</code> e uma fila de teste. O <code>raw</code> e a fila <code>ingestao</code> ficam limpos para a carga da Etapa 09.</p></div>
-          <div class="de-caixa"><span class="de-rotulo">Marcação</span><p><code>pytest.mark.integracao</code> separa os testes lentos: <code>pytest -q</code> roda tudo, <code>pytest -m integracao</code> só esses.</p></div>
+          <div class="de-caixa"><span class="de-rotulo">Marcação</span><p><code>pytest.mark.integracao</code> separa os testes lentos: <code>python -m pytest -q</code> roda tudo, <code>pytest -m integracao</code> só esses.</p></div>
           <div class="de-caixa"><span class="de-rotulo">Contagem</span><p>Envelope não é linha: uma lista de 5 boletins é um envelope e 5 linhas. O teste conta linhas.</p></div>
         </div>
         <p class="deck-note">Vermelho agora é o resultado esperado: os testes importam de <code>src.contrato</code>, <code>src.api</code> e <code>src.consumidor</code>, que só nascem nas Etapas 07 e 08.</p>
@@ -1742,7 +1755,7 @@ meu ok, escreva, rode, registre o prompt e pare.</code></pre>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p><code>src/config.py</code>, <code>src/contrato.py</code>, <code>src/api.py</code></p></div>
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><ul><li><code>pytest -q tests/test_contrato.py tests/test_api.py</code> verde</li><li>curl: 202 nos <code>valido_*</code>, 422 nos <code>invalido_422_*</code>, 400 no <code>invalido_400_*</code></li><li>corpo de 1,1 MB devolve 413</li></ul></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><ul><li><code>python -m pytest -q tests/test_contrato.py tests/test_api.py</code> verde</li><li>curl: 202 nos <code>valido_*</code>, 422 nos <code>invalido_422_*</code>, 400 no <code>invalido_400_*</code></li><li>corpo de 1,1 MB devolve 413</li></ul></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
@@ -1753,25 +1766,29 @@ pedem, uma por vez, até os testes ficarem verdes.
 
 <span class="k">[R] Pedido</span>
 Implemente as tarefas do contrato e da API:
-1. src/config.py: lê o .env (DOMINIOS, RabbitMQ, ClickHouse, RustFS
-   pelas variáveis S3_*, FLUSH_N, FLUSH_SEGUNDOS, HTTP_MAX_BYTES).
-2. src/contrato.py: validar(corpo, dominios) devolve (data_tag, lista
-   de objetos), ou levanta CorpoNaoJson ou EnvelopeInvalido com o
+1. src/config.py: lê o .env (DOMINIOS, RABBITMQ_*, FILA_INGESTAO,
+   CLICKHOUSE_*, incluindo CLICKHOUSE_ASYNC_INSERT, S3_*, BUCKET_*,
+   FLUSH_N, FLUSH_SEGUNDOS, HTTP_MAX_BYTES, API_PORT).
+2. src/contrato.py: validar(corpo: bytes, dominios) devolve (data_tag,
+   lista de objetos), ou levanta CorpoNaoJson ou EnvelopeInvalido com o
    motivo.
-3. src/api.py: FastAPI com POST /ingest (202/400/413/422) que publica
-   o corpo na fila ingestao (durável, mensagem persistente, com
-   confirmação do broker e o cabeçalho recebido_em_ms) e GET /health.
-Rode pytest -q tests/test_contrato.py tests/test_api.py.
+3. src/api.py: FastAPI com POST /ingest e GET /health. O POST mede o
+   corpo (413), valida (400 ou 422), publica o corpo original na fila
+   FILA_INGESTAO (durável, mensagem persistente, confirmação do broker,
+   cabeçalho recebido_em_ms com a hora do recebimento em unix ms) e só
+   então responde 202 com data_tag e quantidade de itens.
+Rode python -m pytest -q tests/test_contrato.py tests/test_api.py.
 
 <span class="k">[E] Exemplos</span>
 curl -s -o /dev/null -w "%{http_code}\n" -X POST localhost:8000/ingest \
   -H 'content-type: application/json' \
-  --data-binary @specs/exemplos/valido_livros_objeto.json
+  --data-binary @fixtures/exemplos/valido_livros_objeto.json
 202
 
 <span class="k">[A] Ajustes</span>
 - Uma tarefa por vez; mostre o diff de cada uma.
 - Não grave no lake nem no ClickHouse pela API.
+- A conexão pika não é compartilhada entre threads.
 - Sem segredo no código.
 
 <span class="k">[T] Tipo de saída</span>
@@ -1834,7 +1851,7 @@ async def ingest(request: Request):
     return {"status": "aceito", "data_tag": tag, "itens": len(itens)}</code></pre>
           </div>
           <div class="de-caixa">
-            <span class="de-rotulo">Gate da API (README do laboratório)</span>
+            <span class="de-rotulo">Gate da API, na pasta do grupo (no laboratório: <code>fixtures/exemplos/*</code>)</span>
             <pre class="de-pre de-pre-largo"><code>for f in specs/exemplos/*; do
   printf '%s ' "$(curl -s -o /dev/null -w '%{http_code}' \
     -X POST localhost:8000/ingest \
@@ -1862,7 +1879,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST \
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p><code>src/lake.py</code>, <code>src/clickhouse.py</code>, <code>src/consumidor.py</code>, <code>src/servidor.py</code></p></div>
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><ul><li><code>pytest -q</code> inteiro verde, inclusive <code>-m integracao</code></li><li>no código, o manifesto vem depois do INSERT e o ack por último</li><li>logs com o nome do lote, <code>data_tag</code>, tamanho e tempo de cada passo</li></ul></div>
+            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><ul><li><code>python -m pytest -q</code> inteiro verde, inclusive <code>-m integracao</code></li><li>no código, o manifesto vem depois do INSERT e o ack por último</li><li>logs com o nome do lote, <code>data_tag</code>, tamanho e tempo de cada passo</li></ul></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
@@ -1885,17 +1902,20 @@ gravadores, uma tarefa por vez.
    Cada PUT leva os metadados sha256 e lote; o SHA-256 vai também
    para o manifesto.
 2. src/clickhouse.py: insere o lote em ingestao.db_ingestion com
-   clickhouse-connect, num INSERT só.
-3. src/consumidor.py: lê a fila ingestao, valida de novo, rejeitado vai
-   para raw/ingestao_rejeitados com o motivo e recebe ack; válido entra
-   no buffer; flush a cada FLUSH_N envelopes ou FLUSH_SEGUNDOS; no
-   flush, raw, depois bronze, depois ClickHouse, depois manifesto com
-   status ok, depois ack multiple da última mensagem do lote. Se o
-   ClickHouse falhar, grave o manifesto com status erro_clickhouse e
-   não dê ack.
-4. src/servidor.py: sobe a API e o consumidor (thread) no mesmo
-   processo.
-Rode pytest -q, inclusive -m integracao.
+   clickhouse-connect (porta HTTP 8123), num INSERT só, com
+   settings={"async_insert": CLICKHOUSE_ASYNC_INSERT} (0 no .env).
+3. src/consumidor.py: lê a fila FILA_INGESTAO com ack manual e
+   prefetch_count = FLUSH_N; valida de novo; rejeitado vai para o lake
+   de rejeitados e recebe ack; válido entra no buffer, um item por
+   objeto de data, com o timestamp do cabeçalho recebido_em_ms (ou a
+   hora do consumo, se faltar); flush a cada FLUSH_N envelopes ou
+   FLUSH_SEGUNDOS; no flush, raw, depois bronze, depois ClickHouse,
+   depois manifesto com status ok, depois ack multiple da última
+   mensagem do lote. Se o ClickHouse falhar, grave o manifesto com
+   status erro_clickhouse e não dê ack.
+4. src/servidor.py: sobe a API (uvicorn) e o consumidor (thread) no
+   mesmo processo; comando: python -m src.servidor.
+Rode python -m pytest -q, inclusive -m integracao.
 
 <span class="k">[E] Exemplos</span>
 def flush(self, canal):
@@ -1908,14 +1928,11 @@ def flush(self, canal):
 
 <span class="k">[A] Ajustes</span>
 - Se o lake ou o ClickHouse falhar, não dê ack: a fila reentrega.
-- timestamp em unix ms: o cabeçalho recebido_em_ms da mensagem; sem
-  ele, a hora do consumo.
-- prefetch_count do consumidor pelo menos igual a FLUSH_N.
-- Cliente do ClickHouse com async_insert de CLICKHOUSE_ASYNC_INSERT.
+- A conexão pika do consumidor é usada só pela thread do consumidor.
 - Logs com o nome do lote, data_tag, tamanho e tempo de cada passo.
 
 <span class="k">[T] Tipo de saída</span>
-Python em src/; pytest -q inteiro verde.
+Python em src/; python -m pytest -q inteiro verde.
 
 <span class="k">[E] Extras</span>
 Leia AGENTS.md, specs/, docs/adr/ e tests/. Registre o prompt, marque
@@ -1960,9 +1977,9 @@ não dê ack.</code></pre>
             <span class="de-rotulo"><code>src/consumidor.py</code>, resumido</span>
             <pre class="de-pre de-pre-largo"><code>lote, dia = novo_lote(ts0), dia_e_hora(ts0)[0]
 for (tag, d), g in grupos.items():         <span class="c"># 1. raw</span>
-    arquivos.append(lake.gravar_raw(lote, tag, d, g["envelopes"]))
+    arquivos.append(self.lake.gravar_raw(lote, tag, d, g["envelopes"]))
 for (tag, d), g in grupos.items():         <span class="c"># 2. bronze</span>
-    arquivos.append(lake.gravar_bronze(lote, tag, d, g["linhas"]))
+    arquivos.append(self.lake.gravar_bronze(lote, tag, d, g["linhas"]))
 try:
     self.ch.inserir(linhas_ch)             <span class="c"># 3. ClickHouse</span>
 except Exception as e:
@@ -2013,24 +2030,25 @@ def _put(self, bucket, chave, dados, tipo, lote):
         self.lake.rejeitar(corpo, str(e), ts)
         canal.basic_ack(metodo.delivery_tag)
         return
-    for item in itens:
-        self.lote.append((ts, json.dumps(item,
-            ensure_ascii=False, separators=(",", ":")), tag))
+    if not self.envelopes:
+        self.inicio_lote = time.monotonic()
+    jsons = [json.dumps(i, ensure_ascii=False,
+             separators=(",", ":")) for i in itens]
+    self.envelopes.append((ts, corpo, tag, jsons))
     self.ultima_tag_entrega = metodo.delivery_tag
-    self.envelopes += 1
-    if self.envelopes &gt;= FLUSH_N:
+    if len(self.envelopes) &gt;= self.flush_n:
         self.flush(canal)</code></pre>
           </div>
           <div class="de-caixa">
             <span class="de-rotulo">Laço principal da thread</span>
-            <pre class="de-pre de-pre-largo"><code>canal.basic_qos(prefetch_count=FLUSH_N)
+            <pre class="de-pre de-pre-largo"><code>canal.basic_qos(prefetch_count=self.flush_n)
 canal.basic_consume(queue=FILA,
     on_message_callback=self._mensagem,
     auto_ack=False)
-while not parar.is_set():
+while not self.parar.is_set():
     con.process_data_events(time_limit=0.2)
-    if (self.lote and time.monotonic()
-            - self.inicio_lote &gt;= FLUSH_SEGUNDOS):
+    if (self.envelopes and time.monotonic()
+            - self.inicio_lote &gt;= self.flush_segundos):
         self.flush(canal)</code></pre>
             <p style="margin-top:8px;">Prefetch é quantas mensagens sem ack o broker entrega de uma vez. Menor que <code>FLUSH_N</code>, o broker para antes de o lote encher e o flush só acontece pelo relógio. A Aula 06 aprofunda.</p>
           </div>
@@ -2056,7 +2074,7 @@ while not parar.is_set():
         </table>
         <div class="de-tres">
           <div class="de-caixa is-forte"><span class="de-rotulo">Tempo, com RustFS</span><p>N=500 drenou o dia em 6,19 s e 5,98 s, cerca de 5.100 linhas/s, contra 3,84 s e 8.147 linhas/s no MinIO. Cada lote faz três PUTs. Com N=1, quase 9 minutos: cada mensagem paga o custo fixo.</p></div>
-          <div class="de-caixa"><span class="de-rotulo">ClickHouse</span><p>Com N=1, cerca de 19.600 merges em 9 minutos para manter 5 partes ativas. O custo aparece nas partes criadas, não nas ativas.</p></div>
+          <div class="de-caixa"><span class="de-rotulo">ClickHouse</span><p>Com N=1, cerca de 19.600 merges em 9 minutos para manter 5 partes ativas. O custo aparece nas partes criadas e nos merges, e as partes ativas continuam poucas.</p></div>
           <div class="de-caixa"><span class="de-rotulo">Lake</span><p>Com RustFS e N=500, o dia grava 189 objetos (63 raw, 63 bronze, 63 manifestos). No MinIO, N=1 gravou 54 vezes mais bytes que N=500: cada Parquet de uma linha carrega cabeçalho, rodapé e metadados.</p></div>
         </div>
       </div>
@@ -2151,6 +2169,8 @@ servidor e mede o que entra e o que sai.
    ClickHouse x linhas no bronze x envelopes no raw x distintas por
    (timestamp, data_json); manifestos por status com a soma de
    linhas; a fila com mensagens e sem ack.
+Cada produtor imprime quantos envelopes mandou e quantos objetos
+havia neles. Todos rodam como módulo (python -m src.produtores.X).
 
 <span class="k">[E] Exemplos</span>
 data_tag    esperadas  clickhouse  bronze  raw_envelopes  distintas
@@ -2162,6 +2182,7 @@ manifestos ok: 65, linhas 32305
 <span class="k">[A] Ajustes</span>
 - Produtor não conhece ClickHouse nem RustFS de destino; só a API ou
   a fila.
+- Publicação na fila com mensagem persistente e confirmação.
 - Sem paralelismo nos produtores.
 
 <span class="k">[T] Tipo de saída</span>
@@ -2188,7 +2209,7 @@ Leia AGENTS.md e specs/. Registre o prompt e pare.</code></pre>
             <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Na volta ao terminal</span><p>A tabela do <code>conferir.py</code> com as colunas iguais antes da queda; depois dela, duplicatas e manifestos a mais contados.</p></div>
           </div>
           <div class="etapa-prompt">
-            <span class="etapa-rotulo">Teste de queda (README do laboratório)</span>
+            <span class="etapa-rotulo">Teste de queda, na pasta do grupo</span>
             <pre class="etapa-pre etapa-pre-codigo"><code>python -m src.servidor &amp; SERVIDOR=$!
 python enviar_entrada.py --so telemetria &amp;   # ou o produtor do grupo
 sleep 3; kill -9 $SERVIDOR      # sem flush e sem ack
@@ -2298,18 +2319,24 @@ colunas tipadas, no DuckDB e no ClickHouse.
 
 <span class="k">[R] Pedido</span>
 Os arquivos sql/duckdb_cast.sql, sql/clickhouse_cast.sql e
-sql/silver_livros_ptax.sql vieram do laboratório.
-1. Rode duckdb_cast.sql (python sql/rodar_sql.py) e clickhouse_cast.sql
-   (clickhouse-client --time --multiquery) e compare, consulta a
-   consulta, o resultado e o tempo, e as contagens do raw (envelopes
-   e linhas que eles carregam) e dos manifestos por status.
-2. Para cada consulta, diga qual função extrai o campo (->>,
-   json_extract_string, from_json, JSONExtract*, simpleJSONExtract*,
-   CAST AS JSON) e em que momento o tipo é decidido.
+sql/silver_livros_ptax.sql vieram do laboratório. Para cada um:
+1. sql/duckdb_cast.sql, lendo o bronze: confira que tem o preço médio
+   em GBP por categoria (livros) com -&gt;&gt; e CAST, com json_extract e
+   com from_json; a venda média por tipo de boletim (ptax); linhas por
+   caminhão (telemetria); duplicatas; e as contagens do raw (envelopes
+   e linhas que eles carregam) e dos manifestos por status. Rode com
+   python sql/rodar_sql.py sql/duckdb_cast.sql.
+2. sql/clickhouse_cast.sql: as mesmas consultas com JSONExtract*,
+   simpleJSONExtract* e CAST(data_json AS JSON). Rode com
+   clickhouse-client --time --multiquery.
 3. sql/silver_livros_ptax.sql: DuckDB lendo o bronze e gravando
-   s3://silver/... no contrato da Aula 05. Rode com
+   s3://silver/livros/data_coleta=D/livros.parquet e
+   s3://silver/ptax/ptax.parquet no contrato da Aula 05. Rode com
    --var DATA=2026-10-30 (dia da coleta dos livros do zip) e confira
-   as colunas e os tipos com DESCRIBE.
+   com DESCRIBE.
+Para cada consulta, diga qual função extrai o campo e em que momento
+o tipo é decidido. Se faltar alguma consulta pedida, proponha o
+acréscimo com o diff.
 
 <span class="k">[E] Exemplos</span>
 SELECT data_json -&gt;&gt; 'categoria' AS categoria,
@@ -2327,17 +2354,18 @@ GROUP BY ALL;
   cotacao_venda DECIMAL(12,5), arquivo_origem, processado_em).
 - Deduplicar: livros por upc (coleta mais recente), ptax por moeda,
   data_hora_cotacao e tipo_boletim.
+- coletado_em é lido como texto e convertido com o deslocamento -03:00.
 - Não altere os arquivos SQL sem mostrar o diff e esperar meu ok.
-- Diferença de arredondamento entre as engines é explicada, não
-  escondida.
+- Se as engines arredondarem diferente, explique a diferença na tabela.
 
 <span class="k">[T] Tipo de saída</span>
-Tabela "consulta | DuckDB | ClickHouse | tempo | igual?" no terminal
-e em docs/prompts.md, junto do prompt.
+SQL com comentários curtos; resultado e tempo no terminal; tabela
+"consulta | DuckDB | ClickHouse | tempo | igual?" registrada em
+docs/prompts.md.
 
 <span class="k">[E] Extras</span>
-Leia AGENTS.md, specs/03_modelo_de_dados.md e o contrato silver no
-README do laboratório. Registre o prompt e pare.</code></pre>
+Leia AGENTS.md e specs/03_modelo_de_dados.md; o contrato silver está
+em [A] Ajustes. Registre o prompt e pare.</code></pre>
           </div>
         </div>
       </div>

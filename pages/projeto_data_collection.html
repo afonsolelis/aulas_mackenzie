@@ -123,7 +123,7 @@
 
       <section class="content-block">
         <h2>Lakehouse e modelagem dimensional</h2>
-        <p>A gold é um esquema estrela lido pelo DuckDB, com Parquet no MinIO por trás e acesso pela extensão <code>httpfs</code>, como na Aula 04. O fato central é o preço diário, e cada pergunta do dashboard é uma agregação desse fato por alguma dimensão.</p>
+        <p>A gold é um esquema estrela lido pelo DuckDB, com Parquet num object storage S3 por trás (o MinIO do grupo no Railway) e acesso pela extensão <code>httpfs</code>, como no JSON cast da Aula 04. O fato central é o preço diário, e cada pergunta do dashboard é uma agregação desse fato por alguma dimensão.</p>
         <table>
           <thead><tr><th>Tabela gold</th><th>Grão ou conteúdo</th></tr></thead>
           <tbody>

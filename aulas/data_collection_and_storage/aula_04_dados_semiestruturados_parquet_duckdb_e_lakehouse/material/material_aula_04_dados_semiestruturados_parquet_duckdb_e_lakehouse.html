@@ -166,7 +166,7 @@
         <div class="table-scroll"><table>
           <thead><tr><th>Decisão</th><th>Por que</th><th>Custo aceito</th></tr></thead>
           <tbody>
-            <tr><td>A API publica na fila em vez de gravar nos destinos</td><td>Um caminho só até os destinos; a API responde em cerca de 1,5 ms; se o ClickHouse cair, a fila segura as mensagens.</td><td>Mais um serviço para operar; o 202 promete que o dado está na fila, e não que já é consultável.</td></tr>
+            <tr><td>A API publica na fila em vez de gravar nos destinos</td><td>Um caminho só até os destinos; a API responde em cerca de 1,5 ms; se o ClickHouse cair, a fila segura as mensagens.</td><td>Mais um serviço para operar; o 202 confirma que o dado está na fila; a consulta vem depois do flush.</td></tr>
             <tr><td>Raw e bronze antes do ClickHouse</td><td>O raw guarda o que chegou e permite refazer o bronze; o bronze é o histórico tipável, de onde se recria a tabela do ClickHouse.</td><td>Três <code>PUT</code>s por flush em vez de um; se o ClickHouse cair, o consumidor para e a fila cresce (questão 2 do TBL).</td></tr>
             <tr><td>Manifesto depois do ClickHouse e ack por último</td><td>O manifesto é o recibo do lote: com <code>"status": "ok"</code>, o lote está completo em raw, bronze e ClickHouse. A mensagem só sai da fila depois disso.</td><td>Se o processo morrer entre o manifesto e o ack, o lote volta e é gravado de novo, com dois manifestos <code>ok</code>: duplicata.</td></tr>
             <tr><td>Micro-lote de 500 envelopes ou 2 segundos</td><td>Cada <code>PUT</code> e cada <code>INSERT</code> têm custo fixo; com lote de 500, o dia de telemetria drenou em cerca de 6 s, contra 524,5 s linha a linha na primeira rodada.</td><td>Com pouco tráfego, o dado leva cerca de 2 s para ficar consultável.</td></tr>
@@ -320,7 +320,7 @@ prompt em docs/prompts.md e pare.</code></pre>
         <h3>4.1 Enquanto o agente trabalha: quem empurra, quem lê e quem acorda de madrugada</h3>
         <p>Na Aula 03, as personas eram o comprador que decide preço, o operador do coletor e o engenheiro da aula seguinte. Aqui o centro muda, porque a plataforma deixa de ir buscar o dado. A P1 é um time que não é de dados: o time de logística dono da telemetria, o time de compras que coleta livros. Ele quer entregar o dado e voltar ao próprio trabalho. A pergunta da P1 é "o que eu preciso mandar, e como sei que foi aceito?". O contrato da Etapa 02 e o código 202 respondem a ela.</p>
         <p>A P2 é o analista. Ele não sabe, e não deveria precisar saber, se o dado chegou por HTTP ou pela fila. A pergunta dele é "o dado de agora já está na tabela?" e, depois, "por que preciso extrair o preço de dentro de um texto JSON?". A primeira pergunta vira o objetivo de latência; a segunda vira a questão 3 do TBL. A P3 é quem opera o servidor. Ela é acionada quando a fila cresce sem parar, quando o ClickHouse recusa conexões ou quando a contagem de linhas não fecha. Uma persona de operação bem escrita diz o que a acorda e que número ela olha primeiro: o tamanho da fila e as mensagens sem ack, no console do RabbitMQ.</p>
-        <p>Um objetivo útil tem três partes que um teste consegue conferir: a métrica, o comando que a mede e a meta. O OBJ-01 do exemplo mede uma coisa estrutural (quantos passos para uma fonte nova) e já sugere a resposta: uma linha no <code>.env</code> e um reinício, sem <code>CREATE TABLE</code>. O OBJ-02 mede tempo. A meta de "poucos segundos" ainda não tem origem e por isso o prompt pede a marcação de hipótese; a Etapa 09 mede e a seção 6.5 mostra o número: com o micro-lote de 2 segundos e pouco tráfego, o dado fica consultável em cerca de 2.030 ms.</p>
+        <p>Um objetivo útil tem três partes que um teste consegue conferir: a métrica, o comando que a mede e a meta. O OBJ-01 do exemplo mede uma coisa estrutural (quantos passos para uma fonte nova) e já sugere a resposta: uma linha no <code>.env</code> e um reinício, sem <code>CREATE TABLE</code>. O OBJ-02 mede tempo. A meta de "poucos segundos" ainda não tem origem e por isso o prompt pede a marcação de hipótese; a Etapa 09 mede e a seção 6.5 mostra o número: com o micro-lote de 2 segundos e pouco tráfego, o dado fica consultável em cerca de 2.053 ms.</p>
         <div class="note">
           <strong>Revise antes de seguir</strong>
           <p>Cada OBJ tem um comando ou uma consulta que mede? A P3 sabe o que a acorda de madrugada e que número olhar primeiro? O fora de escopo segura as Aulas 05, 06 e 07 fora daqui? Algum número aparece sem origem e sem a marcação de hipótese?</p>
@@ -812,7 +812,7 @@ Você é engenheiro de software. Quebra a construção em tarefas de até
 4. tests/test_integracao.py: com os três serviços do compose, publica
    20 envelopes e confere 20 linhas no ClickHouse e no lake (marcado
    com pytest.mark.integracao).
-Rode pytest -q e mostre que os testes falham pelo motivo certo.
+Rode python -m pytest -q e mostre que os testes falham pelo motivo certo.
 
 [E] Exemplos
 EXEMPLOS = Path("specs/exemplos")
@@ -868,7 +868,7 @@ Implemente as tarefas do contrato e da API:
    FILA_INGESTAO (durável, mensagem persistente, confirmação do broker,
    cabeçalho recebido_em_ms com a hora do recebimento em unix ms) e só
    então responde 202 com data_tag e quantidade de itens.
-Rode pytest -q tests/test_contrato.py tests/test_api.py.
+Rode python -m pytest -q tests/test_contrato.py tests/test_api.py.
 
 [E] Exemplos
 curl -s -o /dev/null -w "%{http_code}\n" -X POST localhost:8000/ingest \
@@ -941,7 +941,7 @@ curl -s -o /dev/null -w '%{http_code}\n' -X POST localhost:8000/ingest --data-bi
 docker compose exec rabbitmq rabbitmqctl list_queues name messages   # ingestao com 3 mensagens</code></pre>
         <div class="note">
           <strong>Gate da Etapa 07</strong>
-          <p><code>pytest -q tests/test_contrato.py tests/test_api.py</code> verde; o laço devolve 202 para os 3 válidos, 422 para os 6 <code>invalido_422_*</code> e 400 para o <code>invalido_400_nao_json.txt</code>; o corpo de 1,1 MB devolve 413; a fila <code>ingestao</code> tem 3 mensagens, uma por envelope válido, que o consumidor da Etapa 08 vai processar.</p>
+          <p><code>python -m pytest -q tests/test_contrato.py tests/test_api.py</code> verde; o laço devolve 202 para os 3 válidos, 422 para os 6 <code>invalido_422_*</code> e 400 para o <code>invalido_400_nao_json.txt</code>; o corpo de 1,1 MB devolve 413; a fila <code>ingestao</code> tem 3 mensagens, uma por envelope válido, que o consumidor da Etapa 08 vai processar.</p>
         </div>
       </section>
 
@@ -979,7 +979,7 @@ gravadores, uma tarefa por vez.
    status erro_clickhouse e não dê ack.
 4. src/servidor.py: sobe a API (uvicorn) e o consumidor (thread) no
    mesmo processo; comando: python -m src.servidor.
-Rode pytest -q, inclusive -m integracao.
+Rode python -m pytest -q, inclusive -m integracao.
 
 [E] Exemplos
 def flush(self, canal):
@@ -996,7 +996,7 @@ def flush(self, canal):
 - Logs com o nome do lote, data_tag, tamanho e tempo de cada passo.
 
 [T] Tipo de saída
-Python em src/; pytest -q inteiro verde.
+Python em src/; python -m pytest -q inteiro verde.
 
 [E] Extras
 Leia AGENTS.md, specs/, docs/adr/ e tests/. Registre o prompt, marque
@@ -1020,11 +1020,11 @@ self.lake.gravar_manifesto(lote, dia_lote, manifesto)      # 4. manifesto: o rec
 self._ack(canal)                                            # 5. ack: só depois de tudo gravado
 
 # laço principal (thread do consumidor)
-canal.basic_qos(prefetch_count=FLUSH_N)                     # &gt;= FLUSH_N, senão o lote não enche
+canal.basic_qos(prefetch_count=self.flush_n)               # &gt;= FLUSH_N, senão o lote não enche
 canal.basic_consume(queue=FILA, on_message_callback=self._mensagem, auto_ack=False)
-while not parar.is_set():
+while not self.parar.is_set():
     con.process_data_events(time_limit=0.2)
-    if self.lote and time.monotonic() - self.inicio_lote &gt;= FLUSH_SEGUNDOS:
+    if self.envelopes and time.monotonic() - self.inicio_lote &gt;= self.flush_segundos:
         self.flush(canal)</code></pre>
         <p>O ack com <code>multiple=True</code> confirma, de uma vez, a mensagem indicada e todas as anteriores ainda sem ack naquele canal. Um lote de 500 envelopes recebe um ack só. Se o lake ou o ClickHouse levantar exceção, a linha do ack não executa, as mensagens continuam sem ack e voltam para a fila quando a conexão cair ou o processo reiniciar. Os gravadores do lake são curtos. Duas funções de <code>laboratorio/referencia/src/lake.py</code> definem o layout: <code>chaves()</code> monta as chaves do raw e do bronze de um lote, e <code>linha_raw()</code> monta a linha do raw.</p>
         <pre><code>def chaves(lote: str, tag: str, dia: str) -&gt; dict[str, str]:
@@ -1108,7 +1108,7 @@ uvicorn.run(app, host="0.0.0.0", port=8000)</code></pre>
         </ul>
         <div class="note">
           <strong>Revise antes de seguir</strong>
-          <p>A ordem no código é raw, bronze, ClickHouse, manifesto, ack? O ack não é executado se uma gravação falhar? Com o ClickHouse fora, aparece um manifesto <code>erro_clickhouse</code>? O <code>prefetch_count</code> é pelo menos <code>FLUSH_N</code>? O cliente do ClickHouse passa <code>async_insert</code> a partir do <code>.env</code>? O bronze recebe o lote como Arrow? Os logs mostram o nome do lote e o tempo de cada passo? <code>pytest -q</code> e <code>pytest -q -m integracao</code> estão verdes? Com <code>python -m src.servidor</code> no ar, as 3 mensagens deixadas na fila pela Etapa 07 viraram linhas no ClickHouse?</p>
+          <p>A ordem no código é raw, bronze, ClickHouse, manifesto, ack? O ack não é executado se uma gravação falhar? Com o ClickHouse fora, aparece um manifesto <code>erro_clickhouse</code>? O <code>prefetch_count</code> é pelo menos <code>FLUSH_N</code>? O cliente do ClickHouse passa <code>async_insert</code> a partir do <code>.env</code>? O bronze recebe o lote como Arrow? Os logs mostram o nome do lote e o tempo de cada passo? <code>python -m pytest -q</code> e <code>python -m pytest -q -m integracao</code> estão verdes? Com <code>python -m src.servidor</code> no ar, as 3 mensagens deixadas na fila pela Etapa 07 viraram linhas no ClickHouse?</p>
         </div>
       </section>
 
@@ -1252,7 +1252,9 @@ sql/silver_livros_ptax.sql vieram do laboratório. Para cada um:
    s3://silver/ptax/ptax.parquet no contrato da Aula 05. Rode com
    --var DATA=2026-10-30 (dia da coleta dos livros do zip) e confira
    com DESCRIBE.
-Se faltar alguma consulta pedida, acrescente com comentário curto.
+Para cada consulta, diga qual função extrai o campo e em que momento
+o tipo é decidido. Se faltar alguma consulta pedida, proponha o
+acréscimo com o diff.
 
 [E] Exemplos
 SELECT data_json -&gt;&gt; 'categoria' AS categoria,
@@ -1271,14 +1273,17 @@ GROUP BY ALL;
 - Deduplicar: livros por upc (coleta mais recente), ptax por moeda,
   data_hora_cotacao e tipo_boletim.
 - coletado_em é lido como texto e convertido com o deslocamento -03:00.
+- Não altere os arquivos SQL sem mostrar o diff e esperar meu ok.
+- Se as engines arredondarem diferente, explique a diferença na tabela.
 
 [T] Tipo de saída
 SQL com comentários curtos; resultado e tempo no terminal; tabela
-"consulta | DuckDB | ClickHouse | tempo" registrada em docs/prompts.md.
+"consulta | DuckDB | ClickHouse | tempo | igual?" registrada em
+docs/prompts.md.
 
 [E] Extras
-Leia AGENTS.md, specs/03_modelo_de_dados.md e o contrato silver no
-README do laboratório. Registre o prompt e pare.</code></pre>
+Leia AGENTS.md e specs/03_modelo_de_dados.md; o contrato silver está
+em [A] Ajustes. Registre o prompt e pare.</code></pre>
         <pre><code>python sql/rodar_sql.py sql/duckdb_cast.sql
 docker compose exec -T clickhouse clickhouse-client --user "$CLICKHOUSE_USER" --password "$CLICKHOUSE_PASSWORD" \
   --time --multiquery &lt; sql/clickhouse_cast.sql

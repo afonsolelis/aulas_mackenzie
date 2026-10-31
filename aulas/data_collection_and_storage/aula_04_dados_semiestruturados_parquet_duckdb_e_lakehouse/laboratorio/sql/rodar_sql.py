@@ -2,7 +2,7 @@
 
 Uso (na pasta do grupo):
     python sql/rodar_sql.py sql/duckdb_cast.sql
-    python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-31
+    python sql/rodar_sql.py sql/silver_livros_ptax.sql --var DATA=2026-10-30
 
 Os arquivos .sql não contêm credenciais. Este utilitário lê .env, cria um
 secret temporário (só existe nesta conexão) e executa as instruções do arquivo
