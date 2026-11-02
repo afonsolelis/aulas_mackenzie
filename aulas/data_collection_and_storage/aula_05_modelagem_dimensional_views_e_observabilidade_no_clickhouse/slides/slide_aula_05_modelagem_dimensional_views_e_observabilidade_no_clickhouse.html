@@ -456,7 +456,7 @@ echo "@AGENTS.md" &gt; CLAUDE.md             # só no Claude Code</code></pre>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>specs/04_modelo_dimensional.md</code></p></div>
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Os quatro passos de Kimball</li><li>Cinco fatos e o grão de cada um</li><li>Aditiva, semiaditiva e não aditiva</li><li>Dois eventos no mesmo arquivo</li><li>Três dimensões</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Os quatro passos de Kimball</li><li>Cinco fatos e o grão de cada um</li><li>Aditiva, semiaditiva e não aditiva</li><li>Dois eventos no mesmo arquivo</li><li>Três dimensões</li><li>Dimensões conformadas e drill-across</li><li>Tabela ponte</li><li>Como dimensionar o grão</li></ol></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
@@ -477,7 +477,8 @@ alerta do tacógrafo e flush do servidor de ingestão. Em cada uma:
 5. as medidas, cada uma classificada como aditiva, semiaditiva ou
    não aditiva, com a agregação permitida.
 Depois, as dimensões dim_data, dim_livro e dim_caminhao, com grão,
-chave e tipo de SCD.
+chave e tipo de SCD, e a matriz de barramento (fatos nas linhas,
+dimensões nas colunas) com a chave e o tipo comuns a cada dimensão.
 
 <span class="k">[E] Exemplos</span>
 ## fato_preco_livro
@@ -623,6 +624,126 @@ TAC;CAM-3126;20261029T180000;DIRECAO CONTINUA 05:35;ALERTA</code></pre>
       </div>
     </div>
 
+    <!-- Dimensões conformadas: matriz de barramento -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">Etapa 01 &middot; Teoria &middot; Dimensões conformadas</span>
+          <h2 class="deck-title">Uma dimensão a serviço de vários fatos</h2>
+          <p class="deck-summary">A <code>dim_data</code> serve aos cinco fatos e a <code>dim_caminhao</code> a dois. Para isso, cada fato grava a mesma chave, no mesmo tipo e com os mesmos valores, e a dimensão fica num grão que todos os fatos conseguem gerar. Kimball chama essa dimensão de conformada.</p>
+        </div>
+        <table class="deck-table de-tabela">
+          <thead><tr><th>Matriz de barramento</th><th>Grão do fato</th><th><code>dim_data</code></th><th><code>dim_livro</code></th><th><code>dim_caminhao</code></th><th>moeda</th></tr></thead>
+          <tbody>
+            <tr><td><code>fato_preco_livro</code></td><td>livro &times; dia</td><td><code>data_key</code></td><td><code>upc</code></td><td></td><td>GBP implícito</td></tr>
+            <tr><td><code>fato_cotacao_ptax</code></td><td>boletim no instante</td><td><code>data_key</code></td><td></td><td></td><td><code>moeda</code></td></tr>
+            <tr><td><code>fato_leitura_telemetria</code></td><td>caminhão &times; instante</td><td><code>data_key</code></td><td></td><td><code>caminhao</code></td><td></td></tr>
+            <tr><td><code>fato_alerta_direcao</code></td><td>caminhão &times; instante</td><td><code>data_key</code></td><td></td><td><code>caminhao</code></td><td></td></tr>
+            <tr><td><code>fato_lote_ingestao</code></td><td>um lote</td><td><code>data_key</code></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout"><strong>O fato mais fino deriva a chave</strong><p>A leitura de 29/10/2026 06:00:55 grava <code>data_key = toYYYYMMDD(instante) = 20261029</code>. A <code>dim_data</code> não desce ao minuto: o instante fica no fato. Se a dimensão tivesse grão de minuto, o preço do livro, que é diário, não teria um valor único para a chave.</p></div>
+      </div>
+    </div>
+
+    <!-- Ajustar a dimensão e cruzar fatos -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">Etapa 01 &middot; Teoria &middot; Dimensões conformadas</span>
+          <h2 class="deck-title">Ajustar a dimensão e cruzar dois fatos</h2>
+          <p class="deck-summary">A dimensão conformada permite cruzar fatos na mesma consulta (drill-across). A regra é agregar cada fato até o grão comum e só depois juntar pela chave compartilhada.</p>
+        </div>
+        <div class="de-dois">
+          <div class="de-caixa">
+            <span class="de-rotulo">Ajustes para servir a mais de um fato</span>
+            <ol>
+              <li>Mesma chave e mesmo tipo: <code>data_key UInt32</code> nos cinco fatos.</li>
+              <li>Grão da dimensão igual ou mais grosso que o de cada fato. O fato mais fino deriva a chave.</li>
+              <li>Mesmos rótulos: se o preço do livro ganhar moeda, grava <code>GBP</code>, como a PTAX, e não <code>Libra</code> ou <code>£</code>.</li>
+              <li>Atributo novo entra na dimensão: um feriado na <code>dim_data</code> passa a valer para preço, PTAX e telemetria.</li>
+              <li>Fato mensal usa uma dimensão encolhida, <code>dim_mes</code>, com os mesmos nomes de mês da <code>dim_data</code>.</li>
+            </ol>
+          </div>
+          <div class="de-caixa is-cinza">
+            <span class="de-rotulo">Preço médio e PTAX por dia</span>
+            <pre class="de-pre"><code>SELECT p.data_key, p.preco_medio_gbp, c.ptax_venda
+FROM (SELECT data_key, avg(preco_gbp) AS preco_medio_gbp
+      FROM dw.fato_preco_livro FINAL
+      GROUP BY data_key) AS p
+LEFT JOIN
+     (SELECT data_key,
+             argMax(cotacao_venda, data_hora) AS ptax_venda
+      FROM dw.fato_cotacao_ptax FINAL
+      WHERE moeda = 'GBP'
+      GROUP BY data_key) AS c
+USING data_key
+SETTINGS join_use_nulls = 1;</code></pre>
+            <p style="margin-top:8px;">Juntar as linhas dos dois fatos antes de agregar repete cada livro uma vez por boletim do dia. Com quatro boletins (hipótese), <code>count()</code> e qualquer soma saem multiplicados por quatro.</p>
+          </div>
+        </div>
+        <p class="deck-note">Sem <code>join_use_nulls</code>, o ClickHouse preenche o dia sem boletim com <code>ptax_venda = 0</code>. O relatório da Etapa 04 trata esse dia com <code>ASOF JOIN</code>.</p>
+      </div>
+    </div>
+
+    <!-- Tabela ponte -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">Etapa 01 &middot; Teoria &middot; Tabela ponte</span>
+          <h2 class="deck-title">Tabela ponte para relação muitos-para-muitos</h2>
+          <p class="deck-summary">Uma dimensão só entra no fato quando tem um valor por linha do grão. Quando a linha tem vários valores, como um livro com dois autores, a relação vai para uma tabela ponte entre a dimensão do fato e a dimensão nova, com um peso que reparte a medida.</p>
+        </div>
+        <div class="de-dois">
+          <div class="de-caixa">
+            <span class="de-rotulo"><code>ponte_livro_autor</code> e o estoque do dia</span>
+            <table class="deck-table de-tabela de-num">
+              <thead><tr><th>Livro</th><th>Estoque</th><th>Autor</th><th>Peso</th></tr></thead>
+              <tbody>
+                <tr><td>L1</td><td>10</td><td style="text-align:left">Ana</td><td>0,5</td></tr>
+                <tr><td>L1</td><td></td><td style="text-align:left">Bruno</td><td>0,5</td></tr>
+                <tr><td>L2</td><td>6</td><td style="text-align:left">Ana</td><td>1,0</td></tr>
+                <tr><td>L3</td><td>4</td><td style="text-align:left">Carla</td><td>1,0</td></tr>
+              </tbody>
+            </table>
+            <p style="margin-top:8px;">O fato não muda: três livros, 20 exemplares no dia. Os pesos de cada livro somam 1.</p>
+          </div>
+          <div class="de-caixa is-cinza">
+            <span class="de-rotulo">Estoque por autor</span>
+            <table class="deck-table de-tabela de-num">
+              <thead><tr><th>Autor</th><th>Sem peso</th><th>Com peso</th></tr></thead>
+              <tbody>
+                <tr><td>Ana</td><td>16</td><td>11</td></tr>
+                <tr><td>Bruno</td><td>10</td><td>5</td></tr>
+                <tr><td>Carla</td><td>4</td><td>4</td></tr>
+                <tr><td>Total</td><td>30</td><td>20</td></tr>
+              </tbody>
+            </table>
+            <p style="margin-top:8px;">Sem peso, cada autor vê todo o estoque dos livros em que participa, e o total passa de 20. Com peso, o total confere com o fato.</p>
+          </div>
+        </div>
+        <div class="deck-callout"><strong>No laboratório</strong><p>Os livros da aula não trazem autor; o exemplo é hipotético. O mesmo desenho serve para um caminhão com dupla de motoristas em revezamento: o alerta de 335 minutos liga-se a um grupo, e a ponte <code>ponte_grupo_motorista</code> diz quem estava no grupo.</p></div>
+      </div>
+    </div>
+
+    <!-- Dimensionar o grão -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">Etapa 01 &middot; Teoria &middot; Grão</span>
+          <h2 class="deck-title">Grão grosso, atômico, partido ou misturado</h2>
+          <p class="deck-summary">O fato fica no grão mais atômico que a fonte entrega. Dele se chega a qualquer grão mais grosso por <code>GROUP BY</code>; o caminho inverso não existe.</p>
+        </div>
+        <div class="df-termos df-c4">
+          <article class="df-termo"><h3>Grosso demais</h3><p>Telemetria por caminhão e dia: 20 linhas em vez de 28.800. A velocidade máxima entre 6h e 7h deixa de existir.</p><p>Livros por categoria e dia: 50 linhas, e "qual livro zerou o estoque" fica sem resposta.</p></article>
+          <article class="df-termo"><h3>Atômico</h3><p>Uma leitura por caminhão e instante: 28.800 linhas.</p><p>Caminhão e hora (480 linhas) e caminhão e dia (20 linhas) saem por <code>GROUP BY</code>, como o relatório da Etapa 04.</p></article>
+          <article class="df-termo"><h3>Partido abaixo do evento</h3><p>Uma linha por cotação, com compra e venda separadas por uma coluna <code>tipo</code>: 80 linhas para 40 boletins.</p><p><code>avg(cotacao)</code> passa a misturar compra com venda.</p></article>
+          <article class="df-termo"><h3>Misturado</h3><p>O total do dia gravado em cada leitura: <code>leituras_no_dia = 1.440</code> nas 1.440 linhas do CAM-0451.</p><p><code>sum()</code> devolve 2.073.600. O total do dia é outro grão.</p></article>
+        </div>
+        <div class="deck-callout"><strong>Teste de cada dimensão contra o grão</strong><p>A dimensão tem exatamente um valor por linha do fato. Nenhum valor (categoria na PTAX): não é dimensão desse fato. Vários valores (dois autores, dois motoristas): o grão está errado ou a relação vai para uma ponte.</p></div>
+      </div>
+    </div>
+
     <!-- Revise 01 -->
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
@@ -640,6 +761,7 @@ TAC;CAM-3126;20261029T180000;DIRECAO CONTINUA 05:35;ALERTA</code></pre>
               <li>Toda medida tem classificação e a agregação permitida?</li>
               <li>Leitura e alerta estão em fatos separados, e o ruído fora dos dois?</li>
               <li><code>tipo_boletim</code> ficou no fato?</li>
+              <li>A matriz de barramento mostra a mesma <code>data_key UInt32</code> nos cinco fatos, e cada dimensão tem um valor só por linha do grão?</li>
             </ul>
           </div>
           <div class="de-caixa is-forte">
