@@ -1645,26 +1645,26 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou o agente que você us
     <div class="slide">
       <div class="deck-shell is-dense" style="gap:14px;">
         <div>
-          <span class="deck-kicker">Etapa 0 &middot; MinIO da turma</span>
-          <h2 class="deck-title">Lotes da aula no MinIO do Railway</h2>
-          <p class="deck-summary" style="max-width:none;">Os 80 lotes de 17/10/2026, das 09:00 às 10:00 de Brasília (20 caminhões, 4 janelas), estão no bucket <code>pouso</code>. São os mesmos bytes que o <code>gerar_lotes.py</code> produz com <code>--inicio 2026-10-17T09:00</code>.</p>
+          <span class="deck-kicker">Etapa 0 &middot; Object storage da turma</span>
+          <h2 class="deck-title">Lotes da aula no RustFS da turma</h2>
+          <p class="deck-summary" style="max-width:none;">Os 80 lotes de 17/10/2026, das 09:00 às 10:00 de Brasília (20 caminhões, 4 janelas), estão no bucket <code>pouso</code> do RustFS da turma, um object storage compatível com S3 (a mesma API do MinIO). São os mesmos bytes que o <code>gerar_lotes.py</code> produz com <code>--inicio 2026-10-17T09:00</code>.</p>
         </div>
         <table class="deck-table">
           <thead><tr><th style="width:26%;">Item</th><th>Valor</th></tr></thead>
           <tbody>
-            <tr><td>Console web</td><td><code>https://minio-production-505d.up.railway.app</code></td></tr>
-            <tr><td>API S3 (endpoint)</td><td><code>https://minio-production-8d37.up.railway.app</code></td></tr>
-            <tr><td>Usuário</td><td><code>admin</code></td></tr>
-            <tr><td>Senha</td><td><code>admin123</code></td></tr>
+            <tr><td>Console web</td><td><code>https://s3-console.afonsolelis.tech/rustfs/console/</code></td></tr>
+            <tr><td>API S3 (endpoint)</td><td><code>https://s3.afonsolelis.tech</code></td></tr>
+            <tr><td>Usuário</td><td><code>turma</code> (só leitura)</td></tr>
+            <tr><td>Senha</td><td><code>turma-d6102587</code></td></tr>
             <tr><td>Bucket</td><td><code>pouso</code>, 80 objetos <code>CAM-XXXX_AAAAMMDDTHHMM.txt</code></td></tr>
           </tbody>
         </table>
-        <pre class="is-compact" style="flex-shrink:0;"><code>docker compose exec minio sh -c 'mc alias set turma https://minio-production-8d37.up.railway.app admin admin123'
+        <pre class="is-compact" style="flex-shrink:0;"><code>docker compose exec minio sh -c 'mc alias set turma https://s3.afonsolelis.tech turma turma-d6102587'
 docker compose exec minio mc ls turma/pouso | wc -l                  # 80
 # baixa os lotes para a pasta pouso/ do Codespace, onde o coletor lê
-python -c "import boto3,os;s3=boto3.client('s3',endpoint_url='https://minio-production-8d37.up.railway.app',aws_access_key_id='admin',aws_secret_access_key='admin123',region_name='us-east-1');os.makedirs('pouso',exist_ok=True);[s3.download_file('pouso',o['Key'],'pouso/'+o['Key']) for o in s3.list_objects_v2(Bucket='pouso')['Contents']]"
+python -c "import boto3,os;s3=boto3.client('s3',endpoint_url='https://s3.afonsolelis.tech',aws_access_key_id='turma',aws_secret_access_key='turma-d6102587',region_name='us-east-1');os.makedirs('pouso',exist_ok=True);[s3.download_file('pouso',o['Key'],'pouso/'+o['Key']) for o in s3.list_objects_v2(Bucket='pouso')['Contents']]"
 sha256sum pouso/CAM-0451_20261017T0900.txt                           # 6789b712602d1985...</code></pre>
-        <p class="deck-note" style="max-width:none;">O bucket é compartilhado pela turma: leia e copie, mas não grave nem apague nada nele. O <code>raw</code> de cada grupo continua no MinIO local.</p>
+        <p class="deck-note" style="max-width:none;">O bucket é compartilhado pela turma: o usuário <code>turma</code> só lê, então copie os lotes para o seu ambiente. O <code>raw</code> de cada grupo continua no MinIO local.</p>
       </div>
     </div>
 
@@ -1953,7 +1953,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       <a href="../material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html" class="material-link">Material</a>
       <a href="../tbl/tbl_aula_02.html" class="material-link">TBL</a>
       <a href="../tbl/painel_aula_02.html" class="material-link">Área do professor</a>
-      <a href="https://minio-production-505d.up.railway.app" class="material-link" target="_blank" rel="noopener noreferrer" title="Console do MinIO da turma no Railway">MinIO</a>
+      <a href="https://s3-console.afonsolelis.tech/rustfs/console/" class="material-link" target="_blank" rel="noopener noreferrer" title="Console do RustFS da turma">RustFS</a>
     </div>
     <div class="nav-wrapper">
       <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>

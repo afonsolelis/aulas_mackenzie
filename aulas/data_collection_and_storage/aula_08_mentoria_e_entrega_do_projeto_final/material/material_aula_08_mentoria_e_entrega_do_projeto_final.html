@@ -55,7 +55,7 @@
 
       <section class="content-block" id="s2">
         <h2>2. O projeto em resumo</h2>
-        <p>Cada aluno escolhe uma coleção principal do Pokémon TCG lançada a partir de 2024, coleta todos os dias os produtos e os preços dessa coleção no TCGplayer e grava a resposta original no MinIO da turma, publicado pelo professor no Railway. A partir do bruto, constrói a silver no contrato comum da turma, a gold num esquema estrela lido pelo DuckDB e um dashboard em Streamlit, ou outra biblioteca de frontend em Python, que responde às cinco perguntas da página de direcionamentos. Os preços chegam em dólar e são convertidos pela PTAX do Banco Central, e o desafio final compara uma carteira de R$ 1.000 em cartas e selados com deixar o dinheiro em dólar ou no CDI.</p>
+        <p>Cada aluno escolhe uma coleção principal do Pokémon TCG lançada a partir de 2024, coleta todos os dias os produtos e os preços dessa coleção no TCGplayer e grava a resposta original no RustFS da turma, publicado pelo professor no Railway. A partir do bruto, constrói a silver no contrato comum da turma, a gold num esquema estrela lido pelo DuckDB e um dashboard em Streamlit, ou outra biblioteca de frontend em Python, que responde às cinco perguntas da página de direcionamentos. Os preços chegam em dólar e são convertidos pela PTAX do Banco Central, e o desafio final compara uma carteira de R$ 1.000 em cartas e selados com deixar o dinheiro em dólar ou no CDI.</p>
         <p>A persona é um colecionador que compra cartas avulsas e produtos selados para guardar e quer saber onde o dinheiro rende mais. É dela que saem os requisitos: o colecionador precisa ver o preço ao longo do tempo, reconhecer a carta pela imagem, comparar selado com avulso e comparar a própria coleção com as outras. Por isso o projeto depende dos colegas. Uma coleção sozinha responde às perguntas 1, 2 e 4; as perguntas 3 e 5 exigem a silver de toda a turma.</p>
         <div class="note">
           <strong>Resultado esperado</strong>
@@ -91,11 +91,11 @@
         <table>
           <thead><tr><th>Etapa</th><th>Artefato</th><th>O que precisa conter</th></tr></thead>
           <tbody>
-            <tr><td>0. Regras do agente</td><td><code>AGENTS.md</code></td><td>escopo, comandos permitidos, política de segredos (incluindo a chave do MinIO da turma), gates de cada etapa, convenção de commits</td></tr>
+            <tr><td>0. Regras do agente</td><td><code>AGENTS.md</code></td><td>escopo, comandos permitidos, política de segredos (incluindo a chave do RustFS da turma), gates de cada etapa, convenção de commits</td></tr>
             <tr><td>1. Persona</td><td><code>docs/00_persona.md</code></td><td>o colecionador, a decisão que toma, com que frequência consulta, o que o impede hoje de decidir com dado</td></tr>
             <tr><td>2. Objetivos de negócio</td><td><code>docs/01_objetivos_negocio.md</code></td><td>objetivos ligados às cinco perguntas, métricas de sucesso, restrições; números sem fonte marcados como hipótese</td></tr>
             <tr><td>3. Especificação</td><td><code>specs/spec.md</code></td><td>RF-xx e RNF-xx com critério de aceite em Dado/Quando/Então, cada um ligado a um objetivo</td></tr>
-            <tr><td>4. Plano</td><td><code>specs/plan.md</code></td><td>C4 de contexto e de contêineres em Mermaid, com o MinIO da turma e as silvers dos colegas como sistemas externos</td></tr>
+            <tr><td>4. Plano</td><td><code>specs/plan.md</code></td><td>C4 de contexto e de contêineres em Mermaid, com o RustFS da turma e as silvers dos colegas como sistemas externos</td></tr>
             <tr><td>5. Tarefas</td><td><code>specs/tasks.md</code></td><td>tarefas T-xx pequenas, cada uma com o RF/RNF que atende e o teste que a verifica</td></tr>
             <tr><td>6. Implementação</td><td><code>src/</code>, <code>tests/</code>, <code>dashboard/</code></td><td>uma tarefa por vez, teste junto, commit citando a tarefa</td></tr>
             <tr><td>7. Validação ATAM</td><td><code>docs/atam.md</code>, <code>docs/adr/</code>, <code>docs/rastreabilidade.md</code></td><td>utility tree, cenários de seis partes, riscos, pontos de sensibilidade, trade-offs, ADRs e matriz requisito, decisão, componente, evidência</td></tr>
@@ -165,7 +165,7 @@ Medida:     a coleta do dia é gravada até as 23h59 UTC ou o dia aparece
           <thead><tr><th>Situação</th><th>Efeito</th><th>Por quê</th></tr></thead>
           <tbody>
             <tr><td>Pipeline que não roda a partir do README</td><td>coleta, lakehouse e dashboard não pontuam (60%)</td><td>sem execução, não há como verificar nada que dependa dela</td></tr>
-            <tr><td>Segredo versionado, inclusive a chave do MinIO da turma, em qualquer commit</td><td>operação não pontua; a chave é revogada e reemitida pelo professor</td><td>o repositório é público, e apagar o arquivo não retira o segredo do histórico</td></tr>
+            <tr><td>Segredo versionado, inclusive a chave do RustFS da turma, em qualquer commit</td><td>operação não pontua; a chave é revogada e reemitida pelo professor</td><td>o repositório é público, e apagar o arquivo não retira o segredo do histórico</td></tr>
             <tr><td>Silver fora do contrato comum na entrega</td><td>lakehouse e modelagem não pontuam</td><td>a partição deixa de ser legível pela gold dos colegas</td></tr>
             <tr><td>Dia preenchido com dado inventado, ou escrita no prefixo de outra coleção</td><td>coleta e bruto não pontuam, e a pergunta que usa a série também não</td><td>uma série com valores inventados não serve de evidência para ninguém da turma</td></tr>
             <tr><td>Código sem especificação prévia</td><td>artefatos SDD não pontuam, e o componente sai da contagem do pipeline</td><td>especificação escrita depois descreve o código, sem orientá-lo</td></tr>
@@ -197,7 +197,7 @@ Medida:     a coleta do dia é gravada até as 23h59 UTC ou o dia aparece
         <table>
           <thead><tr><th>#</th><th>Item</th><th>Pronto quando</th></tr></thead>
           <tbody>
-            <tr><td>1</td><td>Codespace aberto no repositório</td><td>o ramo <code>main</code> está atualizado e o <code>.env</code> local tem as variáveis do MinIO da turma</td></tr>
+            <tr><td>1</td><td>Codespace aberto no repositório</td><td>o ramo <code>main</code> está atualizado e o <code>.env</code> local tem as variáveis do RustFS da turma</td></tr>
             <tr><td>2</td><td>Série no bruto</td><td><code>mc ls</code> do prefixo da coleção lista as datas coletadas; lacunas anotadas no README</td></tr>
             <tr><td>3</td><td>Pipeline executado na manhã</td><td>o comando do README levou a coleta do dia até a gold</td></tr>
             <tr><td>4</td><td>Dashboard aberto</td><td>as cinco perguntas e o placar do desafio carregam com os dados da turma</td></tr>
@@ -361,7 +361,7 @@ tiver IDs repetidos. Pare ao final.</code></pre>
           <li>Procure segredos no que está versionado e no histórico:
             <pre><code>git ls-files | grep -E '(^|/)\.env$' &amp;&amp; echo "ATENCAO: .env versionado" || echo "nenhum .env no indice"
 git log -p --all | grep -nE 'MINIO_[A-Z_]*(PASSWORD|SECRET)[A-Z_]*=.+|SECRET_KEY=.+|https?://[^ /]+:[^ @]+@' | head -20</code></pre>
-            Inspecione cada linha encontrada; um valor fictício de documentação não é problema. Se a chave do MinIO da turma aparecer, avise o professor para que ela seja revogada e reemitida. Apagar o arquivo não basta, porque o repositório é público.</li>
+            Inspecione cada linha encontrada; um valor fictício de documentação não é problema. Se a chave do RustFS da turma aparecer, avise o professor para que ela seja revogada e reemitida. Apagar o arquivo não basta, porque o repositório é público.</li>
           <li>Guarde uma cópia local do prefixo da sua coleção, fora do repositório: <code>mc mirror turma/tcg/raw/tcgplayer/group_id=&lt;id&gt; ./backup_raw</code>. Ela permite reconstruir silver e gold se o volume do Railway for apagado depois do semestre. Registre a listagem do bucket em <code>docs/evidencias/</code>.</li>
           <li>Clone o repositório numa pasta nova, siga o README do zero e confirme que a coleta chega ao dashboard e que <code>pytest</code> passa. Esse é o teste que o professor vai repetir.</li>
           <li>Faça o commit de fechamento e envie para o GitHub. Opcionalmente, marque o estado entregue com <code>git tag entrega-final</code>.</li>

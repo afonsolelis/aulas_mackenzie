@@ -32,7 +32,7 @@
         <h2>O que cada aluno constrói</h2>
         <div class="method-flow">
           <div class="method-step"><strong>Coleta</strong><span>Job agendado que busca, uma vez por dia, os produtos e os preços da coleção, a PTAX do dólar e o CDI do Banco Central.</span></div>
-          <div class="method-step"><strong>Bruto</strong><span>Resposta original gravada sem alteração no MinIO da turma, com chave por coleção e data.</span></div>
+          <div class="method-step"><strong>Bruto</strong><span>Resposta original gravada sem alteração no RustFS da turma, com chave por coleção e data.</span></div>
           <div class="method-step"><strong>Silver</strong><span>Parquet tipado e validado com Pydantic, seguindo o contrato comum da turma.</span></div>
           <div class="method-step"><strong>Gold</strong><span>Modelo dimensional no DuckDB, com fato de preço diário e dimensões de produto, coleção, data e acabamento.</span></div>
           <div class="method-step"><strong>Dashboard</strong><span>Aplicação em Streamlit, ou outra biblioteca de frontend em Python, com as cinco perguntas em reais e o desafio da carteira.</span></div>
@@ -42,7 +42,7 @@
 
       <section class="content-block">
         <h2>Escolha da coleção</h2>
-        <p>Cada aluno fica com uma coleção principal do Pokémon TCG lançada a partir de 2024, e duas pessoas não ficam com a mesma. Antes da primeira gravação, liste o prefixo <code>tcg/raw/tcgplayer/</code> no MinIO da turma: se a pasta <code>group_id=</code> da coleção já existir, outra pessoa chegou antes e a escolha precisa mudar. A coleção escolhida fica declarada no README do repositório. Vale começar cedo, porque o histórico de preços começa no primeiro dia de coleta: quem começa em novembro chega à entrega com metade da série de quem começou em outubro.</p>
+        <p>Cada aluno fica com uma coleção principal do Pokémon TCG lançada a partir de 2024, e duas pessoas não ficam com a mesma. Antes da primeira gravação, liste o prefixo <code>tcg/raw/tcgplayer/</code> no RustFS da turma (bucket <code>tcg</code>): se a pasta <code>group_id=</code> da coleção já existir, outra pessoa chegou antes e a escolha precisa mudar. A coleção escolhida fica declarada no README do repositório. Vale começar cedo, porque o histórico de preços começa no primeiro dia de coleta: quem começa em novembro chega à entrega com metade da série de quem começou em outubro.</p>
         <table>
           <thead><tr><th>Sigla</th><th>Coleção</th><th><code>groupId</code></th><th>Lançamento</th></tr></thead>
           <tbody>
@@ -92,7 +92,7 @@
 
       <section class="content-block">
         <h2>Data lake da turma</h2>
-        <p>Todos os alunos gravam no mesmo MinIO, publicado pelo professor no Railway. O endpoint S3 e a chave de acesso de cada aluno são enviados no canal da turma e ficam fora do repositório, nas variáveis do job e no <code>.env</code>. Cada aluno escreve somente nos prefixos da própria coleção e lê todos os demais.</p>
+        <p>Todos os alunos gravam no mesmo object storage, o RustFS da turma (compatível com S3), publicado pelo professor em <code>https://s3.afonsolelis.tech</code>, bucket <code>tcg</code>. O endpoint S3 e a chave de acesso de cada aluno são enviados no canal da turma e ficam fora do repositório, nas variáveis do job e no <code>.env</code>. Cada aluno escreve somente nos prefixos da própria coleção e lê todos os demais.</p>
         <pre><code>tcg/
 ├── raw/tcgplayer/group_id=24269/data=2026-10-24/products.json   resposta original, imutável
 ├── raw/tcgplayer/group_id=24269/data=2026-10-24/prices.json
@@ -226,7 +226,7 @@ ASOF JOIN cambio_diario c ON p.data &gt;= c.data;</code></pre>
 
         <div class="actions">
           <a class="button" href="home_data_collection.html">&larr; Voltar para a disciplina</a>
-          <a class="button" href="https://minio-production-505d.up.railway.app" target="_blank" rel="noopener noreferrer">Console do MinIO da turma</a>
+          <a class="button" href="https://s3-console.afonsolelis.tech/rustfs/console/" target="_blank" rel="noopener noreferrer">Console do RustFS da turma</a>
           <a class="button" href="https://tcgcsv.com/docs" target="_blank" rel="noopener noreferrer">Documentação do TCGCSV</a>
           <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/entrega/entrega_projeto_final.html">Formulário de entrega</a>
         </div>
