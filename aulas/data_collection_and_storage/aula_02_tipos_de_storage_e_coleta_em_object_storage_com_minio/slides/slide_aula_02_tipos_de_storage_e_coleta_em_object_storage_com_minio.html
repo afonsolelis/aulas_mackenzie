@@ -1654,7 +1654,7 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou o agente que você us
           <tbody>
             <tr><td>Console web</td><td><code>https://s3-console.afonsolelis.tech/rustfs/console/</code></td></tr>
             <tr><td>API S3 (endpoint)</td><td><code>https://s3.afonsolelis.tech</code></td></tr>
-            <tr><td>Usuário</td><td><code>turma</code> (só leitura)</td></tr>
+            <tr><td>Usuário</td><td><code>turma</code> (admin, ambiente de teste)</td></tr>
             <tr><td>Senha</td><td><code>turma-d6102587</code></td></tr>
             <tr><td>Bucket</td><td><code>pouso</code>, 80 objetos <code>CAM-XXXX_AAAAMMDDTHHMM.txt</code></td></tr>
           </tbody>
@@ -1664,7 +1664,7 @@ docker compose exec minio mc ls turma/pouso | wc -l                  # 80
 # baixa os lotes para a pasta pouso/ do Codespace, onde o coletor lê
 python -c "import boto3,os;s3=boto3.client('s3',endpoint_url='https://s3.afonsolelis.tech',aws_access_key_id='turma',aws_secret_access_key='turma-d6102587',region_name='us-east-1');os.makedirs('pouso',exist_ok=True);[s3.download_file('pouso',o['Key'],'pouso/'+o['Key']) for o in s3.list_objects_v2(Bucket='pouso')['Contents']]"
 sha256sum pouso/CAM-0451_20261017T0900.txt                           # 6789b712602d1985...</code></pre>
-        <p class="deck-note" style="max-width:none;">O bucket é compartilhado pela turma: o usuário <code>turma</code> só lê, então copie os lotes para o seu ambiente. O <code>raw</code> de cada grupo continua no MinIO local.</p>
+        <p class="deck-note" style="max-width:none;">O bucket é compartilhado pela turma: o usuário <code>turma</code> é admin porque o ambiente é de teste, então pode criar buckets e gravar à vontade, mas não apague o <code>pouso</code>: os lotes são de todos. O <code>raw</code> de cada grupo continua no MinIO local.</p>
       </div>
     </div>
 
