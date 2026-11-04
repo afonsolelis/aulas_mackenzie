@@ -113,7 +113,7 @@
     <p class="rodape">Mackenzie &middot; Data Collection and Storage 2026 &middot; Prof. Afonso Brandão</p>
   </main>
 
-  <script src="/_app/aulas.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
   const SUPABASE_URL = 'https://lwamaovuxcevsjfvtqhf.supabase.co';
@@ -125,7 +125,7 @@
   const URL_PUBLICA = 'https://afonsolelis.github.io/aulas_mackenzie/aulas/data_collection_and_storage/aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse/tbl/tbl_aula_05.html';
   const LETRAS = ['A', 'B', 'C', 'D'];
 
-  const db = aulas.cliente();
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false } });
   const $ = s => document.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g,
     c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
