@@ -84,6 +84,8 @@
     .de-quatro { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
     .de-tabela td, .de-tabela th { padding: 6px 10px !important; font-size: 0.82em !important; }
     .de-tabela code { white-space: nowrap; }
+    .de-conexao td:first-child { width: 1%; white-space: nowrap; font-weight: 700; }
+    .de-conexao code.de-senha { font-size: 1.15em; font-weight: 700; letter-spacing: 0.04em; user-select: all; }
     .de-num td:not(:first-child), .de-num th:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
     .df-termos { display: grid; gap: 12px; }
     .df-termos.df-c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -138,7 +140,7 @@
           <h1 class="deck-title">Modelagem Dimensional, Views e Observabilidade no ClickHouse</h1>
           <p class="deck-meta">Aula 05 &nbsp;&bull;&nbsp; 07/11/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">O modelo dimensional de livros, PTAX e telemetria montado no próprio ClickHouse, sobre a tabela de pouso da Aula 04, com relatórios fechados e a observabilidade do processo de ingestão. Seis etapas.</p>
+          <p class="deck-subtitle">Os cubos de livros, PTAX e telemetria montados com views no ClickHouse da turma, sobre a tabela de pouso da Aula 04: dimensões e fatos por view materializada incremental, cubos fechados por refreshable, observabilidade por views em janela e perguntas de negócio respondidas pelo modelo.</p>
         </div>
       </div>
     </div>
@@ -148,14 +150,14 @@
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">TBL da Aula 04 e seis etapas no ClickHouse</h2>
-          <p class="deck-summary">Formato da Aula 04: o prompt vai para o agente de código e, enquanto ele trabalha, os slides seguintes explicam o que o prompt pediu. O professor constrói ao vivo e a turma reproduz na pasta <code>aula_05_dimensional/</code>.</p>
+          <h2 class="deck-title">TBL da Aula 04 e sete etapas no ClickHouse</h2>
+          <p class="deck-summary">Em cada etapa, o grupo cola o prompt CREATE no agente de código de sua preferência e, enquanto ele trabalha, os slides seguintes explicam o que o prompt pediu. O gate fecha a etapa. Tudo roda no ClickHouse da turma, na pasta <code>aula_05_dimensional/</code>, sem Docker.</p>
         </div>
         <div class="deck-grid agenda-3">
           <article class="deck-card">
-            <h3>8h30 &ndash; 9h40 &middot; Retomada e TBL</h3>
+            <h3>8h30 &ndash; 9h40 &middot; Conexão e TBL</h3>
             <ul>
-              <li>8h30: retomada da Aula 04, tabela de pouso, manifesto e ack</li>
+              <li>8h30: Etapa 00, retomada da Aula 04 e conexão com o ClickHouse da turma</li>
               <li>8h40: TBL da Aula 04, três questões</li>
               <li>9h20: café</li>
             </ul>
@@ -169,11 +171,11 @@
             </ul>
           </article>
           <article class="deck-card">
-            <h3>10h50 &ndash; 12h10 &middot; Relatórios e observabilidade</h3>
+            <h3>10h50 &ndash; 12h10 &middot; Cubos e perguntas</h3>
             <ul>
-              <li>10h50: Etapa 04, relatórios fechados com refreshable</li>
-              <li>11h15: Etapa 05, observabilidade corrente com views em janela</li>
-              <li>11h35: Etapa 06, do manifesto ao descarte</li>
+              <li>10h50: Etapa 04, cubos fechados com refreshable</li>
+              <li>11h15: Etapa 05, observabilidade com views em janela</li>
+              <li>11h35: Etapa 06, perguntas ao cubo</li>
               <li>12h00: fechamento</li>
             </ul>
           </article>
@@ -187,12 +189,12 @@
         <div>
           <span class="deck-kicker">8h30 &middot; Retomada da Aula 04</span>
           <h2 class="deck-title">A tabela de pouso de três colunas</h2>
-          <p class="deck-summary">Tudo o que chegou pelo servidor de ingestão está em <code>ingestao.db_ingestion</code>. A tabela não conhece os campos de cada domínio: o dado inteiro mora em <code>data_json</code>, no tipo JSON, e o domínio em <code>data_tag</code>. O modelo de hoje é construído em cima dela, sem mudar uma linha.</p>
+          <p class="deck-summary">Tudo o que chegou pelo servidor de ingestão da Aula 04 está carregado no ClickHouse da turma como <code>mackenzie.db_ingestion</code>. A tabela não conhece os campos de cada domínio: o dado inteiro mora em <code>data_json</code>, no tipo JSON, e o domínio em <code>data_tag</code>. O modelo de hoje é construído em cima dela, sem mudar uma linha.</p>
         </div>
         <div class="de-dois de-dois-esq">
           <div class="de-caixa">
-            <span class="de-rotulo"><code>sql/000_db_ingestion.sql</code></span>
-            <pre class="de-pre de-pre-largo"><code>CREATE TABLE IF NOT EXISTS ingestao.db_ingestion
+            <span class="de-rotulo"><code>sql/000_db_ingestion.sql</code>, já criada; o grupo não roda</span>
+            <pre class="de-pre de-pre-largo"><code>CREATE TABLE IF NOT EXISTS mackenzie.db_ingestion
 (
     timestamp UInt64,                  -- unix em milissegundos, hora da ingestão (dada pelo servidor)
     data_json JSON,                    -- o dado recebido, no tipo JSON: cada caminho vira subcoluna tipada
@@ -203,7 +205,7 @@ PARTITION BY toYYYYMM(fromUnixTimestamp64Milli(toInt64(timestamp)))
 ORDER BY (data_tag, timestamp);</code></pre>
           </div>
           <div class="de-caixa is-cinza">
-            <span class="de-rotulo">Na preparação, 31/10/2026</span>
+            <span class="de-rotulo">Carga de 05/11/2026</span>
             <table class="deck-table de-tabela de-num">
               <thead><tr><th><code>data_tag</code></th><th>Linhas</th></tr></thead>
               <tbody>
@@ -213,39 +215,10 @@ ORDER BY (data_tag, timestamp);</code></pre>
                 <tr><td>total</td><td>32.305</td></tr>
               </tbody>
             </table>
-            <p style="margin-top:8px;">Carga completa do <code>dados_aula_04.zip</code> pelo servidor da Aula 04: livros por HTTP, PTAX e telemetria pela fila, 1.465 s de envio.</p>
+            <p style="margin-top:8px;">O conteúdo do <code>dados_aula_04.zip</code>, o mesmo que a turma enviou pelo servidor da Aula 04.</p>
           </div>
         </div>
         <p class="deck-note">Datas e horas ficaram como texto dentro do JSON, porque o consumidor insere com <code>input_format_try_infer_datetimes = 0</code>. Por isso as views de hoje convertem com <code>parseDateTime</code> e o fuso <code>America/Sao_Paulo</code>.</p>
-      </div>
-    </div>
-
-    <!-- Retomada: manifesto e ack -->
-    <div class="slide">
-      <div class="deck-shell is-dense de-shell">
-        <div>
-          <span class="deck-kicker">Retomada da Aula 04 &middot; Flush</span>
-          <h2 class="deck-title">Um manifesto por lote e o ack no fim</h2>
-          <p class="deck-summary">No flush, o consumidor grava raw e bronze no RustFS, insere no ClickHouse, grava o manifesto com o resultado do lote e só então confirma as mensagens na fila. Sem ack, as mensagens voltam a ser entregues: a entrega é pelo menos uma vez.</p>
-        </div>
-        <div class="de-dois">
-          <div class="de-caixa">
-            <span class="de-rotulo">Ordem do flush</span>
-            <ol>
-              <li>raw no RustFS, os envelopes como chegaram</li>
-              <li>bronze no RustFS, em Parquet</li>
-              <li>INSERT em <code>ingestao.db_ingestion</code></li>
-              <li>manifesto do lote em <code>raw/_manifestos/ingestao/</code></li>
-              <li>ack das mensagens do lote</li>
-            </ol>
-          </div>
-          <div class="de-caixa">
-            <span class="de-rotulo">Campos do manifesto lidos hoje</span>
-            <p><code>lote</code>, <code>data</code>, <code>status</code>, <code>mensagens</code>, <code>linhas</code>, <code>primeiro_recebido_em</code>, <code>flush_inicio</code>, <code>flush_fim</code>, <code>tempos_ms</code> (<code>raw</code>, <code>bronze</code>, <code>clickhouse</code>) e <code>erro</code>.</p>
-            <p>Ficou para a semana na Aula 04: as Etapas 07 a 10, o <code>docs/atam.md</code> e os serviços no Railway. Para hoje basta a tabela de pouso com dados.</p>
-          </div>
-        </div>
-        <div class="deck-callout"><strong>Duas consequências para hoje</strong><p>A mesma linha pode chegar duas vezes à tabela de pouso, o que pede fatos que juntem cópias (Etapa 02). E cada lote deixa um registro de como foi gravado, que vira o fato de lote da Etapa 06.</p></div>
       </div>
     </div>
 
@@ -254,138 +227,209 @@ ORDER BY (data_tag, timestamp);</code></pre>
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Retomada &middot; O que vem hoje</span>
-          <h2 class="deck-title">O modelo sobre a tabela de pouso</h2>
-          <p class="deck-summary">Nada sai do ClickHouse. Views materializadas incrementais alimentam dimensões, fatos e contadores a cada INSERT; refreshable publicam os relatórios fechados e releem os manifestos; views comuns com janela de tempo mostram o estado corrente.</p>
+          <h2 class="deck-title">Os cubos sobre a tabela de pouso</h2>
+          <p class="deck-summary">Nada sai do ClickHouse. Views materializadas incrementais alimentam dimensões, fatos e contadores a cada INSERT; refreshable publicam os cubos fechados uma vez por dia; views comuns com janela de tempo mostram o estado corrente. A Etapa 06 responde perguntas de negócio a partir desse modelo.</p>
         </div>
-        <svg class="de-svg is-alto" viewBox="0 0 1000 400" role="img" aria-label="ingestao.db_ingestion alimenta, por views materializadas incrementais, as dimensões e os fatos e os contadores por minuto; os fatos alimentam os relatórios fechados por refreshable diária; os contadores alimentam as views em janela; os manifestos no RustFS alimentam o fato de lote por refreshable a cada minuto, lido pela view de lotes da última hora" font-family="Inter, Helvetica, Arial, sans-serif">
+        <svg class="de-svg is-alto" viewBox="0 0 1000 400" role="img" aria-label="mackenzie.db_ingestion alimenta, por views materializadas incrementais, as dimensões e os fatos e os contadores por minuto; os fatos alimentam os cubos fechados por refreshable diária; os contadores e a própria tabela de pouso alimentam as views em janela" font-family="Inter, Helvetica, Arial, sans-serif">
           <defs><marker id="hoje-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f0f0f"/></marker></defs>
           <g stroke="#0f0f0f" stroke-width="2">
-            <rect x="10" y="120" width="210" height="90" fill="#0f0f0f"/>
-            <rect x="10" y="300" width="210" height="80" fill="#f2f2ee"/>
-            <rect x="330" y="30" width="270" height="110" fill="#ffffff"/>
-            <rect x="330" y="180" width="270" height="80" fill="#ffffff"/>
-            <rect x="330" y="300" width="270" height="80" fill="#ffffff"/>
-            <rect x="710" y="30" width="280" height="110" fill="#f2f2ee"/>
-            <rect x="710" y="180" width="280" height="200" fill="#f2f2ee"/>
+            <rect x="10" y="110" width="210" height="180" fill="#0f0f0f"/>
+            <rect x="330" y="30" width="270" height="100" fill="#ffffff"/>
+            <rect x="330" y="170" width="270" height="80" fill="#ffffff"/>
+            <rect x="710" y="30" width="280" height="100" fill="#f2f2ee"/>
+            <rect x="710" y="170" width="280" height="200" fill="#f2f2ee"/>
           </g>
           <g text-anchor="middle" font-size="16" fill="#0f0f0f">
-            <text x="115" y="158" font-weight="700" fill="#ffffff" font-family="JetBrains Mono, monospace" font-size="15">db_ingestion</text>
-            <text x="115" y="184" font-size="13" fill="#ffffff">tabela de pouso, Aula 04</text>
-            <text x="115" y="334" font-weight="700">manifestos no RustFS</text>
-            <text x="115" y="358" font-size="13" font-family="JetBrains Mono, monospace">raw/_manifestos/</text>
+            <text x="115" y="190" font-weight="700" fill="#ffffff" font-family="JetBrains Mono, monospace" font-size="15">db_ingestion</text>
+            <text x="115" y="216" font-size="13" fill="#ffffff">tabela de pouso, Aula 04</text>
             <text x="465" y="62" font-weight="700">dimensões e fatos</text>
-            <text x="465" y="88" font-size="13" font-family="JetBrains Mono, monospace">dim_data, dim_livro, dim_caminhao</text>
+            <text x="465" y="88" font-size="13" font-family="JetBrains Mono, monospace">g00_dim_data, _livro, _caminhao</text>
             <text x="465" y="110" font-size="13" font-family="JetBrains Mono, monospace">4 fatos de negócio</text>
-            <text x="465" y="212" font-weight="700">contadores por minuto</text>
-            <text x="465" y="238" font-size="13" font-family="JetBrains Mono, monospace">obs_*_minuto</text>
-            <text x="465" y="332" font-weight="700">fato de lote</text>
-            <text x="465" y="358" font-size="13" font-family="JetBrains Mono, monospace">fato_lote_ingestao</text>
-            <text x="850" y="62" font-weight="700">relatórios fechados</text>
-            <text x="850" y="88" font-size="13" font-family="JetBrains Mono, monospace">rel_preco_categoria_dia</text>
-            <text x="850" y="110" font-size="13" font-family="JetBrains Mono, monospace">rel_telemetria_caminhao_dia</text>
-            <text x="850" y="212" font-weight="700">views em janela</text>
-            <text x="850" y="240" font-size="13" font-family="JetBrains Mono, monospace">v_saude_ingestao_15min</text>
-            <text x="850" y="262" font-size="13" font-family="JetBrains Mono, monospace">v_descartes_telemetria_1h</text>
-            <text x="850" y="284" font-size="13" font-family="JetBrains Mono, monospace">v_lotes_ultima_hora</text>
-            <text x="850" y="330" font-size="13" fill="#5c5c5c">rodam o SELECT a cada leitura,</text>
-            <text x="850" y="350" font-size="13" fill="#5c5c5c">com now() - INTERVAL</text>
+            <text x="465" y="202" font-weight="700">contadores por minuto</text>
+            <text x="465" y="228" font-size="13" font-family="JetBrains Mono, monospace">g00_obs_*_minuto</text>
+            <text x="850" y="62" font-weight="700">cubos fechados</text>
+            <text x="850" y="88" font-size="13" font-family="JetBrains Mono, monospace">g00_rel_preco_categoria_dia</text>
+            <text x="850" y="110" font-size="13" font-family="JetBrains Mono, monospace">g00_rel_telemetria_caminhao_dia</text>
+            <text x="850" y="202" font-weight="700">views em janela</text>
+            <text x="850" y="230" font-size="13" font-family="JetBrains Mono, monospace">g00_v_saude_ingestao_15min</text>
+            <text x="850" y="252" font-size="13" font-family="JetBrains Mono, monospace">g00_v_descartes_telemetria_1h</text>
+            <text x="850" y="274" font-size="13" font-family="JetBrains Mono, monospace">g00_v_caminhoes_5min</text>
+            <text x="850" y="318" font-size="13" fill="#5c5c5c">rodam o SELECT a cada leitura,</text>
+            <text x="850" y="338" font-size="13" fill="#5c5c5c">com now() - INTERVAL</text>
           </g>
           <g stroke="#0f0f0f" stroke-width="2" marker-end="url(#hoje-s)">
-            <line x1="220" y1="150" x2="328" y2="90"/>
-            <line x1="220" y1="180" x2="328" y2="220"/>
-            <line x1="220" y1="340" x2="328" y2="340"/>
-            <line x1="600" y1="85" x2="708" y2="85"/>
-            <line x1="600" y1="220" x2="708" y2="235"/>
-            <line x1="600" y1="340" x2="708" y2="285"/>
+            <line x1="220" y1="140" x2="328" y2="80"/>
+            <line x1="220" y1="200" x2="328" y2="210"/>
+            <line x1="220" y1="270" x2="708" y2="330"/>
+            <line x1="600" y1="80" x2="708" y2="80"/>
+            <line x1="600" y1="210" x2="708" y2="210"/>
           </g>
           <g font-size="13" fill="#0f0f0f">
-            <text x="226" y="110">MV incremental</text>
-            <text x="230" y="222">MV incremental</text>
-            <text x="232" y="330">s3(lake), a cada minuto</text>
-            <text x="608" y="76">REFRESH diário</text>
-            <text x="612" y="214">VIEW</text>
-            <text x="612" y="330">VIEW</text>
+            <text x="226" y="100">MV incremental</text>
+            <text x="232" y="194">MV incremental</text>
+            <text x="300" y="322">VIEW, pelo timestamp</text>
+            <text x="608" y="70">REFRESH diário</text>
+            <text x="628" y="200">VIEW</text>
           </g>
+          <text x="10" y="392" font-size="14" fill="#5c5c5c">Objetos com o prefixo do grupo (g00_ nos arquivos). As perguntas da Etapa 06 leem fatos e cubos, nunca a tabela de pouso.</text>
         </svg>
       </div>
     </div>
 
-    <!-- Etapa 00 -->
+    <!-- Etapa 00: dados de conexão -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">8h30 &middot; Etapa 00 &middot; Conexão</span>
+          <h2 class="deck-title">O ClickHouse da turma</h2>
+          <p class="deck-summary">Um único servidor para a turma toda, acessado por HTTPS. A senha é a mesma para todos os grupos e só dá acesso ao banco <code>mackenzie</code>. Estes valores vão para o <code>.env</code> da pasta <code>aula_05_dimensional/</code>.</p>
+        </div>
+        <div class="de-dois de-dois-esq">
+          <div class="de-caixa">
+            <table class="deck-table de-tabela de-conexao">
+              <tbody>
+                <tr><td>Endereço</td><td><code>https://clickhouse.afonsolelis.tech</code> (HTTPS, porta 443)</td></tr>
+                <tr><td>Console</td><td><code>https://clickhouse.afonsolelis.tech/play</code></td></tr>
+                <tr><td>Usuário</td><td><code>turma</code></td></tr>
+                <tr><td>Senha</td><td><code class="de-senha">sRwz6u2W6OQKkQgHlDwP</code></td></tr>
+                <tr><td>Banco</td><td><code>mackenzie</code>, compartilhado pela turma</td></tr>
+                <tr><td>Prefixo</td><td><code>gNN_</code> em todo objeto do grupo (<code>g01_dim_livro</code>, <code>g07_mv_fato_preco_livro</code>)</td></tr>
+                <tr><td>Versão</td><td>ClickHouse 25.8</td></tr>
+                <tr><td>Limites</td><td>1 GB de memória e 300 s por consulta</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
+            <div class="de-caixa">
+              <span class="de-rotulo"><code>.env</code></span>
+              <pre class="de-pre de-pre-largo"><code>CLICKHOUSE_URL=https://clickhouse.afonsolelis.tech
+CLICKHOUSE_USER=turma
+CLICKHOUSE_PASSWORD=sRwz6u2W6OQKkQgHlDwP
+GRUPO=g07</code></pre>
+            </div>
+            <div class="de-caixa is-forte"><span class="de-rotulo">No Play</span><p>Abra <code>/play</code>, preencha usuário <code>turma</code> e a senha e rode <code>SELECT data_tag, count() FROM mackenzie.db_ingestion GROUP BY data_tag</code>. No Play não há troca de prefixo: escreva o do grupo.</p></div>
+          </div>
+        </div>
+        <p class="deck-note">O banco é de aprendizado: a turma pode criar, apagar e recriar qualquer objeto. O número do grupo é o da lista da turma, com dois dígitos.</p>
+      </div>
+    </div>
+
+    <!-- Etapa 00: prompt -->
     <div class="slide">
       <div class="deck-shell is-dense etapa-shell" data-etapa="00">
         <div>
-          <span class="deck-kicker">8h35 &middot; Etapa 00 &middot; Preparação</span>
-          <h2 class="deck-title">Compose da Aula 05 com a coleção <code>lake</code></h2>
-          <p class="deck-summary">A pilha é a da Aula 04, com duas mudanças no ClickHouse: a coleção nomeada <code>lake</code> e as chaves S3 no ambiente dele. O projeto continua se chamando <code>aula04_ingestao</code>, então os volumes e os dados da Aula 04 são os mesmos.</p>
+          <span class="deck-kicker">8h30 &middot; Etapa 00 &middot; Conexão</span>
+          <h2 class="deck-title">Pasta de trabalho e conexão testada</h2>
+          <p class="deck-summary">O agente monta a pasta da aula com o <code>rodar_sql.py</code>, o <code>AGENTS.md</code> e o <code>.env</code>, e prova a conexão com três consultas. Nada é instalado: o script usa só a biblioteca padrão do Python.</p>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
-            <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p><code>docker-compose.yml</code> com a coleção <code>lake</code>, <code>clickhouse/lake.xml</code>, <code>clickhouse/lake_acesso.xml</code>, <code>docs/prompts.md</code></p></div>
-            <div class="etapa-item etapa-gate"><span class="etapa-rotulo">Gate</span><ul><li>RustFS, RabbitMQ e ClickHouse <code>(healthy)</code></li><li><code>db_ingestion</code> com linhas nos três domínios; na preparação, 1.000, 40 e 31.265</li><li><code>SELECT count() FROM s3(lake)</code> devolve o número de manifestos, um por lote</li></ul></div>
-            <div class="etapa-item"><span class="etapa-rotulo">Tabela vazia?</span><p>Suba o servidor de ingestão da Aula 04 e rode <code>python enviar_entrada.py</code> lá. As views das etapas seguintes recebem as linhas enquanto elas chegam.</p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p><code>.env</code> (fora do git), <code>rodar_sql.py</code>, <code>AGENTS.md</code>, <code>docs/prompts.md</code></p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Rodar</span><p><code>python rodar_sql.py -q "SELECT currentUser(), version()"</code></p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Arquivos de apoio</span><p>Link Laboratório no rodapé: <code>rodar_sql.py</code>, <code>AGENTS.md</code>, <code>.env.example</code> e <code>sql/</code>.</p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Um banco para a turma toda</li><li>Como o <code>rodar_sql.py</code> envia o SQL</li></ol></div>
           </div>
           <div class="etapa-prompt">
-            <span class="etapa-rotulo">Terminal do Codespace</span>
+            <span class="etapa-rotulo">Prompt CREATE</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
-            <pre class="etapa-pre etapa-pre-codigo"><code>mkdir -p aula_05_dimensional/{clickhouse,docs,specs,sql}
-# copie para aula_05_dimensional/ do laboratório: docker-compose.yml, .env.example,
-# AGENTS.md, clickhouse/lake.xml, clickhouse/lake_acesso.xml e sql/000_db_ingestion.sql
-cd aula_05_dimensional
-cp ../aula_04_ingestao/.env .env          # ou: cp .env.example .env
-printf '.env\n' &gt;&gt; .gitignore
-git check-ignore .env                     # deve imprimir: .env
-printf '# Registro de prompts\n' &gt; docs/prompts.md
+            <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
+Você é engenheiro de dados e prepara a pasta de trabalho da Aula 05.
+Todo SQL vai ao ClickHouse da turma pela interface HTTPS, com o
+rodar_sql.py. Nesta aula não há Docker nem cliente local.
 
-docker compose up -d
-docker compose up -d --wait rustfs rabbitmq clickhouse
-set -a; . ./.env; set +a
-CH="docker compose exec -T clickhouse clickhouse-client --user $CLICKHOUSE_USER --password $CLICKHOUSE_PASSWORD --multiquery"
-$CH -q "SELECT data_tag, count() FROM ingestao.db_ingestion GROUP BY data_tag"
-$CH -q "SELECT count() FROM s3(lake)"     # manifestos que o ClickHouse enxerga no RustFS
-echo "@AGENTS.md" &gt; CLAUDE.md             # só no Claude Code</code></pre>
+<span class="k">[R] Pedido</span>
+1. Crie aula_05_dimensional/ com as pastas sql/, specs/ e docs/.
+2. Copie para ela o rodar_sql.py, o AGENTS.md e o .env.example do
+   laboratório da Aula 05.
+3. Crie o .env a partir do .env.example, com a senha que vou colar e
+   GRUPO com o número do nosso grupo; ponha .env no .gitignore.
+4. Crie docs/prompts.md com o título "Registro de prompts".
+5. Teste a conexão com as três consultas dos exemplos e mostre a
+   saída.
+
+<span class="k">[E] Exemplos</span>
+python rodar_sql.py -q "SELECT currentUser(), version()"
+python rodar_sql.py -q "SELECT data_tag, count() AS linhas FROM mackenzie.db_ingestion GROUP BY data_tag ORDER BY data_tag"
+python rodar_sql.py -q "SELECT data_tag, toJSONString(data_json) FROM mackenzie.db_ingestion LIMIT 1 BY data_tag"
+
+Esperado: turma e 25.8.33.6; livros 1.000, ptax 40,
+telemetria 31.265.
+
+<span class="k">[A] Ajustes</span>
+- GRUPO é g seguido de dois dígitos (g01, g07).
+- Não imprima o .env nem a senha; cite os nomes das variáveis.
+- git check-ignore .env tem de imprimir .env.
+- Em mackenzie.db_ingestion, só SELECT.
+- Nenhum pip install: o rodar_sql.py usa só a biblioteca padrão.
+- Se o agente lê outro arquivo de instruções (CLAUDE.md, GEMINI.md),
+  faça esse arquivo apontar para o AGENTS.md.
+
+<span class="k">[T] Tipo de saída</span>
+A árvore da pasta, a saída das três consultas e a seção "Etapa 00"
+em docs/prompts.md, sem a senha.
+
+<span class="k">[E] Extras</span>
+Leia AGENTS.md. Mostre o plano, espere meu ok, execute, registre o
+prompt e pare.</code></pre>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Coleção nomeada -->
+    <!-- Etapa 00: teoria -->
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
-          <span class="deck-kicker">Etapa 00 &middot; Teoria &middot; Configuração</span>
-          <h2 class="deck-title">A coleção nomeada <code>lake</code></h2>
-          <p class="deck-summary">Uma coleção nomeada guarda URL, chaves e formato de uma fonte externa na configuração do servidor. A consulta escreve só <code>s3(lake)</code>, e as chaves vêm das variáveis do contêiner, nunca de um arquivo versionado nem do texto do SQL.</p>
+          <span class="deck-kicker">Etapa 00 &middot; Teoria &middot; Ambiente</span>
+          <h2 class="deck-title">Um banco para a turma e o <code>rodar_sql.py</code></h2>
+          <p class="deck-summary">Todos os grupos criam objetos no mesmo banco e leem a mesma tabela de pouso. O prefixo evita que um grupo sobrescreva o outro, e o <code>rodar_sql.py</code> aplica o prefixo sem que o grupo precise editar os arquivos.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
-            <span class="de-rotulo"><code>clickhouse/lake.xml</code>, em <code>config.d/</code></span>
-            <pre class="de-pre de-pre-largo"><code>&lt;clickhouse&gt;
-    &lt;named_collections&gt;
-        &lt;lake&gt;
-            &lt;url&gt;http://rustfs:9000/raw/_manifestos/ingestao/*/*.json&lt;/url&gt;
-            &lt;access_key_id from_env="S3_ACCESS_KEY"/&gt;
-            &lt;secret_access_key from_env="S3_SECRET_KEY"/&gt;
-            &lt;format&gt;JSONAsString&lt;/format&gt;
-        &lt;/lake&gt;
-    &lt;/named_collections&gt;
-&lt;/clickhouse&gt;</code></pre>
+            <span class="de-rotulo">O que o <code>rodar_sql.py</code> faz</span>
+            <ol>
+              <li>Lê <code>CLICKHOUSE_URL</code>, <code>CLICKHOUSE_USER</code>, <code>CLICKHOUSE_PASSWORD</code> e <code>GRUPO</code> do <code>.env</code>.</li>
+              <li>Separa o arquivo nos <code>;</code> que estão fora de texto e de comentário, porque a interface HTTP aceita um comando por requisição.</li>
+              <li>Troca <code>g00_</code> pelo prefixo do grupo: <code>g00_dim_livro</code> vira <code>g07_dim_livro</code>.</li>
+              <li>Envia cada comando na mesma sessão (<code>session_id</code>), então um <code>SET</code> vale para os comandos seguintes.</li>
+            </ol>
           </div>
           <div class="de-caixa">
-            <span class="de-rotulo"><code>clickhouse/lake_acesso.xml</code>, em <code>users.d/</code></span>
-            <pre class="de-pre de-pre-largo"><code>&lt;clickhouse&gt;
-    &lt;users&gt;
-        &lt;ingestao&gt;
-            &lt;named_collection_control&gt;1&lt;/named_collection_control&gt;
-        &lt;/ingestao&gt;
-    &lt;/users&gt;
-&lt;/clickhouse&gt;</code></pre>
-            <p style="margin-top:8px;">Sem essa permissão, o usuário <code>ingestao</code> não usa coleções nomeadas. O nome do usuário é o <code>CLICKHOUSE_USER</code> do <code>.env</code>.</p>
+            <span class="de-rotulo">Consequências do banco compartilhado</span>
+            <ul>
+              <li>Um <code>DROP</code> sem prefixo apaga o trabalho de outro grupo; o <code>AGENTS.md</code> exige autorização para isso.</li>
+              <li>Um <code>DROP TABLE</code> acidental de <code>db_ingestion</code> se desfaz em até 8 minutos com <code>UNDROP TABLE</code>; depois disso, ou depois de um <code>TRUNCATE</code>, o professor recarrega a tabela.</li>
+              <li>Cada INSERT na tabela de pouso dispara as views materializadas de todos os grupos.</li>
+            </ul>
           </div>
         </div>
-        <div class="de-tres">
-          <div class="de-caixa"><span class="de-rotulo"><code>url</code> com curinga</span><p>Um manifesto por lote, numa pasta por dia. O <code>*/*.json</code> lê todos de uma vez.</p></div>
-          <div class="de-caixa"><span class="de-rotulo"><code>from_env</code></span><p>O compose passa <code>S3_ACCESS_KEY</code> e <code>S3_SECRET_KEY</code> ao ClickHouse; o XML lê do ambiente.</p></div>
-          <div class="de-caixa"><span class="de-rotulo"><code>JSONAsString</code></span><p>Cada arquivo vira uma linha com uma coluna <code>json</code>, que a Etapa 06 lê com <code>JSONExtract</code>.</p></div>
+        <div class="deck-callout"><strong>Por que <code>g00_</code> nos arquivos</strong><p>Os arquivos <code>.sql</code> do laboratório e os do grupo ficam iguais para toda a turma. Só o <code>.env</code> muda de um grupo para outro, e o professor compara arquivos de grupos diferentes sem diferença de nome.</p></div>
+      </div>
+    </div>
+
+    <!-- Revise 00 -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">Etapa 00 &middot; Revisão</span>
+          <h2 class="deck-title">Revise antes de seguir: Etapa 00</h2>
+          <p class="deck-summary">Todas as etapas seguintes usam o mesmo <code>rodar_sql.py</code> e o mesmo <code>.env</code>. Um prefixo errado aqui cria objetos com o nome de outro grupo.</p>
+        </div>
+        <div class="de-dois">
+          <div class="de-caixa">
+            <span class="de-rotulo">Revise antes de seguir</span>
+            <ul>
+              <li><code>GRUPO</code> no <code>.env</code> é o número do grupo, e não <code>g00</code>?</li>
+              <li><code>git check-ignore .env</code> imprime <code>.env</code>?</li>
+              <li>A senha ficou fora de <code>docs/prompts.md</code> e da saída do agente?</li>
+              <li>O agente do grupo lê o <code>AGENTS.md</code> antes de cada etapa?</li>
+            </ul>
+          </div>
+          <div class="de-caixa is-forte">
+            <span class="de-rotulo">Gate</span>
+            <p><code>SELECT currentUser(), version()</code> devolve <code>turma</code> e <code>25.8.33.6</code>.</p>
+            <p>A contagem por <code>data_tag</code> devolve livros 1.000, ptax 40 e telemetria 31.265, e a amostra mostra um <code>data_json</code> de cada domínio.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -415,7 +459,7 @@ echo "@AGENTS.md" &gt; CLAUDE.md             # só no Claude Code</code></pre>
         <div>
           <span class="deck-kicker">TBL &middot; Caso</span>
           <h2 class="deck-title">O caso e as três questões</h2>
-          <p class="deck-summary">O caso é o servidor que a turma montou na Aula 04, com os números medidos na preparação: fila durável, flush por N ou T, raw e bronze antes do ClickHouse, manifesto depois dele, ack no fim e a tabela de três colunas.</p>
+          <p class="deck-summary">O caso é o servidor que a turma montou na Aula 04, com os números medidos na preparação: fila durável, flush por N ou T, raw e bronze antes do ClickHouse, ack no fim e a tabela de três colunas.</p>
         </div>
         <div class="de-tres">
           <div class="de-caixa is-forte"><span class="de-rotulo">Questão 1</span><p>Contrato e mudança de payload.</p></div>
@@ -432,7 +476,7 @@ echo "@AGENTS.md" &gt; CLAUDE.md             # só no Claude Code</code></pre>
         <div>
           <span class="deck-kicker">9h20 &middot; Intervalo</span>
           <h2 class="deck-title">Café, 20 minutos</h2>
-          <p class="deck-summary">Voltamos às 9h40 com a Etapa 01. Deixe o compose no ar: todas as etapas usam o mesmo ClickHouse.</p>
+          <p class="deck-summary">Voltamos às 9h40 com a Etapa 01. Nada precisa ficar ligado no Codespace: o ClickHouse da turma continua no ar e o <code>.env</code> continua valendo.</p>
         </div>
         <div class="cafe">
           <div class="cafe-relogio" id="cafe-relogio" role="timer">20:00</div>
@@ -456,7 +500,8 @@ echo "@AGENTS.md" &gt; CLAUDE.md             # só no Claude Code</code></pre>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>specs/04_modelo_dimensional.md</code></p></div>
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Os quatro passos de Kimball</li><li>Cinco fatos e o grão de cada um</li><li>Aditiva, semiaditiva e não aditiva</li><li>Dois eventos no mesmo arquivo</li><li>Três dimensões</li><li>Dimensões conformadas e drill-across</li><li>Tabela ponte</li><li>Como dimensionar o grão</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Rodar</span><p>Só consultas: <code>python rodar_sql.py -q "..."</code> sobre <code>mackenzie.db_ingestion</code>. Nenhum DDL nesta etapa.</p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Os quatro passos de Kimball</li><li>Quatro fatos e o grão de cada um</li><li>Aditiva, semiaditiva e não aditiva</li><li>Dois eventos no mesmo arquivo</li><li>Três dimensões</li><li>Dimensões conformadas e drill-across</li><li>Tabela ponte</li><li>Como dimensionar o grão</li></ol></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
@@ -468,20 +513,21 @@ de criação nesta etapa.
 
 <span class="k">[R] Pedido</span>
 Crie specs/04_modelo_dimensional.md com uma seção por processo de
-negócio: coleta de preço de livro, boletim PTAX, posição do caminhão,
-alerta do tacógrafo e flush do servidor de ingestão. Em cada uma:
+negócio: coleta de preço de livro, boletim PTAX, posição do caminhão
+e alerta do tacógrafo. Em cada uma:
 1. o processo;
 2. o grão em uma frase, começando por "uma linha é";
 3. a chave do grão;
 4. as dimensões;
 5. as medidas, cada uma classificada como aditiva, semiaditiva ou
    não aditiva, com a agregação permitida.
-Depois, as dimensões dim_data, dim_livro e dim_caminhao, com grão,
-chave e tipo de SCD, e a matriz de barramento (fatos nas linhas,
-dimensões nas colunas) com a chave e o tipo comuns a cada dimensão.
+Depois, as dimensões g00_dim_data, g00_dim_livro e g00_dim_caminhao,
+com grão, chave e tipo de SCD, e a matriz de barramento (fatos nas
+linhas, dimensões nas colunas) com a chave e o tipo comuns a cada
+dimensão.
 
 <span class="k">[E] Exemplos</span>
-## fato_preco_livro
+## g00_fato_preco_livro
 - Processo: coleta de preço.
 - Grão: uma linha é um livro num dia de coleta.
 - Chave do grão: data_key, upc.
@@ -494,14 +540,15 @@ CAM-0451 29-10-2026 06:05:55 GPS -23.6527 -46.7452 v=86
 TAC;CAM-3126;20261029T180000;DIRECAO CONTINUA 05:35;ALERTA
 
 <span class="k">[A] Ajustes</span>
-- Antes de escrever, consulte a tabela: contagem por data_tag e uma
-  amostra de data_json de cada domínio.
+- Antes de escrever, consulte a tabela com python rodar_sql.py -q:
+  contagem por data_tag e uma amostra de data_json de cada domínio.
 - Leitura de posição e alerta do tacógrafo vêm do mesmo arquivo e são
   fatos separados. Linhas ERR SAT e #RADIO não viram fato.
 - tipo_boletim da PTAX é dimensão degenerada, fica no fato.
 - dim_data é gerada, chave AAAAMMDD; livro e caminhão são SCD tipo 1.
 - Para cada fato, escreva o teste do grão: com FINAL, count() igual a
   uniqExact(chave do grão).
+- Nomes com o prefixo g00_, como nos arquivos .sql.
 - Valor sem origem: "hipótese".
 
 <span class="k">[T] Tipo de saída</span>
@@ -534,13 +581,13 @@ prompt em docs/prompts.md e pare.</code></pre>
       </div>
     </div>
 
-    <!-- Cinco fatos -->
+    <!-- Quatro fatos -->
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Etapa 01 &middot; Teoria &middot; Modelo</span>
-          <h2 class="deck-title">Cinco fatos e o grão de cada um</h2>
-          <p class="deck-summary">Quatro fatos descrevem o negócio e um descreve o próprio pipeline. A chave do grão é também o <code>ORDER BY</code> da tabela na Etapa 02.</p>
+          <h2 class="deck-title">Quatro fatos e o grão de cada um</h2>
+          <p class="deck-summary">Os quatro fatos descrevem processos de negócio. Nos arquivos, cada nome leva o prefixo <code>g00_</code>. A chave do grão é também o <code>ORDER BY</code> da tabela na Etapa 02.</p>
         </div>
         <table class="deck-table de-tabela">
           <thead><tr><th>Fato</th><th>Processo</th><th>Grão: uma linha é...</th><th>Chave do grão</th><th>Medidas</th></tr></thead>
@@ -549,7 +596,6 @@ prompt em docs/prompts.md e pare.</code></pre>
             <tr><td><code>fato_cotacao_ptax</code></td><td>boletim do BCB</td><td>um boletim PTAX</td><td><code>moeda</code>, <code>data_hora</code>, <code>tipo_boletim</code></td><td><code>cotacao_compra</code>, <code>cotacao_venda</code></td></tr>
             <tr><td><code>fato_leitura_telemetria</code></td><td>posição do caminhão</td><td>uma leitura de um caminhão num instante</td><td><code>caminhao</code>, <code>instante</code></td><td>latitude, longitude, <code>velocidade_kmh</code>, formato</td></tr>
             <tr><td><code>fato_alerta_direcao</code></td><td>alerta do tacógrafo</td><td>um alerta de direção contínua de um caminhão num instante</td><td><code>caminhao</code>, <code>instante</code></td><td><code>direcao_continua_min</code></td></tr>
-            <tr><td><code>fato_lote_ingestao</code></td><td>flush do servidor</td><td>um lote gravado pelo servidor (um manifesto)</td><td><code>lote</code></td><td>status, mensagens, linhas, espera, flush, raw, bronze, ClickHouse, erro</td></tr>
           </tbody>
         </table>
         <p class="deck-note"><code>tipo_boletim</code> é dimensão degenerada: identifica o boletim, mas não tem atributos que justifiquem uma tabela própria, e fica no fato.</p>
@@ -565,7 +611,7 @@ prompt em docs/prompts.md e pare.</code></pre>
           <p class="deck-summary">A classificação diz em que dimensões a medida pode ser somada. Ela decide a função de agregação de cada relatório da Etapa 04 e de cada contador da Etapa 05.</p>
         </div>
         <div class="df-termos df-c3">
-          <article class="df-termo"><h3>Aditiva</h3><p>Soma em qualquer dimensão.</p><p>No laboratório: a contagem de leituras e as <code>linhas</code> dos contadores por minuto e dos lotes. Somar minutos dá a hora; somar domínios dá o total.</p></article>
+          <article class="df-termo"><h3>Aditiva</h3><p>Soma em qualquer dimensão.</p><p>No laboratório: a contagem de leituras e as <code>linhas</code> dos contadores por minuto. Somar minutos dá a hora; somar domínios dá o total.</p></article>
           <article class="df-termo"><h3>Semiaditiva</h3><p>Soma em algumas dimensões e não em outras.</p><p><code>qtd_estoque</code> soma entre livros num mesmo dia, o que dá o estoque do dia. Somar o mesmo livro em dois dias conta o mesmo exemplar duas vezes; entre dias, usa-se o último valor ou a média.</p></article>
           <article class="df-termo"><h3>Não aditiva</h3><p>Nunca soma.</p><p><code>preco_gbp</code>, <code>cotacao_venda</code>, <code>velocidade_kmh</code> e <code>direcao_continua_min</code>. Agregam por média, mínimo, máximo ou último valor, como o <code>avg</code> e o <code>max</code> dos relatórios.</p></article>
         </div>
@@ -630,7 +676,7 @@ TAC;CAM-3126;20261029T180000;DIRECAO CONTINUA 05:35;ALERTA</code></pre>
         <div>
           <span class="deck-kicker">Etapa 01 &middot; Teoria &middot; Dimensões conformadas</span>
           <h2 class="deck-title">Uma dimensão a serviço de vários fatos</h2>
-          <p class="deck-summary">A <code>dim_data</code> serve aos cinco fatos e a <code>dim_caminhao</code> a dois. Para isso, cada fato grava a mesma chave, no mesmo tipo e com os mesmos valores, e a dimensão fica num grão que todos os fatos conseguem gerar. Kimball chama essa dimensão de conformada.</p>
+          <p class="deck-summary">A <code>dim_data</code> serve aos quatro fatos e a <code>dim_caminhao</code> a dois. Para isso, cada fato grava a mesma chave, no mesmo tipo e com os mesmos valores, e a dimensão fica num grão que todos os fatos conseguem gerar. Kimball chama essa dimensão de conformada.</p>
         </div>
         <table class="deck-table de-tabela">
           <thead><tr><th>Matriz de barramento</th><th>Grão do fato</th><th><code>dim_data</code></th><th><code>dim_livro</code></th><th><code>dim_caminhao</code></th><th>moeda</th></tr></thead>
@@ -639,7 +685,6 @@ TAC;CAM-3126;20261029T180000;DIRECAO CONTINUA 05:35;ALERTA</code></pre>
             <tr><td><code>fato_cotacao_ptax</code></td><td>boletim no instante</td><td><code>data_key</code></td><td></td><td></td><td><code>moeda</code></td></tr>
             <tr><td><code>fato_leitura_telemetria</code></td><td>caminhão &times; instante</td><td><code>data_key</code></td><td></td><td><code>caminhao</code></td><td></td></tr>
             <tr><td><code>fato_alerta_direcao</code></td><td>caminhão &times; instante</td><td><code>data_key</code></td><td></td><td><code>caminhao</code></td><td></td></tr>
-            <tr><td><code>fato_lote_ingestao</code></td><td>um lote</td><td><code>data_key</code></td><td></td><td></td><td></td></tr>
           </tbody>
         </table>
         <div class="deck-callout"><strong>O fato mais fino deriva a chave</strong><p>A leitura de 29/10/2026 06:00:55 grava <code>data_key = toYYYYMMDD(instante) = 20261029</code>. A <code>dim_data</code> não desce ao minuto: o instante fica no fato. Se a dimensão tivesse grão de minuto, o preço do livro, que é diário, não teria um valor único para a chave.</p></div>
@@ -658,7 +703,7 @@ TAC;CAM-3126;20261029T180000;DIRECAO CONTINUA 05:35;ALERTA</code></pre>
           <div class="de-caixa">
             <span class="de-rotulo">Ajustes para servir a mais de um fato</span>
             <ol>
-              <li>Mesma chave e mesmo tipo: <code>data_key UInt32</code> nos cinco fatos.</li>
+              <li>Mesma chave e mesmo tipo: <code>data_key UInt32</code> nos quatro fatos.</li>
               <li>Grão da dimensão igual ou mais grosso que o de cada fato. O fato mais fino deriva a chave.</li>
               <li>Mesmos rótulos: se o preço do livro ganhar moeda, grava <code>GBP</code>, como a PTAX, e não <code>Libra</code> ou <code>£</code>.</li>
               <li>Atributo novo entra na dimensão: um feriado na <code>dim_data</code> passa a valer para preço, PTAX e telemetria.</li>
@@ -669,12 +714,12 @@ TAC;CAM-3126;20261029T180000;DIRECAO CONTINUA 05:35;ALERTA</code></pre>
             <span class="de-rotulo">Preço médio e PTAX por dia</span>
             <pre class="de-pre"><code>SELECT p.data_key, p.preco_medio_gbp, c.ptax_venda
 FROM (SELECT data_key, avg(preco_gbp) AS preco_medio_gbp
-      FROM dw.fato_preco_livro FINAL
+      FROM mackenzie.g00_fato_preco_livro FINAL
       GROUP BY data_key) AS p
 LEFT JOIN
      (SELECT data_key,
              argMax(cotacao_venda, data_hora) AS ptax_venda
-      FROM dw.fato_cotacao_ptax FINAL
+      FROM mackenzie.g00_fato_cotacao_ptax FINAL
       WHERE moeda = 'GBP'
       GROUP BY data_key) AS c
 USING data_key
@@ -756,17 +801,17 @@ SETTINGS join_use_nulls = 1;</code></pre>
           <div class="de-caixa">
             <span class="de-rotulo">Revise antes de seguir</span>
             <ul>
-              <li>Cada um dos cinco fatos tem o grão numa frase que começa por "uma linha é"?</li>
+              <li>Cada um dos quatro fatos tem o grão numa frase que começa por "uma linha é"?</li>
               <li>A chave do grão identifica uma linha só, sem depender de coluna de versão?</li>
               <li>Toda medida tem classificação e a agregação permitida?</li>
               <li>Leitura e alerta estão em fatos separados, e o ruído fora dos dois?</li>
               <li><code>tipo_boletim</code> ficou no fato?</li>
-              <li>A matriz de barramento mostra a mesma <code>data_key UInt32</code> nos cinco fatos, e cada dimensão tem um valor só por linha do grão?</li>
+              <li>A matriz de barramento mostra a mesma <code>data_key UInt32</code> nos quatro fatos, e cada dimensão tem um valor só por linha do grão?</li>
             </ul>
           </div>
           <div class="de-caixa is-forte">
             <span class="de-rotulo">Gate</span>
-            <p><code>specs/04_modelo_dimensional.md</code> existe, com o grão dos cinco fatos e o teste do grão de cada um.</p>
+            <p><code>specs/04_modelo_dimensional.md</code> existe, com o grão dos quatro fatos e o teste do grão de cada um.</p>
             <p>O <code>AGENTS.md</code> proíbe DDL antes disso. O prompt da etapa está, literal, em <code>docs/prompts.md</code>.</p>
           </div>
         </div>
@@ -779,12 +824,13 @@ SETTINGS join_use_nulls = 1;</code></pre>
         <div>
           <span class="deck-kicker">10h00 &middot; Etapa 02 &middot; DDL</span>
           <h2 class="deck-title">Dimensões, fatos e views incrementais</h2>
-          <p class="deck-summary">O spec vira DDL no banco <code>dw</code>. Cada fato ganha uma view materializada que lê a tabela de pouso a cada INSERT, e o que já estava na tabela entra por uma carga do histórico.</p>
+          <p class="deck-summary">O spec vira DDL no banco <code>mackenzie</code>, com o prefixo do grupo. Cada fato ganha uma view materializada que lê a tabela de pouso a cada INSERT. Logo depois do <code>001</code>, o fato está vazio; o que já estava na tabela entra pela carga do histórico.</p>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p><code>sql/001_dimensoes_e_fatos.sql</code>, <code>sql/002_carga_historico.sql</code></p></div>
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li><code>ReplacingMergeTree</code> e <code>FINAL</code></li><li>Uma view materializada por fato</li><li>Telemetria em dois formatos</li><li>A carga do histórico</li><li>O teste do grão medido</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Rodar</span><p><code>python rodar_sql.py sql/001_dimensoes_e_fatos.sql</code><br><code>python rodar_sql.py -q "SELECT count() FROM mackenzie.g00_fato_preco_livro"</code><br><code>python rodar_sql.py sql/002_carga_historico.sql</code></p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li><code>ReplacingMergeTree</code> e <code>FINAL</code></li><li>Uma view materializada por fato</li><li>Telemetria em dois formatos</li><li>O fato nasce vazio</li><li>O teste do grão medido</li></ol></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
@@ -792,36 +838,43 @@ SETTINGS join_use_nulls = 1;</code></pre>
             <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
 Você é engenheiro de dados e escreve DDL de ClickHouse. Transforma o
 specs/04_modelo_dimensional.md revisado em tabelas e views
-materializadas no banco dw, sem alterar a tabela de pouso.
+materializadas no banco mackenzie, com o prefixo do grupo, sem
+alterar a tabela de pouso.
 
 <span class="k">[R] Pedido</span>
-Crie dois arquivos:
-1. sql/001_dimensoes_e_fatos.sql: banco dw; dim_data gerada (chave
+1. Crie sql/001_dimensoes_e_fatos.sql: g00_dim_data gerada (chave
    AAAAMMDD, 731 dias desde 2026-01-01, com nome_dia e fim_semana, e
-   uma carga que só roda uma vez); dim_livro; dim_caminhao; os quatro
-   fatos de negócio do spec; uma view materializada dw.mv_&lt;destino&gt;
-   TO dw.&lt;destino&gt; para cada fato e para dim_livro, lendo
-   ingestao.db_ingestion; dim_caminhao alimentada em cascata pelo
-   fato de leitura (dw.mv_dim_caminhao).
-2. sql/002_carga_historico.sql: as linhas que já estavam em
+   uma carga que só roda uma vez); g00_dim_livro; g00_dim_caminhao;
+   os quatro fatos do spec; uma view materializada
+   mackenzie.g00_mv_&lt;destino&gt; TO mackenzie.g00_&lt;destino&gt; para cada
+   fato e para g00_dim_livro, lendo mackenzie.db_ingestion;
+   g00_dim_caminhao alimentada em cascata pelo fato de leitura
+   (g00_mv_dim_caminhao).
+2. Rode o 001 e conte as linhas de g00_fato_preco_livro. Explique o
+   número.
+3. Crie sql/002_carga_historico.sql: as linhas que já estavam em
    db_ingestion, com INSERT ... SELECT usando o mesmo SELECT de cada
-   view.
-Rode os dois e mostre o teste do grão e o destino de cada linha de
-telemetria.
+   view. Rode e mostre o teste do grão e o destino de cada linha de
+   telemetria.
 
 <span class="k">[E] Exemplos</span>
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_fato_cotacao_ptax TO dw.fato_cotacao_ptax AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_fato_cotacao_ptax
+TO mackenzie.g00_fato_cotacao_ptax AS
 SELECT toYYYYMMDD(data_hora)                                    AS data_key,
        data_json.moeda::String                                  AS moeda,
        ...
        timestamp                                                AS versao_ms
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 WHERE data_tag = 'ptax';
 
+python rodar_sql.py sql/001_dimensoes_e_fatos.sql
+
 <span class="k">[A] Ajustes</span>
-- Fatos e dim_livro em ReplacingMergeTree(versao_ms), com versao_ms =
-  timestamp da tabela de pouso e ORDER BY igual à chave do grão.
-- dim_caminhao em AggregatingMergeTree, com
+- Escreva sempre g00_ nos arquivos; o rodar_sql.py troca pelo GRUPO.
+- Fatos e g00_dim_livro em ReplacingMergeTree(versao_ms), com
+  versao_ms = timestamp da tabela de pouso e ORDER BY igual à chave do
+  grão.
+- g00_dim_caminhao em AggregatingMergeTree, com
   SimpleAggregateFunction(min) e (max) na primeira e na última leitura.
 - Campos com data_json.caminho::Tipo; conversões com OrZero ou OrNull.
 - Datas e horas em America/Sao_Paulo.
@@ -830,12 +883,12 @@ WHERE data_tag = 'ptax';
   vira 335 minutos; ERR SAT e #RADIO não entram em fato.
 - IF NOT EXISTS em tudo. O 002 pode rodar duas vezes sem mudar o
   resultado lido com FINAL.
-- Nenhum comando sobre db_ingestion além de SELECT.
+- Nenhum comando sobre mackenzie.db_ingestion além de SELECT.
 
 <span class="k">[T] Tipo de saída</span>
-Dois arquivos SQL comentados, executáveis com clickhouse-client
---multiquery, e uma tabela "fato | sem FINAL | com FINAL | chaves do
-grão" no terminal e em docs/prompts.md.
+Dois arquivos SQL comentados, executáveis com python rodar_sql.py, e
+uma tabela "fato | sem FINAL | com FINAL | chaves do grão" no terminal
+e em docs/prompts.md.
 
 <span class="k">[E] Extras</span>
 Leia AGENTS.md e specs/04_modelo_dimensional.md. Mostre o plano,
@@ -851,12 +904,12 @@ espere meu ok, escreva, rode, registre o prompt e pare.</code></pre>
         <div>
           <span class="deck-kicker">Etapa 02 &middot; Teoria &middot; Mecanismo</span>
           <h2 class="deck-title"><code>ReplacingMergeTree</code> e a leitura com <code>FINAL</code></h2>
-          <p class="deck-summary">A Aula 04 entrega pelo menos uma vez: uma reentrega grava a mesma linha de novo, com outro <code>timestamp</code>. No fato, as duas cópias têm a mesma chave de ordenação. O <code>ReplacingMergeTree</code> guarda uma só, a de maior <code>versao_ms</code>, mas faz isso no merge, em segundo plano.</p>
+          <p class="deck-summary">A Aula 04 entrega pelo menos uma vez, e o reenvio do professor na Etapa 05 faz o mesmo: uma reentrega grava a mesma linha de novo, com outro <code>timestamp</code>. No fato, as duas cópias têm a mesma chave de ordenação. O <code>ReplacingMergeTree</code> guarda uma só, a de maior <code>versao_ms</code>, mas faz isso no merge, em segundo plano.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
             <span class="de-rotulo">Trecho de <code>sql/001_dimensoes_e_fatos.sql</code></span>
-            <pre class="de-pre de-pre-largo"><code>CREATE TABLE IF NOT EXISTS dw.fato_preco_livro
+            <pre class="de-pre de-pre-largo"><code>CREATE TABLE IF NOT EXISTS mackenzie.g00_fato_preco_livro
 (
     data_key     UInt32,
     upc          String,
@@ -870,13 +923,13 @@ ENGINE = ReplacingMergeTree(versao_ms)    -- reentrega e nova coleta no mesmo di
 ORDER BY (data_key, upc);</code></pre>
           </div>
           <div class="de-caixa is-cinza">
-            <span class="de-rotulo">Medido na preparação</span>
-            <p>Depois de rodar a carga do histórico duas vezes:</p>
+            <span class="de-rotulo">Conta esperada, se o <code>002</code> rodar duas vezes</span>
+            <p>Cada livro e cada boletim entram duas vezes, com a mesma chave do grão:</p>
             <table class="deck-table de-tabela de-num">
-              <thead><tr><th>Fato</th><th>Sem <code>FINAL</code></th><th>Com <code>FINAL</code></th></tr></thead>
+              <thead><tr><th>Fato</th><th>Sem <code>FINAL</code>, antes do merge</th><th>Com <code>FINAL</code></th></tr></thead>
               <tbody>
-                <tr><td><code>fato_preco_livro</code></td><td>2.000</td><td>1.000</td></tr>
-                <tr><td><code>fato_cotacao_ptax</code></td><td>80</td><td>40</td></tr>
+                <tr><td><code>fato_preco_livro</code></td><td>até 2.000</td><td>1.000</td></tr>
+                <tr><td><code>fato_cotacao_ptax</code></td><td>até 80</td><td>40</td></tr>
               </tbody>
             </table>
             <p style="margin-top:8px;">Até o merge acontecer, as cópias aparecem. O <code>FINAL</code> faz a junção na hora da leitura, com custo de leitura maior.</p>
@@ -897,7 +950,7 @@ ORDER BY (data_key, upc);</code></pre>
         <div class="de-dois de-dois-esq">
           <div class="de-caixa">
             <span class="de-rotulo">Trecho de <code>sql/001_dimensoes_e_fatos.sql</code></span>
-            <pre class="de-pre de-pre-largo"><code>CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_fato_cotacao_ptax TO dw.fato_cotacao_ptax AS
+            <pre class="de-pre de-pre-largo"><code>CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_fato_cotacao_ptax TO mackenzie.g00_fato_cotacao_ptax AS
 SELECT toYYYYMMDD(data_hora)                                    AS data_key,
        data_json.moeda::String                                  AS moeda,
        parseDateTime64BestEffort(data_json.dataHoraCotacao::String, 3, 'America/Sao_Paulo') AS data_hora,
@@ -905,7 +958,7 @@ SELECT toYYYYMMDD(data_hora)                                    AS data_key,
        toDecimal64OrZero(data_json.cotacaoCompra::String, 5)    AS cotacao_compra,
        toDecimal64OrZero(data_json.cotacaoVenda::String, 5)     AS cotacao_venda,
        timestamp                                                AS versao_ms
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 WHERE data_tag = 'ptax';</code></pre>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
@@ -926,7 +979,7 @@ WHERE data_tag = 'ptax';</code></pre>
           <p class="deck-summary">A view de leitura reconhece o formato por expressão regular, extrai instante, posição e velocidade com <code>extract</code> e descarta o que não for leitura. Todas as conversões usam <code>OrZero</code> ou <code>OrNull</code>.</p>
         </div>
         <div class="de-caixa">
-          <span class="de-rotulo">Trecho de <code>dw.mv_fato_leitura_telemetria</code></span>
+          <span class="de-rotulo">Trecho de <code>mackenzie.g00_mv_fato_leitura_telemetria</code></span>
           <pre class="de-pre de-pre-largo"><code>WITH data_json.linha::String AS linha,
      match(linha, '^CAM-[0-9]{4}\\|')                AS barra,
      match(linha, '^CAM-[0-9]{4} [0-9]{2}-[0-9]{2}-') AS espaco,
@@ -939,11 +992,11 @@ SELECT ...
        data_json.arquivo::String                                AS arquivo,
        toUInt32OrZero(data_json.numero_linha::String)           AS numero_linha,
        timestamp                                                AS versao_ms
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 WHERE data_tag = 'telemetria' AND (barra OR espaco) AND inst IS NOT NULL;</code></pre>
         </div>
         <div class="de-dois">
-          <div class="de-caixa is-forte"><span class="de-rotulo">Por que <code>OrZero</code> e <code>OrNull</code></span><p>Um erro de conversão dentro da view faz falhar o INSERT do lote inteiro na tabela de pouso. O consumidor da Aula 04 não dá ack, o lote volta pela fila e falha de novo na reentrega.</p></div>
+          <div class="de-caixa is-forte"><span class="de-rotulo">Por que <code>OrZero</code> e <code>OrNull</code></span><p>Um erro de conversão dentro da view faz falhar o INSERT do bloco inteiro na tabela de pouso. Na Aula 04, o consumidor não daria ack, e o bloco voltaria pela fila para falhar de novo.</p></div>
           <div class="de-caixa"><span class="de-rotulo">Rastreabilidade</span><p><code>arquivo</code> e <code>numero_linha</code> levam cada leitura de volta à linha do TXT de origem. O alerta guarda os mesmos dois campos.</p></div>
         </div>
       </div>
@@ -954,22 +1007,20 @@ WHERE data_tag = 'telemetria' AND (barra OR espaco) AND inst IS NOT NULL;</code>
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Etapa 02 &middot; Teoria &middot; Histórico</span>
-          <h2 class="deck-title">A view não vê o que já estava na tabela</h2>
-          <p class="deck-summary">A view materializada só processa blocos inseridos depois que ela existe. As 32.305 linhas da Aula 04 já estavam lá, então o <code>002</code> as carrega com <code>INSERT ... SELECT</code>, usando exatamente o SELECT de cada view.</p>
+          <h2 class="deck-title">O fato nasce vazio</h2>
+          <p class="deck-summary">A view materializada só processa blocos inseridos depois que ela existe. As 32.305 linhas já estavam na tabela de pouso quando a aula começou, então, logo depois do <code>001</code>, os fatos estão vazios. O <code>002</code> carrega o histórico com <code>INSERT ... SELECT</code>, usando exatamente o SELECT de cada view.</p>
         </div>
-        <div class="de-dois">
-          <div class="de-caixa">
-            <span class="de-rotulo">Trecho de <code>sql/002_carga_historico.sql</code></span>
-            <pre class="de-pre de-pre-largo"><code>-- mesmo SELECT de dw.mv_fato_cotacao_ptax
-INSERT INTO dw.fato_cotacao_ptax
-SELECT toYYYYMMDD(data_hora)                                    AS data_key,
-       ...
-FROM ingestao.db_ingestion
-WHERE data_tag = 'ptax';
+        <div class="de-dois de-dois-esq">
+          <div class="de-caixa is-cinza">
+            <span class="de-rotulo">A sequência da etapa</span>
+            <pre class="de-pre de-pre-largo"><code>python rodar_sql.py sql/001_dimensoes_e_fatos.sql
+python rodar_sql.py -q "SELECT count() FROM mackenzie.g00_fato_preco_livro"
+<span class="c"># 0: a view só vê INSERT novo</span>
 
--- dim_caminhao sai do fato já carregado
-INSERT INTO dw.dim_caminhao
-SELECT caminhao, min(instante), max(instante) FROM dw.fato_leitura_telemetria GROUP BY caminhao;</code></pre>
+python rodar_sql.py sql/002_carga_historico.sql
+python rodar_sql.py -q "SELECT count() FROM mackenzie.g00_fato_preco_livro FINAL"
+<span class="c"># 1.000</span></code></pre>
+            <p style="margin-top:8px;">O <code>002</code> repete o SELECT de cada view num <code>INSERT INTO mackenzie.g00_... SELECT ... FROM mackenzie.db_ingestion</code>. A <code>g00_dim_caminhao</code> sai do fato de leitura já carregado.</p>
           </div>
           <div class="de-caixa">
             <span class="de-rotulo">Por que a ordem é view primeiro, carga depois</span>
@@ -997,9 +1048,9 @@ SELECT caminhao, min(instante), max(instante) FROM dw.fato_leitura_telemetria GR
           <div class="de-caixa">
             <span class="de-rotulo">Consulta 1 de <code>sql/005_consultas.sql</code> (trecho)</span>
             <pre class="de-pre de-pre-largo"><code>SELECT 'fato_preco_livro' AS fato,
-       (SELECT count() FROM dw.fato_preco_livro)                                    AS linhas_sem_final,
-       (SELECT count() FROM dw.fato_preco_livro FINAL)                              AS linhas_final,
-       (SELECT uniqExact(data_key, upc) FROM dw.fato_preco_livro)                   AS chaves_do_grao
+       (SELECT count() FROM mackenzie.g00_fato_preco_livro)                                    AS linhas_sem_final,
+       (SELECT count() FROM mackenzie.g00_fato_preco_livro FINAL)                              AS linhas_final,
+       (SELECT uniqExact(data_key, upc) FROM mackenzie.g00_fato_preco_livro)                   AS chaves_do_grao
 UNION ALL
 ...</code></pre>
           </div>
@@ -1057,12 +1108,13 @@ UNION ALL
         <div>
           <span class="deck-kicker">10h30 &middot; Etapa 03 &middot; Views</span>
           <h2 class="deck-title">O que é uma view e como ela funciona</h2>
-          <p class="deck-summary">O banco terá três objetos com nome de view e comportamentos diferentes. O grupo documenta cada um com evidência tirada do próprio banco, antes de usar os outros dois nas Etapas 04 e 05.</p>
+          <p class="deck-summary">O ClickHouse tem três objetos com nome de view e comportamentos diferentes, e a aula usa quatro formas: incremental, refreshable, comum e comum com janela de tempo. O grupo documenta cada uma com evidência tirada do próprio banco, antes de usar as outras nas Etapas 04 e 05.</p>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>docs/views.md</code></p></div>
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Três objetos chamados view</li><li>VIEW comum</li><li>MV incremental: o caminho do INSERT</li><li>MV incremental: consequências</li><li>MV refreshable</li><li>Quadro comparativo</li><li>Janela, WINDOW VIEW e as 14 views</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Rodar</span><p>Só consultas a <code>system.tables</code> e <code>EXPLAIN</code>. Nenhum CREATE nesta etapa.</p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Três objetos chamados view</li><li>VIEW comum</li><li>MV incremental: o caminho do INSERT</li><li>MV incremental: consequências</li><li>MV refreshable</li><li>Quadro comparativo</li><li>Janela, WINDOW VIEW e as 13 views</li></ol></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
@@ -1074,32 +1126,33 @@ sem criar objeto novo.
 
 <span class="k">[R] Pedido</span>
 Crie docs/views.md com uma seção para VIEW, uma para MATERIALIZED
-VIEW ... TO (incremental) e uma para MATERIALIZED VIEW ... REFRESH
-(refreshable). Em cada seção:
+VIEW ... TO (incremental), uma para MATERIALIZED VIEW ... REFRESH
+(refreshable) e uma para a view em janela (VIEW com now() - INTERVAL).
+Em cada seção:
 1. o que fica guardado no banco;
 2. quando o SELECT roda e sobre quais linhas;
-3. um exemplo do banco dw ou do laboratório;
+3. um exemplo do grupo ou do laboratório;
 4. duas consequências práticas para o grupo.
-Termine com um quadro comparativo e com a lista das views do banco
-dw lida de system.tables, com o tipo de cada uma.
+Termine com um quadro comparativo e com a lista das views do grupo
+lida de system.tables, com o tipo de cada uma.
 
 <span class="k">[E] Exemplos</span>
-SELECT name, engine
-FROM system.tables
-WHERE database = 'dw' AND engine LIKE '%View%'
-ORDER BY engine, name
+python rodar_sql.py -q "SELECT name, engine FROM system.tables
+  WHERE database = 'mackenzie' AND startsWith(name, 'g00_')
+    AND engine LIKE '%View%' ORDER BY engine, name"
 
-EXPLAIN SELECT * FROM dw.v_saude_ingestao_15min;
+EXPLAIN SELECT * FROM mackenzie.g00_v_saude_ingestao_15min;
 
 <span class="k">[A] Ajustes</span>
 - Mostre a saída real de cada consulta; nenhuma saída inventada.
 - Nesta etapa só existem as views materializadas incrementais do 001.
   A seção do EXPLAIN fica marcada como pendente e é preenchida depois
-  da Etapa 05, quando dw.v_saude_ingestao_15min existir.
+  da Etapa 05, quando g00_v_saude_ingestao_15min existir.
 - Explique por que a view incremental não vê o histórico, nem UPDATE,
   DELETE ou merge da origem, e por que agrega por bloco.
-- Cite WINDOW VIEW (experimental, allow_experimental_window_view) e
-  LIVE VIEW (obsoleta) e diga por que ficam fora.
+- Cite WINDOW VIEW (experimental no 25.8, exige
+  allow_experimental_analyzer = 0 na criação e na leitura) e LIVE VIEW
+  (obsoleta) e diga por que ficam fora.
 - Nenhum CREATE, DROP ou INSERT nesta etapa.
 
 <span class="k">[T] Tipo de saída</span>
@@ -1126,9 +1179,9 @@ prompt em docs/prompts.md e pare.</code></pre>
         <table class="deck-table de-tabela">
           <thead><tr><th>Objeto</th><th>Guarda dado?</th><th>Quando o SELECT roda</th><th>Sobre o quê</th><th>Uso nesta aula</th></tr></thead>
           <tbody>
-            <tr><td><code>VIEW</code></td><td>não, guarda a consulta</td><td>a cada leitura da view</td><td>as tabelas inteiras, no estado do momento</td><td>observabilidade corrente</td></tr>
+            <tr><td><code>VIEW</code></td><td>não, guarda a consulta</td><td>a cada leitura da view</td><td>as tabelas inteiras, no estado do momento</td><td>views em janela</td></tr>
             <tr><td><code>MATERIALIZED VIEW ... TO</code></td><td>sim, na tabela de destino</td><td>a cada INSERT na tabela de origem</td><td>só o bloco recém-inserido</td><td>dimensões e fatos</td></tr>
-            <tr><td><code>MATERIALIZED VIEW ... REFRESH</code></td><td>sim, na tabela de destino</td><td>no horário do <code>REFRESH</code></td><td>as tabelas inteiras; troca o conteúdo de uma vez</td><td>relatórios fechados</td></tr>
+            <tr><td><code>MATERIALIZED VIEW ... REFRESH</code></td><td>sim, na tabela de destino</td><td>no horário do <code>REFRESH</code></td><td>as tabelas inteiras; troca o conteúdo de uma vez</td><td>cubos fechados</td></tr>
           </tbody>
         </table>
         <div class="de-tres">
@@ -1150,18 +1203,18 @@ prompt em docs/prompts.md e pare.</code></pre>
         <div class="de-dois de-dois-esq">
           <div class="de-caixa">
             <span class="de-rotulo">Exemplo: trecho de <code>sql/004_observabilidade.sql</code></span>
-            <pre class="de-pre de-pre-largo"><code>CREATE OR REPLACE VIEW dw.v_saude_ingestao_15min AS
+            <pre class="de-pre de-pre-largo"><code>CREATE OR REPLACE VIEW mackenzie.g00_v_saude_ingestao_15min AS
 SELECT data_tag,
        sum(linhas)                                AS linhas_15min,
        max(minuto)                                AS ultimo_minuto_com_dado,
        dateDiff('second', max(minuto), now())     AS segundos_desde_ultimo_minuto
-FROM dw.obs_ingestao_minuto
+FROM mackenzie.g00_obs_ingestao_minuto
 WHERE minuto &gt;= now() - INTERVAL 15 MINUTE
 GROUP BY data_tag;</code></pre>
-            <p style="margin-top:8px;"><code>EXPLAIN SELECT * FROM dw.v_saude_ingestao_15min</code> mostra um <code>ReadFromMergeTree (dw.obs_ingestao_minuto)</code>, com o filtro da janela em <code>PREWHERE</code>. Não existe tabela atrás da view: o plano é o do SELECT dela.</p>
+            <p style="margin-top:8px;"><code>EXPLAIN SELECT * FROM mackenzie.g00_v_saude_ingestao_15min</code> mostra um <code>ReadFromMergeTree (mackenzie.g00_obs_ingestao_minuto)</code>, com o filtro da janela em <code>PREWHERE</code>. Não existe tabela atrás da view: o plano é o do SELECT dela.</p>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
-            <div class="de-caixa"><span class="de-rotulo">Mecanismo</span><ol><li><code>SELECT * FROM dw.v_saude_ingestao_15min</code></li><li>o nome é substituído pelo SELECT guardado</li><li>o motor lê <code>obs_ingestao_minuto</code> agora</li></ol></div>
+            <div class="de-caixa"><span class="de-rotulo">Mecanismo</span><ol><li><code>SELECT * FROM mackenzie.g00_v_saude_ingestao_15min</code></li><li>o nome é substituído pelo SELECT guardado</li><li>o motor lê <code>obs_ingestao_minuto</code> agora</li></ol></div>
             <div class="de-caixa is-forte"><span class="de-rotulo">Consequências</span><ul><li>Resultado sempre atual.</li><li>Custo pago em cada leitura.</li><li><code>now()</code> é avaliado a cada leitura, então a janela anda com o relógio.</li></ul></div>
           </div>
         </div>
@@ -1176,7 +1229,7 @@ GROUP BY data_tag;</code></pre>
           <h2 class="deck-title">View incremental: o caminho de um INSERT</h2>
           <p class="deck-summary">A view materializada incremental funciona como um gatilho de INSERT. A cada bloco inserido na origem, o ClickHouse roda o SELECT da view só sobre aquele bloco e insere o resultado na tabela do <code>TO</code>. O dado mora numa tabela comum, com <code>ORDER BY</code> e engine próprios.</p>
         </div>
-        <svg class="de-svg is-alto" viewBox="0 0 1200 330" role="img" aria-label="O consumidor da Aula 04 insere um bloco em db_ingestion; a parte nova é gravada; o mesmo bloco passa pelo SELECT de mv_fato_leitura_telemetria e o resultado é inserido em fato_leitura_telemetria; esse INSERT dispara mv_dim_caminhao, que grava em dim_caminhao" font-family="Inter, Helvetica, Arial, sans-serif">
+        <svg class="de-svg is-alto" viewBox="0 0 1200 330" role="img" aria-label="Uma carga ou o reenvio do professor insere um bloco em db_ingestion; a parte nova é gravada; o mesmo bloco passa pelo SELECT de mv_fato_leitura_telemetria e o resultado é inserido em fato_leitura_telemetria; esse INSERT dispara mv_dim_caminhao, que grava em dim_caminhao" font-family="Inter, Helvetica, Arial, sans-serif">
           <defs><marker id="mv-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#0f0f0f"/></marker></defs>
           <g stroke="#0f0f0f" stroke-width="2">
             <rect x="10" y="120" width="200" height="90" fill="#f2f2ee"/>
@@ -1188,8 +1241,8 @@ GROUP BY data_tag;</code></pre>
           </g>
           <g text-anchor="middle" font-size="16" fill="#0f0f0f">
             <text x="110" y="156" font-weight="700">INSERT de um bloco</text>
-            <text x="110" y="180" font-size="13" fill="#5c5c5c">consumidor da Aula 04</text>
-            <text x="425" y="54" font-weight="700" fill="#ffffff" font-family="JetBrains Mono, monospace" font-size="15">ingestao.db_ingestion</text>
+            <text x="110" y="180" font-size="13" fill="#5c5c5c">carga ou reenvio</text>
+            <text x="425" y="54" font-weight="700" fill="#ffffff" font-family="JetBrains Mono, monospace" font-size="15">mackenzie.db_ingestion</text>
             <text x="425" y="78" font-size="13" fill="#ffffff">a parte nova é gravada</text>
             <text x="425" y="212" font-weight="700">SELECT da view</text>
             <text x="425" y="236" font-size="13" font-family="JetBrains Mono, monospace">mv_fato_leitura_telemetria</text>
@@ -1218,8 +1271,8 @@ GROUP BY data_tag;</code></pre>
           <text x="10" y="318" font-size="14.5" fill="#5c5c5c">Linhas tracejadas: views, que não guardam nada. As linhas que já estavam em db_ingestion antes da view existir não passam por ela.</text>
         </svg>
         <div class="de-dois">
-          <div class="de-caixa"><span class="de-rotulo">Use <code>TO</code></span><p>Com <code>TO dw.tabela</code>, o destino é uma tabela criada e nomeada pelo grupo. Sem <code>TO</code>, o ClickHouse cria uma tabela interna <code>.inner</code>, que some se a view for apagada.</p></div>
-          <div class="de-caixa is-forte"><span class="de-rotulo">Erro na view</span><p>Se o SELECT da view falhar no bloco, o INSERT na origem devolve erro ao consumidor. É por isso que a Etapa 02 converte com <code>OrZero</code> e <code>OrNull</code>.</p></div>
+          <div class="de-caixa"><span class="de-rotulo">Use <code>TO</code></span><p>Com <code>TO mackenzie.g00_tabela</code>, o destino é uma tabela criada e nomeada pelo grupo. Sem <code>TO</code>, o ClickHouse cria uma tabela interna <code>.inner</code>, que some se a view for apagada.</p></div>
+          <div class="de-caixa is-forte"><span class="de-rotulo">Erro na view</span><p>Se o SELECT da view falhar no bloco, o INSERT na origem devolve erro a quem inseriu. É por isso que a Etapa 02 converte com <code>OrZero</code> e <code>OrNull</code>.</p></div>
         </div>
       </div>
     </div>
@@ -1284,11 +1337,11 @@ GROUP BY data_tag;</code></pre>
         <div class="de-dois">
           <div class="de-caixa">
             <span class="de-rotulo">Comandos de operação</span>
-            <pre class="de-pre de-pre-largo"><code>SYSTEM REFRESH VIEW dw.rmv_preco_categoria_dia; SYSTEM WAIT VIEW dw.rmv_preco_categoria_dia;
+            <pre class="de-pre de-pre-largo"><code>SYSTEM REFRESH VIEW mackenzie.g00_rmv_preco_categoria_dia; SYSTEM WAIT VIEW mackenzie.g00_rmv_preco_categoria_dia;
 
 SELECT view, status, last_success_time, next_refresh_time, exception
 FROM system.view_refreshes
-WHERE database = 'dw'</code></pre>
+WHERE database = 'mackenzie' AND startsWith(view, 'g00_')</code></pre>
           </div>
           <div class="de-caixa is-forte">
             <span class="de-rotulo">O que cada um faz</span>
@@ -1297,7 +1350,7 @@ WHERE database = 'dw'</code></pre>
               <li><code>SYSTEM WAIT VIEW</code> espera o refresh terminar.</li>
               <li><code>system.view_refreshes</code> mostra estado, último sucesso, próximo horário e a exceção, se houver.</li>
             </ul>
-            <p style="margin-top:6px;">Recurso estável no ClickHouse 26.8, a versão do laboratório.</p>
+            <p style="margin-top:6px;">Recurso sem configuração experimental no ClickHouse 25.8, a versão da turma.</p>
           </div>
         </div>
       </div>
@@ -1330,31 +1383,31 @@ WHERE database = 'dw'</code></pre>
       </div>
     </div>
 
-    <!-- Janela, WINDOW VIEW, 14 views -->
+    <!-- Janela, WINDOW VIEW, 13 views -->
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Etapa 03 &middot; Teoria &middot; Escopo</span>
-          <h2 class="deck-title">View em janela, WINDOW VIEW e as 14 views</h2>
+          <h2 class="deck-title">View em janela, WINDOW VIEW e as 13 views</h2>
           <p class="deck-summary">Nesta aula, "view em janela" é uma VIEW comum com <code>WHERE minuto &gt;= now() - INTERVAL 15 MINUTE</code>. A janela anda com o relógio porque a view roda de novo a cada leitura e o <code>now()</code> muda.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
             <span class="de-rotulo">Fora do laboratório</span>
             <ul>
-              <li><code>WINDOW VIEW</code> agrega por janelas de tempo no próprio motor, mas é experimental e exige <code>allow_experimental_window_view</code>.</li>
+              <li><code>WINDOW VIEW</code> agrega por janelas de tempo no próprio motor, mas no 25.8 é experimental e só funciona com o analisador antigo: <code>allow_experimental_analyzer = 0</code> na criação e na leitura.</li>
               <li><code>LIVE VIEW</code> está obsoleta.</li>
             </ul>
-            <p style="margin-top:8px;">O <code>AGENTS.md</code> deixa as duas fora: o grupo usa só recursos estáveis da versão 26.8.</p>
+            <p style="margin-top:8px;">O <code>AGENTS.md</code> deixa as duas fora: o grupo usa só recursos estáveis da versão 25.8.</p>
           </div>
           <div class="de-caixa is-cinza">
-            <span class="de-rotulo">Consulta 5 do <code>005</code>: as 14 views do <code>dw</code></span>
+            <span class="de-rotulo">Consulta 5 do <code>005</code>: as 13 views do grupo</span>
             <table class="deck-table de-tabela">
               <thead><tr><th>Tipo</th><th>Qtd.</th><th>Views</th></tr></thead>
               <tbody>
                 <tr><td>incremental</td><td>8</td><td><code>mv_dim_livro</code>, <code>mv_dim_caminhao</code>, 4 <code>mv_fato_*</code>, 2 <code>mv_obs_*</code></td></tr>
-                <tr><td>refreshable</td><td>3</td><td><code>rmv_preco_categoria_dia</code>, <code>rmv_telemetria_caminhao_dia</code>, <code>rmv_fato_lote_ingestao</code></td></tr>
-                <tr><td>comum</td><td>3</td><td><code>v_saude_ingestao_15min</code>, <code>v_lotes_ultima_hora</code>, <code>v_descartes_telemetria_1h</code></td></tr>
+                <tr><td>refreshable</td><td>2</td><td><code>rmv_preco_categoria_dia</code>, <code>rmv_telemetria_caminhao_dia</code></td></tr>
+                <tr><td>comum</td><td>3</td><td><code>v_saude_ingestao_15min</code>, <code>v_caminhoes_5min</code>, <code>v_descartes_telemetria_1h</code></td></tr>
               </tbody>
             </table>
           </div>
@@ -1367,7 +1420,7 @@ WHERE database = 'dw'</code></pre>
                engine = 'MaterializedView', 'incremental: roda a cada INSERT na origem',
                'tabela') AS como_funciona
 FROM system.tables
-WHERE database = 'dw' AND engine LIKE '%View%'</code></pre>
+WHERE database = 'mackenzie' AND startsWith(name, 'g00_') AND engine LIKE '%View%'</code></pre>
         </div>
       </div>
     </div>
@@ -1393,8 +1446,8 @@ WHERE database = 'dw' AND engine LIKE '%View%'</code></pre>
           </div>
           <div class="de-caixa is-forte">
             <span class="de-rotulo">Pendente para depois da Etapa 05</span>
-            <p>A seção do <code>EXPLAIN SELECT * FROM dw.v_saude_ingestao_15min</code>, com o plano real lendo <code>dw.obs_ingestao_minuto</code>.</p>
-            <p>No fim do dia, a consulta 5 do <code>005</code> lista 14 views: 8 incrementais, 3 refreshable e 3 comuns.</p>
+            <p>A seção do <code>EXPLAIN SELECT * FROM mackenzie.g00_v_saude_ingestao_15min</code>, com o plano real lendo <code>mackenzie.g00_obs_ingestao_minuto</code>.</p>
+            <p>No fim do dia, a consulta 5 do <code>005</code> lista 13 views: 8 incrementais, 2 refreshable e 3 comuns.</p>
           </div>
         </div>
       </div>
@@ -1404,53 +1457,55 @@ WHERE database = 'dw' AND engine LIKE '%View%'</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense etapa-shell" data-etapa="04">
         <div>
-          <span class="deck-kicker">10h50 &middot; Etapa 04 &middot; Relatórios fechados</span>
-          <h2 class="deck-title">Relatórios fechados com refreshable</h2>
-          <p class="deck-summary">Dois relatórios de dias que já terminaram, recalculados todo dia à 01h00 e lidos sem custo de agregação: preço por categoria em GBP e em BRL, e telemetria por caminhão.</p>
+          <span class="deck-kicker">10h50 &middot; Etapa 04 &middot; Cubos fechados</span>
+          <h2 class="deck-title">Os cubos fechados com refreshable</h2>
+          <p class="deck-summary">Dois cubos de dias que já terminaram, recalculados todo dia e lidos sem custo de agregação: preço por categoria e dia, em GBP e em BRL, e telemetria por caminhão e dia.</p>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>sql/003_relatorios_fechados.sql</code></p></div>
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Por que relatório fechado é refreshable</li><li>Preço por categoria com <code>ASOF JOIN</code></li><li>Telemetria por caminhão e dia</li><li>O relatório atualizado cedo</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Rodar</span><p><code>python rodar_sql.py sql/003_relatorios_fechados.sql</code><br>depois <code>SYSTEM REFRESH VIEW</code> e <code>SYSTEM WAIT VIEW</code> das duas, com <code>-q</code></p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Por que o cubo fechado é refreshable</li><li>Preço por categoria com <code>ASOF JOIN</code></li><li>Telemetria por caminhão e dia</li><li>O cubo atualizado antes da carga</li></ol></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
             <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
-Você é engenheiro de analytics. Publica relatórios de dias fechados,
-que não mudam depois de publicados, a partir da estrela da Etapa 02.
+Você é engenheiro de analytics. Publica cubos de dias fechados, que
+não mudam depois de publicados, a partir da estrela da Etapa 02.
 
 <span class="k">[R] Pedido</span>
 Crie sql/003_relatorios_fechados.sql com duas tabelas e duas views
 materializadas refreshable:
-1. dw.rel_preco_categoria_dia, grão categoria x dia: livros, preço
-   médio em GBP, PTAX de venda do último Fechamento até o dia, a data
-   dessa PTAX e o preço médio em BRL; alimentada por
-   dw.rmv_preco_categoria_dia.
-2. dw.rel_telemetria_caminhao_dia, grão caminhão x dia: leituras,
-   velocidade média e máxima, primeira e última leitura e a parte das
-   leituras no formato espaço; alimentada por
-   dw.rmv_telemetria_caminhao_dia.
+1. mackenzie.g00_rel_preco_categoria_dia, grão categoria x dia:
+   livros, preço médio em GBP, PTAX de venda do último Fechamento até
+   o dia, a data dessa PTAX e o preço médio em BRL; alimentada por
+   mackenzie.g00_rmv_preco_categoria_dia.
+2. mackenzie.g00_rel_telemetria_caminhao_dia, grão caminhão x dia:
+   leituras, velocidade média e máxima, primeira e última leitura e a
+   parte das leituras no formato espaço; alimentada por
+   mackenzie.g00_rmv_telemetria_caminhao_dia.
 Rode, force o primeiro refresh das duas e mostre as cinco primeiras
-linhas de cada relatório e o estado em system.view_refreshes.
+linhas de cada cubo e o estado em system.view_refreshes.
 
 <span class="k">[E] Exemplos</span>
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.rmv_preco_categoria_dia
-REFRESH EVERY 1 DAY OFFSET 1 HOUR          -- todo dia à 01h00 do servidor
-TO dw.rel_preco_categoria_dia AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_rmv_preco_categoria_dia
+REFRESH EVERY 1 DAY OFFSET 1 HOUR          -- 01h00 UTC, 22h00 em Brasília
+TO mackenzie.g00_rel_preco_categoria_dia AS
 ...
 FROM precos AS pr
 ASOF LEFT JOIN fechamento AS f ON pr.moeda = f.moeda AND pr.data &gt;= f.data
 GROUP BY pr.data_key, pr.categoria;
 
-SYSTEM REFRESH VIEW dw.rmv_preco_categoria_dia; SYSTEM WAIT VIEW dw.rmv_preco_categoria_dia;
+python rodar_sql.py -q "SYSTEM REFRESH VIEW mackenzie.g00_rmv_preco_categoria_dia;
+  SYSTEM WAIT VIEW mackenzie.g00_rmv_preco_categoria_dia"
 
 <span class="k">[A] Ajustes</span>
 - Só dias anteriores a hoje: data_key &lt; toYYYYMMDD(today()).
 - Fato e dimensão lidos com FINAL.
 - Fechamento: aceite tipo_boletim 'Fechamento' e 'Fechamento PTAX'.
 - Preço e velocidade são não aditivos: média e máximo, nunca soma.
-- Force o refresh só depois de a carga do histórico terminar.
+- Force o refresh só depois de a carga do histórico (002) terminar.
 - Nenhum DROP sem autorização.
 
 <span class="k">[T] Tipo de saída</span>
@@ -1470,21 +1525,21 @@ espere meu ok, escreva, rode, registre o prompt e pare.</code></pre>
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Etapa 04 &middot; Teoria &middot; Decisão</span>
-          <h2 class="deck-title">Por que relatório fechado é refreshable</h2>
-          <p class="deck-summary">Um relatório fechado só traz dias que já terminaram (<code>data_key &lt; toYYYYMMDD(today())</code>). Depois de publicado, o número de um dia não muda. Os dois relatórios desta etapa precisam de coisas que a view incremental não faz.</p>
+          <h2 class="deck-title">Por que o cubo fechado é refreshable</h2>
+          <p class="deck-summary">Um cubo é um fato agregado num grão mais grosso, com as medidas já calculadas: categoria por dia, caminhão por dia. O cubo fechado só traz dias que já terminaram (<code>data_key &lt; toYYYYMMDD(today())</code>), e depois de publicado o número de um dia não muda. Os dois cubos desta etapa precisam de coisas que a view incremental não faz.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
             <span class="de-rotulo">O que a incremental não faria</span>
             <ul>
               <li>A média de preço por categoria precisa do dia inteiro. A incremental calcularia uma média por bloco, e a média de médias de blocos de tamanhos diferentes não é a média do dia.</li>
-              <li>O BRL vem de um JOIN com a PTAX. Na incremental, só o INSERT de livros dispararia a view; uma PTAX que chegasse depois não corrigiria o relatório.</li>
+              <li>O BRL vem de um JOIN com a PTAX. Na incremental, só o INSERT de livros dispararia a view; uma PTAX que chegasse depois não corrigiria o cubo.</li>
             </ul>
           </div>
           <div class="de-caixa is-forte">
             <span class="de-rotulo">O que a refreshable entrega</span>
             <ul>
-              <li><code>REFRESH EVERY 1 DAY OFFSET 1 HOUR</code>: todo dia à 01h00 do servidor, com o dia anterior completo.</li>
+              <li><code>REFRESH EVERY 1 DAY OFFSET 1 HOUR</code>: todo dia à 01h00 UTC, 22h00 em Brasília, com o dia anterior completo.</li>
               <li>O SELECT lê os fatos inteiros com <code>FINAL</code>, faz o JOIN e troca o relatório de uma vez.</li>
               <li>Quem lê o relatório lê uma tabela pequena e pronta: 50 linhas de preço e 20 de telemetria na preparação.</li>
             </ul>
@@ -1504,11 +1559,11 @@ espere meu ok, escreva, rode, registre o prompt e pare.</code></pre>
         </div>
         <div class="de-dois de-dois-esq">
           <div class="de-caixa">
-            <span class="de-rotulo">Trecho de <code>dw.rmv_preco_categoria_dia</code></span>
+            <span class="de-rotulo">Trecho de <code>mackenzie.g00_rmv_preco_categoria_dia</code></span>
             <pre class="de-pre de-pre-largo"><code>WITH fechamento AS
 (
     SELECT moeda, toDate(data_hora) AS data, argMax(cotacao_venda, data_hora) AS venda
-    FROM dw.fato_cotacao_ptax FINAL
+    FROM mackenzie.g00_fato_cotacao_ptax FINAL
     WHERE tipo_boletim IN ('Fechamento', 'Fechamento PTAX')
     GROUP BY moeda, data
 ),
@@ -1553,10 +1608,10 @@ GROUP BY pr.data_key, pr.categoria;</code></pre>
         </div>
         <div class="de-dois de-dois-esq">
           <div class="de-caixa">
-            <span class="de-rotulo">Trecho de <code>dw.rmv_telemetria_caminhao_dia</code></span>
-            <pre class="de-pre de-pre-largo"><code>CREATE MATERIALIZED VIEW IF NOT EXISTS dw.rmv_telemetria_caminhao_dia
+            <span class="de-rotulo">Trecho de <code>mackenzie.g00_rmv_telemetria_caminhao_dia</code></span>
+            <pre class="de-pre de-pre-largo"><code>CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_rmv_telemetria_caminhao_dia
 REFRESH EVERY 1 DAY OFFSET 1 HOUR
-TO dw.rel_telemetria_caminhao_dia AS
+TO mackenzie.g00_rel_telemetria_caminhao_dia AS
 SELECT data_key,
        caminhao,
        toUInt32(count())                                   AS leituras,
@@ -1565,7 +1620,7 @@ SELECT data_key,
        min(instante)                                       AS primeira_leitura,
        max(instante)                                       AS ultima_leitura,
        round(100 * countIf(formato = 'espaco') / count(), 1) AS leituras_espaco_pct
-FROM dw.fato_leitura_telemetria FINAL
+FROM mackenzie.g00_fato_leitura_telemetria FINAL
 WHERE data_key &lt; toYYYYMMDD(today())
 GROUP BY data_key, caminhao;</code></pre>
           </div>
@@ -1591,33 +1646,33 @@ GROUP BY data_key, caminhao;</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
-          <span class="deck-kicker">Etapa 04 &middot; Teoria &middot; Caso da preparação</span>
-          <h2 class="deck-title">O relatório atualizado antes do fim da carga</h2>
-          <p class="deck-summary">Na preparação, o refresh do relatório de telemetria rodou antes de a carga terminar. O CAM-4120, com 1.440 leituras no fato, ficou sem linha no relatório. O erro só apareceu numa consulta que cruza os alertas com o relatório.</p>
+          <span class="deck-kicker">Etapa 04 &middot; Teoria &middot; Risco</span>
+          <h2 class="deck-title">O cubo atualizado antes da carga</h2>
+          <p class="deck-summary">A refreshable lê os fatos no estado em que estão no momento do refresh. Se o grupo forçar o refresh antes de o <code>002</code> terminar, o cubo de telemetria sai com caminhões faltando, e o erro só aparece numa consulta que cruza os alertas com o cubo.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
             <span class="de-rotulo">Consulta 4 do <code>005</code> (trecho)</span>
             <pre class="de-pre de-pre-largo"><code>SELECT a.caminhao, count() AS alertas, max(a.direcao_continua_min) AS maior_direcao_min,
        any(r.velocidade_media) AS velocidade_media_dia
-FROM dw.fato_alerta_direcao AS a FINAL
-LEFT JOIN dw.rel_telemetria_caminhao_dia AS r ON r.caminhao = a.caminhao AND r.data_key = a.data_key
+FROM mackenzie.g00_fato_alerta_direcao AS a FINAL
+LEFT JOIN mackenzie.g00_rel_telemetria_caminhao_dia AS r ON r.caminhao = a.caminhao AND r.data_key = a.data_key
 GROUP BY a.caminhao
 ORDER BY alertas DESC
 LIMIT 5
 SETTINGS join_use_nulls = 1          -- caminhão sem linha no relatório aparece como NULL, não como 0</code></pre>
           </div>
           <div class="de-caixa">
-            <span class="de-rotulo">Como aconteceu</span>
+            <span class="de-rotulo">Como o erro aparece e se corrige</span>
             <ol>
-              <li>O refresh leu o fato com a carga ainda em andamento.</li>
-              <li>No <code>LEFT JOIN</code>, o CAM-4120 apareceu com velocidade média 0, o valor padrão do tipo.</li>
-              <li>Com <code>join_use_nulls = 1</code>, apareceu <code>NULL</code>: a falta de linha ficou visível.</li>
-              <li>Depois da carga, um <code>SYSTEM REFRESH VIEW</code> recalculou o relatório.</li>
+              <li>O refresh lê o fato de leitura com a carga incompleta.</li>
+              <li>No <code>LEFT JOIN</code>, um caminhão que tem alerta e não tem linha no cubo aparece com velocidade média 0, o valor padrão do tipo.</li>
+              <li>Com <code>join_use_nulls = 1</code>, aparece <code>NULL</code>: a falta de linha fica visível.</li>
+              <li>Depois da carga, um <code>SYSTEM REFRESH VIEW</code> recalcula o cubo.</li>
             </ol>
           </div>
         </div>
-        <div class="deck-callout"><strong>Alertas na preparação</strong><p>CAM-5707 com 12 alertas de direção contínua; a maior direção contínua foi de 360 minutos, no CAM-3126. Uma velocidade 0 ao lado de um alerta parece dado, e por isso o <code>NULL</code> é a escolha mais segura.</p></div>
+        <div class="deck-callout"><strong>Alertas na preparação</strong><p>CAM-5707 com 12 alertas de direção contínua; a maior direção contínua foi de 360 minutos, no CAM-3126. Com o cubo completo, os 20 caminhões têm linha no dia. Uma velocidade 0 ao lado de um alerta parece dado, e por isso o <code>NULL</code> é a escolha mais segura.</p></div>
       </div>
     </div>
 
@@ -1627,16 +1682,16 @@ SETTINGS join_use_nulls = 1          -- caminhão sem linha no relatório aparec
         <div>
           <span class="deck-kicker">Etapa 04 &middot; Revisão</span>
           <h2 class="deck-title">Revise antes de seguir: Etapa 04</h2>
-          <p class="deck-summary">Um relatório fechado só é confiável se o refresh rodou depois da carga do dia. A revisão confere o resultado e o estado das duas refreshable.</p>
+          <p class="deck-summary">Um cubo fechado só é confiável se o refresh rodou depois da carga do histórico. A revisão confere o resultado e o estado das duas refreshable.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
             <span class="de-rotulo">Revise antes de seguir</span>
             <ul>
-              <li>Os dois relatórios só têm dias anteriores a hoje?</li>
+              <li>Os dois cubos só têm dias anteriores a hoje?</li>
               <li>O preço é média em todas as colunas, sem nenhuma soma?</li>
               <li>A PTAX usada em cada dia é de um Fechamento igual ou anterior ao dia?</li>
-              <li>Todos os caminhões do fato de leitura aparecem no relatório?</li>
+              <li>Os 20 caminhões do fato de leitura aparecem no cubo de telemetria?</li>
               <li>O refresh forçado rodou depois da carga do histórico?</li>
             </ul>
           </div>
@@ -1655,42 +1710,46 @@ SETTINGS join_use_nulls = 1          -- caminhão sem linha no relatório aparec
         <div>
           <span class="deck-kicker">11h15 &middot; Etapa 05 &middot; Observabilidade corrente</span>
           <h2 class="deck-title">Contadores por minuto e views em janela</h2>
-          <p class="deck-summary">Duas views incrementais contam o que entra e o que a telemetria descarta, minuto a minuto. Views comuns com janela de tempo leem esses contadores e mostram o estado do pipeline agora.</p>
+          <p class="deck-summary">Duas views incrementais contam o que entra e o que a telemetria descarta, minuto a minuto. Três views comuns com janela de tempo mostram o estado da ingestão agora. Desde as 11h10, o professor reinsere telemetria com o horário corrente para as janelas terem dado.</p>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
             <div class="etapa-item"><span class="etapa-rotulo">Artefato</span><p><code>sql/004_observabilidade.sql</code> (contadores e views em janela)</p></div>
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Contadores em <code>SummingMergeTree</code></li><li>Três views em janela</li><li>Cinco sinais do pipeline</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Rodar</span><p><code>python rodar_sql.py sql/004_observabilidade.sql</code><br><code>python rodar_sql.py -q "SELECT * FROM mackenzie.g00_v_saude_ingestao_15min"</code></p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Contadores em <code>SummingMergeTree</code></li><li>Três views em janela</li><li>O reenvio na janela e no fato</li><li>Quatro sinais da ingestão</li></ol></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
             <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
 Você é engenheiro de confiabilidade de dados. Quer saber, a qualquer
-momento, se o dado está chegando, em que volume e quanto está sendo
-descartado.
+momento, se o dado está chegando, em que volume, de quais caminhões e
+quanto está sendo descartado.
 
 <span class="k">[R] Pedido</span>
 Crie sql/004_observabilidade.sql com:
-1. dw.obs_ingestao_minuto (minuto x data_tag, linhas) e a view
-   materializada incremental que a alimenta a partir de
-   ingestao.db_ingestion;
-2. dw.obs_telemetria_descartes_minuto (minuto x motivo: ERR SAT,
-   #RADIO, outro) e a view que a alimenta; linhas TAC; não são
-   descarte, são alerta;
-3. duas views comuns com janela de tempo: dw.v_saude_ingestao_15min
-   (linhas por data_tag nos últimos 15 minutos, último minuto com dado
-   e segundos desde então) e dw.v_descartes_telemetria_1h (descartes
-   por motivo na última hora e a parte do total de telemetria).
-Rode e consulte as duas views em dois momentos, com o servidor da
-Aula 04 enviando dado.
+1. mackenzie.g00_obs_ingestao_minuto (minuto x data_tag, linhas) e a
+   view materializada incremental que a alimenta a partir de
+   mackenzie.db_ingestion;
+2. mackenzie.g00_obs_telemetria_descartes_minuto (minuto x motivo:
+   ERR SAT, #RADIO, outro) e a view que a alimenta; linhas TAC; não
+   são descarte, são alerta;
+3. três views comuns com janela de tempo:
+   g00_v_saude_ingestao_15min (linhas por data_tag nos últimos 15
+   minutos, último minuto com dado e segundos desde então);
+   g00_v_caminhoes_5min (caminhões que transmitiram nos últimos 5
+   minutos, lido direto de mackenzie.db_ingestion pelo timestamp);
+   g00_v_descartes_telemetria_1h (descartes por motivo na última hora
+   e a parte do total de telemetria).
+Rode e consulte as três views em dois momentos, com o reenvio do
+professor em andamento.
 
 <span class="k">[E] Exemplos</span>
-CREATE OR REPLACE VIEW dw.v_saude_ingestao_15min AS
+CREATE OR REPLACE VIEW mackenzie.g00_v_saude_ingestao_15min AS
 SELECT data_tag,
        sum(linhas)                                AS linhas_15min,
        ...
-FROM dw.obs_ingestao_minuto
+FROM mackenzie.g00_obs_ingestao_minuto
 WHERE minuto &gt;= now() - INTERVAL 15 MINUTE
 GROUP BY data_tag;
 
@@ -1698,13 +1757,13 @@ GROUP BY data_tag;
 - Contadores em SummingMergeTree; a leitura soma de novo com
   sum(linhas).
 - Minuto calculado do timestamp (unix ms) em America/Sao_Paulo.
-- Sem carga do histórico dos contadores.
+- Os contadores começam quando a view nasce: sem carga do histórico.
 - Sem WINDOW VIEW e sem LIVE VIEW.
-- A view de lotes da última hora fica para a Etapa 06, junto com o
-  fato de lote que ela lê.
+- Depois do reenvio, mostre que g00_fato_leitura_telemetria continua
+  com 28.800 linhas com FINAL.
 
 <span class="k">[T] Tipo de saída</span>
-Arquivo SQL comentado; a saída das duas views em dois momentos, com o
+Arquivo SQL comentado; a saída das três views em dois momentos, com o
 horário de cada consulta, em docs/prompts.md.
 
 <span class="k">[E] Extras</span>
@@ -1726,7 +1785,7 @@ escreva, rode, registre o prompt e pare.</code></pre>
         <div class="de-dois de-dois-esq">
           <div class="de-caixa">
             <span class="de-rotulo">Trecho de <code>sql/004_observabilidade.sql</code></span>
-            <pre class="de-pre de-pre-largo"><code>CREATE TABLE IF NOT EXISTS dw.obs_ingestao_minuto
+            <pre class="de-pre de-pre-largo"><code>CREATE TABLE IF NOT EXISTS mackenzie.g00_obs_ingestao_minuto
 (
     minuto    DateTime('America/Sao_Paulo'),
     data_tag  LowCardinality(String),
@@ -1735,11 +1794,11 @@ escreva, rode, registre o prompt e pare.</code></pre>
 ENGINE = SummingMergeTree
 ORDER BY (data_tag, minuto);
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_obs_ingestao_minuto TO dw.obs_ingestao_minuto AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_obs_ingestao_minuto TO mackenzie.g00_obs_ingestao_minuto AS
 SELECT toStartOfMinute(fromUnixTimestamp64Milli(toInt64(timestamp), 'America/Sao_Paulo')) AS minuto,
        data_tag,
        count() AS linhas
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 GROUP BY minuto, data_tag;</code></pre>
           </div>
           <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
@@ -1756,54 +1815,86 @@ GROUP BY minuto, data_tag;</code></pre>
         <div>
           <span class="deck-kicker">Etapa 05 &middot; Teoria &middot; Views em janela</span>
           <h2 class="deck-title">Três views em janela</h2>
-          <p class="deck-summary">As três são views comuns com filtro relativo a <code>now()</code>. Leem tabelas pequenas, os contadores por minuto e o fato de lote, e por isso rodar o SELECT a cada leitura custa pouco.</p>
+          <p class="deck-summary">As três são views comuns com filtro relativo a <code>now()</code>. Duas leem os contadores por minuto, que são tabelas pequenas; a terceira lê a tabela de pouso filtrada pelo <code>timestamp</code>, que é a ordenação dela. Por isso rodar o SELECT a cada leitura custa pouco.</p>
         </div>
         <div class="df-termos df-c3">
           <article class="df-termo"><h3><code>v_saude_ingestao_15min</code></h3><p>Linhas por <code>data_tag</code> nos últimos 15 minutos, o último minuto com dado e há quantos segundos ele foi.</p><p>Responde: algum domínio parou de chegar?</p></article>
           <article class="df-termo"><h3><code>v_descartes_telemetria_1h</code></h3><p>Descartes por motivo na última hora e a parte do total de telemetria.</p><p>Responde: a fonte está mandando mais ruído que o normal?</p></article>
-          <article class="df-termo"><h3><code>v_lotes_ultima_hora</code></h3><p>Lotes, lotes com erro, linhas, p50 e p95 do flush e a maior espera. Nasce na Etapa 06, junto com o fato de lote que ela lê.</p><p>Responde: o servidor está gravando, e em quanto tempo?</p></article>
+          <article class="df-termo"><h3><code>v_caminhoes_5min</code></h3><p>Caminhões que transmitiram nos últimos 5 minutos, com as linhas e a última chegada de cada um, lidos direto de <code>db_ingestion</code>.</p><p>Responde: quais caminhões estão mandando dado agora?</p></article>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
             <span class="de-rotulo">Trecho de <code>v_descartes_telemetria_1h</code></span>
             <pre class="de-pre de-pre-largo"><code>SELECT d.motivo,
        sum(d.linhas)                                                         AS descartadas,
-       (SELECT sum(linhas) FROM dw.obs_ingestao_minuto
+       (SELECT sum(linhas) FROM mackenzie.g00_obs_ingestao_minuto
         WHERE data_tag = 'telemetria' AND minuto &gt;= now() - INTERVAL 1 HOUR) AS telemetria_total,
        round(100 * descartadas / telemetria_total, 2)                        AS pct
-FROM dw.obs_telemetria_descartes_minuto AS d
+FROM mackenzie.g00_obs_telemetria_descartes_minuto AS d
 WHERE d.minuto &gt;= now() - INTERVAL 1 HOUR
 GROUP BY d.motivo;</code></pre>
           </div>
           <div class="de-caixa is-cinza">
             <span class="de-rotulo">Conta com os números da preparação</span>
             <p>Das 31.265 linhas de telemetria, 1.464 eram <code>#RADIO</code> (4,68%) e 932 eram <code>ERR SAT</code> (2,98%).</p>
-            <p>A view mostra a mesma conta só para a última hora; os valores do grupo dependem de quando a carga rodou.</p>
+            <p>A view faz a mesma conta só para a última hora. Na aula, a janela vê apenas o reenvio do professor, e a parte de ruído depende do trecho reenviado.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Cinco sinais -->
+    <!-- Reenvio do professor -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">Etapa 05 &middot; Teoria &middot; Exemplo numérico</span>
+          <h2 class="deck-title">O reenvio na janela e no fato</h2>
+          <p class="deck-summary">A partir das 11h10, o professor roda <code>reenviar_ao_vivo.py</code>: a cada 5 segundos, um INSERT de 40 linhas de telemetria que já estavam na tabela de pouso, com <code>timestamp</code> de agora. É uma reentrega, como as que a fila da Aula 04 produz, e cada INSERT dispara as views de todos os grupos.</p>
+        </div>
+        <div class="de-dois">
+          <div class="de-caixa is-cinza">
+            <span class="de-rotulo">Na preparação, depois de um reenvio de 40 linhas</span>
+            <table class="deck-table de-tabela">
+              <thead><tr><th>Objeto</th><th>Resultado</th></tr></thead>
+              <tbody>
+                <tr><td><code>g00_v_saude_ingestao_15min</code></td><td>telemetria 40</td></tr>
+                <tr><td><code>g00_fato_leitura_telemetria</code> com <code>FINAL</code></td><td>continua com 28.800 linhas</td></tr>
+              </tbody>
+            </table>
+            <p style="margin-top:8px;">O contador registra a chegada; o fato não ganha leitura, porque <code>caminhao</code> e <code>instante</code> já existiam e o <code>ReplacingMergeTree</code> guarda uma linha por chave do grão.</p>
+          </div>
+          <div class="de-caixa">
+            <span class="de-rotulo">Por que os dois números diferem</span>
+            <ul>
+              <li>A observabilidade mede o processo: quantas linhas chegaram, venham de onde vierem.</li>
+              <li>O fato mede o negócio: quantas leituras de posição existem, cada uma uma vez.</li>
+              <li>Sem o reenvio, as janelas ficam vazias, já que as 32.305 linhas da carga chegaram antes de as views existirem.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="deck-callout"><strong>View quebrada de outro grupo</strong><p>O script envia com <code>materialized_views_ignore_errors = 1</code>. Se a view de um grupo falhar no bloco, o INSERT segue para a tabela de pouso e para as views dos outros grupos.</p></div>
+      </div>
+    </div>
+
+    <!-- Quatro sinais -->
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Etapa 05 &middot; Teoria &middot; Sinais</span>
-          <h2 class="deck-title">Cinco sinais do pipeline da Aula 04</h2>
-          <p class="deck-summary">Cada sinal responde uma pergunta sobre o servidor de ingestão e sai de uma coluna das views em janela. O alvo de cada um é decisão do grupo, registrada como hipótese até ser medida.</p>
+          <h2 class="deck-title">Quatro sinais da ingestão</h2>
+          <p class="deck-summary">Cada sinal responde uma pergunta sobre a ingestão e sai de uma coluna das views em janela. O alvo de cada um é decisão do grupo, registrada como hipótese até ser medida.</p>
         </div>
         <table class="deck-table de-tabela">
           <thead><tr><th>Sinal</th><th>Pergunta</th><th>Onde ler</th><th>Na preparação</th></tr></thead>
           <tbody>
-            <tr><td>Vazão</td><td>quanto chegou, por domínio?</td><td><code>v_saude_ingestao_15min.linhas_15min</code></td><td>32.305 linhas em 1.465 s de envio</td></tr>
+            <tr><td>Vazão</td><td>quanto chegou, por domínio?</td><td><code>g00_v_saude_ingestao_15min.linhas_15min</code></td><td>telemetria 40 depois de um reenvio</td></tr>
             <tr><td>Frescor</td><td>há quanto tempo não chega nada?</td><td><code>segundos_desde_ultimo_minuto</code></td><td>depende da hora da consulta</td></tr>
-            <tr><td>Falha</td><td>algum lote falhou?</td><td><code>v_lotes_ultima_hora.lotes_com_erro</code></td><td>2 de 670 lotes</td></tr>
-            <tr><td>Latência</td><td>quanto leva o flush?</td><td><code>flush_p50_ms</code>, <code>flush_p95_ms</code>, <code>espera_max_ms</code></td><td>p50 139 ms, p95 170 ms, espera máxima 2.788 ms</td></tr>
-            <tr><td>Qualidade</td><td>quanto da fonte é ruído?</td><td><code>v_descartes_telemetria_1h.pct</code></td><td>2.396 descartes em 31.265 linhas</td></tr>
+            <tr><td>Cobertura</td><td>quais caminhões transmitiram?</td><td><code>g00_v_caminhoes_5min</code></td><td>depende do trecho reenviado</td></tr>
+            <tr><td>Qualidade</td><td>quanto da fonte é ruído?</td><td><code>g00_v_descartes_telemetria_1h.pct</code></td><td>2.396 descartes em 31.265 linhas da carga</td></tr>
           </tbody>
         </table>
         <div class="de-dois">
-          <div class="de-caixa"><span class="de-rotulo">Ligação com a Aula 04</span><p>O objetivo "dado consultável em poucos segundos" da Aula 04 se mede aqui pela latência do flush e pela espera. Um alvo como "p95 do flush abaixo de X ms" entra no <code>docs/observabilidade.md</code> como hipótese do grupo.</p></div>
+          <div class="de-caixa"><span class="de-rotulo">Ligação com a Aula 04</span><p>O objetivo "dado consultável em poucos segundos" da Aula 04 se mede aqui pelo frescor. Um alvo como "nenhum domínio sem dado há mais de X minutos" entra no <code>docs/views.md</code> como hipótese do grupo.</p></div>
           <div class="de-caixa"><span class="de-rotulo">Leitura do frescor</span><p>O contador é por minuto, então <code>segundos_desde_ultimo_minuto</code> inclui os segundos já passados do minuto. Um valor abaixo de 60 não indica parada.</p></div>
         </div>
       </div>
@@ -1825,13 +1916,14 @@ GROUP BY d.motivo;</code></pre>
               <li>A leitura dos contadores usa <code>sum(linhas)</code>, e não a linha crua?</li>
               <li>Nenhum contador recebeu carga do histórico?</li>
               <li>Linhas <code>TAC;</code> ficaram fora dos descartes?</li>
+              <li><code>g00_fato_leitura_telemetria</code> continua com 28.800 linhas com <code>FINAL</code> depois do reenvio?</li>
               <li>Agora o <code>EXPLAIN</code> pendente do <code>docs/views.md</code> pode ser preenchido?</li>
             </ul>
           </div>
           <div class="de-caixa is-forte">
             <span class="de-rotulo">Gate</span>
-            <p><code>SELECT * FROM dw.v_saude_ingestao_15min</code> devolve uma linha por domínio que recebeu dado nos últimos 15 minutos.</p>
-            <p>Sem envio em andamento, a view fica vazia, o que também é um sinal: nada chegou na janela.</p>
+            <p><code>SELECT * FROM mackenzie.g00_v_saude_ingestao_15min</code> devolve uma linha por domínio que recebeu dado nos últimos 15 minutos.</p>
+            <p>Com o reenvio do professor rodando, a telemetria aparece. Sem reenvio, a view fica vazia, o que também é um sinal: nada chegou na janela.</p>
           </div>
         </div>
       </div>
@@ -1841,62 +1933,59 @@ GROUP BY d.motivo;</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense etapa-shell" data-etapa="06">
         <div>
-          <span class="deck-kicker">11h35 &middot; Etapa 06 &middot; Observabilidade do processo</span>
-          <h2 class="deck-title">Do manifesto ao descarte</h2>
-          <p class="deck-summary">Cada lote gravado pelo servidor da Aula 04 vira uma linha de fato, lida dos manifestos no RustFS. Com ele e com os contadores, o grupo reconcilia o que entrou com o que virou fato.</p>
+          <span class="deck-kicker">11h35 &middot; Etapa 06 &middot; Perguntas ao cubo</span>
+          <h2 class="deck-title">Perguntas de negócio ao cubo</h2>
+          <p class="deck-summary">O modelo existe para responder perguntas. O grupo junta as consultas de conferência e cinco perguntas de negócio num arquivo, roda tudo e escreve cada resposta com o número e a consulta que o gerou.</p>
         </div>
         <div class="etapa-grid">
           <div class="etapa-lado">
-            <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p>fato de lote em <code>sql/004_observabilidade.sql</code>, <code>sql/005_consultas.sql</code>, <code>docs/observabilidade.md</code></p></div>
-            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>O processo de ingestão como fato</li><li>Os 670 lotes da preparação</li><li>Dois lotes com erro</li><li>Para onde foi cada linha</li></ol></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Artefatos</span><p><code>sql/005_consultas.sql</code>, <code>docs/respostas.md</code></p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Rodar</span><p><code>python rodar_sql.py sql/005_consultas.sql</code></p></div>
+            <div class="etapa-item"><span class="etapa-rotulo">Teoria desta etapa</span><ol><li>Cinco perguntas e a fonte de cada uma</li><li>P1: o cubo de preço em reais</li><li>P2 a P5: a agregação de cada medida</li></ol></div>
           </div>
           <div class="etapa-prompt">
             <span class="etapa-rotulo">Prompt CREATE</span>
             <button class="copy-button etapa-copiar" type="button">Copiar</button>
             <pre class="is-wrap etapa-pre"><code><span class="k">[C] Personagem</span>
-Você é engenheiro de dados e trata o próprio pipeline como processo
-de negócio: cada lote gravado pelo servidor da Aula 04 é um fato.
+Você é analista de dados. Responde perguntas de negócio a partir dos
+fatos, das dimensões e dos cubos do grupo, nunca da tabela de pouso.
 
 <span class="k">[R] Pedido</span>
-1. Acrescente a sql/004_observabilidade.sql a tabela
-   dw.fato_lote_ingestao (grão: um lote, um manifesto), a refreshable
-   dw.rmv_fato_lote_ingestao, que relê os manifestos com s3(lake) a
-   cada minuto, e a view dw.v_lotes_ultima_hora (lotes, lotes com
-   erro, linhas, p50 e p95 do flush, maior espera).
-2. Crie sql/005_consultas.sql com: teste do grão; destino de cada
-   linha de telemetria; uma consulta na estrela; alertas por caminhão
-   com a velocidade do dia; tipo de cada view do dw; EXPLAIN da view
-   de saúde; estado das refreshable; as três views em janela; lotes
-   com erro.
-3. Crie docs/observabilidade.md com os números do grupo, cada um com
-   a consulta que o gerou.
+1. Crie sql/005_consultas.sql com: (1) teste do grão; (2) destino de
+   cada linha de telemetria; (3) preço médio por categoria e dia da
+   semana na estrela; (4) alertas por caminhão com a velocidade média
+   do dia; (5) tipo de cada view do grupo; (6) EXPLAIN da view de
+   saúde; (7) estado das refreshable; (8) as três views em janela; e
+   as perguntas P1 a P5 dos exemplos.
+2. Rode o arquivo inteiro.
+3. Crie docs/respostas.md com uma seção por pergunta: a resposta em
+   uma frase, o número, a tabela de origem e a consulta.
 
 <span class="k">[E] Exemplos</span>
-Campos do manifesto: lote, data, status, mensagens, linhas,
-primeiro_recebido_em, flush_inicio, flush_fim, tempos_ms.raw,
-tempos_ms.bronze, tempos_ms.clickhouse, erro.
-
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.rmv_fato_lote_ingestao
-REFRESH EVERY 1 MINUTE
-TO dw.fato_lote_ingestao AS
-...
-FROM s3(lake);
+P1. Entre as categorias com pelo menos 5 livros, qual tem o preço
+    médio mais alto em reais?
+P2. Quantos exemplares há em estoque por categoria?
+P3. Em que hora do dia os caminhões andam mais rápido?
+P4. Qual caminhão passou mais tempo ao volante sem pausa?
+P5. A venda do GBP subiu ou caiu entre o primeiro e o último
+    Fechamento?
 
 <span class="k">[A] Ajustes</span>
-- Credenciais só na coleção lake (from_env); nenhuma chave em SQL.
-- espera_ms: do primeiro envelope ao início do flush; flush_ms: do
-  início ao fim do flush.
-- Guarde o caminho de cada manifesto (_path).
-- Reconciliação: linhas de telemetria da tabela de pouso = leituras +
-  alertas + descartes.
-- Separe fato, lacuna e suposição; alvo sem medida é hipótese.
+- Cada pergunta lê um fato ou um cubo, com FINAL nos fatos; nenhuma lê
+  mackenzie.db_ingestion.
+- Diga em cada resposta se a medida é aditiva, semiaditiva ou não
+  aditiva e por que a agregação escolhida vale.
+- Preço, velocidade e cotação nunca são somados; estoque soma entre
+  livros do mesmo dia.
+- Preencha a seção pendente do EXPLAIN em docs/views.md.
+- Número sem consulta é hipótese.
 
 <span class="k">[T] Tipo de saída</span>
-SQL comentado e docs/observabilidade.md com as seções Vazão,
-Frescor, Falha, Latência, Qualidade e Rastreabilidade.
+SQL comentado e docs/respostas.md com até 80 linhas; a saída de cada
+pergunta em docs/prompts.md.
 
 <span class="k">[E] Extras</span>
-Leia AGENTS.md, docs/views.md e specs/04_modelo_dimensional.md.
+Leia AGENTS.md, specs/04_modelo_dimensional.md e docs/views.md.
 Mostre o plano, espere meu ok, escreva, rode, registre o prompt e
 pare.</code></pre>
           </div>
@@ -1904,151 +1993,79 @@ pare.</code></pre>
       </div>
     </div>
 
-    <!-- Processo como fato -->
+    <!-- Cinco perguntas -->
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
-          <span class="deck-kicker">Etapa 06 &middot; Teoria &middot; Modelo</span>
-          <h2 class="deck-title">O processo de ingestão como fato</h2>
-          <p class="deck-summary">O modelo dimensional também serve para observar o pipeline. O processo é o flush do servidor, o grão é um lote, e as medidas são linhas, mensagens e tempos. A fonte são os manifestos no RustFS, fora do ClickHouse.</p>
+          <span class="deck-kicker">Etapa 06 &middot; Teoria &middot; Perguntas</span>
+          <h2 class="deck-title">Cinco perguntas e a fonte de cada uma</h2>
+          <p class="deck-summary">Cada pergunta tem uma tabela de origem e uma regra de agregação que vem da classificação feita na Etapa 01. A pergunta que pede o dia inteiro e o JOIN com a PTAX lê o cubo; as outras leem o fato no grão atômico.</p>
         </div>
-        <div class="de-dois de-dois-esq">
-          <div class="de-caixa">
-            <span class="de-rotulo">Trecho de <code>dw.rmv_fato_lote_ingestao</code></span>
-            <pre class="de-pre de-pre-largo"><code>CREATE MATERIALIZED VIEW IF NOT EXISTS dw.rmv_fato_lote_ingestao
-REFRESH EVERY 1 MINUTE
-TO dw.fato_lote_ingestao AS
-WITH parseDateTime64BestEffort(JSONExtractString(json, 'primeiro_recebido_em'), 3, 'America/Sao_Paulo') AS primeiro,
-     parseDateTime64BestEffort(JSONExtractString(json, 'flush_inicio'), 3, 'America/Sao_Paulo') AS inicio,
-     parseDateTime64BestEffort(JSONExtractString(json, 'flush_fim'), 3, 'America/Sao_Paulo') AS fim
-SELECT JSONExtractString(json, 'lote')                              AS lote,
-       ...
-       dateDiff('millisecond', primeiro, inicio)                    AS espera_ms,
-       dateDiff('millisecond', inicio, fim)                         AS flush_ms,
-       JSONExtractFloat(json, 'tempos_ms', 'raw')                   AS raw_ms,
-       JSONExtractFloat(json, 'tempos_ms', 'bronze')                AS bronze_ms,
-       JSONExtractFloat(json, 'tempos_ms', 'clickhouse')            AS clickhouse_ms,
-       ifNull(JSONExtractString(json, 'erro'), '')                  AS erro,
-       _path                                                        AS arquivo_manifesto
-FROM s3(lake);</code></pre>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:10px;min-width:0;">
-            <div class="de-caixa is-forte"><span class="de-rotulo">Por que refreshable</span><p>Os manifestos estão no RustFS, e nenhum INSERT no ClickHouse acontece quando um manifesto novo é gravado. Sem INSERT, não há o que dispare uma view incremental. A refreshable relê todos a cada minuto.</p></div>
-            <div class="de-caixa"><span class="de-rotulo">Rastreabilidade</span><p>Cada lote guarda o caminho do manifesto (<code>_path</code>). Cada leitura e cada alerta guardam <code>arquivo</code> e <code>numero_linha</code> da origem.</p></div>
-          </div>
-        </div>
+        <table class="deck-table de-tabela">
+          <thead><tr><th>Pergunta</th><th>De onde sai</th><th>Medida e agregação</th><th>Resposta na preparação</th></tr></thead>
+          <tbody>
+            <tr><td>P1. Categoria com o maior preço médio em reais (pelo menos 5 livros)</td><td><code>g00_rel_preco_categoria_dia</code></td><td>preço, não aditiva: média</td><td>New Adult, 6 livros, R$ 333,49</td></tr>
+            <tr><td>P2. Exemplares em estoque por categoria</td><td><code>g00_fato_preco_livro</code> + <code>g00_dim_livro</code></td><td>estoque, semiaditiva: soma entre livros</td><td>Default 1.345, Nonfiction 975, Sequential Art 686</td></tr>
+            <tr><td>P3. Hora do dia em que os caminhões andam mais rápido</td><td><code>g00_fato_leitura_telemetria</code></td><td>velocidade, não aditiva: média</td><td>0h, 78,4 km/h em 1.200 leituras</td></tr>
+            <tr><td>P4. Caminhão com mais tempo ao volante sem pausa</td><td><code>g00_fato_alerta_direcao</code></td><td>direção contínua, não aditiva: máximo</td><td>CAM-3126, 360 min (6h00), 9 alertas</td></tr>
+            <tr><td>P5. Variação da venda do GBP entre o primeiro e o último Fechamento</td><td><code>g00_fato_cotacao_ptax</code></td><td>cotação, não aditiva: primeiro e último</td><td>subiu 7,2%, de 6,7072 para 7,1899</td></tr>
+          </tbody>
+        </table>
+        <p class="deck-note">As respostas valem para a carga de 05/11/2026. Um grupo que encontrar outro número confere primeiro o teste do grão e a carga do histórico.</p>
       </div>
     </div>
 
-    <!-- 670 lotes -->
+    <!-- P1 -->
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
           <span class="deck-kicker">Etapa 06 &middot; Teoria &middot; Exemplo numérico</span>
-          <h2 class="deck-title">Os 670 lotes da preparação</h2>
-          <p class="deck-summary">A carga completa do <code>dados_aula_04.zip</code> gerou 670 lotes entre 11h50 e 12h14 de 31/10/2026. O fato de lote mostra, para cada um, quanto tempo cada destino levou.</p>
-        </div>
-        <div class="de-dois">
-          <div class="de-caixa is-cinza">
-            <span class="de-rotulo">Lotes por status</span>
-            <table class="deck-table de-tabela de-num">
-              <thead><tr><th>Status</th><th>Lotes</th><th>Linhas</th></tr></thead>
-              <tbody>
-                <tr><td><code>ok</code></td><td>668</td><td>32.305</td></tr>
-                <tr><td><code>erro_clickhouse</code></td><td>2</td><td>48 cada</td></tr>
-              </tbody>
-            </table>
-            <p style="margin-top:8px;">Os 668 lotes <code>ok</code> somam as 32.305 linhas da tabela de pouso.</p>
-          </div>
-          <div class="de-caixa is-cinza">
-            <span class="de-rotulo">Tempos dos lotes <code>ok</code></span>
-            <table class="deck-table de-tabela de-num">
-              <thead><tr><th>Medida</th><th>ms</th></tr></thead>
-              <tbody>
-                <tr><td>flush, p50</td><td>139</td></tr>
-                <tr><td>flush, p95</td><td>170</td></tr>
-                <tr><td>raw, média</td><td>15</td></tr>
-                <tr><td>bronze, média</td><td>24</td></tr>
-                <tr><td>ClickHouse, média</td><td>103</td></tr>
-                <tr><td>maior espera de mensagem</td><td>2.788</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <p class="deck-note">O INSERT no ClickHouse é a maior parte do flush: 103 ms de média, contra 15 ms do raw e 24 ms do bronze. A espera mede o tempo entre o primeiro envelope do lote e o início do flush.</p>
-      </div>
-    </div>
-
-    <!-- Dois lotes com erro -->
-    <div class="slide">
-      <div class="deck-shell is-dense de-shell">
-        <div>
-          <span class="deck-kicker">Etapa 06 &middot; Teoria &middot; Caso da preparação</span>
-          <h2 class="deck-title">Dois lotes com <code>erro_clickhouse</code></h2>
-          <p class="deck-summary">Às 12h03 e às 12h04 de 31/10/2026, o ClickHouse foi reiniciado durante a carga. Dois lotes de 48 linhas falharam no INSERT, e o manifesto de cada um registrou o status e o erro. É o cenário da questão 2 do TBL, agora com o dado.</p>
-        </div>
-        <div class="de-dois">
-          <div class="de-caixa">
-            <span class="de-rotulo">Consulta 9 do <code>005</code></span>
-            <pre class="de-pre de-pre-largo"><code>SELECT flush_inicio, lote, status, linhas, erro
-FROM dw.fato_lote_ingestao
-WHERE status != 'ok'
-ORDER BY flush_inicio
-FORMAT Vertical;</code></pre>
-            <p style="margin-top:8px;">Erro registrado: <code>OperationalError(... Connection aborted ... RemoteDisconnected ...)</code>.</p>
-          </div>
-          <div class="de-caixa">
-            <span class="de-rotulo">O que aconteceu, na ordem do flush</span>
-            <ol>
-              <li>Raw e bronze do lote gravados no RustFS.</li>
-              <li>INSERT no ClickHouse falhou com a conexão abortada.</li>
-              <li>Manifesto gravado com <code>status = erro_clickhouse</code> e o erro.</li>
-              <li>Sem ack, as 96 linhas voltaram pela fila e entraram depois em lotes <code>ok</code>.</li>
-            </ol>
-          </div>
-        </div>
-        <div class="deck-callout"><strong>Pelo menos uma vez</strong><p>Nesta carga, a soma dos lotes <code>ok</code> bate com as 32.305 linhas da tabela. Numa reentrega em que a linha chega duas vezes, o <code>ReplacingMergeTree</code> dos fatos junta as cópias na leitura com <code>FINAL</code>.</p></div>
-      </div>
-    </div>
-
-    <!-- Reconciliação -->
-    <div class="slide">
-      <div class="deck-shell is-dense de-shell">
-        <div>
-          <span class="deck-kicker">Etapa 06 &middot; Teoria &middot; Reconciliação</span>
-          <h2 class="deck-title">Para onde foi cada linha de telemetria</h2>
-          <p class="deck-summary">A reconciliação fecha a conta: as linhas de telemetria que entraram na tabela de pouso são iguais às leituras, mais os alertas, mais os descartes. Uma diferença indica linha perdida na view ou um formato que nenhuma regra reconhece.</p>
+          <h2 class="deck-title">P1: o cubo de preço em reais</h2>
+          <p class="deck-summary">O cubo já tem o preço médio por categoria e dia e a PTAX de venda do último Fechamento. A pergunta vira um filtro e uma ordenação sobre 50 linhas, sem JOIN e sem ler os 1.000 livros de novo.</p>
         </div>
         <div class="de-dois de-dois-esq">
           <div class="de-caixa">
-            <span class="de-rotulo">Consulta 2 do <code>005</code></span>
-            <pre class="de-pre de-pre-largo"><code>SELECT multiIf(match(l, '^CAM-[0-9]{4}\\|'), 'leitura, formato barra',
-               match(l, '^CAM-[0-9]{4} [0-9]{2}-[0-9]{2}-'), 'leitura, formato espaço',
-               startsWith(l, 'TAC;'), 'alerta de direção',
-               startsWith(l, 'ERR SAT'), 'descarte: ERR SAT',
-               startsWith(l, '#RADIO'), 'descarte: #RADIO',
-               'descarte: outro') AS destino,
-       count() AS linhas
-FROM (SELECT data_json.linha::String AS l FROM ingestao.db_ingestion WHERE data_tag = 'telemetria')
-GROUP BY destino
-ORDER BY linhas DESC</code></pre>
+            <span class="de-rotulo">P1 em <code>sql/005_consultas.sql</code></span>
+            <pre class="de-pre de-pre-largo"><code>SELECT categoria, livros, preco_medio_gbp, ptax_venda, preco_medio_brl
+FROM mackenzie.g00_rel_preco_categoria_dia
+WHERE livros &gt;= 5
+ORDER BY preco_medio_brl DESC
+LIMIT 5;</code></pre>
+            <p style="margin-top:8px;">O filtro de 5 livros existe porque a média de uma categoria com um ou dois livros descreve esses livros, e não a categoria.</p>
           </div>
           <div class="de-caixa is-cinza">
             <span class="de-rotulo">Na preparação</span>
-            <table class="deck-table de-tabela de-num">
-              <thead><tr><th>Destino</th><th>Linhas</th></tr></thead>
+            <table class="deck-table de-tabela">
               <tbody>
-                <tr><td>leitura, barra</td><td>22.432</td></tr>
-                <tr><td>leitura, espaço</td><td>6.368</td></tr>
-                <tr><td>descarte <code>#RADIO</code></td><td>1.464</td></tr>
-                <tr><td>descarte <code>ERR SAT</code></td><td>932</td></tr>
-                <tr><td>alerta</td><td>69</td></tr>
-                <tr><td>total</td><td>31.265</td></tr>
+                <tr><td>categoria</td><td>New Adult</td></tr>
+                <tr><td>livros</td><td>6</td></tr>
+                <tr><td>preço médio</td><td>£ 46,38</td></tr>
+                <tr><td>PTAX de venda</td><td>7,1899</td></tr>
+                <tr><td>preço médio</td><td>R$ 333,49</td></tr>
               </tbody>
             </table>
+            <p style="margin-top:8px;">O BRL multiplica a média antes de arredondar, por isso não é exatamente 46,38 vezes 7,1899.</p>
           </div>
         </div>
-        <p class="deck-note">A conta bate com o teste do grão: 22.432 + 6.368 = 28.800 leituras no fato e 69 alertas. Nenhuma linha caiu em <code>descarte: outro</code>.</p>
+        <p class="deck-note">A mesma pergunta feita na tabela de pouso exigiria converter o preço do JSON, juntar com a PTAX e agregar 1.000 linhas em cada leitura.</p>
+      </div>
+    </div>
+
+    <!-- P2 a P5 -->
+    <div class="slide">
+      <div class="deck-shell is-dense de-shell">
+        <div>
+          <span class="deck-kicker">Etapa 06 &middot; Teoria &middot; Aditividade na prática</span>
+          <h2 class="deck-title">P2 a P5: a agregação de cada medida</h2>
+          <p class="deck-summary">Nas quatro perguntas, a função de agregação sai da classificação da medida no spec. Trocar a função muda a resposta, mesmo com a consulta rodando sem erro.</p>
+        </div>
+        <div class="df-termos df-c4">
+          <article class="df-termo"><h3>P2 &middot; <code>sum</code> entre livros</h3><p>Estoque é semiaditivo: soma entre livros do mesmo dia. Default 1.345 exemplares em 152 livros.</p><p>Como há um dia de coleta, a soma não cruza dias. Com dois dias, contaria cada exemplar duas vezes.</p></article>
+          <article class="df-termo"><h3>P3 &middot; <code>avg</code> por hora</h3><p>Velocidade é não aditiva. À 0h, 78,4 km/h de média em 1.200 leituras.</p><p>A soma das velocidades da hora não significa nada; o <code>count()</code> ao lado mostra de quantas leituras vem a média.</p></article>
+          <article class="df-termo"><h3>P4 &middot; <code>max</code> por caminhão</h3><p>CAM-3126 com 360 minutos (6h00) em 9 alertas.</p><p>Ordenar por número de alertas daria o CAM-5707, com 12. A pergunta é tempo sem pausa, e a ordenação é pelo máximo.</p></article>
+          <article class="df-termo"><h3>P5 &middot; <code>argMin</code> e <code>argMax</code></h3><p>Primeiro Fechamento 6,7072, último 7,1899: alta de 7,2%.</p><p>Cotação é não aditiva; o que interessa é o valor no primeiro e no último instante, escolhido por <code>data_hora</code>.</p></article>
+        </div>
+        <div class="deck-callout"><strong>Verificação</strong><p>Para cada resposta do <code>docs/respostas.md</code>, a pergunta é a da Etapa 01: somar esta coluna nesta dimensão dá um número que significa alguma coisa?</p></div>
       </div>
     </div>
 
@@ -2058,23 +2075,23 @@ ORDER BY linhas DESC</code></pre>
         <div>
           <span class="deck-kicker">Etapa 06 &middot; Revisão</span>
           <h2 class="deck-title">Revise antes de seguir: Etapa 06</h2>
-          <p class="deck-summary">O <code>docs/observabilidade.md</code> fecha a aula com os números do grupo. Cada número precisa da consulta que o gerou.</p>
+          <p class="deck-summary">O <code>docs/respostas.md</code> fecha a aula com os números do grupo. Cada número precisa da consulta que o gerou e da tabela de onde saiu.</p>
         </div>
         <div class="de-dois">
           <div class="de-caixa">
             <span class="de-rotulo">Revise antes de seguir</span>
             <ul>
-              <li>O fato de lote tem uma linha por manifesto, igual ao <code>count()</code> de <code>s3(lake)</code>?</li>
-              <li>A soma das linhas dos lotes <code>ok</code> bate com <code>count()</code> de <code>db_ingestion</code>?</li>
-              <li>A reconciliação da telemetria fecha, sem linha sobrando?</li>
-              <li>Nenhuma chave do RustFS aparece em SQL ou em <code>docs/</code>?</li>
-              <li>Cada alvo sem medida está marcado como hipótese?</li>
+              <li>Nenhuma das cinco perguntas lê <code>mackenzie.db_ingestion</code>?</li>
+              <li>As leituras de fato usam <code>FINAL</code>?</li>
+              <li>Preço, velocidade e cotação aparecem com média, máximo ou primeiro e último, sem soma?</li>
+              <li>A seção do <code>EXPLAIN</code> em <code>docs/views.md</code> saiu de pendente?</li>
+              <li>Cada número sem consulta está marcado como hipótese?</li>
             </ul>
           </div>
           <div class="de-caixa is-forte">
             <span class="de-rotulo">Gate</span>
-            <p><code>sql/005_consultas.sql</code> roda inteiro, das consultas 1 a 9, e a saída está em <code>docs/observabilidade.md</code>.</p>
-            <p>A consulta 5 lista 14 views no <code>dw</code>: 8 incrementais, 3 refreshable e 3 comuns.</p>
+            <p><code>sql/005_consultas.sql</code> roda inteiro, e as respostas de P1 a P5 estão em <code>docs/respostas.md</code>.</p>
+            <p>A consulta 5 lista 13 views do grupo: 8 incrementais, 2 refreshable e 3 comuns.</p>
           </div>
         </div>
       </div>
@@ -2086,13 +2103,13 @@ ORDER BY linhas DESC</code></pre>
         <div>
           <span class="deck-kicker">Fechamento &middot; 12h00</span>
           <h2 class="deck-title">O que existe às 12h10 e o que fica para a semana</h2>
-          <p class="deck-summary">O professor percorre as etapas ao vivo e a turma reproduz até onde der.</p>
+          <p class="deck-summary">O professor percorre as etapas ao vivo e a turma reproduz até onde der. Os objetos do grupo ficam no ClickHouse da turma até o fim da disciplina.</p>
         </div>
         <div class="deck-columns">
           <div class="deck-panel">
             <strong>Em sala, até 12h10</strong>
             <ul>
-              <li>Banco <code>dw</code> com 4 fatos de negócio, 1 fato de processo, 3 dimensões e 14 views</li>
+              <li>No banco <code>mackenzie</code>, com o prefixo do grupo: 3 dimensões, 4 fatos, 2 cubos, 2 contadores e 13 views</li>
               <li><code>specs/04_modelo_dimensional.md</code> com o grão de cada fato</li>
               <li>Etapas 01 a 06 até onde o tempo permitir</li>
             </ul>
@@ -2101,8 +2118,8 @@ ORDER BY linhas DESC</code></pre>
             <strong>Na semana, até a Aula 06 (14/11)</strong>
             <ul>
               <li>Completar as etapas e rodar o <code>005</code> inteiro</li>
-              <li><code>docs/views.md</code> com o <code>EXPLAIN</code> real e <code>docs/observabilidade.md</code> com os números do grupo</li>
-              <li>Railway, se houver serviço livre: trial com crédito de US$ 5 por até 30 dias, depois plano Free de US$ 1/mês, até 5 serviços</li>
+              <li><code>docs/views.md</code> com o <code>EXPLAIN</code> real e <code>docs/respostas.md</code> com as cinco respostas</li>
+              <li><code>docs/adr/ADR-006</code> a <code>ADR-008</code>, uma por questão do TBL, com status Proposta</li>
               <li>Aula 06: Streaming com RabbitMQ e ClickHouse</li>
             </ul>
           </div>
@@ -2119,15 +2136,16 @@ ORDER BY linhas DESC</code></pre>
           <p class="deck-summary">A correção segue <code>docs/prompts.md</code>: cada etapa com o prompt literal, os arquivos gerados e os números do grupo. O link da pasta vai pelo <a href="../../../../pages/entrega_grupo_data_collection.html">formulário de entrega do grupo</a>.</p>
         </div>
         <div class="deck-grid agenda-3 entrega-4">
-          <article class="deck-card"><h3>Pilha</h3><p><code>AGENTS.md</code>, <code>docker-compose.yml</code> e <code>clickhouse/*.xml</code> com a coleção <code>lake</code>.</p></article>
+          <article class="deck-card"><h3>Conexão</h3><p><code>AGENTS.md</code>, <code>rodar_sql.py</code> e <code>.gitignore</code> com o <code>.env</code>, que não é versionado.</p></article>
           <article class="deck-card"><h3>Modelo</h3><p><code>specs/04_modelo_dimensional.md</code>, <code>sql/001_dimensoes_e_fatos.sql</code> e <code>sql/002_carga_historico.sql</code>.</p></article>
-          <article class="deck-card"><h3>Views e relatórios</h3><p><code>sql/003_relatorios_fechados.sql</code>, <code>sql/004_observabilidade.sql</code> e <code>docs/views.md</code>.</p></article>
-          <article class="deck-card"><h3>Observabilidade e registro</h3><p><code>sql/005_consultas.sql</code>, <code>docs/observabilidade.md</code> e <code>docs/prompts.md</code>.</p></article>
+          <article class="deck-card"><h3>Views e cubos</h3><p><code>sql/003_relatorios_fechados.sql</code>, <code>sql/004_observabilidade.sql</code> e <code>docs/views.md</code>.</p></article>
+          <article class="deck-card"><h3>Perguntas e registro</h3><p><code>sql/005_consultas.sql</code>, <code>docs/respostas.md</code>, <code>docs/adr/</code> e <code>docs/prompts.md</code>.</p></article>
         </div>
       </div>
     </div>
 
   </div>
+
 
   <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
 

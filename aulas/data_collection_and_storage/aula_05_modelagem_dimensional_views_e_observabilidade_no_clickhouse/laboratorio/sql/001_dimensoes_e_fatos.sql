@@ -1,13 +1,12 @@
--- Aula 05 · Modelo dimensional no ClickHouse, sobre ingestao.db_ingestion (Aula 04).
--- Banco dw: dimensões, fatos e as views materializadas que os alimentam a cada INSERT.
--- Uso: docker compose exec -T clickhouse clickhouse-client --user "$CLICKHOUSE_USER" \
---        --password "$CLICKHOUSE_PASSWORD" --multiquery < sql/001_dimensoes_e_fatos.sql
-CREATE DATABASE IF NOT EXISTS dw;
+-- Aula 05 · Modelo dimensional no ClickHouse, sobre mackenzie.db_ingestion (Aula 04).
+-- Banco mackenzie, compartilhado pela turma: cada objeto do grupo começa com o prefixo do grupo.
+-- O arquivo usa g00_; o rodar_sql.py troca pelo GRUPO do .env (g07_, por exemplo).
+-- Uso: python rodar_sql.py sql/001_dimensoes_e_fatos.sql
 
 -- ---------------------------------------------------------------------------
 -- Dimensão de data. Grão: um dia. Chave AAAAMMDD, gerada, não vem da fonte.
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS dw.dim_data
+CREATE TABLE IF NOT EXISTS mackenzie.g00_dim_data
 (
     data_key    UInt32,                    -- 20261030
     data        Date,
@@ -21,17 +20,17 @@ CREATE TABLE IF NOT EXISTS dw.dim_data
 ENGINE = MergeTree
 ORDER BY data_key;
 
-INSERT INTO dw.dim_data
+INSERT INTO mackenzie.g00_dim_data
 SELECT toYYYYMMDD(d), d, toYear(d), toMonth(d), toDayOfMonth(d), toDayOfWeek(d),
        ['segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado', 'domingo'][toDayOfWeek(d)],
        toDayOfWeek(d) >= 6
 FROM (SELECT toDate('2026-01-01') + number AS d FROM numbers(731))
-WHERE (SELECT count() FROM dw.dim_data) = 0;   -- roda uma vez só
+WHERE (SELECT count() FROM mackenzie.g00_dim_data) = 0;   -- roda uma vez só
 
 -- ---------------------------------------------------------------------------
 -- Dimensão de livro. Grão: um livro (upc). SCD tipo 1: fica a versão mais recente.
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS dw.dim_livro
+CREATE TABLE IF NOT EXISTS mackenzie.g00_dim_livro
 (
     upc          String,
     titulo       String,
@@ -46,7 +45,7 @@ ORDER BY upc;
 -- ---------------------------------------------------------------------------
 -- Dimensão de caminhão. Grão: um caminhão. Só a chave e quando apareceu.
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS dw.dim_caminhao
+CREATE TABLE IF NOT EXISTS mackenzie.g00_dim_caminhao
 (
     caminhao          LowCardinality(String),
     primeira_leitura  SimpleAggregateFunction(min, DateTime('America/Sao_Paulo')),
@@ -59,7 +58,7 @@ ORDER BY caminhao;
 -- Fato de preço de livro. Grão: um livro em um dia de coleta (snapshot periódico).
 -- preco_gbp não soma entre dias; qtd_estoque soma entre livros, não entre dias.
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS dw.fato_preco_livro
+CREATE TABLE IF NOT EXISTS mackenzie.g00_fato_preco_livro
 (
     data_key     UInt32,
     upc          String,
@@ -77,7 +76,7 @@ ORDER BY (data_key, upc);
 -- Cotações não são aditivas: média, mínimo, último, nunca soma.
 -- tipo_boletim é dimensão degenerada: fica no fato, sem tabela própria.
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS dw.fato_cotacao_ptax
+CREATE TABLE IF NOT EXISTS mackenzie.g00_fato_cotacao_ptax
 (
     data_key          UInt32,
     moeda             LowCardinality(String),
@@ -94,7 +93,7 @@ ORDER BY (moeda, data_hora, tipo_boletim);
 -- Fato de leitura de telemetria. Grão: uma leitura de posição de um caminhão num instante.
 -- As linhas sem leitura (ERR SAT, #RADIO) não entram aqui: vão para a observabilidade.
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS dw.fato_leitura_telemetria
+CREATE TABLE IF NOT EXISTS mackenzie.g00_fato_leitura_telemetria
 (
     data_key        UInt32,
     caminhao        LowCardinality(String),
@@ -115,7 +114,7 @@ ORDER BY (caminhao, instante);
 -- Vem do mesmo arquivo da telemetria, mas é outro evento: não é posição, é tempo ao volante.
 -- Linha: TAC;CAM-3126;20261029T180000;DIRECAO CONTINUA 05:35;ALERTA
 -- ---------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS dw.fato_alerta_direcao
+CREATE TABLE IF NOT EXISTS mackenzie.g00_fato_alerta_direcao
 (
     data_key          UInt32,
     caminhao          LowCardinality(String),
@@ -133,17 +132,17 @@ ORDER BY (caminhao, instante);
 -- sobre o bloco inserido e grava o resultado na tabela de destino (TO ...).
 -- Os OrNull evitam que um valor fora do tipo derrube o INSERT do lote inteiro.
 -- ===========================================================================
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_dim_livro TO dw.dim_livro AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_dim_livro TO mackenzie.g00_dim_livro AS
 SELECT data_json.upc::String                                    AS upc,
        data_json.titulo::String                                 AS titulo,
        data_json.categoria::String                              AS categoria,
        data_json.url::String                                    AS url,
        toUInt8OrZero(data_json.avaliacao::String)               AS avaliacao,
        timestamp                                                AS versao_ms
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 WHERE data_tag = 'livros' AND data_json.upc::String != '';
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_fato_preco_livro TO dw.fato_preco_livro AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_fato_preco_livro TO mackenzie.g00_fato_preco_livro AS
 SELECT toYYYYMMDD(coletado_em)                                  AS data_key,
        data_json.upc::String                                    AS upc,
        toDecimal64OrZero(data_json.preco_gbp::String, 2)        AS preco_gbp,
@@ -151,10 +150,10 @@ SELECT toYYYYMMDD(coletado_em)                                  AS data_key,
        data_json.em_estoque::String = 'true'                    AS em_estoque,
        parseDateTimeBestEffort(data_json.coletado_em::String, 'America/Sao_Paulo') AS coletado_em,
        timestamp                                                AS versao_ms
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 WHERE data_tag = 'livros' AND data_json.upc::String != '';
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_fato_cotacao_ptax TO dw.fato_cotacao_ptax AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_fato_cotacao_ptax TO mackenzie.g00_fato_cotacao_ptax AS
 SELECT toYYYYMMDD(data_hora)                                    AS data_key,
        data_json.moeda::String                                  AS moeda,
        parseDateTime64BestEffort(data_json.dataHoraCotacao::String, 3, 'America/Sao_Paulo') AS data_hora,
@@ -162,12 +161,12 @@ SELECT toYYYYMMDD(data_hora)                                    AS data_key,
        toDecimal64OrZero(data_json.cotacaoCompra::String, 5)    AS cotacao_compra,
        toDecimal64OrZero(data_json.cotacaoVenda::String, 5)     AS cotacao_venda,
        timestamp                                                AS versao_ms
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 WHERE data_tag = 'ptax';
 
 -- Telemetria: dois formatos de linha. Barra: CAM-0451|29/10/26 06:00:55|-23.6965,-46.7802|VEL 083|...
 -- Espaço: CAM-0451 29-10-2026 06:05:55 GPS -23.6527 -46.7452 v=86. O horário é o de Brasília.
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_fato_leitura_telemetria TO dw.fato_leitura_telemetria AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_fato_leitura_telemetria TO mackenzie.g00_fato_leitura_telemetria AS
 WITH data_json.linha::String AS linha,
      match(linha, '^CAM-[0-9]{4}\\|')                AS barra,
      match(linha, '^CAM-[0-9]{4} [0-9]{2}-[0-9]{2}-') AS espaco,
@@ -184,10 +183,10 @@ SELECT toYYYYMMDD(assumeNotNull(inst))                         AS data_key,
        data_json.arquivo::String                                AS arquivo,
        toUInt32OrZero(data_json.numero_linha::String)           AS numero_linha,
        timestamp                                                AS versao_ms
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 WHERE data_tag = 'telemetria' AND (barra OR espaco) AND inst IS NOT NULL;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_fato_alerta_direcao TO dw.fato_alerta_direcao AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_fato_alerta_direcao TO mackenzie.g00_fato_alerta_direcao AS
 WITH data_json.linha::String AS linha,
      splitByChar(';', linha) AS campos,
      parseDateTimeOrNull(campos[3], '%Y%m%dT%H%i%s', 'America/Sao_Paulo') AS inst
@@ -198,10 +197,10 @@ SELECT toYYYYMMDD(assumeNotNull(inst))                          AS data_key,
        data_json.arquivo::String                                AS arquivo,
        toUInt32OrZero(data_json.numero_linha::String)           AS numero_linha,
        timestamp                                                AS versao_ms
-FROM ingestao.db_ingestion
+FROM mackenzie.db_ingestion
 WHERE data_tag = 'telemetria' AND startsWith(linha, 'TAC;') AND inst IS NOT NULL;
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS dw.mv_dim_caminhao TO dw.dim_caminhao AS
+CREATE MATERIALIZED VIEW IF NOT EXISTS mackenzie.g00_mv_dim_caminhao TO mackenzie.g00_dim_caminhao AS
 SELECT caminhao, min(instante) AS primeira_leitura, max(instante) AS ultima_leitura
-FROM dw.fato_leitura_telemetria
+FROM mackenzie.g00_fato_leitura_telemetria
 GROUP BY caminhao;
