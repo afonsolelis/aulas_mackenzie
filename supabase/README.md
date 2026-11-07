@@ -3,7 +3,8 @@
 A pasta guarda os seeds dos TBLs, quizzes e entregas. O nome `supabase/`
 ficou por histórico: desde novembro de 2026 as atividades do Mackenzie rodam
 no Postgres + PostgREST do projeto `aulas_mackenzie` na VPS (Coolify), e não
-mais no Supabase cloud, que segue só com o `aulas_senac`.
+mais no Supabase cloud. O `aulas_senac` saiu de lá em 07/11/2026 para um
+PostgREST próprio na mesma VPS (`https://aulas-senac-api.afonsolelis.tech`).
 
 - API usada pelas páginas: `https://aulas-mackenzie-api.afonsolelis.tech`,
   pelo cliente `assets/api_aulas.js`. Só as RPCs ficam expostas; o token do
