@@ -23,7 +23,6 @@ Regras para o agente de código nesta pasta, qualquer que seja o agente escolhid
 | 04 | `sql/003_relatorios_fechados.sql` |
 | 05 | `sql/004_observabilidade.sql` (contadores por minuto e views em janela) |
 | 06 | `sql/005_consultas.sql` e `docs/respostas.md` (as perguntas ao cubo, com o número e a consulta) |
-| TBL | `docs/adr/ADR-006` a `ADR-008`, uma por questão do TBL da Aula 04, com status Proposta |
 
 Não pule etapa. Nenhum DDL antes de `specs/04_modelo_dimensional.md` existir e ter o grão de cada fato em uma frase.
 

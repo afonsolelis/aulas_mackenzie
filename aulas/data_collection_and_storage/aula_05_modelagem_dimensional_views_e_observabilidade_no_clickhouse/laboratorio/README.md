@@ -42,8 +42,8 @@ Em cada etapa o grupo cola o prompt CREATE no agente, e a teoria da etapa é apr
 
 | Horário | Parte |
 |---|---|
-| 8h30 às 8h40 | Etapa 00: retomada da Aula 04 e conexão com o ClickHouse da turma |
-| 8h40 às 9h20 | TBL da Aula 04, três questões (sala `mack-dcs-a04-2026-2`) |
+| 8h30 às 9h00 | Quiz da Aula 04, dez perguntas (sala `mack-dcs-a05-2026-2`) |
+| 9h00 às 9h20 | Etapa 00: retomada da Aula 04 e conexão com o ClickHouse da turma |
 | 9h20 às 9h40 | café |
 | 9h40 às 10h00 | Etapa 01: o grão de cada fato |
 | 10h00 às 10h30 | Etapa 02: dimensões, fatos e views materializadas incrementais |

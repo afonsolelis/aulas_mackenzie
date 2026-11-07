@@ -39,8 +39,6 @@
     .fase h3 { margin: 0; font-size: 1.05em; }
     .fase p { margin: 0; color: var(--deck-muted); line-height: 1.4; flex: 1; }
     .fase-num { font-family: var(--font-mono); font-weight: 700; font-size: 0.85em; letter-spacing: 0.06em; color: var(--deck-muted); }
-    .tbl-fases { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
-    .tbl-fases .fase { font-size: 0.78em; }
     @media (max-height: 760px) {
       .etapa-shell { gap: 10px; padding-top: 22px; padding-bottom: 16px; }
       .etapa-shell .deck-title { font-size: 1.75em; }
@@ -54,7 +52,6 @@
     }
     @media (max-width: 900px) {
       .etapa-grid { grid-template-columns: 1fr; }
-      .tbl-fases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .etapa-trilha { font-size: 0.45em; }
     }
   </style>
@@ -150,15 +147,15 @@
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Agenda</span>
-          <h2 class="deck-title">TBL da Aula 04 e sete etapas no ClickHouse</h2>
+          <h2 class="deck-title">Quiz da Aula 04 e sete etapas no ClickHouse</h2>
           <p class="deck-summary">Em cada etapa, o grupo cola o prompt CREATE no agente de código de sua preferência e, enquanto ele trabalha, os slides seguintes explicam o que o prompt pediu. O gate fecha a etapa. Tudo roda no ClickHouse da turma, na pasta <code>aula_05_dimensional/</code>, sem Docker.</p>
         </div>
         <div class="deck-grid agenda-3">
           <article class="deck-card">
-            <h3>8h30 &ndash; 9h40 &middot; Conexão e TBL</h3>
+            <h3>8h30 &ndash; 9h40 &middot; Quiz e conexão</h3>
             <ul>
-              <li>8h30: Etapa 00, retomada da Aula 04 e conexão com o ClickHouse da turma</li>
-              <li>8h40: TBL da Aula 04, três questões</li>
+              <li>8h30: quiz da Aula 04, dez perguntas</li>
+              <li>9h00: Etapa 00, retomada da Aula 04 e conexão com o ClickHouse da turma</li>
               <li>9h20: café</li>
             </ul>
           </article>
@@ -183,11 +180,46 @@
       </div>
     </div>
 
+    <!-- Quiz: o que cai -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Quiz &middot; 8h30</span>
+          <h2 class="deck-title">Dez perguntas sobre a Aula 04</h2>
+          <p class="deck-summary">Entre pelo QR projetado no painel ou pelo link Quiz do rodapé e escolha o nome que vai aparecer no placar. Cada pergunta fica aberta por 90 segundos.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Perguntas 1 a 3 &middot; Contrato</h3><p style="margin:0;">Envelope fechado, o que o 202 promete e o envelope rejeitado pela fila.</p></article>
+          <article class="deck-card"><h3>Perguntas 4 a 6 &middot; Entrega</h3><p style="margin:0;">Ack e garantia de entrega, latência até consultável e o ClickHouse fora do ar.</p></article>
+          <article class="deck-card"><h3>Perguntas 7 a 10 &middot; Lote e tabela</h3><p style="margin:0;">Custo fixo do micro-lote, <code>async_insert</code>, tipos inferidos no JSON e duplicatas do teste de queda.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz: como funciona -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Quiz &middot; Regras da sala</span>
+          <h2 class="deck-title">Como funciona cada pergunta</h2>
+          <p class="deck-summary">A pergunta abre para todos ao mesmo tempo. A resposta aparece quando todos respondem ou o tempo acaba.</p>
+        </div>
+        <div class="quality-gates">
+          <div class="quality-gate"><strong>Responder</strong><span>Quatro alternativas, uma escolha, sem troca depois de registrada.</span></div>
+          <div class="quality-gate"><strong>Pontos</strong><span>Acerto mais rápido vale mais. A pergunta 10 vale o dobro.</span></div>
+          <div class="quality-gate"><strong>Strike</strong><span>Sair da aba com a pergunta aberta zera os pontos dela.</span></div>
+          <div class="quality-gate"><strong>Revelação</strong><span>Alternativa correta, explicação e placar projetados.</span></div>
+          <div class="quality-gate"><strong>No fim</strong><span>Cada aluno vê os temas que errou e a seção do material da Aula 04 para retomar.</span></div>
+          <div class="quality-gate"><strong>Depois do quiz</strong><span>Às 9h00, a Etapa 00 retoma a tabela de pouso e conecta cada grupo ao ClickHouse da turma.</span></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Retomada: tabela de pouso -->
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
-          <span class="deck-kicker">8h30 &middot; Retomada da Aula 04</span>
+          <span class="deck-kicker">9h00 &middot; Retomada da Aula 04</span>
           <h2 class="deck-title">A tabela de pouso de três colunas</h2>
           <p class="deck-summary">Tudo o que chegou pelo servidor de ingestão da Aula 04 está carregado no ClickHouse da turma como <code>mackenzie.db_ingestion</code>. A tabela não conhece os campos de cada domínio: o dado inteiro mora em <code>data_json</code>, no tipo JSON, e o domínio em <code>data_tag</code>. O modelo de hoje é construído em cima dela, sem mudar uma linha.</p>
         </div>
@@ -280,7 +312,7 @@ ORDER BY (data_tag, timestamp);</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense de-shell">
         <div>
-          <span class="deck-kicker">8h30 &middot; Etapa 00 &middot; Conexão</span>
+          <span class="deck-kicker">9h00 &middot; Etapa 00 &middot; Conexão</span>
           <h2 class="deck-title">O ClickHouse da turma</h2>
           <p class="deck-summary">Um único servidor para a turma toda, acessado por HTTPS. A senha é a mesma para todos os grupos e só dá acesso ao banco <code>mackenzie</code>. Estes valores vão para o <code>.env</code> da pasta <code>aula_05_dimensional/</code>.</p>
         </div>
@@ -318,7 +350,7 @@ GRUPO=g07</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense etapa-shell" data-etapa="00">
         <div>
-          <span class="deck-kicker">8h30 &middot; Etapa 00 &middot; Conexão</span>
+          <span class="deck-kicker">9h00 &middot; Etapa 00 &middot; Conexão</span>
           <h2 class="deck-title">Pasta de trabalho e conexão testada</h2>
           <p class="deck-summary">O agente monta a pasta da aula com o <code>rodar_sql.py</code>, o <code>AGENTS.md</code> e o <code>.env</code>, e prova a conexão com três consultas. Nada é instalado: o script usa só a biblioteca padrão do Python.</p>
         </div>
@@ -431,42 +463,6 @@ prompt e pare.</code></pre>
             <p>A contagem por <code>data_tag</code> devolve livros 1.000, ptax 40 e telemetria 31.265, e a amostra mostra um <code>data_json</code> de cada domínio.</p>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- TBL dinâmica -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">TBL &middot; 8h40</span>
-          <h2 class="deck-title">Três decisões sobre o servidor de ingestão</h2>
-          <p class="deck-summary">Team-Based Learning na sala do aluno, aberta pelo celular. São três questões, nove minutos cada. Nenhuma alternativa é a correta: cada uma é uma tática com ganho e custo, e o que conta é a justificativa.</p>
-        </div>
-        <div class="tbl-fases">
-          <article class="fase"><span class="fase-num">1</span><h3>Leitura</h3><p>O caso e a questão, com o dado novo quando houver.</p></article>
-          <article class="fase"><span class="fase-num">2</span><h3>Voto individual</h3><p>Uma tática, com justificativa escrita, sem conversar.</p></article>
-          <article class="fase"><span class="fase-num">3</span><h3>Discussão</h3><p>A turma lê as justificativas sem nome e defende o custo da própria escolha.</p></article>
-          <article class="fase"><span class="fase-num">4</span><h3>Segundo voto</h3><p>Decidir outra vez, mudando ou não.</p></article>
-          <article class="fase"><span class="fase-num">5</span><h3>Síntese e revelação</h3><p>O que moveu a sala e o ganho e o custo de cada tática.</p></article>
-        </div>
-        <p class="deck-note">Entre na sala pelo link TBL do rodapé ou pelo QR projetado. O professor conduz as fases pela área do professor.</p>
-      </div>
-    </div>
-
-    <!-- TBL caso -->
-    <div class="slide">
-      <div class="deck-shell is-dense de-shell">
-        <div>
-          <span class="deck-kicker">TBL &middot; Caso</span>
-          <h2 class="deck-title">O caso e as três questões</h2>
-          <p class="deck-summary">O caso é o servidor que a turma montou na Aula 04, com os números medidos na preparação: fila durável, flush por N ou T, raw e bronze antes do ClickHouse, ack no fim e a tabela de três colunas.</p>
-        </div>
-        <div class="de-tres">
-          <div class="de-caixa is-forte"><span class="de-rotulo">Questão 1</span><p>Contrato e mudança de payload.</p></div>
-          <div class="de-caixa is-forte"><span class="de-rotulo">Questão 2</span><p>Ordem dos destinos e falha do ClickHouse.</p></div>
-          <div class="de-caixa is-forte"><span class="de-rotulo">Questão 3</span><p>Forma da tabela para consulta.</p></div>
-        </div>
-        <p class="deck-note">As alternativas aparecem só na sala do aluno, na hora de cada questão.</p>
       </div>
     </div>
 
@@ -2119,7 +2115,7 @@ LIMIT 5;</code></pre>
             <ul>
               <li>Completar as etapas e rodar o <code>005</code> inteiro</li>
               <li><code>docs/views.md</code> com o <code>EXPLAIN</code> real e <code>docs/respostas.md</code> com as cinco respostas</li>
-              <li><code>docs/adr/ADR-006</code> a <code>ADR-008</code>, uma por questão do TBL, com status Proposta</li>
+              <li>Retomar, no material da Aula 04, os temas que o quiz apontou</li>
               <li>Aula 06: Streaming com RabbitMQ e ClickHouse</li>
             </ul>
           </div>
@@ -2155,8 +2151,8 @@ LIMIT 5;</code></pre>
       <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
       <a href="../material/material_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html" class="material-link">Material</a>
       <a href="../laboratorio/README.md" class="material-link">Laboratório</a>
-      <a href="../tbl/tbl_aula_05.html" class="material-link">TBL</a>
-      <a href="../tbl/painel_aula_05.html" class="material-link">Área do professor</a>
+      <a href="../quiz/quiz_aula_05.html" class="material-link">Quiz</a>
+      <a href="../quiz/painel_aula_05.html" class="material-link">Área do professor</a>
     </div>
     <div class="nav-wrapper">
       <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
