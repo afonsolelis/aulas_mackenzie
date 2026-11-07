@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+    <title>Conexão dados · Aula 05 · Data Collection and Storage</title>
+    <link rel="stylesheet" href="../../../../assets/styles.css" />
+    <style>
+      .copiavel { position: relative; }
+      .copiavel .copiar {
+        position: absolute; top: 8px; right: 8px;
+        font: inherit; font-size: 0.8rem; padding: 4px 10px;
+        background: #fff; color: #111; border: 1px solid #111; border-radius: 2px; cursor: pointer;
+      }
+      .copiavel .copiar:hover { background: #111; color: #fff; }
+      .copiavel pre { padding-right: 80px; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="material-nav" style="margin-bottom: 2rem;">
+        <a href="../../../../pages/home_data_collection.html">&larr; Data Collection and Storage</a>
+        <a href="../slides/slide_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html">Slide da Aula 05</a>
+        <a href="../material/material_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html">Material da Aula 05</a>
+        <a href="../../../../index.html">Hub de Disciplinas</a>
+      </div>
+
+      <section class="hero" data-year="2026">
+        <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+        <span class="kicker">MBA Engenharia de Dados &middot; Data Collection and Storage &middot; Aula 05 &middot; 07/11/2026</span>
+        <h1>Conexão dados</h1>
+        <p>Tudo o que o grupo precisa para se conectar, nesta aula, aos dois serviços da turma que rodam na VPS: o ClickHouse, com o banco <code>mackenzie</code> da Aula 05, e o RustFS, o object storage compatível com S3. Os dois estão no ar com HTTPS na porta 443, então funcionam do Codespace, do notebook ou do navegador, sem Docker e sem VPN.</p>
+        <p class="meta">Credenciais conferidas em 07/11/2026 &middot; Ambiente de aprendizado: tudo pode ser apagado e recriado</p>
+      </section>
+
+      <section class="content-block">
+        <h2>1. ClickHouse da turma</h2>
+        <table>
+          <thead><tr><th>Item</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Endereço (HTTPS)</td><td><code>https://clickhouse.afonsolelis.tech</code> (porta 443)</td></tr>
+            <tr><td>Console no navegador</td><td><a href="https://clickhouse.afonsolelis.tech/play" target="_blank" rel="noopener noreferrer"><code>https://clickhouse.afonsolelis.tech/play</code></a></td></tr>
+            <tr><td>Usuário</td><td><code>turma</code></td></tr>
+            <tr><td>Senha</td><td><code>sRwz6u2W6OQKkQgHlDwP</code></td></tr>
+            <tr><td>Banco (schema) da aula</td><td><code>mackenzie</code>, compartilhado pela turma</td></tr>
+            <tr><td>Tabela de pouso</td><td><code>mackenzie.db_ingestion</code>: livros 1.000, ptax 40, telemetria 31.265 (32.305 linhas)</td></tr>
+            <tr><td>Prefixo do grupo</td><td><code>gNN_</code> em todo objeto que o grupo criar (<code>g01_dim_livro</code>, <code>g01_mv_fato_preco_livro</code> ...)</td></tr>
+            <tr><td>Versão</td><td>ClickHouse 25.8.33.6</td></tr>
+            <tr><td>Limites por consulta</td><td>1 GB de memória e 300 s</td></tr>
+          </tbody>
+        </table>
+        <p>O usuário <code>turma</code> pode criar, alterar e apagar tabelas, views e dicionários dentro de <code>mackenzie</code>. Use sempre o prefixo do seu grupo para não sobrescrever o trabalho dos colegas. Um <code>DROP</code> acidental em <code>db_ingestion</code> o professor desfaz; avise na hora.</p>
+
+        <h3>Arquivo .env</h3>
+        <p>Na pasta <code>aula_05_dimensional/</code> do repositório do grupo, crie o <code>.env</code> abaixo, troque <code>GRUPO=g00</code> pelo número do grupo e confira que o <code>.env</code> está no <code>.gitignore</code>.</p>
+        <div class="copiavel"><pre><code>CLICKHOUSE_URL=https://clickhouse.afonsolelis.tech
+CLICKHOUSE_USER=turma
+CLICKHOUSE_PASSWORD=sRwz6u2W6OQKkQgHlDwP
+CLICKHOUSE_DATABASE=mackenzie
+GRUPO=g00
+
+S3_ENDPOINT=https://s3.afonsolelis.tech
+S3_ACCESS_KEY=turma
+S3_SECRET_KEY=turma-d6102587
+S3_REGION=us-east-1</code></pre></div>
+
+        <h3>Teste com o rodar_sql.py</h3>
+        <p>O <a href="../laboratorio/rodar_sql.py"><code>rodar_sql.py</code></a> do laboratório lê o <code>.env</code>, troca <code>g00_</code> pelo seu <code>GRUPO</code> e envia cada comando pela interface HTTPS. Só usa a biblioteca padrão do Python.</p>
+        <div class="copiavel"><pre><code>python rodar_sql.py -q "SELECT currentUser(), version()"
+python rodar_sql.py -q "SELECT data_tag, count() AS linhas FROM mackenzie.db_ingestion GROUP BY data_tag ORDER BY data_tag"
+python rodar_sql.py sql/001_dimensoes_e_fatos.sql</code></pre></div>
+        <p>Esperado na primeira linha: <code>turma</code> e <code>25.8.33.6</code>. Na segunda: livros 1000, ptax 40, telemetria 31265.</p>
+
+        <h3>Teste com curl</h3>
+        <div class="copiavel"><pre><code>curl -s -u turma:sRwz6u2W6OQKkQgHlDwP https://clickhouse.afonsolelis.tech/ \
+  --data-binary "SELECT data_tag, count() FROM mackenzie.db_ingestion GROUP BY data_tag ORDER BY data_tag"</code></pre></div>
+
+        <h3>Python com clickhouse-connect</h3>
+        <p>Para notebooks e scripts que precisam devolver DataFrame. Instale com <code>pip install clickhouse-connect pandas</code>.</p>
+        <div class="copiavel"><pre><code>import clickhouse_connect
+
+ch = clickhouse_connect.get_client(
+    host="clickhouse.afonsolelis.tech",
+    port=443,
+    secure=True,
+    username="turma",
+    password="sRwz6u2W6OQKkQgHlDwP",
+    database="mackenzie",
+)
+print(ch.query("SELECT currentUser(), version()").result_rows)
+df = ch.query_df("SELECT data_tag, count() AS linhas FROM db_ingestion GROUP BY data_tag")
+print(df)</code></pre></div>
+
+        <h3>DBeaver ou outro cliente gráfico</h3>
+        <table>
+          <thead><tr><th>Campo</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Driver</td><td>ClickHouse (o driver JDBC oficial, <code>com.clickhouse</code>)</td></tr>
+            <tr><td>Host</td><td><code>clickhouse.afonsolelis.tech</code></td></tr>
+            <tr><td>Porta</td><td><code>443</code></td></tr>
+            <tr><td>Banco</td><td><code>mackenzie</code></td></tr>
+            <tr><td>Usuário / senha</td><td><code>turma</code> / <code>sRwz6u2W6OQKkQgHlDwP</code></td></tr>
+            <tr><td>SSL</td><td>ligado (propriedade <code>ssl=true</code>)</td></tr>
+            <tr><td>URL JDBC</td><td><code>jdbc:clickhouse:https://clickhouse.afonsolelis.tech:443/mackenzie?ssl=true</code></td></tr>
+          </tbody>
+        </table>
+        <p>Só a interface HTTPS está aberta. As portas 8123, 9000 e 9440 não respondem de fora da VPS, então o <code>clickhouse-client</code> nativo não conecta; use o console <code>/play</code>, o <code>rodar_sql.py</code> ou um cliente HTTP.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>2. RustFS da turma (object storage S3)</h2>
+        <table>
+          <thead><tr><th>Item</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Console web</td><td><a href="https://s3-console.afonsolelis.tech/rustfs/console/" target="_blank" rel="noopener noreferrer"><code>https://s3-console.afonsolelis.tech/rustfs/console/</code></a></td></tr>
+            <tr><td>Endpoint da API S3</td><td><code>https://s3.afonsolelis.tech</code></td></tr>
+            <tr><td>Access key (usuário)</td><td><code>turma</code></td></tr>
+            <tr><td>Secret key (senha)</td><td><code>turma-d6102587</code></td></tr>
+            <tr><td>Região</td><td><code>us-east-1</code></td></tr>
+            <tr><td>Estilo de endereço</td><td>path-style (<code>https://s3.afonsolelis.tech/bucket/chave</code>)</td></tr>
+            <tr><td>Buckets</td><td><code>pouso</code> (80 lotes da Aula 02), <code>tcg</code> (data lake do projeto), <code>raw</code></td></tr>
+          </tbody>
+        </table>
+        <p>O usuário <code>turma</code> é admin porque o ambiente é de teste: pode criar buckets e gravar objetos. Não apague nem sobrescreva o <code>pouso</code> e o <code>tcg</code>, que são de todos. Para testes do grupo, crie um bucket com o prefixo do grupo, como <code>g01-teste</code> (nome de bucket aceita só minúsculas, números e hífen).</p>
+
+        <h3>Python com boto3</h3>
+        <p>Instale com <code>pip install boto3</code>.</p>
+        <div class="copiavel"><pre><code>import boto3
+from botocore.config import Config
+
+s3 = boto3.client(
+    "s3",
+    endpoint_url="https://s3.afonsolelis.tech",
+    aws_access_key_id="turma",
+    aws_secret_access_key="turma-d6102587",
+    region_name="us-east-1",
+    config=Config(s3={"addressing_style": "path"}),
+)
+print([b["Name"] for b in s3.list_buckets()["Buckets"]])
+print(s3.list_objects_v2(Bucket="pouso", MaxKeys=5)["Contents"][0]["Key"])</code></pre></div>
+
+        <h3>MinIO Client (mc)</h3>
+        <div class="copiavel"><pre><code>mc alias set turma https://s3.afonsolelis.tech turma turma-d6102587
+mc ls turma
+mc ls turma/pouso | wc -l        # 80</code></pre></div>
+
+        <h3>curl, sem instalar nada</h3>
+        <div class="copiavel"><pre><code>curl -s --aws-sigv4 "aws:amz:us-east-1:s3" --user "turma:turma-d6102587" https://s3.afonsolelis.tech/
+curl -s --aws-sigv4 "aws:amz:us-east-1:s3" --user "turma:turma-d6102587" "https://s3.afonsolelis.tech/pouso?list-type=2&amp;max-keys=5"</code></pre></div>
+
+        <h3>DuckDB lendo do RustFS</h3>
+        <div class="copiavel"><pre><code>INSTALL httpfs; LOAD httpfs;
+CREATE SECRET rustfs (
+    TYPE s3, KEY_ID 'turma', SECRET 'turma-d6102587',
+    ENDPOINT 's3.afonsolelis.tech', URL_STYLE 'path', USE_SSL true, REGION 'us-east-1'
+);
+SELECT count(*) FROM glob('s3://pouso/*.txt');                 -- 80 lotes
+SELECT filename, content FROM read_text('s3://pouso/CAM-0451_20261017T0900.txt');</code></pre></div>
+        <p>O ClickHouse da turma não lê o RustFS com a função <code>s3()</code>: o usuário <code>turma</code> não tem essa permissão. Para levar um arquivo do RustFS ao ClickHouse, baixe com boto3 e insira pelo <code>rodar_sql.py</code> ou pelo clickhouse-connect.</p>
+      </section>
+
+      <section class="content-block">
+        <h2>3. Se não conectar</h2>
+        <table>
+          <thead><tr><th>Sintoma</th><th>Causa provável</th></tr></thead>
+          <tbody>
+            <tr><td><code>Authentication failed</code> no ClickHouse</td><td>senha copiada com espaço ou aspas; confira o <code>.env</code></td></tr>
+            <tr><td><code>ACCESS_DENIED</code> no ClickHouse</td><td>objeto fora do banco <code>mackenzie</code>; sempre qualifique como <code>mackenzie.gNN_...</code></td></tr>
+            <tr><td><code>SignatureDoesNotMatch</code> no RustFS</td><td>região diferente de <code>us-east-1</code> ou endereço virtual-host; use path-style</td></tr>
+            <tr><td>timeout nas portas 8123, 9000 ou 9440</td><td>só a 443 está aberta; use HTTPS</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+    <script>
+      document.querySelectorAll(".copiavel").forEach(function (bloco) {
+        var botao = document.createElement("button");
+        botao.className = "copiar";
+        botao.type = "button";
+        botao.textContent = "Copiar";
+        botao.addEventListener("click", function () {
+          var texto = bloco.querySelector("code").innerText;
+          navigator.clipboard.writeText(texto).then(function () {
+            botao.textContent = "Copiado";
+            setTimeout(function () { botao.textContent = "Copiar"; }, 1500);
+          });
+        });
+        bloco.appendChild(botao);
+      });
+    </script>
+  </body>
+</html>
