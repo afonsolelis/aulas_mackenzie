@@ -26,13 +26,12 @@ if (!tk) { console.error('DCS_HOST_TOKEN ausente no arquivo de ambiente.'); proc
 const TOKEN = tk[1].trim().replace(/^(['"])(.*)\1$/, '$2');
 
 const BASE = 'file://' + path.resolve('aulas/data_collection_and_storage/aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio/tbl') + '/';
-const RPC = 'https://lwamaovuxcevsjfvtqhf.supabase.co/rest/v1/rpc/';
-const KEY = 'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ';
+const RPC = 'https://aulas-mackenzie-api.afonsolelis.tech/rpc/';
 const PADRAO = SALA === PADRAO_SALA ? '' : `?sala=${SALA}`;
 
 const rpc = async (fn, body) => (await fetch(RPC + fn, {
   method: 'POST',
-  headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(body),
 })).json();
 

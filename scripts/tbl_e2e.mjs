@@ -27,13 +27,12 @@ if (!tk) { console.error('TBL_HOST_TOKEN (ou QUIZ_HOST_TOKEN) ausente no arquivo
 const TOKEN = tk[1].trim().replace(/^(['"])(.*)\1$/, '$2');
 
 const BASE = 'file://' + path.resolve('aulas/data_visualization/aula_06_heuristicas_e_vieses/tbl') + '/';
-const RPC = 'https://lwamaovuxcevsjfvtqhf.supabase.co/rest/v1/rpc/';
-const KEY = 'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ';
+const RPC = 'https://aulas-mackenzie-api.afonsolelis.tech/rpc/';
 const PADRAO = SALA === 'mack-dv-a06-2026-2' ? '' : `?sala=${SALA}`;
 
 const rpc = async (fn, body) => (await fetch(RPC + fn, {
   method: 'POST',
-  headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+  headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(body),
 })).json();
 

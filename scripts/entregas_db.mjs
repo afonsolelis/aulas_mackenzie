@@ -7,8 +7,8 @@ const env = fs.readFileSync(envPath, 'utf8');
 const ler = (chave) => env.match(new RegExp(`^\\s*${chave}\\s*=\\s*(.+)\\s*$`, 'm'))?.[1]
   .trim().replace(/^(['"])(.*)\1$/, '$2');
 
-const connectionString = ler('SUPABASE_DB_URL');
-if (!connectionString) throw new Error('SUPABASE_DB_URL ausente no arquivo de ambiente.');
+const connectionString = ler('AULAS_DB_URL');
+if (!connectionString) throw new Error('AULAS_DB_URL ausente no arquivo de ambiente. Abra o túnel (ver supabase/README.md) e aponte para postgresql://postgres:<senha>@127.0.0.1:55432/aulas.');
 
 const client = new pg.Client({ connectionString, connectionTimeoutMillis: 15000 });
 try {

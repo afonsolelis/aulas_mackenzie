@@ -36,13 +36,9 @@
       <a href="../../../../index.html">Hub</a>
     </nav>
   </main>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.114.0/dist/umd/supabase.js"></script>
+  <script src="../../../../assets/api_aulas.js"></script>
   <script>
-  const db = window.supabase.createClient(
-    'https://lwamaovuxcevsjfvtqhf.supabase.co',
-    'sb_publishable_j0O_u0t7-lDCtBbmqaIz3A_8vAIGcyJ',
-    { auth: { persistSession: false } }
-  );
+  const db = window.aulasApi.cliente();
   const SLUG = new URLSearchParams(location.search).get('sala') || 'mack-dcs-a03-2026-2';
   const el = (id) => document.getElementById(id);
   function texto(tag, value, parent, className = '') {
