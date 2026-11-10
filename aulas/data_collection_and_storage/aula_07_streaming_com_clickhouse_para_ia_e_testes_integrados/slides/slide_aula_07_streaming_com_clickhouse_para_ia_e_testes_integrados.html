@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 07 — Streaming com ClickHouse para IA e Testes Integrados</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="07" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Streaming com ClickHouse para IA e Testes Integrados</h1>
+          <p class="deck-meta">Aula 07 &nbsp;&bull;&nbsp; 28/11/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Ingestão em lotes, views materializadas e busca vetorial na teoria. Depois, seis estações num simulador no navegador: do evento validado ao contexto entregue à IA, com os testes que sustentam cada peça.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Teoria até 9h50, seis estações até 12h00</h2>
+          <p class="deck-summary">Três blocos teóricos, cada um com exemplo numérico, pausa e pontos-chave. Depois do intervalo, cada estação traz o conceito, o prompt que construiria a peça e a simulação feita junto com a turma.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>8h30 &ndash; 9h50 &middot; Teoria</h3><ul><li>8h30 &middot; Bloco 1: como o ClickHouse recebe um fluxo</li><li>8h55 &middot; Bloco 2: views materializadas incrementais</li><li>9h20 &middot; Bloco 3: embeddings, busca vetorial e contexto para a IA</li><li>9h50 &middot; Intervalo</li></ul></article>
+          <article class="deck-card"><h3>10h10 &ndash; 12h10 &middot; Simulador</h3><ul><li>10h10 &middot; Contrato &nbsp; 10h30 &middot; Ingestão</li><li>10h50 &middot; Views &nbsp; 11h05 &middot; Busca vetorial</li><li>11h25 &middot; Contexto para IA &nbsp; 11h40 &middot; Testes</li><li>12h00 &middot; Fechamento e evidência</li></ul></article>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Problema</span>
+          <h2 class="deck-title">O que ficou em aberto na Aula 06</h2>
+          <p class="deck-summary">A Aula 06 levou os eventos da Rede Tatame até o Kafka e a dois destinos. Ficaram duas perguntas do time de retenção: por que os alunos cancelam, em linguagem livre, e como confiar no número que chega ao painel e ao modelo de IA.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Resultado observável ao fim da aula</strong>
+          <p style="margin:8px 0 0;">Seis missões feitas no simulador, com a evidência exportada para o repositório do grupo: o contrato, o lote e as duplicatas, a view contra a tabela bruta, a busca por sentido, o filtro do contexto e o que cada camada de teste pega.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Cenário condutor</span>
+          <h2 class="deck-title">Um terceiro consumidor no mesmo tópico</h2>
+          <p class="deck-summary">A rede tem 36.000 alunos em 240 academias e quatro regiões. O ClickHouse entra para servir números agregados e busca vetorial na mesma consulta.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Grupo consumidor</th><th>Destino</th><th>Pergunta que responde</th><th>Aula</th></tr></thead>
+          <tbody>
+            <tr><td><code>sink-influxdb</code></td><td>InfluxDB</td><td>o que acontece agora na academia</td><td>06</td></tr>
+            <tr><td><code>sink-lake</code></td><td>object storage e Elasticsearch</td><td>histórico e busca por palavras</td><td>06</td></tr>
+            <tr><td><code>sink-clickhouse</code></td><td>ClickHouse</td><td>agregados por SQL e motivos por sentido, para o contexto da IA</td><td>07</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O tópico <code>tatame.eventos</code> não muda. Um grupo novo lê do início sem afetar os outros dois, como na estação Kafka da Aula 06. Hipótese de volume mantida: 1.742.400 eventos por dia, 20,2 por segundo.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Mecanismo</span>
+          <h2 class="deck-title">Cada INSERT cria uma parte no disco</h2>
+          <p class="deck-summary">O ClickHouse foi desenhado para receber poucos INSERTs grandes. O streaming entrega muitos eventos pequenos, e o sink precisa converter um formato no outro.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>O INSERT grava as linhas, já ordenadas pela chave, num diretório novo chamado parte.</li>
+          <li>Um processo em segundo plano funde partes pequenas em partes maiores.</li>
+          <li>A consulta lê todas as partes ativas; quanto mais partes, mais arquivos abertos.</li>
+          <li>Se as partes surgem mais rápido do que a fusão consegue juntar, o servidor atrasa e depois recusa o INSERT com "Too many parts".</li>
+          <li>O limite vem da configuração <code>parts_to_throw_insert</code> da tabela.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Exemplo numérico 1</span>
+          <h2 class="deck-title">Tamanho do lote e INSERTs por dia</h2>
+          <p class="deck-summary">Conta feita com a hipótese de 20,2 eventos por segundo na média do dia.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Linhas por INSERT</th><th>INSERTs por dia</th><th>Um INSERT a cada</th><th>Atraso até o dado aparecer</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>1.742.400</td><td>0,05 s</td><td>nenhum, até o servidor recusar</td></tr>
+            <tr><td>100</td><td>17.424</td><td>5 s</td><td>até 5 s</td></tr>
+            <tr><td>1.000</td><td>1.742</td><td>50 s</td><td>até 50 s</td></tr>
+            <tr><td>10.000</td><td>174</td><td>8,3 min</td><td>até 8,3 min</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O lote fecha por tamanho ou por tempo, o que vier primeiro. A madrugada tem menos eventos que a média, então o limite de tempo é o que garante o atraso máximo. Medição do professor em 10/11/2026: um dia inteiro da hipótese entrou num único INSERT em 1,16 s.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Duas saídas</span>
+          <h2 class="deck-title">Lote no cliente ou async_insert no servidor</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Lote no cliente</h3><p>O sink acumula as linhas e envia um INSERT quando atinge o tamanho ou o tempo. O offset do Kafka só é confirmado depois do INSERT aceito. O sink controla o atraso e o reenvio.</p></article>
+          <article class="deck-card"><h3><code>async_insert</code> no servidor</h3><p>O cliente envia INSERTs pequenos e o servidor junta vários numa parte só antes de gravar. Serve quando há muitos produtores que não conseguem acumular. O atraso passa a depender da configuração do servidor.</p></article>
+        </div>
+        <div class="deck-note">Nos dois casos o objetivo é o mesmo: poucas partes por minuto. A estação 2 mostra os dois comportamentos e o erro que aparece sem nenhum deles. Na 26.8.15.10 o <code>async_insert</code> já vem ligado; o grupo confere em <code>system.settings</code> na versão que usa.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Exemplo numérico 2</span>
+          <h2 class="deck-title">A mesma linha chega duas vezes</h2>
+          <p class="deck-summary">O Kafka entrega pelo menos uma vez. Se o sink cai depois do INSERT e antes de confirmar o offset, o lote volta.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Consulta</th><th>Resultado medido</th><th>Por quê</th></tr></thead>
+          <tbody>
+            <tr><td><code>count()</code></td><td>2</td><td>as duas cópias estão em partes diferentes</td></tr>
+            <tr><td><code>count()</code> com <code>FINAL</code></td><td>1</td><td>a leitura deduplica pela chave de ordenação</td></tr>
+            <tr><td>depois da fusão das partes</td><td>1</td><td>o ReplacingMergeTree mantém uma linha por chave</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Medição em 10/11/2026, ClickHouse 26.8.15.10, tabela com <code>ORDER BY (academia, ocorrido_em, event_id)</code>. O reenvio de um lote inteiro tem outra defesa, o <code>insert_deduplication_token</code>. Em tabela sem replicação ele só vale com <code>non_replicated_deduplication_window</code> maior que zero: com o padrão 0, o mesmo teste gravou o lote duas vezes.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Qual atraso o painel aceita?</h2>
+        </div>
+        <div class="deck-callout">
+          <strong>Dois minutos com o grupo</strong>
+          <p style="margin:8px 0 0;">O painel de check-ins da rede é lido pela recepção a cada minuto. O relatório de cancelamentos é lido uma vez por dia. Que tamanho de lote e que limite de tempo o grupo daria ao sink?</p>
+        </div>
+        <ol class="deck-steps">
+          <li>O que acontece com o lote de 10.000 linhas às 4h da manhã?</li>
+          <li>A resposta muda se o dado também alimenta o InfluxDB da Aula 06?</li>
+          <li>Quem perde quando o sink confirma o offset antes do INSERT?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 1</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Cada INSERT cria uma parte; a fusão em segundo plano tem capacidade limitada.</li>
+          <li>O sink converte muitos eventos pequenos em poucos INSERTs grandes, por tamanho e por tempo.</li>
+          <li>O atraso máximo do dado é o limite de tempo do lote.</li>
+          <li>A entrega pelo menos uma vez exige deduplicação: <code>event_id</code> na chave, <code>FINAL</code> na leitura ou token no INSERT.</li>
+          <li>O token protege o reenvio do lote; a cópia isolada de um evento precisa da chave.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Definição</span>
+          <h2 class="deck-title">A view materializada roda a cada bloco inserido</h2>
+          <p class="deck-summary">No ClickHouse, a view materializada incremental se comporta como um gatilho sobre o INSERT. Ela não reexecuta a consulta sobre a tabela inteira.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Gatilho de inserção</h3><p>A view recebe o bloco que acabou de entrar na tabela de origem, aplica o SELECT e grava o resultado na tabela de destino.</p></article>
+          <article class="deck-card"><h3>Estado parcial</h3><p>O destino guarda estados de agregação, com <code>countState</code> e <code>uniqState</code>. A fusão das partes soma os estados do mesmo minuto.</p></article>
+          <article class="deck-card"><h3>Leitura</h3><p>A consulta fecha a conta com <code>countMerge</code> e <code>uniqMerge</code>, lendo uma linha por minuto e região.</p></article>
+        </div>
+        <div class="deck-note">O custo da agregação sai da hora da leitura e vai para a hora da escrita, em parcelas pequenas.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; SQL</span>
+          <h2 class="deck-title">Check-ins por minuto e região</h2>
+        </div>
+        <div class="deck-columns">
+          <pre class="is-compact"><code>CREATE TABLE tatame.checkins_por_minuto (
+  minuto DateTime('UTC'), regiao LowCardinality(String),
+  eventos AggregateFunction(count),
+  alunos  AggregateFunction(uniq, String)
+) ENGINE = AggregatingMergeTree
+ORDER BY (regiao, minuto);
+
+CREATE MATERIALIZED VIEW tatame.mv_checkins
+TO tatame.checkins_por_minuto AS
+SELECT toStartOfMinute(ocorrido_em) AS minuto, regiao,
+       countState() AS eventos,
+       uniqState(aluno) AS alunos
+FROM tatame.eventos WHERE tipo = 'checkin'
+GROUP BY minuto, regiao;</code></pre>
+          <div class="deck-panel">
+            <strong>O que observar</strong>
+            <ul><li>a cláusula <code>TO</code> separa a view da tabela que guarda o resultado</li><li>a chave de ordenação do destino é a chave do agrupamento</li><li><code>uniq</code> é uma estimativa de distintos, como o HyperLogLog da Aula 06</li><li>a leitura usa <code>countMerge(eventos)</code> e <code>uniqMerge(alunos)</code></li></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Exemplo numérico 3</span>
+          <h2 class="deck-title">A mesma pergunta na tabela e na view</h2>
+          <p class="deck-summary">Total de check-ins e de alunos distintos no dia, consultados dos dois jeitos.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Onde</th><th>Linhas lidas</th><th>Tempo</th><th>Check-ins</th><th>Alunos distintos</th></tr></thead>
+          <tbody>
+            <tr><td><code>tatame.eventos</code></td><td>1.742.400</td><td>12 ms</td><td>69.696</td><td>288</td></tr>
+            <tr><td><code>tatame.checkins_por_minuto</code></td><td>1.438</td><td>7 ms</td><td>69.696</td><td>288</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Medição do professor em 10/11/2026, ClickHouse 26.8.15.10 num notebook, com um dia sintético de uma região. A view leu 1.212 vezes menos linhas. A diferença de tempo é pequena neste volume e cresce com os meses guardados; o grupo mede com os próprios dados antes de citar.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Limites</span>
+          <h2 class="deck-title">O que a view incremental não faz</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Não enxerga o passado</h3><p>Ela processa os blocos inseridos depois da criação. O que já estava na tabela precisa de uma carga à parte para o destino.</p></article>
+          <article class="deck-card"><h3>Conta a linha repetida</h3><p>A cópia entra num bloco novo e é somada. Na medição, um minuto com 49 check-ins recebeu 1 evento enviado duas vezes e a view passou a mostrar 51.</p></article>
+          <article class="deck-card"><h3>Não recalcula ao mudar</h3><p>Trocar a definição vale para os blocos seguintes. Os minutos já gravados continuam com a conta antiga.</p></article>
+        </div>
+        <div class="deck-note">Para o painel, contar <code>event_id</code> distintos com <code>uniqState</code> absorve a cópia, ao preço de uma estimativa. A estação 3 mostra a diferença aparecendo e a correção valendo só dali em diante.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">O que fazer no dia em que a view muda?</h2>
+        </div>
+        <div class="deck-callout">
+          <strong>Dois minutos com o grupo</strong>
+          <p style="margin:8px 0 0;">O grupo descobre que a view de check-ins conta duplicatas e decide trocar <code>countState()</code> por <code>uniqState(event_id)</code>. A tabela de destino já tem três meses de minutos.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>O que acontece com os três meses já gravados?</li>
+          <li>De onde sai o dado para refazer o passado, e quanto tempo ele fica disponível?</li>
+          <li>Como provar, num teste, que a view e a tabela bruta concordam?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 2</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>A view materializada incremental é um gatilho sobre o bloco inserido.</li>
+          <li>O destino guarda estados parciais; a leitura fecha a conta com as funções <code>-Merge</code>.</li>
+          <li>Na medição, a view leu 1.438 linhas onde a tabela leu 1.742.400.</li>
+          <li>A view não enxerga o passado nem recalcula quando a definição muda.</li>
+          <li>A duplicata entra na soma; a defesa fica na função de agregação ou antes do INSERT.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Definição</span>
+          <h2 class="deck-title">O embedding transforma texto em vetor</h2>
+          <p class="deck-summary">O motivo do cancelamento é texto livre, escrito pela recepção em quatro países. A pergunta do time de retenção também é texto.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Vetor</h3><p>Um modelo de embeddings recebe o texto e devolve uma lista de números de tamanho fixo, por exemplo 384. Textos de sentido parecido ficam próximos.</p></article>
+          <article class="deck-card"><h3>Distância do cosseno</h3><p>Mede o ângulo entre dois vetores. Zero indica a mesma direção. O ClickHouse calcula com <code>cosineDistance(a, b)</code>.</p></article>
+          <article class="deck-card"><h3>Modelo e dimensão</h3><p>Os vetores só são comparáveis se vieram do mesmo modelo. Trocar o modelo obriga a recalcular todos, então modelo e dimensão entram na spec.</p></article>
+        </div>
+        <div class="deck-note">Padrão sugerido para a versão real: o modelo local <code>paraphrase-multilingual-MiniLM-L12-v2</code>, de 384 dimensões, que não exige chave de API. Quem preferir uma API usa a sua.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Comparação</span>
+          <h2 class="deck-title">Busca por palavra e busca por sentido</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th></th><th>Por palavras (BM25, Aula 06)</th><th>Por vetor</th></tr></thead>
+          <tbody>
+            <tr><td>O que compara</td><td>os termos da consulta com os termos do documento</td><td>o vetor da consulta com o vetor do documento</td></tr>
+            <tr><td>Consulta "mensalidade cara"</td><td>acha os motivos que contêm "mensalidade"</td><td>acha também "o valor ficou pesado no orçamento"</td></tr>
+            <tr><td>Ponto forte</td><td>nome próprio, código, termo exato</td><td>sinônimo, paráfrase, outro idioma</td></tr>
+            <tr><td>Ponto fraco</td><td>não liga "cara" a "preço alto"</td><td>pode trazer texto próximo que não responde</td></tr>
+            <tr><td>Explicação do resultado</td><td>pontuação por termo</td><td>uma distância, sem termo para apontar</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">As duas buscas se complementam. A estação 4 mostra as duas listas lado a lado para a mesma consulta.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; SQL</span>
+          <h2 class="deck-title">Vetor e índice no ClickHouse</h2>
+        </div>
+        <div class="deck-columns">
+          <pre class="is-compact"><code>CREATE TABLE tatame.motivos (
+  id     UInt32,
+  regiao LowCardinality(String),
+  motivo String,
+  vetor  Array(Float32),
+  INDEX idx vetor TYPE
+  vector_similarity('hnsw', 'cosineDistance', 384)
+) ENGINE = MergeTree ORDER BY id;
+
+WITH [0.12, -0.03, ...] AS ref -- 384 valores
+SELECT id, regiao, motivo,
+       cosineDistance(vetor, ref) AS distancia
+FROM tatame.motivos
+ORDER BY distancia
+LIMIT 10;</code></pre>
+          <div class="deck-panel">
+            <strong>O que observar</strong>
+            <ul><li>o vetor é uma coluna comum, ao lado da região e do texto</li><li>o índice declara o método, a função de distância e a dimensão</li><li>sem o índice, a mesma consulta roda como busca exata</li><li><code>EXPLAIN indexes = 1</code> mostra se o índice foi usado</li><li>a documentação lista o índice a partir da versão 25.8</li></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Mecanismo</span>
+          <h2 class="deck-title">Busca exata e busca aproximada</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Exata</h3><p>Calcula a distância da consulta para todos os vetores e ordena. A resposta é a correta, e o custo cresce com o número de linhas.</p></article>
+          <article class="deck-card"><h3>Aproximada, com HNSW</h3><p>O índice liga cada vetor aos vizinhos mais próximos, formando um grafo em camadas. A busca entra pelo topo e caminha em direção à consulta, comparando com uma fração dos vetores.</p></article>
+          <article class="deck-card"><h3>O que se troca</h3><p>Tempo por acerto. O parâmetro <code>hnsw_candidate_list_size_for_search</code>, 256 por padrão, define quantos candidatos a busca mantém: mais candidatos, mais acerto e mais tempo.</p></article>
+        </div>
+        <div class="deck-note">O acerto se mede comparando a lista aproximada com a exata: dos 10 vizinhos verdadeiros, quantos vieram. Essa medida se chama recall.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Exemplo numérico 4</span>
+          <h2 class="deck-title">Cem mil vetores de 384 dimensões</h2>
+          <p class="deck-summary">O índice custa espaço e tempo de escrita, e devolve tempo de leitura com perda de acerto.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida</th><th>Sem índice</th><th>Com índice HNSW</th></tr></thead>
+          <tbody>
+            <tr><td>Espaço em disco</td><td>147 MiB na coluna</td><td>mais 94 MiB do índice</td></tr>
+            <tr><td>Tempo do INSERT</td><td>1,0 s</td><td>95 s, com a construção do grafo</td></tr>
+            <tr><td>Busca dos 10 vizinhos</td><td>76 a 95 ms</td><td>78 ms na primeira e 7 a 12 ms nas seguintes</td></tr>
+            <tr><td>Vizinhos corretos em 10</td><td>10</td><td>5, 2 e 5 em três consultas</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Medição do professor em 10/11/2026, ClickHouse 26.8.15.10 em contêiner num notebook, com os padrões do índice. Os vetores eram aleatórios, sem estrutura, o pior caso para um grafo de vizinhança. Embeddings de texto têm estrutura e tendem a acertar mais; o grupo mede com os próprios dados.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Filtro</span>
+          <h2 class="deck-title">Filtrar por região antes ou depois</h2>
+          <p class="deck-summary">A rede tem 96 academias em São Paulo e 24 em Sydney. A pergunta sobre Sydney disputa os vizinhos com as outras três regiões.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Pós-filtro</h3><p>O índice devolve os 10 vizinhos da rede inteira e o <code>WHERE regiao = ...</code> descarta os de outras regiões. Numa região pequena podem sobrar menos de 10, ou nenhum.</p></article>
+          <article class="deck-card"><h3>Pré-filtro</h3><p>O filtro seleciona as linhas da região e a busca exata roda só nelas. Sempre devolve 10 quando existem, e custa mais quando a região é grande.</p></article>
+        </div>
+        <div class="deck-note">A configuração <code>vector_search_filter_strategy</code> escolhe a estratégia; o padrão <code>auto</code> deixa a decisão com o banco. <code>vector_search_index_fetch_multiplier</code> pede mais candidatos ao índice antes de filtrar.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Contexto</span>
+          <h2 class="deck-title">O que vai para o modelo de IA</h2>
+          <p class="deck-summary">O modelo responde com o que recebe. O trabalho do pipeline de dados é montar esse contexto com números conferidos e textos rastreáveis.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>A pergunta do time de retenção vira vetor com o mesmo modelo dos motivos.</li>
+          <li>A busca vetorial devolve os k motivos mais próximos, com o filtro de região.</li>
+          <li>As views materializadas entram com os números: check-ins e cancelamentos do recorte.</li>
+          <li>O texto montado respeita um limite de tokens declarado e leva o <code>id</code> de cada motivo.</li>
+          <li>O aluno aparece como hash. O motivo é texto livre e pode conter dado pessoal, então passa por revisão antes de sair.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Quanto acerto o caso de uso exige?</h2>
+        </div>
+        <div class="deck-callout">
+          <strong>Dois minutos com o grupo</strong>
+          <p style="margin:8px 0 0;">O time de retenção quer entender os motivos de cancelamento do trimestre. O atendimento quer achar, durante a ligação, o caso mais parecido com o do aluno.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Qual dos dois usos aceita perder 2 dos 10 vizinhos?</li>
+          <li>Com 2.000 motivos na tabela, o índice aproximado se paga?</li>
+          <li>Que número precisa acompanhar o texto para o modelo não inventar a proporção?</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 3</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>O embedding aproxima textos de sentido parecido; a busca por palavra continua melhor para termo exato.</li>
+          <li>No ClickHouse o vetor é uma coluna <code>Array(Float32)</code>, e o índice <code>vector_similarity</code> é opcional.</li>
+          <li>A busca aproximada troca acerto por tempo, e o acerto precisa ser medido contra a exata.</li>
+          <li>O filtro depois do índice pode devolver menos resultados que o pedido.</li>
+          <li>O contexto junta textos recuperados e números agregados, com limite de tokens e origem citada.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Arquitetura da aula</span>
+          <h2 class="deck-title">Do tópico ao contexto em seis estações</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Estação</th><th>Peça</th><th>Entrada</th><th>Saída</th></tr></thead>
+          <tbody>
+            <tr><td>1 &middot; Contrato</td><td>modelo Pydantic e quarentena</td><td>evento do tópico</td><td>evento aceito ou erro com motivo</td></tr>
+            <tr><td>2 &middot; Ingestão</td><td>sink em lotes</td><td>eventos aceitos</td><td>partes na tabela <code>tatame.eventos</code></td></tr>
+            <tr><td>3 &middot; Views</td><td>view materializada</td><td>bloco inserido</td><td>check-ins por minuto e região</td></tr>
+            <tr><td>4 &middot; Busca vetorial</td><td>tabela de motivos com índice</td><td>texto do cancelamento</td><td>vizinhos por distância</td></tr>
+            <tr><td>5 &middot; Contexto para IA</td><td>consulta que junta os dois</td><td>pergunta e região</td><td>texto com números e fontes</td></tr>
+            <tr><td>6 &middot; Testes</td><td>suíte em três camadas</td><td>defeitos plantados</td><td>o que cada camada pega</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Simulador</span>
+          <h2 class="deck-title">Como usar o simulador da aula</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Abrir</h3><p>Cada aluno abre o <a href="../simulador/simulador_aula_07.html">simulador da Aula 07</a> no próprio navegador. Nada é instalado e nada sai da máquina.</p></article>
+          <article class="deck-card"><h3>Rodar</h3><p>O botão Iniciar liga o relógio simulado. A velocidade vai de 1 minuto a 1 hora por segundo. O estado fica em <code>localStorage</code>.</p></article>
+          <article class="deck-card"><h3>Registrar</h3><p>A aba Missões marca o que o simulador observou e guarda a resposta do grupo. O botão Exportar evidência gera o Markdown do entregável.</p></article>
+        </div>
+        <div class="deck-note">O simulador roda uma amostra de um décimo da rede, com 24 academias e 3.600 alunos. Os vetores têm 16 dimensões e são montados por um dicionário de conceitos, para caberem na tela. Nenhum modelo de IA é chamado.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 1 &middot; Conceito</span>
+          <h2 class="deck-title">O contrato decide o que entra</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Configuração</th><th>Comportamento</th><th>Quando usar</th></tr></thead>
+          <tbody>
+            <tr><td>modo <code>strict</code></td><td>recusa <code>"120"</code> num campo inteiro</td><td>produtor que a rede controla</td></tr>
+            <tr><td>modo <code>lax</code></td><td>converte <code>"120"</code> em <code>120</code></td><td>fonte que entrega tudo como texto</td></tr>
+            <tr><td><code>extra="forbid"</code></td><td>recusa campo desconhecido</td><td>quando campo novo deve virar conversa</td></tr>
+            <tr><td><code>extra="ignore"</code></td><td>descarta o campo e aceita o evento</td><td>produtor de terceiros que evolui sozinho</td></tr>
+            <tr><td>validador de modelo</td><td>regra entre campos</td><td>cancelamento exige motivo; academia pertence à região</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O evento recusado vai para a quarentena com a lista de erros do Pydantic: tipo do erro, campo e valor recebido. Medição de 16/10/2026 com um evento de tamanho parecido: 15 a 19 µs por validação.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 1 &middot; Simulação</span>
+          <h2 class="deck-title">Contrato e quarentena no simulador</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>O que a tela mostra</h3><p>Um editor de evento com sete defeitos prontos, o resultado da validação e a quarentena agrupada por tipo de erro.</p></article>
+          <article class="deck-card"><h3>Prompt 1</h3><p>Contrato do evento em Pydantic v2, com os validadores e a quarentena que guarda o evento e o motivo.</p></article>
+          <article class="deck-card"><h3>Missão 1</h3><p>Validar três eventos com defeito, trocar <code>strict</code> por <code>lax</code> e <code>forbid</code> por <code>ignore</code> e ver o que deixa de ser recusado.</p></article>
+        </div>
+        <div class="deck-note">De cada 100 eventos do simulador, 2 chegam com defeito. Seis em cada dez defeitos são do tipo que <code>lax</code> ou <code>ignore</code> aceitam.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 2 &middot; Simulação</span>
+          <h2 class="deck-title">Lote, partes e duplicatas no simulador</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>O que a tela mostra</h3><p>As partes ativas como barras, os INSERTs aceitos e recusados e a contagem com e sem <code>FINAL</code>.</p></article>
+          <article class="deck-card"><h3>Prompt 2</h3><p>Sink do Kafka para o ClickHouse com lote por tamanho e tempo, tabela ReplacingMergeTree e token de deduplicação.</p></article>
+          <article class="deck-card"><h3>Missão 2</h3><p>Usar 1 linha por INSERT até o erro de partes demais, voltar para 1.000 e reenviar o último lote sem token e com token.</p></article>
+        </div>
+        <div class="deck-note">O simulador recusa o INSERT com 300 partes ativas. Com <code>async_insert</code> ligado, o lote de 1 linha deixa de estourar.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 3 &middot; Simulação</span>
+          <h2 class="deck-title">A view contra a tabela bruta</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>O que a tela mostra</h3><p>Os check-ins por minuto lidos da view e a mesma pergunta respondida pela tabela, com as linhas lidas de cada lado.</p></article>
+          <article class="deck-card"><h3>Prompt 3</h3><p>Views materializadas de check-ins por minuto e de cancelamentos por dia, com a consulta que confere contra a tabela bruta.</p></article>
+          <article class="deck-card"><h3>Missão 3</h3><p>Comparar as linhas lidas, anotar a diferença causada pelas duplicatas e ligar a contagem por <code>event_id</code> distinto.</p></article>
+        </div>
+        <div class="deck-note">Os minutos mais recentes do painel ficam vazios enquanto o lote não fecha: a view só enxerga o que já entrou na tabela.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 4 &middot; Simulação</span>
+          <h2 class="deck-title">Palavra e sentido no simulador</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>O que a tela mostra</h3><p>Duas listas para a mesma consulta, por palavras e por vetor, com as comparações feitas e o acerto contra a busca exata.</p></article>
+          <article class="deck-card"><h3>Prompt 4</h3><p>Tabela de motivos com embedding e índice <code>vector_similarity</code>, e o script que mede acerto e tempo das duas buscas.</p></article>
+          <article class="deck-card"><h3>Missão 4</h3><p>Buscar "mensalidade cara", comparar as listas e repetir com 2 e com 128 candidatos, anotando acerto e comparações.</p></article>
+        </div>
+        <div class="deck-note">O histórico carrega 800 motivos. A busca exata compara com todos; a aproximada, com uma fração que cresce com os candidatos.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 5 &middot; Simulação</span>
+          <h2 class="deck-title">Montagem do contexto no simulador</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>O que a tela mostra</h3><p>O texto que seria entregue ao modelo: a pergunta, os números das views e os motivos recuperados, com a conta de tokens.</p></article>
+          <article class="deck-card"><h3>Prompt 5</h3><p>Função que recebe pergunta e região, recupera os motivos, junta os agregados e devolve o texto com as fontes, dentro do limite.</p></article>
+          <article class="deck-card"><h3>Missão 5</h3><p>Montar o contexto para <code>ap-sydney</code> com pós-filtro e com pré-filtro e comparar quantos motivos chegaram.</p></article>
+        </div>
+        <div class="deck-note">Chamar um modelo é opcional na versão real e fica a critério do grupo. A parte avaliada é o contexto.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 6 &middot; Conceito</span>
+          <h2 class="deck-title">O que cada camada de teste enxerga</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Defeito plantado</th><th>Unidade</th><th>Integração com dublê</th><th>Integração com ClickHouse real</th></tr></thead>
+          <tbody>
+            <tr><td>contrato aceita data no futuro</td><td>pega</td><td>pega</td><td>pega</td></tr>
+            <tr><td>tabela criada sem ReplacingMergeTree</td><td>não vê</td><td>não vê</td><td>pega</td></tr>
+            <tr><td>view criada depois da carga</td><td>não vê</td><td>não vê</td><td>pega</td></tr>
+            <tr><td>consulta com distância diferente da do índice</td><td>não vê</td><td>não vê</td><td>pega</td></tr>
+            <tr><td>vetor com dimensão errada</td><td>não vê</td><td>não vê</td><td>pega</td></tr>
+            <tr><td>sink não reenvia depois de timeout</td><td>não vê</td><td>não vê</td><td>só ponta a ponta</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O dublê em memória não tem motor de tabela, fusão, view nem índice. O Testcontainers sobe um ClickHouse descartável para a suíte: 5,9 s para subir e aplicar a DDL, na medição de 03/10/2026 com a imagem já baixada.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 6 &middot; Simulação</span>
+          <h2 class="deck-title">Defeitos e camadas no simulador</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>O que a tela mostra</h3><p>Sete defeitos para ligar, doze testes em três camadas e a lista do que escapou com a suíte verde.</p></article>
+          <article class="deck-card"><h3>Prompt 6</h3><p>Testes de unidade para o contrato e o contexto, e de integração com Testcontainers para DDL, deduplicação, view e busca vetorial.</p></article>
+          <article class="deck-card"><h3>Missão 6</h3><p>Ligar todos os defeitos e rodar só unidade, depois integração com dublê, depois com ClickHouse real, anotando o que escapa e o tempo.</p></article>
+        </div>
+        <div class="deck-note">A fixture do contêiner tem escopo de sessão: sobe uma vez para a suíte inteira. Sem Docker, o teste é pulado com o motivo escrito.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Prática em SDD</span>
+          <h2 class="deck-title">Seis prompts CREATE, um por estação</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Prompt</th><th>O que constrói</th><th>Evidência pedida</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>contrato do evento e quarentena</td><td>relatório de rejeições por tipo de erro</td></tr>
+            <tr><td>2</td><td>sink em lotes para o ClickHouse</td><td>partes ativas e contagem com <code>FINAL</code></td></tr>
+            <tr><td>3</td><td>views materializadas</td><td>conferência da view contra a tabela bruta</td></tr>
+            <tr><td>4</td><td>motivos com embedding e índice</td><td>acerto em 10 e tempo, exata e aproximada</td></tr>
+            <tr><td>5</td><td>montagem do contexto</td><td>texto com fontes dentro do limite de tokens</td></tr>
+            <tr><td>6</td><td>testes de unidade e de integração</td><td>saída do pytest por camada</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Os prompts completos estão no <a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html">material</a>. Cada grupo executa durante a semana, com o agente de código de sua preferência, na pasta <code>aula_07_clickhouse_ia/</code>.</div>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Atividade em sala</span>
+          <h2 class="deck-title">Seis missões no simulador</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Missão</th><th>Estação</th><th>O que o grupo mede</th></tr></thead>
+          <tbody>
+            <tr><td>1 &middot; Contrato na entrada</td><td>Contrato</td><td>o que <code>lax</code> e <code>ignore</code> deixam passar</td></tr>
+            <tr><td>2 &middot; Lote, partes e duplicatas</td><td>Ingestão</td><td>máximo de partes e a contagem com e sem <code>FINAL</code></td></tr>
+            <tr><td>3 &middot; View e tabela bruta</td><td>Views</td><td>linhas lidas e a diferença causada pelas cópias</td></tr>
+            <tr><td>4 &middot; Palavra e sentido</td><td>Busca vetorial</td><td>acerto e comparações com 2 e com 128 candidatos</td></tr>
+            <tr><td>5 &middot; Filtro antes ou depois</td><td>Contexto para IA</td><td>motivos devolvidos com pós-filtro e com pré-filtro</td></tr>
+            <tr><td>6 &middot; Camadas de teste</td><td>Testes</td><td>defeitos que escapam e tempo da suíte em três configurações</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; 12h00</span>
+          <h2 class="deck-title">Entregável e o que fica para a semana</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Em sala, até 12h10</h3><p>As seis missões com a resposta do grupo, exportadas pelo botão "Exportar evidência" para <code>aula_07_clickhouse_ia/evidencia_simulador.md</code>.</p></article>
+          <article class="deck-card"><h3>Na semana, opção A</h3><p>Executar os prompts 1 a 6 com o agente de código de preferência e subir a versão real em <code>aula_07_clickhouse_ia/</code>.</p></article>
+          <article class="deck-card"><h3>Na semana, opção B</h3><p>Fazer o <a href="../laboratorio/roteiro_pydantic_e_testes.html">laboratório opcional</a> de Pydantic, VCR e Testcontainers sobre os pipelines das Aulas 03 e 06.</p></article>
+        </div>
+        <div class="deck-note">Aula 08, em 05/12/2026: mentoria e entrega do projeto final.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html" class="material-link">Material</a>
+      <a href="../simulador/simulador_aula_07.html" class="material-link">Simulador</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[index].classList.add("active");
+      currentSlide = index;
+      document.getElementById("current-slide").textContent = currentSlide + 1;
+      document.getElementById("prev-btn").disabled = currentSlide === 0;
+      document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft") previousSlide();
+      if (event.key.toLowerCase() === "f") toggleFullScreen();
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>

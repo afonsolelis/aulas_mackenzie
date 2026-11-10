@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
-  <title>Material Aula 07 &middot; Validação com Pydantic e Testes Integrados</title>
+  <title>Laboratório opcional da Aula 07 — Pydantic, VCR e Testcontainers</title>
   <link rel="stylesheet" href="../../../../assets/styles.css" />
 </head>
 <body>
@@ -13,19 +13,25 @@
       <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
       <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
       <a href="../laboratorio/README.md">Roteiro do laboratório</a>
-      <a href="../quiz/quiz_aula_07.html">Quiz da aula</a>
-      <a href="../slides/slide_aula_07_validacao_com_pydantic_e_testes_integrados.html">Ver Slide &rarr;</a>
+      <a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html">Material da Aula 07</a>
+      <a href="../slides/slide_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html">Ver Slide &rarr;</a>
     </div>
 
     <header class="hero">
       <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
-      <h1>Aula 07 &middot; Validação com Pydantic e Testes Integrados</h1>
-      <p class="meta">Aula 07 &middot; 28/11/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p>Os pipelines das Aulas 03 e 06 coletam e gravam dados, mas aceitam qualquer coisa que chegue. Nesta aula, cada grupo escreve contratos Pydantic para o livro extraído do HTML, para a cotação PTAX e para a leitura de sensor IoT, desvia os registros inválidos para quarentena no MinIO e para uma DLQ no RabbitMQ e protege tudo com uma suíte de testes em três camadas: unidade, contrato com respostas HTTP gravadas (VCR) e integração com serviços reais em contêiner (Testcontainers). O trabalho segue a mesma sequência SDD da Aula 01, agora com uma especificação de qualidade. As duas primeiras horas são de teoria, em cinco blocos que usam a estufa da Aula 06 como cenário condutor e medem o que cada decisão custa: o desvio que um sensor rotulado errado provoca na média, a taxa de rejeição de um lote com defeitos conhecidos, o tempo de validar uma leitura, o custo de cada camada da pirâmide de testes e o efeito do escopo das fixtures. Depois vêm uma hora de prática em SDD e um quiz sobre as Aulas 06 e 07.</p>
+      <h1>Laboratório opcional da Aula 07 — Pydantic, VCR e Testcontainers</h1>
+      <p class="meta">Laboratório opcional &middot; para a semana de 28/11 a 05/12/2026</p>
+      <p>Os pipelines das Aulas 03 e 06 coletam e gravam dados, mas aceitam qualquer coisa que chegue. Nesta aula, cada grupo escreve contratos Pydantic para o livro extraído do HTML, para a cotação PTAX e para a leitura de sensor IoT, desvia os registros inválidos para quarentena no MinIO e para uma DLQ no RabbitMQ e protege tudo com uma suíte de testes em três camadas: unidade, contrato com respostas HTTP gravadas (VCR) e integração com serviços reais em contêiner (Testcontainers). O trabalho segue a mesma sequência SDD da Aula 01, agora com uma especificação de qualidade. As duas primeiras horas são de teoria, em cinco blocos que usam a estufa da Aula 06 como cenário condutor e medem o que cada decisão custa: o desvio que um sensor rotulado errado provoca na média, a taxa de rejeição de um lote com defeitos conhecidos, o tempo de validar uma leitura, o custo de cada camada da pirâmide de testes e o efeito do escopo das fixtures. Depois vem uma hora de prática em SDD.</p>
     </header>
 
     <article class="material">
+      <section class="content-block" id="aviso">
+        <div class="note">
+          <strong>Este roteiro é opcional e fica para a semana</strong>
+          <p>A Aula 07 de 28/11/2026 passou a tratar de streaming com ClickHouse para IA e testes integrados, com um simulador no navegador (veja o <a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html">material da aula</a>). O conteúdo abaixo é o roteiro anterior, mantido como laboratório opcional: contratos Pydantic, respostas HTTP gravadas com VCR e Testcontainers sobre os pipelines da Aula 03 e do <a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/laboratorio/roteiro_streaming_iot.html">laboratório opcional da Aula 06</a>. Os horários das agendas servem de referência de duração, e o quiz citado no texto original foi retirado.</p>
+        </div>
+      </section>
 
       <section class="content-block" id="sumario">
         <h2>Sumário</h2>
@@ -46,7 +52,7 @@
           <li><a href="#s14">Cenários ATAM da aula</a></li>
           <li><a href="#s15">Atividade em sala e entregável</a></li>
         </ol>
-        <p>Referências entre aulas: <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> (SDD, formato CREATE, Codespace e agente de código), <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> (scraping de books.toscrape.com e PTAX gravados no MinIO) e <a href="../../aula_06_streaming_com_rabbitmq_e_clickhouse/material/material_aula_06_streaming_com_rabbitmq_e_clickhouse.html">Aula 06</a> (sensores, RabbitMQ, transformador Python e ClickHouse).</p>
+        <p>Referências entre aulas: <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> (SDD, formato CREATE, Codespace e agente de código), <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> (scraping de books.toscrape.com e PTAX gravados no MinIO) e <a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/laboratorio/roteiro_streaming_iot.html">laboratório opcional da Aula 06</a> (sensores, RabbitMQ, transformador Python e ClickHouse).</p>
       </section>
 
       <!-- 1 -->
@@ -77,7 +83,6 @@
             <tr><td>9h45 &ndash; 10h10</td><td>Teoria 4</td><td>Pirâmide de testes e respostas HTTP gravadas em cassetes; quanto custa um teste em cada camada (seções 7 e 8).</td></tr>
             <tr><td>10h10 &ndash; 10h30</td><td>Teoria 5</td><td>Testcontainers, custo de subida, Docker indisponível e CI; escopo da fixture e tempo da suíte (seções 9 e 10).</td></tr>
             <tr><td>10h30 &ndash; 11h30</td><td>Prática em SDD</td><td>Preparação, exemplo de referência e prompts 1 a 5 revisados, acompanhando a demonstração (seções 11 a 13).</td></tr>
-            <tr><td>11h30 &ndash; 12h00</td><td>Quiz</td><td>Dez perguntas sobre as Aulas 06 e 07, com placar e explicação a cada resposta (seção 15.1).</td></tr>
             <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>Conferência do que existe às 12h10 e do que fica para a semana (seção 15).</td></tr>
           </tbody>
         </table></div>
@@ -1135,27 +1140,17 @@ Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revi
       <!-- 15 -->
       <section class="content-block" id="s15">
         <h2>15. Atividade em sala e entregável</h2>
-        <p>Depois das duas horas de teoria, a prática vai das 10h30 às 11h30, no Codespace do repositório do grupo, acompanhando a construção ao vivo feita pelo professor. O grupo reproduz cada etapa com os prompts da seção 12, revisa o artefato antes de seguir e executa os testes no próprio terminal: a resposta do agente dizendo que o teste passou não conta como evidência. Das 11h30 às 12h00, a turma faz o quiz da seção 15.1, e os últimos dez minutos conferem o que existe e o que fica para a semana.</p>
+        <p>Depois das duas horas de teoria, a prática vai das 10h30 às 11h30, no Codespace do repositório do grupo, acompanhando a construção ao vivo feita pelo professor. O grupo reproduz cada etapa com os prompts da seção 12, revisa o artefato antes de seguir e executa os testes no próprio terminal: a resposta do agente dizendo que o teste passou não conta como evidência. Os últimos dez minutos conferem o que existe e o que fica para a semana.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Horário</th><th>Etapa</th><th>Saída</th></tr></thead>
           <tbody>
             <tr><td>10h30 &ndash; 10h45</td><td>Preparação (seção 11) e exemplo de referência (seção 13)</td><td>Docker respondendo, dependências instaladas, exemplo verde</td></tr>
             <tr><td>10h45 &ndash; 11h30</td><td>Prompts 1 a 5, com a demonstração</td><td>persona, objetivos, spec, plan e tasks revisados e commitados</td></tr>
-            <tr><td>11h30 &ndash; 12h00</td><td>Quiz (seção 15.1)</td><td>temas errados anotados para revisão</td></tr>
             <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>lista do que existe e do que fica para a semana</td></tr>
             <tr><td>Na semana, até a Aula 08 (05/12/2026)</td><td>Prompt 6, uma tarefa por vez, e prompt 7</td><td>contratos, quarentena, DLQ, testes nas três camadas, <code>atam.md</code>, ADRs e relatório de rejeições</td></tr>
           </tbody>
         </table></div>
-        <h3>15.1 Quiz: dez perguntas sobre as Aulas 06 e 07</h3>
-        <p>Às 11h30, a turma responde um quiz ao vivo. São dez perguntas de quatro alternativas, com 90 segundos cada. As três primeiras retomam a Aula 06 (entrega at-least-once e deduplicação, DLQ com motivo, INSERT em lote no ClickHouse); as quatro seguintes tratam dos contratos e do Pydantic (faixa física e unidade, lax e strict, campo desconhecido, erros por registro); as três últimas, dos testes (relógio fixo pelo contexto, cassete desatualizado, Testcontainers na pirâmide). A pergunta 10 vale o dobro.</p>
-        <ol class="steps">
-          <li>Abra o <a href="../quiz/quiz_aula_07.html">quiz da Aula 07</a> pelo QR projetado e escolha o nome que vai aparecer no placar.</li>
-          <li>Mantenha a aba aberta enquanto a pergunta estiver no ar: trocar de aba ou de aplicativo conta um strike e zera os pontos daquela pergunta.</li>
-          <li>Responda dentro dos 90 segundos. Acerto mais rápido vale mais, e a escolha não pode ser trocada depois de registrada.</li>
-          <li>Na revelação, leia a explicação projetada. No fim, a página lista os temas que você errou e a seção deste material que os trata.</li>
-          <li>Depois da aula, o professor publica o banco com as perguntas, o gabarito e o desempenho da turma por tema, sem nomes.</li>
-        </ol>
-        <h3>15.2 Entregável</h3>
+        <h3>15.1 Entregável</h3>
         <p>Pasta <code>aula_07_validacao_testes/</code> no repositório do grupo, até a Aula 08 (05/12/2026), com:</p>
         <ol class="steps">
           <li>Esqueleto SDD completo: <code>AGENTS.md</code>, <code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code>, <code>specs/spec.md</code>, <code>specs/plan.md</code>, <code>specs/tasks.md</code>.</li>

@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 07 &middot; Streaming com ClickHouse para IA e Testes Integrados</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_collection.html">Data Collection &amp; Storage</a>
+      <a href="../simulador/simulador_aula_07.html">Simulador da aula</a>
+      <a href="../laboratorio/roteiro_pydantic_e_testes.html">Laboratório opcional</a>
+      <a href="../slides/slide_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html">Ver Slide</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 07 — Streaming com ClickHouse para IA e Testes Integrados</h1>
+      <p class="meta">Aula 07 &middot; 28/11/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p class="summary">A aula continua o caso da Rede Tatame. Um terceiro consumidor lê o tópico <code>tatame.eventos</code> e grava no ClickHouse, que passa a servir, no mesmo banco, os números agregados por views materializadas e a busca vetorial sobre os motivos de cancelamento. Com essas duas fontes monta-se o contexto que seria entregue a um modelo de IA. A teoria tem três blocos: como o ClickHouse recebe um fluxo, como as views materializadas incrementais agregam na escrita e como embeddings e índices HNSW recuperam textos por sentido. Depois do intervalo, a turma percorre seis estações num simulador que roda no navegador, do contrato do evento em Pydantic aos testes integrados com um ClickHouse real em contêiner. Nada é instalado em sala.</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block" id="sumario">
+        <h2>Sumário</h2>
+        <ol>
+          <li><a href="#s1">Onde estamos e o problema concreto</a></li>
+          <li><a href="#s2">Agenda</a></li>
+          <li><a href="#s3">Bloco 1: como o ClickHouse recebe um fluxo</a></li>
+          <li><a href="#s4">Bloco 2: views materializadas incrementais</a></li>
+          <li><a href="#s5">Bloco 3: embeddings e busca vetorial no ClickHouse</a></li>
+          <li><a href="#s6">Contexto para a IA</a></li>
+          <li><a href="#s7">Contrato do evento com Pydantic v2</a></li>
+          <li><a href="#s8">Testes integrados</a></li>
+          <li><a href="#s9">O simulador da aula e as seis estações</a></li>
+          <li><a href="#s10">Os seis prompts CREATE</a></li>
+          <li><a href="#s11">As seis missões</a></li>
+          <li><a href="#s12">Limites do simulador</a></li>
+          <li><a href="#s13">Entregável</a></li>
+          <li><a href="#s14">Para saber mais</a></li>
+        </ol>
+      </section>
+
+      <!-- 1 -->
+      <section class="content-block" id="s1">
+        <h2>1. Onde estamos e o problema concreto</h2>
+        <h3>1.1 O que a Aula 06 deixou</h3>
+        <p>A <a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">Aula 06</a> apresentou a Rede Tatame, uma rede fictícia de academias de jiu-jítsu com 36.000 alunos em 240 academias, distribuídas em quatro regiões: <code>sa-saopaulo</code> (96 academias), <code>us-virginia</code> (72), <code>eu-estocolmo</code> (48) e <code>ap-sydney</code> (24). Cada fato da rede (um check-in, uma cobrança que falhou, um cancelamento com o campo de texto livre <code>motivo</code>) é publicado como evento no tópico Kafka <code>tatame.eventos</code>, com a academia como chave. Pela hipótese de volume daquela aula, a rede produz 1.742.400 eventos por dia, 20,2 por segundo em média, e o evento médio medido tem 231 bytes em JSON.</p>
+        <p>Três grupos de consumidores liam o tópico: o motor de CEP, o sink do InfluxDB, que serve o painel tático com retenção de 30 dias, e o sink da camada bruta no object storage, de onde um indexador alimenta o Elasticsearch para busca textual, estimativas e relatórios longos.</p>
+        <h3>1.2 O problema concreto</h3>
+        <p>A gestora da região <code>ap-sydney</code> abre o assistente interno da rede e pergunta por que os alunos da região estão cancelando e quantos cancelaram no mês. Uma resposta útil precisa de dois tipos de dado. O primeiro são números: cancelamentos por dia e por região, check-ins por minuto, alunos distintos. O segundo são textos: os motivos escritos pela recepção, escolhidos pelo sentido da pergunta.</p>
+        <p>A arquitetura da Aula 06 entrega cada tipo num lugar e com uma limitação. O InfluxDB tem os números recentes e não guarda texto. O Elasticsearch guarda os motivos, mas a busca por termos (BM25) da estação 6 encontra palavras: a consulta "mensalidade cara" não traz o motivo "achou o preço alto depois do reajuste", que diz a mesma coisa com outras palavras. Além disso, o evento só chega ao Elasticsearch depois de o lote fechar no bucket e de o indexador passar, o que soma minutos de atraso.</p>
+        <p>Há um terceiro problema, anterior aos dois. Nada na Aula 06 verificava o que entrava no tópico. Um produtor que envia a duração como texto, um campo novo que ninguém combinou ou um nome de aluno num campo que não deveria existir chegam aos destinos sem aviso. E nenhuma das peças tinha um teste que rodasse contra o banco de verdade.</p>
+        <h3>1.3 O que muda nesta aula</h3>
+        <p>Um novo grupo de consumidores, <code>sink-clickhouse</code>, passa a ler o mesmo tópico. Ele é o terceiro sink da arquitetura, ao lado dos sinks do InfluxDB e da camada bruta. Antes de gravar, ele valida cada evento contra um contrato escrito em Pydantic v2; o que não passa vai para uma quarentena com a lista de erros. O que passa é gravado em lotes numa tabela do ClickHouse. A partir dessa tabela, views materializadas incrementais mantêm os agregados que o assistente consulta, e uma tabela de motivos guarda, ao lado de cada texto, o vetor (embedding) que representa o sentido dele. Uma função monta o contexto: recupera os motivos mais próximos da pergunta, junta os números das views, cita a origem de cada parte e respeita um limite de tokens. A aula fecha com os testes que sustentam essa cadeia, de unidade para o contrato e de integração com um ClickHouse real em contêiner.</p>
+        <div class="method-flow">
+          <div class="method-step"><strong>Tópico Kafka</strong><span>O grupo <code>sink-clickhouse</code> lê <code>tatame.eventos</code> de forma independente dos três grupos da Aula 06.</span></div>
+          <div class="method-step"><strong>Contrato</strong><span>Cada evento é validado em Pydantic v2. O recusado vai para a quarentena com a lista de erros.</span></div>
+          <div class="method-step"><strong>Tabela de eventos</strong><span>O sink grava em lotes numa tabela <code>ReplacingMergeTree</code>, com token de deduplicação por lote.</span></div>
+          <div class="method-step"><strong>Views e vetores</strong><span>Views materializadas agregam na escrita. Os motivos de cancelamento recebem um embedding e um índice <code>vector_similarity</code>.</span></div>
+          <div class="method-step"><strong>Contexto</strong><span>Uma função junta motivos recuperados e agregados, com as fontes, dentro do orçamento de tokens.</span></div>
+        </div>
+        <p>O ClickHouse não substitui os destinos da Aula 06. O Kafka continua sendo o transporte, o bucket continua sendo a fonte da verdade e o InfluxDB continua servindo o painel de dispositivos. O ClickHouse entra porque responde, com SQL e num só lugar, à agregação recente e à busca por similaridade, o que simplifica a montagem do contexto. O custo dessa escolha aparece nos três blocos de teoria: partes demais quando o lote é pequeno, duplicatas contadas pelas views e um índice vetorial caro de construir.</p>
+        <p>O formato da aula é o mesmo da Aula 06: teoria, depois estações em que o professor apresenta o conceito, lê o prompt CREATE e a turma faz a missão no <a href="../simulador/simulador_aula_07.html">simulador</a>. Ninguém instala nada em sala. Os prompts são executados pelo grupo durante a semana, no Codespace, com o agente de código de preferência de cada aluno. A aula não tem quiz nem TBL.</p>
+        <div class="note">
+          <strong>Resultado esperado ao fim da aula</strong>
+          <p>O grupo explica por que o tamanho do lote determina o número de partes; diferencia a deduplicação por token da deduplicação do <code>ReplacingMergeTree</code>; justifica por que uma view materializada conta a duplicata e não enxerga o passado; compara busca exata e aproximada pelo acerto e pelo tempo; descreve o que entra e o que não entra no contexto de um modelo; e entrega o arquivo <code>aula_07_clickhouse_ia/evidencia_simulador.md</code> no repositório do grupo, com as respostas das seis missões.</p>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="content-block" id="s2">
+        <h2>2. Agenda</h2>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Horário</th><th>Bloco</th><th>Seção do material</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 8h55</td><td>Bloco 1: streaming para dentro do ClickHouse (partes, fusões, lote, <code>async_insert</code>, entrega pelo menos uma vez e deduplicação)</td><td><a href="#s3">3</a></td></tr>
+            <tr><td>8h55 &ndash; 9h20</td><td>Bloco 2: views materializadas incrementais e estados de agregação</td><td><a href="#s4">4</a></td></tr>
+            <tr><td>9h20 &ndash; 9h50</td><td>Bloco 3: embeddings, distância do cosseno, busca exata e aproximada (HNSW), filtro antes ou depois e o contexto para a IA</td><td><a href="#s5">5</a> e <a href="#s6">6</a></td></tr>
+            <tr><td>9h50 &ndash; 10h10</td><td>Intervalo</td><td></td></tr>
+            <tr><td>10h10 &ndash; 10h30</td><td>Estação 1: Contrato</td><td><a href="#s7">7</a>, <a href="#prompt-1">prompt 1</a>, <a href="#missao-1">missão 1</a></td></tr>
+            <tr><td>10h30 &ndash; 10h50</td><td>Estação 2: Ingestão</td><td><a href="#s3">3</a>, <a href="#prompt-2">prompt 2</a>, <a href="#missao-2">missão 2</a></td></tr>
+            <tr><td>10h50 &ndash; 11h05</td><td>Estação 3: Views</td><td><a href="#s4">4</a>, <a href="#prompt-3">prompt 3</a>, <a href="#missao-3">missão 3</a></td></tr>
+            <tr><td>11h05 &ndash; 11h25</td><td>Estação 4: Busca vetorial</td><td><a href="#s5">5</a>, <a href="#prompt-4">prompt 4</a>, <a href="#missao-4">missão 4</a></td></tr>
+            <tr><td>11h25 &ndash; 11h40</td><td>Estação 5: Contexto para IA</td><td><a href="#s6">6</a>, <a href="#prompt-5">prompt 5</a>, <a href="#missao-5">missão 5</a></td></tr>
+            <tr><td>11h40 &ndash; 12h00</td><td>Estação 6: Testes integrados</td><td><a href="#s8">8</a>, <a href="#prompt-6">prompt 6</a>, <a href="#missao-6">missão 6</a></td></tr>
+            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento e evidência</td><td><a href="#s13">13</a></td></tr>
+          </tbody>
+        </table></div>
+        <p>As seções 3 a 5 correspondem aos blocos. As seções 6 a 8 tratam de assuntos que a teoria introduz e as estações 5, 1 e 6 retomam. A seção 9 apresenta o simulador, a seção 10 reúne os prompts e a seção 11, as missões.</p>
+      </section>
+
+      <!-- 3 -->
+      <section class="content-block" id="s3">
+        <h2>3. Bloco 1: como o ClickHouse recebe um fluxo</h2>
+        <p>A Aula 05 usou o ClickHouse para modelagem dimensional e consultas analíticas sobre dados carregados de uma vez. Um fluxo contínuo de 20,2 eventos por segundo expõe uma característica do motor que a carga única esconde: cada <code>INSERT</code> tem um custo fixo no disco, e esse custo se acumula quando os lotes são pequenos.</p>
+        <h3>3.1 Partes e fusões</h3>
+        <p>As tabelas da família <code>MergeTree</code> gravam os dados em partes. Uma parte é um diretório imutável, com as linhas ordenadas pela chave de ordenação (<code>ORDER BY</code>) e um arquivo por coluna. Cada <code>INSERT</code> cria pelo menos uma parte nova por partição atingida. A gravação é rápida porque nada do que já existe é reescrito.</p>
+        <p>Um processo em segundo plano funde (merge) as partes pequenas em partes maiores, dentro da mesma partição. A fusão mantém a ordenação, reduz o número de arquivos e é o momento em que os motores especializados aplicam a própria regra: o <code>ReplacingMergeTree</code> descarta linhas repetidas, e o <code>AggregatingMergeTree</code> combina estados de agregação. Não há como agendar uma fusão para um instante exato. Ela acontece quando o servidor decide, e toda consulta precisa funcionar com as partes no estado em que estiverem.</p>
+        <p>A tabela desta aula tem a forma abaixo. O motor, a chave de ordenação e a partição são os da medição do professor. Os tipos das colunas são uma sugestão coerente com o contrato da <a href="#s7">seção 7</a>, e o grupo os fixa na própria spec.</p>
+        <pre><code>CREATE TABLE tatame.eventos
+(
+    event_id    UUID,
+    tipo        LowCardinality(String),
+    ocorrido_em DateTime64(3, 'UTC'),
+    regiao      LowCardinality(String),
+    academia    LowCardinality(String),
+    aluno       String,
+    turma       LowCardinality(String),
+    faixa       LowCardinality(String),
+    origem      LowCardinality(String),
+    motivo      String
+)
+ENGINE = ReplacingMergeTree
+PARTITION BY toYYYYMM(ocorrido_em)
+ORDER BY (academia, ocorrido_em, event_id);</code></pre>
+        <p>A partição mensal (<code>toYYYYMM</code>) agrupa as partes por mês do evento. Fusões nunca cruzam partições, e a retenção pode ser feita descartando um mês inteiro. A chave de ordenação começa pela academia porque as consultas operacionais filtram por academia e período, e termina no <code>event_id</code> para que duas cópias do mesmo evento tenham a chave idêntica.</p>
+        <h3>3.2 O erro "Too many parts"</h3>
+        <p>Se os <code>INSERT</code> chegam mais rápido do que as fusões conseguem juntar as partes, o número de partes ativas de uma partição cresce. Muitas partes pequenas tornam as consultas lentas, porque cada uma precisa ser aberta, e consomem memória e descritores de arquivo. Para se proteger, o servidor primeiro atrasa os <code>INSERT</code> e, acima de um limite definido pela configuração <code>parts_to_throw_insert</code>, passa a recusá-los com o erro "Too many parts". O valor padrão dessa configuração mudou entre versões e deve ser consultado na versão em uso. O simulador usa um limite fixo de 300 partes para que o erro apareça em poucos segundos.</p>
+        <p>O erro pode ser lido como falta de capacidade do banco. Num fluxo em que o cliente envia uma linha por <code>INSERT</code>, a causa está no cliente, e a correção é enviar menos <code>INSERT</code>, cada um com mais linhas.</p>
+        <h3>3.3 Tamanho de lote</h3>
+        <p>A página "Selecting an insert strategy" da documentação do ClickHouse, lida em 10/11/2026, recomenda lotes de pelo menos 1.000 linhas, de preferência entre 10.000 e 100.000, e cerca de um <code>INSERT</code> por segundo, qualquer que seja o tamanho. Num fluxo, o lote é formado pelo sink: ele acumula eventos em memória e envia quando o lote atinge um número de linhas ou quando passa um tempo máximo, o que vier primeiro. O limite por tamanho protege o banco nos picos. O limite por tempo protege a latência nos vales, quando o lote demoraria a encher.</p>
+        <p>O lote troca latência por número de partes. Um evento só aparece numa consulta depois que o lote em que ele está é enviado. Quanto maior o lote, mais tempo o evento espera e menos partes o banco precisa fundir. A decisão depende de quem consome: um painel que aceita um minuto de atraso admite lotes maiores do que um alerta que precisa do dado em segundos.</p>
+        <h3>3.4 async_insert</h3>
+        <p>Quando não é possível formar o lote no cliente (muitos produtores pequenos, cada um com poucas linhas), o ClickHouse pode formá-lo no servidor. Com a configuração <code>async_insert = 1</code>, o servidor guarda as linhas recebidas num buffer e grava uma parte só quando o buffer atinge um tamanho (<code>async_insert_max_data_size</code>), um tempo (<code>async_insert_busy_timeout_ms</code>) ou um número de consultas acumuladas (<code>async_insert_max_query_number</code>).</p>
+        <p>A configuração <code>wait_for_async_insert</code> define o que a confirmação significa. Com o valor 1, o cliente só recebe a resposta depois que o buffer foi gravado em disco, e um erro de gravação volta para ele. Com o valor 0, a resposta vem assim que a linha entra no buffer: se o servidor cair antes da gravação, a linha se perde sem que o cliente saiba. A documentação recomenda a combinação <code>async_insert=1, wait_for_async_insert=1</code>. Para o sink desta aula a consequência é direta: o offset do Kafka só pode ser confirmado depois de uma resposta que signifique dado gravado.</p>
+        <h3>3.5 Entrega pelo menos uma vez e as duas deduplicações</h3>
+        <p>O sink processa o lote e só depois confirma o offset no Kafka. Se ele cair entre os dois passos, relê os mesmos eventos ao voltar e envia o lote de novo. É a entrega pelo menos uma vez da Aula 06. O outbox das academias também reenvia eventos depois de uma falha de rede. Nos dois casos a mesma linha chega ao ClickHouse duas vezes, e o banco oferece dois mecanismos diferentes para tratar disso.</p>
+        <p>O primeiro atua no lote. A configuração <code>insert_deduplication_token</code> permite que o cliente envie, junto com o <code>INSERT</code>, um texto que identifica aquele lote. Se um <code>INSERT</code> com o mesmo token chegar de novo dentro da janela de deduplicação da tabela, o servidor o descarta inteiro e responde com sucesso. O token precisa ser determinístico: derivado da partição do Kafka e dos offsets inicial e final do lote, ele é igual no reenvio. Um token gerado com relógio ou contador em memória muda a cada tentativa e não protege nada. Segundo a página "Deduplicating inserts on retries" da documentação, tabelas replicadas mantêm o registro de deduplicação por padrão, e uma tabela <code>MergeTree</code> sem replicação só deduplica blocos quando a configuração <code>non_replicated_deduplication_window</code> tem valor positivo. A mesma página informa que alguns padrões mudaram na versão 26.2. O ClickHouse da turma é o 25.8.33.6, de modo que o comportamento deve ser confirmado com um teste na versão usada pelo grupo. No teste do professor em 10/11/2026, na 26.8.15.10, dois INSERT com o mesmo token numa tabela <code>MergeTree</code> com a configuração padrão (janela 0) gravaram 4 linhas; com <code>non_replicated_deduplication_window = 100</code> na tabela, gravaram 2.</p>
+        <p>O segundo atua na linha. O <code>ReplacingMergeTree</code> mantém, entre as linhas com a mesma chave de ordenação, apenas uma, e faz isso durante a fusão. Ele cobre o caso que o token não alcança: o mesmo evento em dois lotes diferentes, como acontece quando o outbox reenvia um evento isolado. A limitação é o momento. A documentação do motor afirma que a deduplicação ocorre apenas durante uma fusão, que acontece em segundo plano em momento desconhecido. Até lá, as duas cópias estão na tabela e uma consulta comum enxerga as duas.</p>
+        <p>O modificador <code>FINAL</code> resolve a leitura: <code>SELECT ... FROM tatame.eventos FINAL</code> aplica a regra do motor no momento da consulta e devolve uma linha por chave, ao custo de mais trabalho por consulta. Sem <code>FINAL</code>, o resultado depende de as fusões já terem ocorrido.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Mecanismo</th><th>Unidade</th><th>Quando age</th><th>O que cobre</th><th>O que deixa passar</th></tr></thead>
+          <tbody>
+            <tr><td><code>insert_deduplication_token</code></td><td>o lote inteiro</td><td>na chegada do <code>INSERT</code></td><td>reenvio do mesmo lote depois de uma falha do sink</td><td>o mesmo evento em lotes diferentes; reenvio fora da janela de deduplicação</td></tr>
+            <tr><td><code>ReplacingMergeTree</code></td><td>a linha, pela chave de ordenação</td><td>na fusão, em momento não controlado</td><td>o mesmo evento em qualquer lote da mesma partição</td><td>a duplicata enquanto as partes não são fundidas; leitura sem <code>FINAL</code></td></tr>
+            <tr><td><code>FINAL</code> na consulta</td><td>a linha, na leitura</td><td>a cada consulta</td><td>a duplicata ainda não fundida</td><td>as views materializadas, que já contaram a linha na escrita (<a href="#s4">seção 4</a>)</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">
+          <strong>Exemplo numérico 1. O lote, as partes e a duplicata</strong>
+          <p>Pela hipótese de volume da Aula 06, chegam 20,2 eventos por segundo em média. Com uma linha por <code>INSERT</code>, o sink cria 20,2 partes por segundo. Se nenhuma fusão ocorresse, o limite de 300 partes do simulador seria atingido em 300 &divide; 20,2 = 14,9 segundos. Em um dia seriam 1.742.400 <code>INSERT</code>.</p>
+          <p>Com lote de 1.000 linhas, o lote enche em 1.000 &divide; 20,2 = 49,5 segundos e o dia tem cerca de 1.742 <code>INSERT</code>. Com lote de 10.000, o lote enche em 495 segundos, pouco mais de 8 minutos, e o dia tem cerca de 174. A latência máxima de um evento, na taxa média, é o tempo que o lote leva para encher: 49,5 segundos num caso e 8 minutos no outro. Um limite por tempo de 10 segundos fecharia o lote com cerca de 202 linhas, abaixo da recomendação de 1.000, e produziria 8.640 <code>INSERT</code> por dia.</p>
+          <p>Em 10/11/2026 o professor inseriu as 1.742.400 linhas de um dia da hipótese numa tabela com o desenho da seção 3.1, num único <code>INSERT</code>, em 1,16 segundo (ClickHouse 26.8.15.10 em contêiner local, notebook Intel i5-1345U). O volume diário da rede, portanto, não pressiona o banco. O que pressiona é a quantidade de <code>INSERT</code> em que esse volume é dividido. O tempo de 1,16 segundo é ordem de grandeza de uma máquina e não deve ser usado como meta.</p>
+          <p>Na mesma medição, um evento foi inserido duas vezes. A consulta <code>count()</code> devolveu 2 e a consulta <code>count()</code> com <code>FINAL</code> devolveu 1.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>O sink fecha o lote com 1.000 linhas ou 5 minutos, o que vier primeiro. De madrugada, quando só os heartbeats chegam, qual dos dois limites fecha o lote? E no pico das turmas da noite? Se o sink confirmar o offset do Kafka antes de receber a resposta do <code>INSERT</code>, que tipo de erro ele troca por qual: duplicata por perda, ou perda por duplicata? Um token de deduplicação montado com o horário do envio protege contra o reenvio?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 1</strong>
+          <ul>
+            <li>Cada <code>INSERT</code> cria uma parte; as fusões juntam as partes em segundo plano, em momento que o cliente não controla.</li>
+            <li>"Too many parts" indica lotes pequenos demais; a correção está no tamanho e na frequência dos <code>INSERT</code>.</li>
+            <li>O lote fecha por tamanho ou por tempo e troca latência por número de partes: 49,5 segundos com 1.000 linhas, na taxa média da rede.</li>
+            <li><code>async_insert</code> forma o lote no servidor; com <code>wait_for_async_insert = 0</code> a confirmação não garante gravação.</li>
+            <li>O token deduplica o lote reenviado na chegada; o <code>ReplacingMergeTree</code> deduplica a linha na fusão; <code>FINAL</code> deduplica na leitura.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="content-block" id="s4">
+        <h2>4. Bloco 2: views materializadas incrementais</h2>
+        <p>O assistente da rede pergunta quantos check-ins entraram por minuto em cada região e quantos cancelamentos houve por dia. Responder lendo a tabela de eventos funciona, e o custo cresce com o histórico: a cada pergunta, o banco percorre todas as linhas do período. A view materializada incremental desloca esse trabalho para o momento da escrita.</p>
+        <h3>4.1 Um gatilho sobre o bloco inserido</h3>
+        <p>No ClickHouse, uma view materializada incremental é um gatilho. A documentação a descreve como uma consulta que roda sobre os blocos de dados no momento em que são inseridos numa tabela. Quando um <code>INSERT</code> chega à tabela de origem, o servidor executa o <code>SELECT</code> da view apenas sobre as linhas daquele bloco e grava o resultado numa tabela de destino. A view não relê a tabela de origem, não tem agendamento e não guarda dados: quem guarda é a tabela de destino, que é uma tabela comum, com motor e chave de ordenação próprios.</p>
+        <p>Como a view processa um bloco por vez, o resultado de cada execução é parcial. Um bloco com 40 check-ins do minuto 11h02 gera uma linha "11h02, 40". O bloco seguinte, com mais 9 check-ins do mesmo minuto, gera outra linha "11h02, 9". A tabela de destino precisa saber combinar as duas.</p>
+        <h3>4.2 AggregatingMergeTree e estados de agregação</h3>
+        <p>O motor <code>AggregatingMergeTree</code> combina, durante a fusão, as linhas com a mesma chave de ordenação. Para uma soma ou contagem, combinar é somar. Para alunos distintos a soma não serve: 30 alunos distintos num bloco e 20 no outro podem ser 50, 30 ou qualquer valor entre os dois, conforme a sobreposição. O que precisa ser guardado é um resumo do conjunto, capaz de ser unido a outro resumo.</p>
+        <p>Esse resumo é o estado de agregação. O sufixo <code>State</code> faz a função devolver o estado intermediário em vez do resultado: <code>countState()</code> guarda o contador, e <code>uniqState(aluno)</code> guarda a estrutura que a função <code>uniq</code> usa para estimar distintos, da mesma família do HyperLogLog estudado na Aula 06. A coluna de destino tem o tipo <code>AggregateFunction</code>. Na leitura, o sufixo <code>Merge</code> une os estados e devolve o número: <code>countMerge</code> e <code>uniqMerge</code>. A função <code>uniq</code> devolve uma estimativa; quando a contagem precisa ser exata, usa-se <code>uniqExact</code>, que guarda todos os valores e ocupa mais memória.</p>
+        <pre><code>CREATE TABLE tatame.checkins_por_minuto
+(
+    minuto   DateTime('UTC'),
+    regiao   LowCardinality(String),
+    checkins AggregateFunction(count),
+    alunos   AggregateFunction(uniq, String)
+)
+ENGINE = AggregatingMergeTree
+ORDER BY (regiao, minuto);
+
+CREATE MATERIALIZED VIEW tatame.mv_checkins_por_minuto
+TO tatame.checkins_por_minuto AS
+SELECT
+    toStartOfMinute(ocorrido_em) AS minuto,
+    regiao,
+    countState()     AS checkins,
+    uniqState(aluno) AS alunos
+FROM tatame.eventos
+WHERE tipo = 'checkin'
+GROUP BY minuto, regiao;</code></pre>
+        <p>A consulta sobre a tabela de destino sempre agrupa e usa <code>Merge</code>, porque as linhas do mesmo minuto podem ainda estar em partes diferentes, à espera da fusão.</p>
+        <pre><code>SELECT regiao,
+       countMerge(checkins) AS checkins,
+       uniqMerge(alunos)    AS alunos
+FROM tatame.checkins_por_minuto
+WHERE minuto &gt;= now() - INTERVAL 60 MINUTE
+GROUP BY regiao;</code></pre>
+        <h3>4.3 A view não enxerga o passado</h3>
+        <p>O gatilho só dispara para blocos inseridos depois da criação da view. Se a tabela de eventos já tem um mês de dados quando a view é criada, a tabela de destino começa vazia e os agregados do mês anterior não existem. A mesma regra vale para mudanças: alterar o <code>SELECT</code> da view muda o cálculo dos blocos futuros, e as linhas já gravadas na tabela de destino continuam como foram calculadas.</p>
+        <p>A consequência é uma ordem de implantação. Primeiro cria-se a tabela de destino, depois a view, e só então começa a ingestão. Quando a tabela de origem já tem dados, o histórico é carregado à parte, com um <code>INSERT INTO ... SELECT</code> que calcula os mesmos estados para o período anterior a um instante de corte, tomando cuidado para que o corte não deixe um intervalo contado duas vezes nem um intervalo sem contar. A conferência entre a view e a tabela bruta, que o <a href="#prompt-3">prompt 3</a> pede, detecta os dois erros.</p>
+        <h3>4.4 A view conta a duplicata</h3>
+        <p>A view lê o bloco como ele chega. Ela é executada antes de qualquer fusão e não sabe que a tabela de origem é um <code>ReplacingMergeTree</code>. Se o mesmo evento chega em dois blocos, a view o conta duas vezes, e a deduplicação que a tabela de origem fará depois, na fusão, não desfaz a contagem. O <code>FINAL</code> na tabela de origem também não ajuda, porque a consulta do painel lê a tabela de destino.</p>
+        <p>Há três formas de lidar com isso, com custos diferentes. A primeira é impedir que a duplicata chegue, com o token de deduplicação: o lote reenviado é descartado na entrada. Na versão em uso, o grupo precisa confirmar com um teste que o bloco descartado também não chega às views. A segunda é usar na view uma agregação que não se altera com a repetição: <code>uniqState(event_id)</code> no lugar de <code>countState()</code> conta eventos distintos, ao preço de um estado maior e de um resultado estimado. A terceira é aceitar a diferença, medi-la e declará-la no painel. O que não se sustenta é supor que a view herda a deduplicação da tabela.</p>
+        <div class="note">
+          <strong>Exemplo numérico 2. A mesma pergunta na tabela bruta e na view, medida</strong>
+          <p>Em 10/11/2026, com ClickHouse 26.8.15.10 em contêiner local num notebook Intel i5-1345U, a tabela <code>tatame.eventos</code> recebeu as 1.742.400 linhas de um dia da hipótese, das quais 69.696 são check-ins (4% das linhas). A view de check-ins por minuto e região, com <code>countState()</code> e <code>uniqState(aluno)</code>, deixou 1.438 linhas na tabela de destino.</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Onde a pergunta foi feita</th><th>Linhas lidas</th><th>Tempo</th><th>Check-ins</th><th>Alunos distintos</th></tr></thead>
+            <tbody>
+              <tr><td>Tabela bruta <code>tatame.eventos</code></td><td>1.742.400</td><td>12 ms</td><td>69.696</td><td>288</td></tr>
+              <tr><td>Tabela de destino da view</td><td>1.438</td><td>7 ms</td><td>69.696</td><td>288</td></tr>
+            </tbody>
+          </table></div>
+          <p>A resposta é a mesma. A diferença de tempo é pequena nesse volume, 5 ms, e não justificaria a view sozinha. A diferença de linhas lidas é de 1.212 vezes (1.742.400 &divide; 1.438). A tabela bruta cresce 1.742.400 linhas por dia, enquanto a tabela de destino cresce no máximo uma linha por minuto e região depois das fusões. Com um ano de histórico, a consulta na tabela bruta percorre centenas de milhões de linhas e a da view continua lendo poucas. Os tempos valem para uma máquina e um dia de dados sintéticos; o grupo mede os próprios.</p>
+          <p>Na mesma medição, um evento de check-in já existente foi inserido de novo junto com um evento novo do mesmo minuto. O minuto tinha 49 check-ins e passou a mostrar 51 na view, embora só um evento fosse novo. Pela conta, os eventos distintos do minuto são 50.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>A view de check-ins foi criada numa segunda-feira, e a tabela de eventos tem dados desde o início do mês. O painel mostra o total de check-ins do mês. Que número ele mostra, e quem percebe o erro? No exemplo medido, a view mostrou 51 check-ins num minuto com 50 eventos distintos. Por que <code>countState()</code> se altera com a linha repetida, e por que <code>uniqState(aluno)</code> não se alteraria?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 2</strong>
+          <ul>
+            <li>A view materializada incremental é um gatilho que roda o <code>SELECT</code> sobre cada bloco inserido e grava numa tabela de destino.</li>
+            <li>O <code>AggregatingMergeTree</code> guarda estados (<code>countState</code>, <code>uniqState</code>), e a leitura os une com <code>countMerge</code> e <code>uniqMerge</code>, sempre com <code>GROUP BY</code>.</li>
+            <li>A view não enxerga o que estava na tabela antes de ser criada: a implantação cria destino e view antes da ingestão e carrega o histórico à parte.</li>
+            <li>A view conta a linha repetida; a deduplicação do <code>ReplacingMergeTree</code> e o <code>FINAL</code> não alcançam a tabela de destino.</li>
+            <li>Na medição, a view respondeu a mesma pergunta lendo 1.438 linhas no lugar de 1.742.400.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="content-block" id="s5">
+        <h2>5. Bloco 3: embeddings e busca vetorial no ClickHouse</h2>
+        <p>A busca por termos da Aula 06 não encontrou "achou o preço alto depois do reajuste" quando a consulta foi "mensalidade cara", porque os dois textos não têm palavras em comum. O bloco trata da técnica que compara textos pelo sentido e do que ela custa dentro do ClickHouse.</p>
+        <h3>5.1 Embedding e distância do cosseno</h3>
+        <p>Um modelo de embeddings recebe um texto e devolve um vetor de tamanho fixo, uma lista de números em ponto flutuante. O modelo é treinado para que textos de sentido parecido resultem em vetores que apontam para direções parecidas. O vetor não tem leitura humana: nenhuma posição significa "preço" ou "horário". O que tem significado é a relação entre dois vetores.</p>
+        <p>A medida usual dessa relação é o cosseno do ângulo entre os vetores, que vale 1 quando apontam na mesma direção e 0 quando são perpendiculares. A função <code>cosineDistance</code> do ClickHouse devolve 1 menos o cosseno: 0 para a mesma direção, valores maiores para direções mais afastadas. Buscar os k textos mais parecidos com uma pergunta é converter a pergunta em vetor com o mesmo modelo e pedir as k linhas de menor distância.</p>
+        <p>Duas regras decorrem disso. A pergunta e os documentos precisam passar pelo mesmo modelo, porque vetores de modelos diferentes não são comparáveis, mesmo quando têm a mesma dimensão. E trocar o modelo obriga a recalcular todos os vetores guardados. Por isso o nome do modelo e a dimensão entram na spec do grupo e numa coluna da tabela.</p>
+        <p>Para a versão real, o padrão sugerido é um modelo local multilíngue de 384 dimensões da biblioteca sentence-transformers, o <code>paraphrase-multilingual-MiniLM-L12-v2</code>, que roda na máquina do grupo e não exige chave de API. Quem preferir um serviço de embeddings por API usa o seu, com a chave em variável de ambiente e a dimensão correspondente declarada na spec.</p>
+        <h3>5.2 Vetores numa tabela do ClickHouse</h3>
+        <p>O vetor é guardado numa coluna <code>Array(Float32)</code>, ao lado do texto e das colunas de filtro.</p>
+        <pre><code>CREATE TABLE tatame.motivos
+(
+    event_id    UUID,
+    ocorrido_em DateTime64(3, 'UTC'),
+    regiao      LowCardinality(String),
+    academia    LowCardinality(String),
+    motivo      String,
+    modelo      LowCardinality(String),
+    vetor       Array(Float32),
+    CONSTRAINT dimensao_do_vetor CHECK length(vetor) = 384
+)
+ENGINE = MergeTree
+ORDER BY (regiao, ocorrido_em, event_id);</code></pre>
+        <p>A busca exata não precisa de índice. O banco calcula a distância entre o vetor da pergunta e o vetor de cada linha, ordena e devolve os primeiros.</p>
+        <pre><code>WITH [0.021, -0.043, 0.008 /* ... 384 valores */] AS ref
+SELECT event_id, regiao, motivo, cosineDistance(vetor, ref) AS distancia
+FROM tatame.motivos
+ORDER BY cosineDistance(vetor, ref)
+LIMIT 10;</code></pre>
+        <p>O resultado da busca exata é, por definição, o correto. O custo é linear: cada consulta lê e compara todos os vetores da tabela, ou todos os que passarem pelo filtro.</p>
+        <h3>5.3 Busca aproximada com HNSW</h3>
+        <p>A busca aproximada troca uma parte do acerto por tempo. O método HNSW (hierarchical navigable small world) organiza os vetores num grafo em camadas. Cada vetor é um nó ligado a alguns vizinhos próximos. A camada superior tem poucos nós e ligações longas, e cada camada abaixo tem mais nós e ligações mais curtas, até a camada de base, que contém todos. A busca entra pelo topo, caminha sempre para o vizinho mais próximo da pergunta, desce de camada e repete. Em vez de comparar a pergunta com todos os vetores, compara com os que encontra pelo caminho.</p>
+        <p>O caminho pode terminar numa região do grafo que não contém os vizinhos verdadeiros. Para reduzir esse risco, a busca mantém uma lista de candidatos e explora os vizinhos de todos eles. Quanto maior a lista, mais comparações e maior a chance de encontrar os vizinhos corretos. A medida de qualidade é o acerto (recall@k): dos k vizinhos que a busca exata devolve, quantos a busca aproximada também devolveu.</p>
+        <p>No ClickHouse, o índice de similaridade vetorial está disponível a partir da versão 25.8, segundo a documentação lida em 10/11/2026. O ClickHouse da turma na VPS é o 25.8.33.6. A sintaxe é a seguinte.</p>
+        <pre><code>ALTER TABLE tatame.motivos
+    ADD INDEX idx_vetor vetor
+    TYPE vector_similarity('hnsw', 'cosineDistance', 384);</code></pre>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Parâmetro ou configuração</th><th>O que controla</th><th>Padrão na documentação</th></tr></thead>
+          <tbody>
+            <tr><td>método</td><td>o algoritmo do índice; <code>hnsw</code> é o único disponível</td><td>obrigatório</td></tr>
+            <tr><td>função de distância</td><td><code>L2Distance</code>, <code>cosineDistance</code> ou <code>dotProduct</code>; precisa ser a mesma usada na consulta</td><td>obrigatório</td></tr>
+            <tr><td>dimensões</td><td>o tamanho do vetor; todas as linhas precisam ter exatamente esse tamanho</td><td>obrigatório</td></tr>
+            <tr><td>quantização</td><td>a precisão com que o índice guarda cada número</td><td><code>bf16</code></td></tr>
+            <tr><td>M</td><td>o número de vizinhos por nó do grafo</td><td>32</td></tr>
+            <tr><td>ef_construction</td><td>o tamanho da lista de candidatos durante a construção do grafo</td><td>128</td></tr>
+            <tr><td><code>hnsw_candidate_list_size_for_search</code></td><td>o tamanho da lista de candidatos durante a busca (o "ef" do simulador)</td><td>256</td></tr>
+            <tr><td><code>max_limit_for_vector_search_queries</code></td><td>o maior <code>LIMIT</code> aceito numa busca pelo índice</td><td>100</td></tr>
+          </tbody>
+        </table></div>
+        <p>O índice só é usado quando a consulta tem a forma que o otimizador reconhece: o vetor de referência declarado num <code>WITH</code>, a ordenação por <code>cosineDistance(vetor, ref)</code> e um <code>LIMIT</code>, como no exemplo da seção 5.2. Uma consulta com outra função de distância, sem <code>LIMIT</code> ou com a expressão escrita de outro modo cai na busca exata sem aviso. O comando <code>EXPLAIN indexes = 1</code>, aplicado à consulta, mostra se o índice foi usado, e deve fazer parte de qualquer medição.</p>
+        <p>O índice guarda os vetores quantizados, com menos precisão que a coluna. O rescoring é o passo em que, depois de o índice devolver os candidatos, o banco lê os vetores originais dessas linhas e recalcula a distância com precisão completa antes de ordenar. A configuração <code>vector_search_with_rescoring</code> controla esse passo, e o valor em vigor deve ser conferido na versão em uso, em <code>system.settings</code>.</p>
+        <p>O grafo é construído quando a parte é gravada, no <code>INSERT</code> e nas fusões. A documentação avisa que a construção é demorada e recomenda o índice para dados que mudam pouco. Os motivos de cancelamento têm esse perfil: entram aos poucos e não são editados.</p>
+        <h3>5.4 Filtro antes ou depois</h3>
+        <p>A pergunta da gestora é sobre uma região. A consulta passa a ter um <code>WHERE regiao = 'ap-sydney'</code>, e a ordem entre o filtro e a busca vetorial muda o resultado.</p>
+        <p>No pós-filtro, o índice devolve os N vizinhos mais próximos entre todos os vetores, e o filtro é aplicado em seguida. Se poucos desses vizinhos são da região, a consulta devolve menos de N linhas, embora existam mais motivos da região um pouco mais distantes. A configuração <code>vector_search_index_fetch_multiplier</code> faz o índice buscar mais candidatos antes do filtro, o que reduz o problema sem eliminá-lo.</p>
+        <p>No pré-filtro, o filtro é aplicado primeiro, e a busca acontece só entre as linhas que sobraram. A documentação descreve o pré-filtro como um problema sem solução geral: o grafo foi construído sobre todos os vetores, e o ClickHouse, como a maioria dos bancos relacionais, recorre à busca exata sobre as linhas filtradas. O resultado é completo, e o custo depende de quantas linhas passam pelo filtro. Para um filtro muito seletivo, a busca exata sobre poucas linhas é barata.</p>
+        <p>A configuração <code>vector_search_filter_strategy</code> aceita <code>auto</code> (o padrão, em que o banco decide por heurística), <code>prefilter</code> e <code>postfilter</code>. Colocar a região no início da chave de ordenação da tabela, como no <code>CREATE TABLE</code> da seção 5.2, ajuda o banco a restringir as linhas pelo índice primário antes da busca.</p>
+        <div class="note">
+          <strong>Exemplo numérico 3. Distância do cosseno à mão e o custo do índice, medido</strong>
+          <p>Uma conta ilustrativa, com vetores de 3 dimensões inventados para caber na página: a = (1, 2, 2), b = (2, 1, 2) e c = (2, &minus;2, 1). Os três têm norma 3, porque 1 + 4 + 4 = 9. O produto escalar de a e b é 2 + 2 + 4 = 8, o cosseno é 8 &divide; 9 = 0,889 e a distância é 0,111. O produto escalar de a e c é 2 &minus; 4 + 2 = 0, o cosseno é 0 e a distância é 1. O vetor b está próximo de a, e c é perpendicular a ele.</p>
+          <p>As medições abaixo são do professor, em 10/11/2026, com ClickHouse 26.8.15.10 em contêiner local num notebook Intel i5-1345U, sobre 100.000 vetores sintéticos de 384 dimensões em <code>Float32</code>. São ordem de grandeza de uma máquina, e não meta. O script <code>../simulador/medicoes_preparo.sh</code> repete as medições em qualquer máquina com Docker.</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Medida</th><th>Sem índice</th><th>Com índice HNSW (padrões: <code>bf16</code>, M = 32)</th></tr></thead>
+            <tbody>
+              <tr><td>Espaço em disco</td><td>147 MiB na coluna de vetores</td><td>mais 94 MiB de índice</td></tr>
+              <tr><td>Tempo do <code>INSERT</code> das 100.000 linhas</td><td>1,0 s</td><td>95 s</td></tr>
+              <tr><td>Busca dos 10 vizinhos</td><td>76 a 95 ms (exata)</td><td>78 ms na primeira consulta; 7 e 12 ms nas seguintes</td></tr>
+              <tr><td>Acerto em relação aos 10 vizinhos exatos</td><td>10 de 10, por definição</td><td>5, 2 e 5 de 10, em três consultas</td></tr>
+            </tbody>
+          </table></div>
+          <p>O tamanho da coluna confere com a conta: 384 números de 4 bytes são 1.536 bytes por vetor, e 100.000 vetores somam 153,6 MB, ou 146,5 MiB. Cada vetor ocupa cerca de cinco vezes o evento de cancelamento inteiro, que tem 301 bytes em média pela medição da Aula 06. O índice acrescenta 64% ao espaço da coluna (94 &divide; 147).</p>
+          <p>O <code>INSERT</code> com índice levou 95 vezes mais tempo, porque o grafo é construído na escrita. A primeira busca aproximada levou o mesmo tempo da exata, 78 ms, porque o índice ainda estava fora da memória. As seguintes levaram 7 e 12 ms, de 6 a 14 vezes menos que a exata.</p>
+          <p>O acerto de 5, 2 e 5 em 10 precisa de uma ressalva. Os vetores do teste eram aleatórios, sem estrutura, o que é o pior caso para um grafo de vizinhança: em 384 dimensões, pontos aleatórios ficam quase à mesma distância uns dos outros, e o grafo não tem vizinhanças definidas por onde caminhar. Embeddings de texto têm estrutura, textos sobre o mesmo assunto se agrupam, e o acerto costuma ser maior. Nenhum dos dois números pode ser presumido: o grupo precisa medir o acerto com os próprios motivos e o próprio modelo, como pede o <a href="#prompt-4">prompt 4</a>.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>A tabela de motivos tem 100.000 linhas, e a busca exata leva de 76 a 95 ms na máquina do professor. O assistente da rede faz uma busca por pergunta, e a gestora espera alguns segundos pela resposta do modelo. O índice é necessário nesse caso? A partir de que volume ou de que número de consultas por segundo a resposta mudaria? Se a região <code>ap-sydney</code> tem um décimo das academias, quantos dos 10 vizinhos devolvidos pelo índice se espera que sejam dela, com pós-filtro?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 3</strong>
+          <ul>
+            <li>O embedding representa o sentido do texto num vetor; a distância do cosseno compara direções, e a pergunta passa pelo mesmo modelo dos documentos.</li>
+            <li>A busca exata compara com todos os vetores e define o resultado correto; a aproximada percorre um grafo HNSW e é medida pelo acerto (recall@k).</li>
+            <li>O índice <code>vector_similarity</code> exige a consulta na forma <code>WITH ... ORDER BY cosineDistance(vetor, ref) LIMIT N</code>; <code>EXPLAIN indexes = 1</code> confirma o uso.</li>
+            <li>O grafo é construído na escrita: 95 s contra 1,0 s para inserir 100.000 vetores, e mais 94 MiB em disco.</li>
+            <li>Pós-filtro pode devolver menos de N linhas; pré-filtro devolve o conjunto completo e recorre à busca exata sobre o que passou no filtro.</li>
+            <li>Modelo e dimensão ficam na spec: trocar o modelo obriga a recalcular todos os vetores.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section class="content-block" id="s6">
+        <h2>6. Contexto para a IA</h2>
+        <p>Um modelo de linguagem responde com base no texto que recebe. O contexto é a parte desse texto que traz os fatos da Rede Tatame para junto da pergunta. Montar o contexto é um problema de engenharia de dados: decidir o que recuperar, de onde, em que quantidade e com que identificação de origem. A aula trata dessa montagem e não chama nenhum modelo.</p>
+        <h3>6.1 Recuperar por vetor e juntar os agregados</h3>
+        <p>A pergunta "por que os alunos de <code>ap-sydney</code> estão cancelando?" tem duas metades. A metade textual é atendida pela busca vetorial da <a href="#s5">seção 5</a>: a pergunta vira vetor, e a tabela de motivos devolve os k textos mais próximos, filtrados pela região. A metade numérica é atendida pelas views da <a href="#s4">seção 4</a>: cancelamentos por dia na região, check-ins no período, a comparação com as outras regiões.</p>
+        <p>As duas metades se corrigem. Dez motivos que falam de preço não dizem se o preço responde por 5% ou por 60% dos cancelamentos: os textos recuperados são os mais parecidos com a pergunta, e não uma amostra representativa. Os agregados dão a dimensão que falta. No sentido inverso, o total de cancelamentos do mês não explica nada sem os textos. Como os dois vêm do mesmo banco, a função de montagem faz duas consultas SQL ao ClickHouse e não precisa combinar sistemas com atrasos diferentes.</p>
+        <h3>6.2 Orçamento de tokens</h3>
+        <p>O modelo cobra e limita por token, a unidade em que ele divide o texto. Um contexto maior custa mais, demora mais e não melhora a resposta na mesma proporção: documentos pouco relacionados diluem os relevantes. A função de montagem trabalha com um limite declarado e distribui esse limite entre as partes: instruções, agregados e documentos. Quando os documentos recuperados não cabem, os mais distantes ficam de fora, e a função registra quantos foram cortados.</p>
+        <p>A contagem de tokens depende do tokenizador de cada modelo. Uma estimativa por número de caracteres serve para o orçamento de um protótipo, desde que esteja declarada como estimativa e seja trocada pela contagem do modelo escolhido quando o grupo decidir chamá-lo.</p>
+        <h3>6.3 Citar a origem</h3>
+        <p>Cada trecho do contexto leva a identificação de onde veio: o <code>event_id</code> do cancelamento e a distância para cada motivo; a view, o período e a marca de exato ou estimativa para cada número. Com isso, quem lê a resposta do modelo consegue abrir o evento original e conferir, e quem investiga uma resposta errada consegue separar erro de recuperação (o contexto trouxe os documentos errados) de erro do modelo (o contexto estava certo e a resposta não o seguiu). Um contexto sem fontes não permite essa separação.</p>
+        <h3>6.4 O que não mandar ao modelo e a LGPD</h3>
+        <p>O campo <code>aluno</code> é um código de 16 caracteres produzido por um hash com chave, como definido na estação 1 da Aula 06. Tecnicamente trata-se de pseudonimização: quem tem a chave e o cadastro refaz a associação, e a LGPD trata o dado pseudonimizado como dado pessoal para quem tem esses meios. O modelo não precisa do código do aluno para explicar motivos de cancelamento. A regra de montagem, portanto, é não incluí-lo. O <code>event_id</code> basta como referência.</p>
+        <p>O campo <code>motivo</code> é texto livre digitado pela recepção e pode conter nome, telefone ou uma condição de saúde ("lesão no joelho, médico pediu pausa" já é um dado de saúde, ainda que sem nome). Esse texto é justamente o que a busca recupera. Antes de entrar num contexto que pode ser enviado a um serviço externo, ele precisa de tratamento: limite de tamanho no contrato, remoção de padrões reconhecíveis (telefone, e-mail, documento) e uma decisão registrada sobre enviar ou não textos que mencionam saúde. A decisão sobre usar um modelo local ou um serviço externo também é do grupo e fica num ADR, porque muda quem recebe os dados.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Entra no contexto</th><th>Não entra</th></tr></thead>
+          <tbody>
+            <tr><td>a pergunta e a região consultada</td><td>o código do aluno</td></tr>
+            <tr><td>os k motivos recuperados, com <code>event_id</code>, data e distância</td><td>nome, telefone, e-mail ou documento que apareça no texto do motivo</td></tr>
+            <tr><td>os agregados das views, com período e a marca de exato ou estimativa</td><td>linhas brutas de eventos que a pergunta não pede</td></tr>
+            <tr><td>a consulta ou a view que gerou cada parte</td><td>credenciais, endereços de servidor e nomes internos de infraestrutura</td></tr>
+            <tr><td>o aviso de quantos documentos foram cortados pelo orçamento ou pelo filtro</td><td>conteúdo da quarentena</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">
+          <strong>Exemplo numérico 4. Um orçamento de tokens, por hipótese</strong>
+          <p>Todos os números deste exemplo são hipóteses para mostrar a conta, e nenhum foi medido. O grupo declara um limite de 1.500 tokens para o contexto. As instruções fixas ocupam 200 tokens e o bloco de agregados, 300. Sobram 1.000 tokens para os documentos. Se cada motivo, com a linha de fonte, ocupa 60 tokens, cabem 16 documentos (1.000 &divide; 60 = 16,7). Um pedido de k = 10 cabe com folga, e um pedido de k = 20 teria 4 documentos cortados.</p>
+          <p>A conta que não depende das hipóteses é a do pós-filtro. A região <code>ap-sydney</code> tem 24 das 240 academias, um décimo da rede. Se os cancelamentos se distribuírem na mesma proporção, de 10 vizinhos devolvidos pelo índice para a rede inteira, espera-se 1 da região. Com pós-filtro e k = 10, o contexto chegaria ao modelo com cerca de 1 documento, e com pré-filtro, com 10, desde que a região tenha pelo menos 10 motivos gravados. Um multiplicador de candidatos igual a 10 faria o índice buscar 100 candidatos e devolveria 10 em média, sem garantia para cada consulta.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>O contexto chegou ao modelo com 1 documento, por causa do pós-filtro, e o modelo respondeu com fluência que "o principal motivo de cancelamento na região é o preço". O que há de errado nessa resposta, e em que ponto da cadeia o erro nasceu? Que informação, incluída no contexto, permitiria ao modelo ou ao leitor perceber o problema? O motivo "mudou para Perth, falar com a Ana no 0400 000 000" deveria ser enviado a um serviço externo como está?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do contexto</strong>
+          <ul>
+            <li>O contexto junta textos recuperados por vetor e números das views; os textos são os mais parecidos com a pergunta, e os agregados dão a proporção.</li>
+            <li>O orçamento de tokens é declarado e dividido entre instruções, agregados e documentos; o que foi cortado é registrado.</li>
+            <li>Cada parte cita a origem: <code>event_id</code> e distância nos motivos; view, período e exatidão nos números.</li>
+            <li>O código do aluno não entra; o motivo é texto livre, pode conter dado pessoal e passa por tratamento antes de sair.</li>
+            <li>O filtro por região aplicado depois da busca pode entregar ao modelo um contexto quase vazio sem nenhum erro aparente.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section class="content-block" id="s7">
+        <h2>7. Contrato do evento com Pydantic v2</h2>
+        <p>A Aula 06 escreveu o contrato do evento num documento, <code>docs/contrato_evento.md</code>. Um documento descreve o que se espera, e nada impede que um produtor envie outra coisa. Nesta aula o contrato vira código executado na entrada do sink: cada evento lido do tópico é validado antes de ir para o ClickHouse.</p>
+        <h3>7.1 O contrato como modelo</h3>
+        <p>O Pydantic v2 descreve o contrato como uma classe. Cada atributo tem um tipo e, quando necessário, restrições de faixa e de formato. A validação converte o JSON recebido num objeto da classe ou levanta um erro com a lista de tudo o que está errado. O trecho abaixo é um resumo didático, com os mesmos campos que o simulador valida. O heartbeat ganha dois campos em relação ao evento da Aula 06: <code>dispositivo</code> e <code>latencia_ms</code>, o tempo de resposta do dispositivo em milissegundos. Os padrões de formato e as faixas são exemplos; o contrato completo do grupo parte do documento da Aula 06.</p>
+        <pre><code>from typing import Literal
+from uuid import UUID
+
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
+
+
+class Evento(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid", frozen=True)
+
+    event_id: UUID
+    tipo: Literal["app_aberto", "video_assistido", "reserva_aula", "checkin",
+                  "cobranca_aprovada", "cobranca_falhou", "aula_experimental",
+                  "matricula", "graduacao", "cancelamento", "heartbeat"]
+    ocorrido_em: AwareDatetime
+    regiao: Literal["sa-saopaulo", "us-virginia", "eu-estocolmo", "ap-sydney"]
+    academia: str = Field(pattern=r"^[A-Z]{2}-[A-Z]{3}-[0-9]{3}$")
+    aluno: str | None = Field(default=None, pattern=r"^[0-9a-f]{16}$")
+    turma: str | None = None
+    faixa: str | None = None
+    origem: Literal["app", "catraca", "gestao", "dispositivo"]
+    motivo: str | None = Field(default=None, max_length=280)
+    dispositivo: str | None = None
+    latencia_ms: int | None = Field(default=None, ge=0, le=60000)
+
+    @model_validator(mode="after")
+    def regras_entre_campos(self) -&gt; "Evento":
+        if self.tipo == "heartbeat":
+            if self.dispositivo is None or self.latencia_ms is None:
+                raise ValueError("heartbeat exige dispositivo e latencia_ms")
+        elif self.aluno is None:
+            raise ValueError(f"o evento {self.tipo} exige o campo aluno")
+        if self.tipo == "cancelamento" and not (self.motivo and self.motivo.strip()):
+            raise ValueError("cancelamento exige motivo preenchido")
+        return self
+
+
+evento = Evento.model_validate_json(mensagem_do_topico)</code></pre>
+        <p>Os tipos fazem a maior parte do trabalho. <code>Literal</code> restringe o campo a uma lista fechada de valores. <code>AwareDatetime</code> exige data com fuso horário, o que recusa um <code>ocorrido_em</code> sem o "Z". O padrão do campo <code>aluno</code> aceita apenas o código de 16 caracteres hexadecimais, de modo que um nome enviado nesse campo é recusado. O limite de 280 caracteres no <code>motivo</code> e a faixa de 0 a 60.000 em <code>latencia_ms</code> são hipóteses a validar com a rede.</p>
+        <h3>7.2 strict e lax</h3>
+        <p>O modo de conversão decide o que fazer quando o valor tem o tipo errado e poderia ser convertido. No modo lax, que é o padrão do Pydantic, o texto <code>"120"</code> num campo inteiro é convertido em 120 e o evento passa. No modo strict, o mesmo evento é recusado com um erro de tipo.</p>
+        <p>O modo lax mantém o fluxo andando quando um produtor serializa números como texto, e esconde o defeito: ninguém fica sabendo que o produtor está fora do contrato, e a conversão silenciosa pode aceitar valores que o produtor não pretendia enviar. O modo strict expõe o defeito no primeiro evento e manda para a quarentena dados que seriam aproveitáveis.</p>
+        <p>Um detalhe evita surpresa. A documentação do Pydantic informa que o modo strict é mais tolerante quando a entrada é JSON: como o JSON não tem um tipo para data, um texto em formato de data é aceito num campo de data mesmo em strict. Por isso o exemplo usa <code>model_validate_json</code> sobre a mensagem bruta, e não <code>model_validate</code> sobre um dicionário já decodificado, em que o mesmo texto seria recusado.</p>
+        <h3>7.3 extra forbid e ignore</h3>
+        <p>A configuração <code>extra</code> decide o que fazer com um campo que o contrato não conhece. Com <code>forbid</code>, o evento inteiro é recusado. Com <code>ignore</code>, o campo é descartado e o evento passa.</p>
+        <p>A escolha tem uma leitura de evolução e uma de privacidade. Pela evolução, <code>ignore</code> permite que o produtor acrescente um campo sem quebrar o consumidor, que é a forma usual de um contrato crescer. Pela privacidade, <code>forbid</code> faz barulho quando um produtor começa a enviar o campo <code>nome</code>: o evento vai para a quarentena, e alguém percebe. Com <code>ignore</code>, o nome é descartado antes do ClickHouse, o que protege o destino, mas o dado continua trafegando no tópico e ficando retido por sete dias no Kafka e sem prazo no bucket da camada bruta, e ninguém é avisado.</p>
+        <p>No simulador, o campo desconhecido é <code>versao_fw</code>, enviado por um firmware novo da catraca. É um campo inofensivo, e <code>forbid</code> o recusa do mesmo modo que recusaria um nome: a configuração não distingue o campo útil do campo proibido, só o conhecido do desconhecido.</p>
+        <p>Não há uma configuração correta para todos os produtores. Um produtor que a rede controla, como o software da catraca, pode ser corrigido no mesmo dia, e o contrato rígido encurta o tempo até a correção. Um produtor de terceiros, como um gateway de pagamento, muda sem avisar e não será corrigido a pedido. A <a href="#missao-1">missão 1</a> pede essa decisão ao grupo.</p>
+        <h3>7.4 Validadores</h3>
+        <p>Regras que envolvem um só campo e não cabem num tipo são escritas com <code>field_validator</code>. Regras entre campos, como "cancelamento exige motivo", "heartbeat exige dispositivo e latência" e "a academia pertence à região informada", são escritas com <code>model_validator</code>, que roda depois de todos os campos terem sido validados. Uma regra que depende do relógio, como recusar um <code>ocorrido_em</code> no futuro quando o relógio do dispositivo está adiantado, recebe o instante atual como parâmetro, para que o teste consiga fixá-lo, e a tolerância aceita é uma hipótese declarada. Convém manter os validadores como funções puras, sem consulta a banco ou a rede. Saber se a academia existe no cadastro é uma verificação de outra natureza, com outra latência e outro modo de falha, e fica fora do contrato.</p>
+        <h3>7.5 Quarentena com a lista de erros</h3>
+        <p>Quando a validação falha, o Pydantic levanta <code>ValidationError</code>, e o método <code>errors()</code> devolve uma lista com um item por problema. Cada item traz o tipo do erro, o caminho do campo, a mensagem e o valor recebido.</p>
+        <pre><code>[
+  {"type": "int_type", "loc": ["latencia_ms"],
+   "msg": "Input should be a valid integer", "input": "120"},
+  {"type": "extra_forbidden", "loc": ["versao_fw"],
+   "msg": "Extra inputs are not permitted", "input": "2.4.1"}
+]</code></pre>
+        <p>A validação relata todos os erros de uma vez, e não só o primeiro. O sink grava o evento recusado numa tabela de quarentena, com a mensagem original, essa lista, o instante e a posição no Kafka (partição e offset), e segue para o próximo evento. A quarentena tem três usos: contar erros por tipo e por produtor, o que mostra qual produtor saiu do contrato e quando; permitir o reprocessamento depois de uma correção; e servir de evidência na conversa com o dono do produtor.</p>
+        <p>Dois cuidados acompanham a quarentena. Ela guarda exatamente os eventos que violaram o contrato, inclusive os que trouxeram um campo proibido, e por isso pode conter dado pessoal: precisa de retenção curta e acesso restrito, e não alimenta views nem contexto. E um evento em quarentena é um evento que não chegou ao destino. Uma taxa de quarentena que sobe de repente indica que o contrato e o produtor divergiram, e merece alerta.</p>
+        <div class="note">
+          <strong>Exemplo numérico 5. O custo de validar cada evento</strong>
+          <p>Em 16/10/2026 o professor mediu o <code>model_validate_json</code> do Pydantic 2.13.5 sobre a leitura de sensor do laboratório opcional, uma mensagem de tamanho parecido com o do evento da Rede Tatame. A validação levou de 15 a 19 microssegundos por mensagem.</p>
+          <p>Na taxa média de 20,2 eventos por segundo, a validação consome 20,2 &times; 19 &micro;s = 0,38 milissegundo de processador a cada segundo. Para os 1.742.400 eventos de um dia da hipótese, o total fica entre 26 e 33 segundos de processador (1.742.400 &times; 15 &micro;s e 1.742.400 &times; 19 &micro;s).</p>
+          <p>O tempo foi medido com outro modelo, mais simples que o da seção 7.1, e numa só máquina. O grupo mede o próprio contrato. Mesmo que o custo real seja dez vezes maior, ele continua pequeno diante de um dia de eventos, e o argumento de que validar atrasa o pipeline não se sustenta nesse volume.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>Um firmware novo da catraca passa a enviar <code>"latencia_ms": "120"</code>. Com lax, o heartbeat entra e o painel de dispositivos continua correto. Com strict, todos os heartbeats das catracas atualizadas vão para a quarentena, e a regra <code>academia_silenciosa</code> da Aula 06, se lesse da mesma tabela, dispararia para academias que estão funcionando. Qual dos dois comportamentos o grupo prefere descobrir numa sexta-feira à noite? A resposta muda se o campo com tipo errado for o valor de uma cobrança?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do contrato</strong>
+          <ul>
+            <li>O contrato em Pydantic é executado na entrada do sink; o evento que não passa não chega ao ClickHouse.</li>
+            <li>lax converte e segue; strict recusa e expõe o defeito do produtor. Em JSON, strict ainda aceita texto em campo de data.</li>
+            <li><code>extra="forbid"</code> avisa quando aparece um campo novo, inclusive um proibido; <code>ignore</code> permite evolução e silencia o aviso.</li>
+            <li>A quarentena guarda a mensagem, a lista de erros e a posição no Kafka, tem retenção curta e acesso restrito.</li>
+            <li>A validação medida custou de 15 a 19 microssegundos por mensagem, cerca de meio minuto de processador por dia de eventos.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section class="content-block" id="s8">
+        <h2>8. Testes integrados</h2>
+        <p>As seções anteriores descrevem comportamentos que pertencem ao banco: a linha repetida some na fusão, a view conta o bloco como chega, o índice só é usado com a consulta numa forma específica. Um teste que não envolve o banco não consegue verificar nenhum deles.</p>
+        <h3>8.1 A pirâmide</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Camada</th><th>O que executa</th><th>O que verifica nesta aula</th><th>Custo</th></tr></thead>
+          <tbody>
+            <tr><td>Unidade</td><td>uma função, dentro do processo, sem rede nem disco</td><td>o contrato (casos válidos e inválidos), o token de deduplicação, a função que decide o fechamento do lote, a montagem do contexto e o corte por tokens</td><td>milissegundos; roda a cada alteração</td></tr>
+            <tr><td>Integração</td><td>o código do grupo contra um serviço real, descartável</td><td>a DDL, a deduplicação com <code>FINAL</code>, a view materializada, a busca vetorial e o uso do índice</td><td>segundos; exige Docker</td></tr>
+            <tr><td>Ponta a ponta</td><td>o pipeline inteiro, do tópico ao contexto</td><td>que as peças conversam: um evento publicado aparece no agregado e no contexto</td><td>o mais lento e o mais frágil; poucos casos</td></tr>
+          </tbody>
+        </table></div>
+        <p>A forma de pirâmide vem do custo. Muitos testes de unidade, porque são baratos e apontam a função com defeito. Menos testes de integração, porque cada um precisa de um serviço no ar. Poucos testes de ponta a ponta, porque demoram e, quando falham, não dizem onde. A pirâmide orienta a quantidade de testes por camada e não dispensa nenhuma delas.</p>
+        <h3>8.2 O que o dublê em memória não pega</h3>
+        <p>Um dublê é um objeto que ocupa o lugar do banco no teste: uma classe com um método de inserir que guarda as linhas numa lista e um método de consultar que as devolve. Ele é rápido e não precisa de Docker. O limite dele é que só reproduz o comportamento que quem o escreveu imaginou.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Defeito</th><th>Dublê em memória</th><th>ClickHouse real</th></tr></thead>
+          <tbody>
+            <tr><td>Erro de sintaxe ou de tipo na DDL</td><td>não executa DDL</td><td>o <code>CREATE TABLE</code> falha no teste</td></tr>
+            <tr><td>Consulta do painel sem <code>FINAL</code> sobre a tabela de eventos</td><td>a lista não tem partes nem fusões; a duplicata não existe ou some conforme o dublê foi escrito</td><td><code>count()</code> devolve 2 onde o teste espera 1</td></tr>
+            <tr><td>View que conta a linha repetida</td><td>não há gatilho por bloco</td><td>o minuto mostra um check-in a mais</td></tr>
+            <tr><td>View criada depois da carga</td><td>a ordem de criação não tem efeito</td><td>a tabela de destino fica vazia</td></tr>
+            <tr><td>Consulta vetorial fora da forma que o índice reconhece</td><td>a busca é sempre exata</td><td><code>EXPLAIN indexes = 1</code> mostra que o índice não foi usado</td></tr>
+            <tr><td>Vetor com dimensão errada</td><td>a lista aceita qualquer tamanho</td><td>o <code>INSERT</code> é recusado</td></tr>
+            <tr><td><code>ocorrido_em</code> gravado sem fuso ou com precisão truncada</td><td>o objeto Python volta idêntico</td><td>o valor lido difere do valor gravado</td></tr>
+          </tbody>
+        </table></div>
+        <p>O dublê continua útil para testar a lógica que fica em volta do banco: o que o sink faz quando o <code>INSERT</code> falha, em que ordem ele confirma o offset. Para o comportamento do próprio banco, a única fonte confiável é o banco.</p>
+        <h3>8.3 Testcontainers com ClickHouse real</h3>
+        <p>A biblioteca Testcontainers sobe um contêiner Docker a partir do código do teste, espera o serviço responder, entrega o endereço de conexão e remove o contêiner no fim. O teste não depende de um banco compartilhado, não deixa lixo e roda igual no Codespace e na integração contínua. O módulo para ClickHouse é importado de <code>testcontainers.clickhouse</code>.</p>
+        <pre><code>import pytest
+
+IMAGEM = "clickhouse/clickhouse-server:&lt;tag fixada na spec&gt;"
+
+
+def docker_disponivel() -&gt; bool:
+    try:
+        import docker
+        docker.from_env().ping()
+        return True
+    except Exception:
+        return False
+
+
+pytestmark = [
+    pytest.mark.integracao,
+    pytest.mark.skipif(not docker_disponivel(),
+                       reason="Docker indisponível neste ambiente"),
+]
+
+
+@pytest.fixture(scope="session")
+def clickhouse():
+    from testcontainers.clickhouse import ClickHouseContainer
+
+    with ClickHouseContainer(IMAGEM) as conteiner:
+        cliente = conectar(conteiner)      # função do grupo
+        aplicar_ddl(cliente)               # os mesmos arquivos de sql/
+        yield cliente
+
+
+def test_final_devolve_uma_linha_por_evento(clickhouse):
+    inserir(clickhouse, [EVENTO, EVENTO])  # o mesmo event_id duas vezes
+    assert contar(clickhouse, final=False) == 2
+    assert contar(clickhouse, final=True) == 1</code></pre>
+        <p>A imagem do teste é a mesma do <code>docker-compose.yml</code>, com a tag fixada na spec. Testar com uma versão e rodar com outra anula a razão de usar o serviço real, porque padrões como os de deduplicação mudam entre versões (<a href="#s3">seção 3.5</a>). A DDL aplicada no teste é lida dos mesmos arquivos usados na implantação, e não de uma cópia dentro do teste.</p>
+        <h3>8.4 Fixture por sessão</h3>
+        <p>Com <code>scope="session"</code>, o contêiner sobe uma vez e é compartilhado por todos os testes de integração da execução. O preço é o isolamento: os testes passam a dividir o mesmo banco. Cada teste precisa cuidar do próprio estado, usando um nome de tabela ou um banco próprio, ou limpando as tabelas antes de começar. Um teste que depende de dados deixados por outro passa quando a suíte roda inteira e falha quando roda sozinho.</p>
+        <h3>8.5 Pular com motivo quando o Docker não responde</h3>
+        <p>Nem todo ambiente tem Docker: um notebook corporativo, um Codespace com o daemon parado. Sem tratamento, o teste de integração falha com um erro de conexão longo, que parece defeito do código. O padrão adotado é verificar o daemon antes (o comando <code>docker</code> pode existir com o daemon parado) e pular os testes com um motivo legível, como no exemplo acima.</p>
+        <p>Pular tem um risco próprio: uma suíte em que todos os testes de integração foram pulados termina verde. Por isso o marcador <code>integracao</code> separa as camadas, o relatório do pytest (<code>-rs</code>) lista o que foi pulado e por quê, e a integração contínua, onde o Docker existe, roda a suíte completa e trata teste pulado como falha.</p>
+        <div class="note">
+          <strong>Exemplo numérico 6. O contêiner sobe uma vez ou doze</strong>
+          <p>Em 03/10/2026 o professor mediu o tempo para um contêiner de ClickHouse 26.8.15.10, via Testcontainers, subir e aplicar a DDL: 5,9 segundos, com a imagem já baixada. O primeiro uso numa máquina inclui o download da imagem e leva mais.</p>
+          <p>Suponha, como hipótese, uma suíte com 12 testes de integração. Com a fixture por função, o contêiner sobe 12 vezes: 12 &times; 5,9 = 70,8 segundos só de preparação. Com a fixture por sessão, sobe uma vez: 5,9 segundos. A diferença de 64,9 segundos decide se o grupo roda a integração antes de cada commit ou a deixa para depois.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>A suíte do grupo tem 40 testes de unidade, todos verdes, e nenhum de integração. A consulta do painel lê a tabela de eventos sem <code>FINAL</code>. Algum dos 40 testes poderia ter detectado o defeito? Que teste, com que dados, o detectaria? E se esse teste for pulado por falta de Docker na máquina de quem faz o commit, onde ele precisa rodar para valer?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave dos testes</strong>
+          <ul>
+            <li>Unidade para a lógica do grupo, integração para o comportamento do banco, ponta a ponta para a conversa entre as peças.</li>
+            <li>O dublê em memória só reproduz o que foi previsto; partes, fusões, gatilho da view e uso do índice só existem no ClickHouse.</li>
+            <li>Testcontainers sobe a mesma imagem fixada na spec e aplica a mesma DDL da implantação.</li>
+            <li>A fixture por sessão sobe o contêiner uma vez (5,9 s medidos) e exige que cada teste cuide do próprio estado.</li>
+            <li>Sem Docker, o teste é pulado com motivo; na integração contínua, teste pulado conta como falha.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section class="content-block" id="s9">
+        <h2>9. O simulador da aula e as seis estações</h2>
+        <p>O <a href="../simulador/simulador_aula_07.html">simulador da aula</a> é uma página HTML que roda inteira no navegador, sem servidor, conta ou instalação. Cada aluno abre a página no próprio navegador e acompanha o professor, que projeta a mesma tela. O estado da simulação fica no <code>localStorage</code>: recarregar a página não perde o que foi feito, e o botão "Reiniciar" apaga tudo. Como o estado é local, os números de dois colegas não precisam coincidir.</p>
+        <h3>9.1 A barra superior e as abas</h3>
+        <ol class="steps">
+          <li>Abra o <a href="../simulador/simulador_aula_07.html">simulador</a>. A barra superior mostra o relógio simulado.</li>
+          <li>Escolha a "Velocidade": 1 s = 1 min, 1 s = 10 min ou 1 s = 1 h.</li>
+          <li>Clique em "Iniciar". O relógio avança e os eventos da rede começam a chegar. Pause quando for ler um número com calma.</li>
+          <li>Percorra as abas na ordem das estações. Cada aba é uma âncora, e o endereço com a âncora pode ser compartilhado com o grupo.</li>
+          <li>Se a simulação sair do controle, clique em "Reiniciar". As missões recomeçam do zero.</li>
+        </ol>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Aba</th><th>Âncora</th><th>O que mostra</th><th>Estação</th></tr></thead>
+          <tbody>
+            <tr><td>Visão geral</td><td><code>#rede</code></td><td>o painel "Fluxo", com as contagens desde o início da simulação, os eventos por minuto por região e o que fica guardado no navegador</td><td>abertura</td></tr>
+            <tr><td>Contrato</td><td><code>#contrato</code></td><td>"Configuração do contrato" (os seletores "Conversão de tipos" e "Campo desconhecido"), "Validar um evento" com o seletor "Defeito", "Resultado da validação", "Quarentena por tipo de erro" e "Últimos eventos em quarentena"</td><td>1</td></tr>
+            <tr><td>Ingestão</td><td><code>#ingestao</code></td><td>"Configuração do sink" ("Linhas por INSERT", "async_insert no servidor", "token de deduplicação por lote" e o botão "Reenviar último lote"), "Partes ativas da partição 2026-11" e "Contagem com e sem FINAL"</td><td>2</td></tr>
+            <tr><td>Views</td><td><code>#views</code></td><td>"Check-ins por minuto, lidos da view", a opção "contar event_id distintos (uniqState)" e o botão "Consultar check-ins dos últimos 60 minutos", que compara a tabela bruta e a view</td><td>3</td></tr>
+            <tr><td>Busca vetorial</td><td><code>#vetores</code></td><td>"Carregar histórico de motivos", "Texto da consulta", "Resultados (k)", "Candidatos na busca aproximada (ef)", "Região", "Filtro de região" e as listas "Por palavras" e "Por vetor"</td><td>4</td></tr>
+            <tr><td>Contexto para IA</td><td><code>#contexto</code></td><td>"Pergunta pronta", "Pergunta", "Região", "Documentos (k)", "Filtro de região", o botão "Montar contexto" e o painel "Contexto montado"</td><td>5</td></tr>
+            <tr><td>Testes</td><td><code>#testes</code></td><td>"Defeitos no pipeline" e "Suíte", com as camadas unidade, integração e ponta a ponta, o seletor "ClickHouse na integração" e o botão "Executar suíte"</td><td>6</td></tr>
+            <tr><td>Missões</td><td><code>#missoes</code></td><td>as seis missões, o campo do grupo e os botões "Exportar evidência", "Copiar" e "Baixar .md"</td><td>fechamento</td></tr>
+          </tbody>
+        </table></div>
+        <h3>9.2 Como cada estação é conduzida</h3>
+        <p>Cada estação tem três partes. O professor retoma o conceito, com a seção correspondente deste material. Em seguida lê e comenta o prompt CREATE que construiria aquela peça de verdade: o que ele pede, o que proíbe e como o resultado seria conferido. O prompt não é executado em sala. Por fim, a turma faz a missão da estação no simulador e registra a resposta do grupo. Cada aba do simulador tem um link para o prompt correspondente neste material.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Estação</th><th>Conceito</th><th>Prompt</th><th>Missão</th><th>O que observar</th></tr></thead>
+          <tbody>
+            <tr><td>1. Contrato</td><td><a href="#s7">seção 7</a></td><td><a href="#prompt-1">1</a></td><td><a href="#missao-1">1</a></td><td>quais eventos com defeito deixam de ir para a quarentena quando a configuração afrouxa</td></tr>
+            <tr><td>2. Ingestão</td><td><a href="#s3">seção 3</a></td><td><a href="#prompt-2">2</a></td><td><a href="#missao-2">2</a></td><td>o número de partes ativas conforme o lote, e a diferença entre <code>count()</code> e <code>FINAL</code></td></tr>
+            <tr><td>3. Views</td><td><a href="#s4">seção 4</a></td><td><a href="#prompt-3">3</a></td><td><a href="#missao-3">3</a></td><td>as linhas lidas em cada caminho e a diferença causada pelas duplicatas</td></tr>
+            <tr><td>4. Busca vetorial</td><td><a href="#s5">seção 5</a></td><td><a href="#prompt-4">4</a></td><td><a href="#missao-4">4</a></td><td>a lista por palavras contra a lista por vetor; o acerto e as comparações conforme o ef</td></tr>
+            <tr><td>5. Contexto para IA</td><td><a href="#s6">seção 6</a></td><td><a href="#prompt-5">5</a></td><td><a href="#missao-5">5</a></td><td>quantos documentos chegam ao contexto com pós-filtro e com pré-filtro</td></tr>
+            <tr><td>6. Testes integrados</td><td><a href="#s8">seção 8</a></td><td><a href="#prompt-6">6</a></td><td><a href="#missao-6">6</a></td><td>quais defeitos escapam em cada configuração da suíte e quanto tempo ela leva</td></tr>
+          </tbody>
+        </table></div>
+        <p>O sink do simulador fecha o lote pelo tamanho escolhido em "Linhas por INSERT" ou depois de 5 minutos simulados, o que vier primeiro. De cada 100 eventos, 1 chega repetido, para que a duplicata da entrega pelo menos uma vez apareça sem precisar de uma falha, e 2 chegam com um dos defeitos do seletor "Defeito", para que a quarentena tenha o que mostrar. Esses parâmetros são do simulador e não descrevem um sistema real.</p>
+      </section>
+
+      <!-- 10 -->
+      <section class="content-block" id="s10">
+        <h2>10. Os seis prompts CREATE</h2>
+        <p>Os seis prompts constroem, juntos, a versão real do que o simulador mostra. Eles são lidos em sala e executados pelo grupo durante a semana, no Codespace ou na máquina do aluno, com Docker e o agente de código de preferência de cada um (por exemplo Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot). Nenhum prompt depende de um agente ou de um provedor de modelo específico.</p>
+        <h3>10.1 Antes do primeiro prompt: a spec</h3>
+        <p>O método é o Spec-Driven Development da Aula 01: a spec vem antes do código, cada etapa tem um prompt, e o grupo revisa o resultado antes de seguir. A pasta de trabalho é <code>aula_07_clickhouse_ia/</code> no repositório do grupo. Antes do prompt 1, o grupo escreve <code>docs/spec.md</code> com as decisões que os prompts consultam.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Decisão registrada na spec</th><th>Opções</th></tr></thead>
+          <tbody>
+            <tr><td>Fonte de eventos</td><td>um gerador próprio que publica num tópico Kafka ou que grava um arquivo JSONL, à escolha do grupo. Quem executou os prompts da Aula 06 reaproveita o tópico <code>tatame.eventos</code>.</td></tr>
+            <tr><td>ClickHouse</td><td>local, por docker compose, com a imagem <code>clickhouse/clickhouse-server</code> e a tag fixada na spec; ou o ClickHouse da turma, versão 25.8.33.6, em <code>https://clickhouse.afonsolelis.tech</code>, banco <code>mackenzie</code>, com o prefixo <code>gNN_</code> do grupo em todas as tabelas e views.</td></tr>
+            <tr><td>Modelo de embeddings e dimensão</td><td>padrão sugerido: <code>paraphrase-multilingual-MiniLM-L12-v2</code>, da biblioteca sentence-transformers, 384 dimensões, local e sem chave. Quem preferir API declara o modelo, a dimensão e o nome da variável de ambiente da chave.</td></tr>
+            <tr><td>Limite de tokens do contexto</td><td>um número declarado pelo grupo, com a forma de contagem (estimativa por caracteres ou tokenizador do modelo).</td></tr>
+            <tr><td>Chamada ao modelo</td><td>opcional. Se o grupo decidir chamar um modelo, registra num ADR qual, onde ele roda e o que é enviado.</td></tr>
+          </tbody>
+        </table></div>
+        <p>As credenciais do ClickHouse da turma estão na página <a href="../../aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse/conexao/conexao_dados_aula_05.html">Conexão dados da Aula 05</a>. Elas são copiadas dali para o <code>.env</code> do grupo e não entram em nenhum arquivo versionado. Os exemplos deste material usam o banco <code>tatame</code>; no ClickHouse da turma, <code>tatame.eventos</code> passa a ser <code>mackenzie.gNN_eventos</code>, e assim por diante.</p>
+        <pre><code>aula_07_clickhouse_ia/
+├── AGENTS.md
+├── evidencia_simulador.md        (entregue em sala, seção 13)
+├── docs/
+│   ├── spec.md
+│   ├── contrato_evento.md
+│   └── adr/ADR-001-*.md
+├── sql/                          (DDL numerada: prompts 2, 3 e 4)
+├── src/
+│   ├── contrato/                 (prompt 1)
+│   ├── sink/                     (prompt 2)
+│   ├── vetores/                  (prompt 4)
+│   └── contexto/                 (prompt 5)
+├── tests/
+│   ├── unidade/
+│   └── integracao/               (prompt 6)
+├── docker-compose.yml  requirements.txt  pytest.ini  .env.example  .gitignore</code></pre>
+        <p>O <code>AGENTS.md</code> da pasta carrega as regras de método da disciplina: a tag de cada imagem é fixada e registrada num ADR; nenhum segredo vai para arquivo versionado; todo número que não foi medido aparece como "hipótese, validação pendente"; o agente mostra o plano antes de editar, para ao fim da etapa e termina com gates que o grupo confere com um comando. Depois de cada prompt há um quadro "Revise antes de seguir", com o que o grupo lê e confere antes de colar o próximo.</p>
+
+        <h3 id="prompt-1">10.2 Prompt CREATE 1: contrato do evento em Pydantic v2 e quarentena com motivo</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados que trata o contrato do evento como código executável. Você escreve modelos Pydantic v2 enxutos, testa cada regra com um caso válido e um inválido, escreve em português e separa o que foi informado do que está sendo suposto.
+
+[R] Pedido
+Na pasta aula_07_clickhouse_ia/, crie o módulo src/contrato/ com (1) o modelo Pydantic v2 do evento da Rede Tatame, uma rede fictícia de academias de jiu-jítsu, e (2) a função validar_mensagem(bytes), que devolve o evento validado ou um registro de quarentena com a lista de erros. Nesta etapa não há ClickHouse nem Kafka: só o contrato, a função e os testes de unidade.
+Contexto fornecido pelo professor: regiões sa-saopaulo, us-virginia, eu-estocolmo e ap-sydney. Tipos de evento: app_aberto, video_assistido, reserva_aula, checkin, cobranca_aprovada, cobranca_falhou, aula_experimental, matricula, graduacao, cancelamento (com o campo de texto livre motivo) e heartbeat (de dispositivo, sem aluno, com os campos dispositivo e latencia_ms). Origens: app, catraca, gestao, dispositivo.
+
+[E] Exemplos
+Evento válido:
+{"event_id":"7f3b1c9e-52a4-4d0e-9c1b-6a2f8e4d7b10","tipo":"checkin","ocorrido_em":"2026-11-14T11:02:07.412Z","regiao":"eu-estocolmo","academia":"SE-STO-014","aluno":"a8f3c1d9e2b47f60","turma":"adulto-fundamentos","faixa":"branca","origem":"catraca"}
+Registro de quarentena esperado para um evento com um número enviado como texto e um campo desconhecido:
+{"recebido_em":"&lt;UTC&gt;","mensagem":"&lt;texto original&gt;","erros":[{"type":"int_type","loc":["latencia_ms"],"msg":"Input should be a valid integer"},{"type":"extra_forbidden","loc":["versao_fw"],"msg":"Extra inputs are not permitted"}]}
+
+[A] Ajustes
+- Leia docs/spec.md e, se existir, o docs/contrato_evento.md da Aula 06; o modelo segue o documento. Onde o documento for omisso, pergunte antes de inventar campo ou regra.
+- Valide a mensagem bruta com model_validate_json, e não um dicionário já decodificado.
+- Configuração padrão: strict=True e extra="forbid". As duas opções ficam parametrizáveis por variável de ambiente (CONTRATO_MODO=strict|lax e CONTRATO_EXTRA=forbid|ignore), e a escolha do grupo é registrada num ADR com a justificativa por tipo de produtor.
+- ocorrido_em exige fuso horário. aluno aceita apenas 16 caracteres hexadecimais. Regras entre campos em model_validator: cancelamento exige motivo preenchido; todo tipo diferente de heartbeat exige aluno; heartbeat exige dispositivo e latencia_ms; a academia pertence à região informada. ocorrido_em além de uma tolerância no futuro é recusado; a função recebe o instante atual por parâmetro, e a tolerância é hipótese.
+- Limites de tamanho e faixas sem fonte ficam marcados como "hipótese, validação pendente" no código e na spec.
+- O registro de quarentena guarda a mensagem original, a lista de erros de ValidationError.errors() (type, loc e msg) e o instante. Não guarde o campo input dos erros em log: ele pode conter dado pessoal.
+- Validadores são funções puras, sem rede nem banco.
+- Testes de unidade com pytest: para cada regra, um caso que passa e um que falha, verificando o type e o loc do erro; um teste por combinação de strict/lax e forbid/ignore para o mesmo evento com defeito; um teste que garante que todos os erros de um evento aparecem na lista, e não só o primeiro.
+- Meça o tempo de validar 100.000 mensagens e registre o resultado com data e máquina. Não reutilize tempos de outras fontes.
+
+[T] Tipo de saída
+src/contrato/modelo.py, src/contrato/validacao.py, tests/unidade/test_contrato.py, o ADR da configuração e um trecho de README com o comando de execução. Mostre o plano de arquivos antes de gravar.
+
+[E] Extras
+Leia AGENTS.md antes de começar. Gates ao final: (1) python -m pytest -q tests/unidade passa; (2) o evento de exemplo é aceito; (3) o evento com número como texto é recusado em strict e aceito em lax; (4) o evento com campo desconhecido é recusado em forbid e aceito em ignore, sem o campo no objeto resultante; (5) nenhum teste abre conexão de rede. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li>Compare o modelo gerado com o contrato escrito: há campo no modelo que o documento não cita, ou regra do documento sem validação?</li>
+            <li>Leia o ADR da configuração. A justificativa distingue o produtor que a rede controla do produtor de terceiros?</li>
+            <li>Abra um registro de quarentena gerado pelos testes. Ele permite entender o defeito sem abrir o código?</li>
+            <li>Confira que o tempo de validação registrado tem data e máquina, e que foi medido pelo grupo.</li>
+          </ul>
+        </div>
+
+        <h3 id="prompt-2">10.3 Prompt CREATE 2: sink para o ClickHouse em lotes</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados com experiência em ingestão contínua no ClickHouse. Você forma lotes no cliente, trata toda entrega como pelo menos uma vez e só confirma a leitura depois de o banco confirmar a gravação.
+
+[R] Pedido
+Na pasta aula_07_clickhouse_ia/, crie (1) sql/001_eventos.sql com a tabela de eventos e a tabela de quarentena e (2) o módulo src/sink/, que lê os eventos da fonte declarada em docs/spec.md (tópico Kafka ou arquivo JSONL), valida cada um com src/contrato/ e grava em lotes no ClickHouse. Evento recusado vai para a tabela de quarentena. Entregue também um comando que mostra as partes ativas da tabela de eventos.
+
+[E] Exemplos
+Tabela de eventos: motor ReplacingMergeTree, PARTITION BY toYYYYMM(ocorrido_em), ORDER BY (academia, ocorrido_em, event_id).
+Token de deduplicação de um lote lido do Kafka: "tatame.eventos:p4:1287-2286" (tópico, partição, primeiro e último offset). Para arquivo JSONL: nome do arquivo e intervalo de linhas.
+Saída esperada do comando de partes: uma linha por partição com o número de partes ativas e o total de linhas, a partir de system.parts.
+
+[A] Ajustes
+- Use o ClickHouse declarado na spec. Se for local, adicione o serviço ao docker-compose.yml com a imagem clickhouse/clickhouse-server e a tag fixada, registrada num ADR; não cite número de versão de memória. Se for o da turma, use o banco mackenzie e o prefixo gNN_ do grupo em todas as tabelas.
+- O lote fecha por tamanho (LOTE_LINHAS) ou por tempo (LOTE_SEGUNDOS), o que vier primeiro. Os valores padrão são hipóteses: marque como "hipótese, validação pendente" e registre no ADR o compromisso entre latência e número de partes.
+- Cada INSERT leva insert_deduplication_token determinístico, derivado da posição do lote na fonte. Consulte a documentação da versão fixada para saber se a tabela precisa de non_replicated_deduplication_window para que o token tenha efeito, configure o que for preciso e registre o que encontrou.
+- A posição na fonte (offset do Kafka ou linha do arquivo) só é confirmada depois de o INSERT responder com sucesso. Se o grupo optar por async_insert, use wait_for_async_insert=1 e justifique no ADR.
+- A função que decide o fechamento do lote e a função que monta o token são puras e têm testes de unidade.
+- A tabela de quarentena guarda a mensagem original, os erros, o instante e a posição na fonte. Defina um TTL para ela e marque o prazo como hipótese.
+- Entregue uma consulta de conferência: count() e count() com FINAL na tabela de eventos, lado a lado.
+- Credenciais só em .env; forneça .env.example sem valores. Portas publicadas apenas em localhost.
+- Não crie views materializadas nem tabela de vetores nesta etapa.
+
+[T] Tipo de saída
+sql/001_eventos.sql, src/sink/ com módulos separados para leitura da fonte, formação do lote e gravação, o comando de partes ativas, a consulta de conferência, testes de unidade e o ADR. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md e docs/spec.md. Gates ao final: (1) python -m pytest -q tests/unidade passa; (2) depois de carregar 10.000 eventos, count() com FINAL é igual ao número de event_id distintos da fonte; (3) reenviar o último lote com o mesmo token não altera count(); (4) reenviar o mesmo lote com outro token aumenta count() e não altera count() com FINAL; (5) com LOTE_LINHAS=1, o comando de partes mostra o número de partes crescendo, e com o valor padrão, estável; (6) um evento inválido aparece na quarentena com a lista de erros, e os eventos válidos do mesmo lote são gravados. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li>Leia o código que confirma a posição na fonte. Existe algum caminho em que a confirmação acontece antes da resposta do <code>INSERT</code>?</li>
+            <li>Derrube o sink no meio de uma carga e suba de novo. O gate 2 continua valendo?</li>
+            <li>Confira o ADR do token: ele diz o que a versão fixada exige para deduplicar blocos, com a fonte consultada?</li>
+            <li>Os gates 3 e 4 mostram os dois mecanismos da <a href="#s3">seção 3.5</a>. O grupo consegue explicar por que o gate 4 aumenta <code>count()</code>?</li>
+          </ul>
+        </div>
+
+        <h3 id="prompt-3">10.4 Prompt CREATE 3: views materializadas com conferência contra a tabela bruta</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados que desenha agregações incrementais no ClickHouse. Você escreve a tabela de destino antes da view, guarda estados de agregação e nunca entrega um agregado sem uma consulta que o confira contra o dado bruto.
+
+[R] Pedido
+Na pasta aula_07_clickhouse_ia/, crie sql/002_views.sql com duas views materializadas incrementais sobre a tabela de eventos e as respectivas tabelas de destino: (a) check-ins por minuto e região, com o total de check-ins e os alunos distintos; (b) cancelamentos por dia e região. Entregue sql/consultas_views.sql com a consulta de leitura de cada view e sql/conferencia_views.sql com a comparação entre cada view e a tabela bruta.
+
+[E] Exemplos
+Tabela de destino (a): motor AggregatingMergeTree, ORDER BY (regiao, minuto), colunas minuto, regiao, checkins AggregateFunction(count), alunos AggregateFunction(uniq, String).
+View (a): SELECT toStartOfMinute(ocorrido_em) AS minuto, regiao, countState() AS checkins, uniqState(aluno) AS alunos FROM a tabela de eventos WHERE tipo = 'checkin' GROUP BY minuto, regiao.
+Leitura: SELECT regiao, countMerge(checkins), uniqMerge(alunos) ... GROUP BY regiao.
+Saída esperada da conferência: uma linha por métrica com o valor na view, o valor na tabela bruta com FINAL, a diferença e as linhas lidas em cada caminho.
+
+[A] Ajustes
+- Ordem de criação no arquivo: tabela de destino, depois a view com a cláusula TO. Não use POPULATE.
+- Como a tabela de eventos já tem dados do prompt 2, entregue um script de carga do histórico (INSERT INTO destino SELECT com os mesmos estados) para o período anterior a um instante de corte passado por parâmetro. Documente num ADR como o corte evita contar um intervalo duas vezes ou deixar um intervalo sem contar.
+- Toda consulta de leitura usa as funções Merge com GROUP BY. Escreva no comentário de cada consulta que uniq devolve uma estimativa.
+- A view lê o bloco inserido e conta a linha repetida. Documente no ADR qual das três saídas o grupo adota para a contagem de check-ins: impedir a duplicata na entrada com o token, contar event_id distintos com uniqState, ou aceitar e declarar a diferença. A conferência mostra a diferença em qualquer caso.
+- Se o ClickHouse for o da turma, todas as tabelas e views levam o prefixo gNN_.
+- Registre as linhas lidas e o tempo de cada caminho com data e máquina. Não reutilize os números do material.
+- Não altere a tabela de eventos nem o sink nesta etapa.
+
+[T] Tipo de saída
+sql/002_views.sql, sql/consultas_views.sql, sql/conferencia_views.sql, o script de carga do histórico e o ADR. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md e docs/spec.md. Gates ao final: (1) as duas views existem e as tabelas de destino recebem linhas a cada lote novo do sink; (2) depois da carga do histórico, a conferência mostra diferença zero numa base sem duplicatas; (3) inserir de novo um check-in já existente, com outro token, faz a conferência mostrar a diferença de 1 na contagem e nenhuma nos alunos distintos; (4) a conferência mostra as linhas lidas nos dois caminhos; (5) recriar tudo do zero com os arquivos de sql/, na ordem, produz o mesmo resultado. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li>Rode a conferência e compare as linhas lidas nos dois caminhos com as do <a href="#s4">exemplo numérico 2</a>. A ordem de grandeza da razão é parecida?</li>
+            <li>O gate 3 reproduz a duplicata de propósito. O ADR explica a saída adotada e o que o painel mostra enquanto ela não é corrigida?</li>
+            <li>Leia o script de carga do histórico. O que acontece se ele for executado duas vezes?</li>
+          </ul>
+        </div>
+
+        <h3 id="prompt-4">10.5 Prompt CREATE 4: motivos de cancelamento com embedding e índice vetorial</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados com experiência em busca vetorial. Você mede o acerto da busca aproximada contra a busca exata antes de recomendá-la, registra o modelo de embeddings ao lado de cada vetor e confirma o uso do índice pelo plano da consulta.
+
+[R] Pedido
+Na pasta aula_07_clickhouse_ia/, crie (1) sql/003_motivos.sql com a tabela de motivos de cancelamento, com a coluna de vetor e o índice de similaridade vetorial; (2) em src/vetores/, um script que lê os cancelamentos da tabela de eventos, gera o embedding de cada motivo e grava na tabela de motivos; (3) um script de busca que recebe um texto e devolve os k motivos mais próximos pela busca exata e pela aproximada, com o tempo e o acerto (recall@10) de cada consulta.
+
+[E] Exemplos
+Tabela: event_id UUID, ocorrido_em, regiao, academia, motivo String, modelo String, vetor Array(Float32), com CONSTRAINT que exige length(vetor) igual à dimensão da spec; ORDER BY (regiao, ocorrido_em, event_id).
+Índice: INDEX idx_vetor vetor TYPE vector_similarity('hnsw', 'cosineDistance', 384).
+Consulta na forma que usa o índice: WITH [...] AS ref SELECT event_id, regiao, motivo, cosineDistance(vetor, ref) AS distancia FROM a tabela de motivos ORDER BY cosineDistance(vetor, ref) LIMIT 10.
+Saída esperada da medição: uma linha por consulta com o texto, o tempo da busca exata, o tempo da aproximada, quantos dos 10 vizinhos exatos a aproximada devolveu e se o índice foi usado.
+
+[A] Ajustes
+- O modelo de embeddings e a dimensão vêm de docs/spec.md. Padrão sugerido: paraphrase-multilingual-MiniLM-L12-v2, da biblioteca sentence-transformers, 384 dimensões, executado localmente e sem chave de API. Se a spec declarar um serviço por API, leia a chave de uma variável de ambiente e nunca a grave em arquivo versionado. A dimensão do índice e do CONSTRAINT segue a spec.
+- Grave o nome do modelo na coluna modelo de cada linha. A busca recusa comparar a pergunta com vetores de outro modelo.
+- O índice de similaridade vetorial está disponível a partir do ClickHouse 25.8; confirme a versão em uso e consulte a documentação dela para a sintaxe e os padrões. Registre num ADR os parâmetros do índice (quantização, M, ef_construction) e os valores de hnsw_candidate_list_size_for_search testados.
+- Leia os cancelamentos com FINAL e torne a carga repetível: rodar duas vezes não duplica motivos.
+- Busca exata: a mesma consulta sem o índice (numa cópia da tabela sem índice ou desligando o uso do índice pela configuração que a documentação da versão indicar). Confirme cada caso com EXPLAIN indexes = 1 e registre o resultado.
+- Meça com pelo menos 20 consultas escritas pelo grupo, em português, e com pelo menos três valores de hnsw_candidate_list_size_for_search. Registre o tempo do INSERT com e sem índice, o espaço da coluna e do índice, o tempo e o acerto de cada consulta, com data e máquina. Descarte a primeira consulta de cada série da média e informe o tempo dela à parte.
+- Se a fonte de eventos tiver poucos cancelamentos, gere motivos sintéticos variados e declare na medição que são sintéticos. Não use dados reais de pessoas.
+- Entregue a consulta com filtro por região nas duas estratégias (vector_search_filter_strategy = 'postfilter' e 'prefilter') e registre quantas linhas cada uma devolveu para a menor região.
+- Não reutilize números de acerto ou de tempo de outras fontes, inclusive os deste material.
+
+[T] Tipo de saída
+sql/003_motivos.sql, src/vetores/carga.py, src/vetores/busca.py, um arquivo docs/medicao_busca_vetorial.md com a tabela de resultados e o ADR. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md e docs/spec.md. Gates ao final: (1) a tabela de motivos tem uma linha por cancelamento distinto, todas com o mesmo modelo e a dimensão da spec; (2) EXPLAIN indexes = 1 mostra o índice vetorial na consulta aproximada e não o mostra na exata; (3) a busca por "mensalidade cara" devolve pelo menos um motivo que fala de preço sem conter a palavra "mensalidade"; (4) docs/medicao_busca_vetorial.md tem o acerto e o tempo das 20 consultas para cada valor testado; (5) inserir um vetor com dimensão errada é recusado; (6) a consulta com pós-filtro e a com pré-filtro, para a menor região, têm a contagem de linhas registrada. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li>Abra a medição. O acerto do grupo ficou acima ou abaixo dos 5, 2 e 5 em 10 do <a href="#s5">exemplo numérico 3</a>, medidos com vetores aleatórios? O que explica a diferença?</li>
+            <li>Com o volume de motivos do grupo, a busca exata já responde em tempo aceitável? O índice se paga nesse volume?</li>
+            <li>Confira que a chave de API, se houver, não aparece em nenhum arquivo nem no histórico do Git.</li>
+            <li>Leia cinco resultados da busca por vetor para consultas diferentes. Algum motivo recuperado contém dado pessoal?</li>
+          </ul>
+        </div>
+
+        <h3 id="prompt-5">10.6 Prompt CREATE 5: montagem do contexto com fontes e limite de tokens</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados que prepara contexto para modelos de linguagem. Você trata o contexto como um artefato auditável: cada trecho tem origem, cada número tem período, e nada sai do ambiente sem decisão registrada.
+
+[R] Pedido
+Na pasta aula_07_clickhouse_ia/, crie em src/contexto/ a função montar_contexto(pergunta, regiao, k), que (1) gera o embedding da pergunta com o modelo da spec; (2) recupera os k motivos de cancelamento mais próximos na região, pela tabela de motivos; (3) lê os agregados das views do prompt 3 para a mesma região e período; (4) devolve um texto em Markdown com as fontes, respeitando o limite de tokens declarado em docs/spec.md. Chamar um modelo de linguagem é opcional e fica a critério do grupo: nesta etapa a função só monta e devolve o texto.
+
+[E] Exemplos
+Estrutura esperada do texto devolvido:
+## Pergunta
+Por que os alunos estão cancelando? (região: ap-sydney; período: últimos 30 dias)
+## Números
+- cancelamentos na região no período: &lt;n&gt; (exato; fonte: view de cancelamentos por dia e região)
+- alunos distintos com check-in no período: &lt;n&gt; (estimativa; fonte: view de check-ins por minuto)
+## Motivos recuperados
+1. "&lt;texto do motivo&gt;" (event_id &lt;uuid&gt;, &lt;data&gt;, distância 0,21)
+## Observações
+Pedidos 10 documentos, recuperados 10, incluídos 8, cortados 2 pelo limite de tokens.
+
+[A] Ajustes
+- A função principal é pura em relação à montagem: recebe os motivos e os agregados já lidos e devolve o texto. A leitura do ClickHouse fica em funções separadas, para que a montagem seja testada sem banco.
+- O filtro por região usa pré-filtro por padrão. Registre num ADR o motivo e o que aconteceria com pós-filtro na menor região. A seção "Observações" informa sempre quantos documentos foram pedidos, recuperados, incluídos e cortados.
+- Limite de tokens: divida o orçamento entre instruções, números e motivos, com os valores na spec. Declare a forma de contagem (estimativa por caracteres ou tokenizador do modelo escolhido). Quando os motivos não cabem, corte os de maior distância.
+- O código do aluno nunca entra no contexto. Antes de incluir um motivo, aplique uma função de tratamento que mascara telefone, e-mail e sequências de dígitos longas; teste essa função. Registre no ADR o que o grupo decidiu sobre motivos que mencionam saúde.
+- Todo número leva a marca "exato" ou "estimativa", o período e a view de origem. Todo motivo leva event_id, data e distância.
+- Nada de credenciais, endereços de servidor ou conteúdo da quarentena no texto.
+- Se o grupo decidir chamar um modelo, isso fica num módulo separado, desligado por padrão, com a chave em variável de ambiente e um ADR que diz qual modelo, onde ele roda e o que é enviado. Não escolha provedor pelo grupo.
+- Testes de unidade para a montagem: respeita o limite; corta os mais distantes; nunca inclui o campo aluno; mascara um telefone; informa os cortes; devolve um texto válido quando nenhum motivo é recuperado.
+
+[T] Tipo de saída
+src/contexto/montagem.py, src/contexto/leitura.py, src/contexto/tratamento.py, tests/unidade/test_contexto.py, um exemplo de contexto gerado em docs/exemplo_contexto.md e o ADR. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md e docs/spec.md. Gates ao final: (1) python -m pytest -q tests/unidade passa; (2) o contexto gerado para a menor região traz k motivos, todos da região; (3) a contagem de tokens do texto, pela forma declarada, fica abaixo do limite; (4) uma busca por códigos de aluno de 16 caracteres hexadecimais no texto não encontra nada; (5) a geração do contexto não faz chamada de rede além do ClickHouse e, se for o caso, do serviço de embeddings declarado na spec; (6) docs/exemplo_contexto.md foi lido pelo grupo e não contém dado pessoal. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li>Leia o contexto de exemplo como se fosse o modelo. Com o que está escrito ali, dá para responder à pergunta sem inventar?</li>
+            <li>Os números e os motivos contam a mesma história? Se os motivos recuperados falam de preço, os agregados dizem que proporção dos cancelamentos eles representam?</li>
+            <li>Troque para pós-filtro e gere de novo o contexto da menor região. Quantos motivos chegaram?</li>
+            <li>Se o grupo decidiu chamar um modelo, o ADR diz para onde os textos dos motivos são enviados?</li>
+          </ul>
+        </div>
+
+        <h3 id="prompt-6">10.7 Prompt CREATE 6: testes de unidade e de integração com ClickHouse real</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de qualidade de dados. Você mantém os testes de unidade rápidos e sem dependências, testa o comportamento do banco contra o banco de verdade e garante que um teste pulado seja visível.
+
+[R] Pedido
+Na pasta aula_07_clickhouse_ia/, organize e complete a suíte de testes: (1) tests/unidade/ com os testes do contrato e da montagem do contexto, sem rede e sem Docker; (2) tests/integracao/ com testes que sobem um ClickHouse real pelo Testcontainers e verificam a DDL, a deduplicação com FINAL, a view materializada e a busca vetorial; (3) pytest.ini com o marcador que separa as camadas.
+
+[E] Exemplos
+Fixture esperada: escopo de sessão, usa testcontainers.clickhouse.ClickHouseContainer com a mesma imagem e tag do docker-compose.yml, aplica os arquivos de sql/ na ordem e entrega um cliente conectado.
+Marcador: @pytest.mark.integracao, registrado em pytest.ini.
+Pulo esperado quando o daemon do Docker não responde: SKIPPED [n] tests/integracao/...: Docker indisponível neste ambiente
+Comandos: python -m pytest -q -m "not integracao" (só unidade) e python -m pytest -q -rs (tudo, listando os pulados com o motivo).
+
+[A] Ajustes
+- Os testes de integração aplicam os mesmos arquivos de sql/ usados na implantação. Não copie DDL para dentro dos testes.
+- A imagem e a tag do contêiner de teste são lidas do mesmo lugar que o docker-compose.yml usa, ou há um teste que falha se as duas divergirem.
+- A verificação de Docker testa o daemon (ping), e não só a existência do comando. Sem Docker, os testes de integração são pulados com motivo. A importação do testcontainers fica dentro da fixture, para que os testes de unidade rodem sem a biblioteca instalada.
+- Cada teste de integração cuida do próprio estado (banco ou tabelas com nome próprio, ou limpeza no início), porque a fixture é compartilhada. Um teste não depende de dados deixados por outro: cada um passa quando executado sozinho.
+- Testes de integração obrigatórios: (a) a DDL de sql/ é aplicada sem erro num banco vazio; (b) o mesmo evento inserido duas vezes, em lotes com tokens diferentes, dá count() igual a 2 e count() com FINAL igual a 1; (c) o mesmo lote reenviado com o mesmo token não altera count(), na versão fixada; (d) a view de check-ins devolve o mesmo total que a tabela bruta numa base sem duplicatas; (e) a view conta o check-in duplicado, e o teste documenta esse comportamento com um comentário que cita o ADR; (f) a view criada depois da carga começa vazia; (g) a busca vetorial com vetores pequenos e conhecidos devolve o vizinho esperado, e EXPLAIN indexes = 1 mostra o índice; (h) um vetor com dimensão errada é recusado.
+- Os testes do item (g) usam vetores escritos à mão, com a dimensão do índice de teste. Não carregue o modelo de embeddings na integração.
+- Não use VCR nem dublê para o ClickHouse nesta etapa. Se o grupo já tem um dublê, mantenha-o só para a lógica do sink em volta do banco.
+- Registre o tempo de cada camada com data e máquina, e o tempo que o contêiner leva para subir e aplicar a DDL.
+- Opcional, a critério do grupo: um fluxo de integração contínua que roda a suíte completa e falha se algum teste de integração for pulado.
+
+[T] Tipo de saída
+pytest.ini, tests/unidade/, tests/integracao/conftest.py com a fixture, tests/integracao/ com os testes (a) a (h), um trecho de README com os comandos e os tempos medidos. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md e docs/spec.md. Gates ao final: (1) python -m pytest -q -m "not integracao" passa sem Docker e sem rede; (2) python -m pytest -q -rs passa com Docker, sem nenhum teste pulado; (3) com o daemon do Docker parado, o mesmo comando pula os testes de integração e mostra o motivo; (4) cada teste de integração passa quando executado sozinho; (5) remover o FINAL da consulta de conferência faz o teste (b) falhar; (6) o README tem os tempos das duas camadas, com data e máquina. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>Revise antes de seguir</strong>
+          <ul>
+            <li>Rode os dois comandos e compare os tempos. A diferença permite rodar a integração antes de cada commit?</li>
+            <li>O gate 5 pede um defeito de propósito. O grupo viu o teste falhar? Um teste que nunca foi visto falhando não prova que detecta o defeito.</li>
+            <li>Pare o Docker e rode a suíte. A saída deixa claro que a integração não rodou?</li>
+            <li>Confira que nenhum <code>.env</code> nem senha entrou no histórico do Git ao longo dos seis prompts.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 11 -->
+      <section class="content-block" id="s11">
+        <h2>11. As seis missões</h2>
+        <p>A aba Missões (<code>#missoes</code>) do simulador lista seis missões, uma por estação. O simulador marca os passos que consegue observar, e o grupo escreve a resposta à pergunta de cada missão na própria aba. Use a velocidade 1 s = 1 min, a menos que o professor indique outra, e deixe a simulação rodar alguns minutos simulados antes da primeira missão, para que haja eventos na tabela.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Missão</th><th>Aba</th><th>O que mede</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Contrato</td><td>o que cada configuração do contrato manda para a quarentena</td></tr>
+            <tr><td>2</td><td>Ingestão</td><td>partes ativas por tamanho de lote; <code>count()</code> contra <code>FINAL</code>, sem e com token</td></tr>
+            <tr><td>3</td><td>Views</td><td>linhas lidas na tabela bruta e na view; efeito das duplicatas</td></tr>
+            <tr><td>4</td><td>Busca vetorial</td><td>lista por palavras contra lista por vetor; acerto e comparações por ef</td></tr>
+            <tr><td>5</td><td>Contexto para IA</td><td>documentos que chegam ao contexto com pós-filtro e com pré-filtro</td></tr>
+            <tr><td>6</td><td>Testes</td><td>defeitos que escapam e tempo da suíte em cada configuração</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="missao-1">Missão 1. Contrato na entrada</h3>
+        <ol class="steps">
+          <li>Abra a aba Contrato (<code>#contrato</code>). Em "Configuração do contrato", confira que "Conversão de tipos" está em strict e "Campo desconhecido" em forbid.</li>
+          <li>Em "Validar um evento", escolha no seletor "Defeito" a opção "evento válido" e clique em "Validar". O evento passa.</li>
+          <li>Escolha, um por vez, pelo menos três dos defeitos prontos: "latencia_ms chega como texto ("120")", "firmware novo manda versao_fw", "tipo fora da lista", "check-in sem aluno", "relógio do dispositivo adiantado", "cancelamento sem motivo" e "academia de outra região". Clique em "Validar" e leia, no painel "Resultado da validação", o tipo do erro, o campo e a mensagem.</li>
+          <li>Troque "Conversão de tipos" para lax e valide de novo os mesmos defeitos. Anote quais deixaram de ir para a quarentena.</li>
+          <li>Troque "Campo desconhecido" para ignore e repita. Anote de novo.</li>
+          <li>Com a simulação em andamento, observe "Quarentena por tipo de erro" e "Últimos eventos em quarentena" nas diferentes configurações.</li>
+        </ol>
+        <p>O que observar: com strict e forbid, os sete defeitos são recusados. Com lax, a latência enviada como texto passa a ser aceita. Com ignore, o evento com <code>versao_fw</code> passa, sem o campo. Os outros cinco defeitos são de valor ou de regra entre campos e continuam recusados em qualquer configuração.</p>
+        <p>Pergunta do grupo: que configuração o grupo usaria para um produtor que a rede controla, como a catraca, e para um de terceiros, como o gateway de pagamento? O que cada escolha deixa de avisar?</p>
+
+        <h3 id="missao-2">Missão 2. Lote, partes e duplicatas</h3>
+        <ol class="steps">
+          <li>Abra a aba Ingestão (<code>#ingestao</code>) com a simulação em andamento. Anote o número de partes ativas com "Linhas por INSERT" em 1.000.</li>
+          <li>Troque "Linhas por INSERT" para 1. Acompanhe o painel "Partes ativas da partição 2026-11" até aparecer o aviso com o erro "Too many parts". Anote quanto tempo simulado levou.</li>
+          <li>Volte "Linhas por INSERT" para 1.000 e acompanhe as partes serem fundidas e o número cair.</li>
+          <li>Com a opção "token de deduplicação por lote" desligada, clique em "Reenviar último lote". Leia o painel "Contagem com e sem FINAL" e anote os dois valores.</li>
+          <li>Ligue "token de deduplicação por lote" e clique de novo em "Reenviar último lote". Anote os dois valores.</li>
+          <li>Opcional: ligue "async_insert no servidor" com "Linhas por INSERT" em 1 e observe o efeito no número de partes.</li>
+        </ol>
+        <p>O que observar: com uma linha por <code>INSERT</code>, as partes se acumulam mais rápido do que as fusões as juntam, e o simulador recusa novos <code>INSERT</code> ao atingir 300 partes ativas. Enquanto o erro dura, o sink não confirma o offset e o lag cresce no tópico. Sem token, o lote reenviado entra de novo: <code>count()</code> sobe e a contagem com <code>FINAL</code> não muda. Com token, o lote reenviado é descartado e nenhuma das duas contagens muda.</p>
+        <p>Pergunta do grupo: que tamanho de lote e que atraso o painel tático aceita? O token resolve a cópia de 1 em cada 100 eventos?</p>
+
+        <h3 id="missao-3">Missão 3. A view e a tabela bruta</h3>
+        <ol class="steps">
+          <li>Abra a aba Views (<code>#views</code>). Observe o painel "Check-ins por minuto, lidos da view".</li>
+          <li>Clique em "Consultar check-ins dos últimos 60 minutos". Na tabela "A mesma pergunta na tabela bruta e na view", anote as linhas lidas e o total de cada caminho.</li>
+          <li>Calcule a razão entre as linhas lidas nos dois caminhos.</li>
+          <li>Anote a diferença entre o total da view e a resposta correta.</li>
+          <li>Em "Definição da view", ligue "contar event_id distintos (uniqState)" e anote o horário simulado.</li>
+          <li>Deixe passar uma hora simulada e consulte de novo. Compare a diferença com a anotada antes da troca.</li>
+        </ol>
+        <p>O que observar: a view responde lendo muito menos linhas que a tabela bruta. O total da view é maior que a resposta correta, na proporção das linhas repetidas que chegaram. Depois de ligar a contagem por <code>event_id</code> distinto, os minutos novos deixam de contar a repetição, e os minutos gravados antes da troca continuam com a contagem antiga.</p>
+        <p>Pergunta do grupo: por que a view não recalcula o passado, e o que isso exige no dia em que ela é criada ou alterada?</p>
+
+        <h3 id="missao-4">Missão 4. Palavra e sentido</h3>
+        <ol class="steps">
+          <li>Abra a aba Busca vetorial (<code>#vetores</code>) e clique em "Carregar histórico de motivos". Aguarde a indicação de que o histórico foi carregado.</li>
+          <li>Confira que "Texto da consulta" contém <code>mensalidade cara</code>, que "Resultados (k)" está em 10 e que "Região" está em "todas". Clique em "Buscar".</li>
+          <li>Compare as duas listas: "Por palavras", com a pontuação BM25 da Aula 06, e "Por vetor", com a distância do cosseno. Anote um motivo que aparece só na lista por vetor.</li>
+          <li>Leia o painel "Vetor da consulta" e os números de acerto e de comparações mostrados abaixo do formulário.</li>
+          <li>Troque "Candidatos na busca aproximada (ef)" para 2 e busque de novo. Anote o acerto e o número de comparações.</li>
+          <li>Troque para 128, busque e anote os mesmos dois números.</li>
+        </ol>
+        <p>O que observar: a lista por palavras traz só motivos que contêm os termos da consulta. A lista por vetor traz motivos que falam de preço com outras palavras, como "o valor ficou pesado no orçamento da família". Com ef igual a 2, a busca faz poucas comparações e tende a perder vizinhos que a busca exata encontraria. Com 128, o acerto sobe e o número de comparações cresce.</p>
+        <p>Pergunta do grupo: quanto acerto o caso de uso do time de retenção exige, e quanto custa em comparações? A resposta seria a mesma se a busca fosse usada para localizar todos os cancelamentos que citam uma lesão?</p>
+
+        <h3 id="missao-5">Missão 5. Filtro antes ou depois</h3>
+        <ol class="steps">
+          <li>Abra a aba Contexto para IA (<code>#contexto</code>). Em "Pergunta pronta", escolha "Por que os alunos estão cancelando por causa do preço?" ou escreva a pergunta do grupo em "Pergunta".</li>
+          <li>Em "Região", escolha <code>ap-sydney</code>, a menor região, com 2 academias na amostra. Deixe "Documentos (k)" em 5.</li>
+          <li>Com "Filtro de região" em pós-filtro, clique em "Montar contexto". Leia o painel "Contexto montado" e anote quantos motivos chegaram.</li>
+          <li>Troque "Filtro de região" para pré-filtro e monte de novo. Anote quantos motivos chegaram.</li>
+          <li>No contexto montado com pré-filtro, marque o que veio das views e o que veio da busca, e localize a identificação de origem de cada parte.</li>
+          <li>Procure no contexto o código de algum aluno.</li>
+        </ol>
+        <p>O que observar: com pós-filtro, o contexto de uma região pequena tende a chegar com menos motivos do que os pedidos, porque a maioria dos vizinhos encontrados pertence a outras regiões. Com pré-filtro, a busca acontece só entre os motivos da região. O contexto traz números e textos, cada um com a fonte. Se a pergunta não tiver nenhuma palavra do dicionário de conceitos do simulador, o contexto não é montado, e o painel avisa.</p>
+        <p>Pergunta do grupo: o que precisa entrar no contexto além dos textos, e o que não deveria ser enviado ao modelo?</p>
+
+        <h3 id="missao-6">Missão 6. O que cada camada pega</h3>
+        <ol class="steps">
+          <li>Abra a aba Testes (<code>#testes</code>). Em "Defeitos no pipeline", leia os sete defeitos e ligue todos.</li>
+          <li>Em "Suíte", deixe marcada só a camada unidade e clique em "Executar suíte". Anote os defeitos que escaparam e o tempo da suíte.</li>
+          <li>Marque também integração, escolha "dublê em memória" em "ClickHouse na integração" e execute. Anote de novo.</li>
+          <li>Troque para "real, em contêiner (Testcontainers)" e execute. Anote os defeitos que escaparam e o tempo.</li>
+          <li>Marque ponta a ponta, execute e compare o tempo e o defeito que só essa camada pegou.</li>
+          <li>Desligue os defeitos, um por vez, e observe qual teste deixa de falhar.</li>
+        </ol>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Defeito do simulador</th><th>Camada que o pega</th></tr></thead>
+          <tbody>
+            <tr><td>O contrato aceita <code>ocorrido_em</code> no futuro</td><td>unidade</td></tr>
+            <tr><td>A montagem do contexto passa do limite de tokens</td><td>unidade</td></tr>
+            <tr><td>A DDL cria <code>MergeTree</code> no lugar de <code>ReplacingMergeTree</code></td><td>integração com ClickHouse real</td></tr>
+            <tr><td>A view foi criada depois da carga e ficou sem o passado</td><td>integração com ClickHouse real</td></tr>
+            <tr><td>A consulta ordena por <code>L2Distance</code> e o índice é de <code>cosineDistance</code></td><td>integração com ClickHouse real</td></tr>
+            <tr><td>A coluna do vetor recebe 768 dimensões e o índice espera 384</td><td>integração com ClickHouse real</td></tr>
+            <tr><td>O sink não reenvia o lote depois de um timeout de rede</td><td>ponta a ponta</td></tr>
+          </tbody>
+        </table></div>
+        <p>O que observar: os testes de unidade pegam os dois defeitos de lógica do grupo e deixam passar os que dependem do banco. A integração com dublê é rápida e não pega nenhum dos quatro defeitos de banco, porque o dublê não tem motor, fusão, view nem índice. A integração com ClickHouse real pega os quatro e acrescenta os 5,9 segundos da subida do contêiner, o único tempo medido. O defeito do reenvio depois do timeout só aparece na camada de ponta a ponta, a mais lenta. As demais durações são hipóteses do simulador.</p>
+        <p>Pergunta do grupo: quais testes o grupo roda a cada commit e quais deixa para o CI? O que o grupo faz para que um teste pulado por falta de Docker não passe despercebido?</p>
+
+        <h3>Exportar a evidência</h3>
+        <ol class="steps">
+          <li>Abra a aba Missões e confira os passos que o simulador marcou em cada uma das seis missões.</li>
+          <li>Escreva a resposta do grupo no campo "resposta do grupo" de cada missão.</li>
+          <li>Preencha o campo com o nome do grupo e dos integrantes.</li>
+          <li>Clique em "Exportar evidência". O texto em Markdown aparece na caixa abaixo, com a configuração usada, os totais, os passos observados e as respostas.</li>
+          <li>Use "Baixar .md" ou "Copiar" e salve o texto como <code>aula_07_clickhouse_ia/evidencia_simulador.md</code> no repositório do grupo.</li>
+          <li>Faça o commit do arquivo.</li>
+        </ol>
+      </section>
+
+      <!-- 12 -->
+      <section class="content-block" id="s12">
+        <h2>12. Limites do simulador</h2>
+        <p>O simulador é um modelo didático. Ele reproduz os mecanismos da aula com regras simples, para que o efeito de cada decisão apareça em segundos. Os números obtidos nele servem para comparar configurações entre si e não devem ser lidos como medidas de desempenho do ClickHouse.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>No simulador</th><th>Num sistema real</th></tr></thead>
+          <tbody>
+            <tr><td>Uma amostra de um décimo da rede: 24 academias e 3.600 alunos, com 10 academias em <code>sa-saopaulo</code>, 7 em <code>us-virginia</code>, 5 em <code>eu-estocolmo</code> e 2 em <code>ap-sydney</code>.</td><td>240 academias e 36.000 alunos. Os números absolutos são cerca de dez vezes maiores, e os picos nos horários das turmas não aparecem numa taxa média.</td></tr>
+            <tr><td>O vetor tem 16 dimensões e é montado por um dicionário de conceitos, para caber no navegador e poder ser lido na tela.</td><td>Um modelo de embeddings gera vetores de centenas de dimensões (384 no padrão sugerido), sem leitura humana, e reconhece relações que um dicionário fixo não prevê.</td></tr>
+            <tr><td>O grafo de vizinhos tem uma camada só.</td><td>O HNSW tem várias camadas, e o acerto depende também de M, de ef_construction e da quantização.</td></tr>
+            <tr><td>O limite é de 300 partes ativas, e o erro aparece em segundos.</td><td>O limite vem da configuração <code>parts_to_throw_insert</code>, o servidor atrasa os <code>INSERT</code> antes de recusá-los, e a velocidade das fusões depende de disco e de carga.</td></tr>
+            <tr><td>As fusões seguem uma regra fixa e a duplicata some quando as partes são fundidas.</td><td>O momento da fusão não é controlado, e partes de partições diferentes nunca são fundidas entre si.</td></tr>
+            <tr><td>De cada 100 eventos, 1 chega repetido, e o lote fecha em 5 minutos simulados quando não enche.</td><td>A taxa de duplicatas depende das falhas do sink e do outbox, e os limites do lote são decisão do grupo.</td></tr>
+            <tr><td>As durações dos testes são hipóteses, com exceção dos 5,9 segundos da subida do contêiner, medidos em 03/10/2026.</td><td>O tempo da suíte depende da máquina, da imagem já estar baixada e do número de testes.</td></tr>
+            <tr><td>O histórico carregado na aba Busca vetorial tem 800 motivos, e cada nó do grafo tem 6 vizinhos.</td><td>A tabela de motivos cresce com a rede, e o padrão do índice é de 32 vizinhos por nó.</td></tr>
+            <tr><td>Os eventos de aluno têm mais check-ins e cancelamentos do que a hipótese de volume, para que o painel e a busca tenham o que mostrar.</td><td>A proporção de cada tipo de evento é um dado a medir na rede.</td></tr>
+            <tr><td>O orçamento do contexto é fixo, de 400 tokens.</td><td>O limite é uma decisão do grupo, declarada na spec, e a contagem depende do tokenizador do modelo.</td></tr>
+            <tr><td>O painel "Contexto montado" mostra o texto e nenhum modelo de IA é chamado.</td><td>A resposta depende do modelo, do custo por chamada, da latência e de uma avaliação sistemática da recuperação e da resposta.</td></tr>
+            <tr><td>O contrato do simulador imita a lista de erros do Pydantic.</td><td>As mensagens e os tipos de erro vêm da versão do Pydantic instalada e devem ser lidos da saída real.</td></tr>
+            <tr><td>O estado fica no <code>localStorage</code> do navegador.</td><td>O ClickHouse tem durabilidade, replicação e backup próprios.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Se algum número da tela parecer contradizer este material, vale a ordem de confiança: a medição do grupo no próprio ambiente, depois as medições datadas deste material, depois o simulador.</p>
+      </section>
+
+      <!-- 13 -->
+      <section class="content-block" id="s13">
+        <h2>13. Entregável</h2>
+        <h3>13.1 Em sala</h3>
+        <p>A atividade em sala acontece no navegador de cada aluno, com o <a href="../simulador/simulador_aula_07.html">simulador</a>, no ritmo do professor. O grupo trabalha junto, cada integrante roda a própria simulação, e um deles fica responsável por exportar a evidência.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Horário</th><th>Etapa</th><th>Gate</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 9h50</td><td>teoria em três blocos</td><td>o grupo explica por que a view conta a duplicata que o <code>FINAL</code> esconde</td></tr>
+            <tr><td>9h50 &ndash; 10h10</td><td>intervalo</td><td>simulador aberto no navegador de cada aluno, com a simulação iniciada</td></tr>
+            <tr><td>10h10 &ndash; 10h30</td><td>estação 1: Contrato</td><td>missão 1 respondida</td></tr>
+            <tr><td>10h30 &ndash; 10h50</td><td>estação 2: Ingestão</td><td>missão 2 respondida</td></tr>
+            <tr><td>10h50 &ndash; 11h05</td><td>estação 3: Views</td><td>missão 3 respondida</td></tr>
+            <tr><td>11h05 &ndash; 11h25</td><td>estação 4: Busca vetorial</td><td>missão 4 respondida</td></tr>
+            <tr><td>11h25 &ndash; 11h40</td><td>estação 5: Contexto para IA</td><td>missão 5 respondida</td></tr>
+            <tr><td>11h40 &ndash; 12h00</td><td>estação 6: Testes integrados</td><td>missão 6 respondida</td></tr>
+            <tr><td>12h00 &ndash; 12h10</td><td>fechamento e evidência</td><td><code>evidencia_simulador.md</code> exportado e commitado</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">
+          <strong>Entregável da aula: <code>aula_07_clickhouse_ia/evidencia_simulador.md</code> no repositório do grupo</strong>
+          <ul>
+            <li>O texto gerado pelo botão "Exportar evidência", com o nome do grupo e dos integrantes.</li>
+            <li>A resposta do grupo à pergunta de cada uma das seis missões (<a href="#s11">seção 11</a>).</li>
+            <li>Os números observados na simulação do grupo, e não os deste material.</li>
+            <li>Nenhum dado pessoal real e nenhuma credencial.</li>
+          </ul>
+        </div>
+        <p>As respostas podem ser redigidas com o apoio da IA de preferência de cada aluno, desde que os números sejam os da simulação do grupo e a decisão registrada seja a que o grupo defende.</p>
+        <h3>13.2 Na semana</h3>
+        <p>O que não couber em sala é concluído pelo grupo durante a semana. Além de completar a evidência, o grupo escolhe uma de duas opções.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Opção</th><th>O que o grupo faz</th><th>Ambiente</th><th>O que fica pronto</th></tr></thead>
+          <tbody>
+            <tr><td>A. Construir a cadeia da aula</td><td>escreve a spec e executa os prompts 1 a 6 (<a href="#prompt-1">1</a>, <a href="#prompt-2">2</a>, <a href="#prompt-3">3</a>, <a href="#prompt-4">4</a>, <a href="#prompt-5">5</a>, <a href="#prompt-6">6</a>), um por vez, conferindo os gates e o quadro "Revise antes de seguir" antes do próximo</td><td>Codespace ou máquina do aluno, com Docker e o agente de código de preferência; ClickHouse local ou o da turma, com o prefixo <code>gNN_</code></td><td>a pasta <code>aula_07_clickhouse_ia/</code> com contrato, sink, views, busca vetorial, montagem do contexto e testes, com ADRs e medições do grupo</td></tr>
+            <tr><td>B. Laboratório opcional de Pydantic e testes</td><td>segue o <a href="../laboratorio/roteiro_pydantic_e_testes.html">roteiro do laboratório</a>: contratos Pydantic, respostas HTTP gravadas com VCR e Testcontainers sobre os pipelines da Aula 03 e do laboratório opcional de IoT da Aula 06</td><td>Codespace com Docker e o agente de código de preferência</td><td>contratos e testes sobre código que o grupo já escreveu nas aulas anteriores</td></tr>
+          </tbody>
+        </table></div>
+        <p>As duas opções são equivalentes para a disciplina. A opção A segue o caso da Rede Tatame e acrescenta ClickHouse em fluxo e busca vetorial. Se o Codespace não comportar o modelo de embeddings local, o grupo executa os prompts 1 a 3 e o 6 sem os itens vetoriais e registra a limitação num ADR. A opção B aprofunda validação e testes sobre pipelines que o grupo já tem e pede que o código das Aulas 03 e 06 esteja no repositório.</p>
+        <ol class="steps">
+          <li>Em sala, até 12h10: commit de <code>aula_07_clickhouse_ia/evidencia_simulador.md</code>.</li>
+          <li>Depois da aula: revisar as respostas das seis missões em grupo.</li>
+          <li>Escolher a opção A ou B e registrar a escolha no início do arquivo de evidência.</li>
+          <li>Opção A: criar <code>aula_07_clickhouse_ia/AGENTS.md</code> e <code>docs/spec.md</code>, executar os prompts na ordem e fazer um commit por prompt, depois de conferir os gates.</li>
+          <li>Opção B: seguir o roteiro do laboratório na ordem em que está escrito.</li>
+          <li>Em qualquer opção, conferir que nenhum <code>.env</code>, senha ou chave de API entrou no histórico do Git.</li>
+        </ol>
+        <p>A Aula 08 é dedicada à mentoria e à entrega do projeto final, sem conteúdo novo. O que o grupo construir nesta semana pode ser aproveitado no projeto, com os contratos e os testes como evidência de qualidade.</p>
+      </section>
+
+      <!-- 14 -->
+      <section class="content-block" id="s14">
+        <h2>14. Para saber mais</h2>
+        <p>As páginas de documentação abaixo foram abertas em 10/11/2026. A documentação do ClickHouse descreve a versão mais recente; quem usa o ClickHouse da turma, na versão 25.8.33.6, confirma padrões e configurações em <code>system.settings</code>.</p>
+        <h3>14.1 Ingestão e deduplicação no ClickHouse</h3>
+        <ul>
+          <li><a href="https://clickhouse.com/docs/best-practices/selecting-an-insert-strategy">ClickHouse: Selecting an insert strategy</a>, com a recomendação de tamanho de lote e de frequência de <code>INSERT</code>.</li>
+          <li><a href="https://clickhouse.com/docs/optimize/asynchronous-inserts">ClickHouse: Asynchronous inserts</a>, com as condições de descarga do buffer e o significado de <code>wait_for_async_insert</code>.</li>
+          <li><a href="https://clickhouse.com/docs/guides/developer/deduplicating-inserts-on-retries">ClickHouse: Deduplicating inserts on retries</a>, com o token de deduplicação, a janela em tabelas sem replicação e o efeito nas views materializadas.</li>
+          <li><a href="https://clickhouse.com/docs/engines/table-engines/mergetree-family/replacingmergetree">ClickHouse: ReplacingMergeTree</a>, com a deduplicação na fusão e o uso de <code>FINAL</code>.</li>
+        </ul>
+        <h3>14.2 Views materializadas</h3>
+        <ul>
+          <li><a href="https://clickhouse.com/docs/materialized-view/incremental-materialized-view">ClickHouse: Incremental materialized view</a>, com o gatilho por bloco, o <code>AggregatingMergeTree</code>, os sufixos <code>State</code> e <code>Merge</code> e a carga de histórico.</li>
+          <li><a href="../../aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse/material/material_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html">Material da Aula 05</a>, para a modelagem dimensional e as views no ClickHouse da turma.</li>
+        </ul>
+        <h3>14.3 Busca vetorial</h3>
+        <ul>
+          <li><a href="https://clickhouse.com/docs/engines/table-engines/mergetree-family/annindexes">ClickHouse: índices de similaridade vetorial</a>, com a sintaxe do índice, os padrões, a forma da consulta, as estratégias de filtro e o rescoring.</li>
+          <li>Yu. A. Malkov e D. A. Yashunin, Efficient and Robust Approximate Nearest Neighbor Search Using Hierarchical Navigable Small World Graphs (IEEE Transactions on Pattern Analysis and Machine Intelligence, 2018), o artigo que descreve o HNSW.</li>
+          <li><a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">Material da Aula 06</a>, estação 6, para o BM25 e o HyperLogLog que esta aula compara com a busca vetorial e com a função <code>uniq</code>.</li>
+        </ul>
+        <h3>14.4 Contrato e testes</h3>
+        <ul>
+          <li><a href="https://pydantic.dev/docs/validation/latest/concepts/strict_mode/">Pydantic: Strict Mode</a>, com as formas de ligar o modo strict e o comportamento na validação de JSON. O endereço antigo, em docs.pydantic.dev, redireciona para esta página.</li>
+          <li><a href="https://testcontainers-python.readthedocs.io/en/latest/">testcontainers-python: documentação</a>, e a página do <a href="https://testcontainers-python.readthedocs.io/en/latest/modules/clickhouse/README.html">módulo ClickHouse</a>, com a classe <code>ClickHouseContainer</code>.</li>
+          <li><a href="../laboratorio/roteiro_pydantic_e_testes.html">Laboratório opcional da Aula 07</a>, com Pydantic, VCR e Testcontainers aplicados aos pipelines das aulas anteriores.</li>
+          <li>Lei nº 13.709/2018 (LGPD), artigos 5º, 12 e 13, para as definições de dado pessoal, dado anonimizado e pseudonimização.</li>
+        </ul>
+        <p>Links de navegação: <a href="../slides/slide_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html">slide desta aula</a>, <a href="../simulador/simulador_aula_07.html">simulador</a>, <a href="../laboratorio/roteiro_pydantic_e_testes.html">laboratório opcional</a>, <a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">material da Aula 06</a>, <a href="../../../../pages/home_data_collection.html">página da disciplina</a> e <a href="../../../../index.html">hub de disciplinas</a>.</p>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>

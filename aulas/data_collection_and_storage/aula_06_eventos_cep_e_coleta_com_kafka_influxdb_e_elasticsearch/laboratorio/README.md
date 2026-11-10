@@ -1,8 +1,8 @@
-# Laboratório da Aula 06: streaming de sensores IoT com RabbitMQ e ClickHouse
+# Laboratório opcional da Aula 06: streaming de sensores IoT com RabbitMQ e ClickHouse
 
-Data Collection and Storage, MBA Engenharia de Dados, Mackenzie. Aula de 14/11/2026, 8h30 às 12h10.
+Data Collection and Storage, MBA Engenharia de Dados, Mackenzie. Laboratório opcional para a semana depois da aula de 14/11/2026. Em sala, a Aula 06 usa o simulador de `../simulador/simulador_aula_06.html`; este pipeline IoT é o exemplo retomado no laboratório opcional da Aula 07.
 
-Este roteiro acompanha o material da aula (`../material/material_aula_06_streaming_com_rabbitmq_e_clickhouse.html`). O material explica os conceitos e traz os sete prompts CREATE completos; aqui ficam os comandos, na ordem em que são executados.
+Este arquivo acompanha o roteiro do laboratório (`roteiro_streaming_iot.html`, nesta pasta). O roteiro explica os conceitos e traz os sete prompts CREATE completos; aqui ficam os comandos, na ordem em que são executados.
 
 O código dos três processos (simulador, transformador e armazenador) não está nesta pasta. Ele nasce durante a aula, pelos prompts, dentro do repositório do grupo.
 
@@ -37,7 +37,7 @@ cd /workspaces/<repositorio-do-grupo>
 mkdir -p aula_06_streaming_iot/{docs/adr,specs,src,tests,sql,scripts}
 cd aula_06_streaming_iot
 
-BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/data_collection_and_storage/aula_06_streaming_com_rabbitmq_e_clickhouse/laboratorio
+BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/data_collection_and_storage/aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/laboratorio
 for f in docker-compose.yml .env.example requirements.txt AGENTS.md .gitignore Dockerfile \
          consultas_analiticas.sql sql/001_criar_tabelas.sql scripts/aplicar_ddl.py; do
   curl -fsSL "$BASE/$f" -o "$f"
@@ -98,7 +98,7 @@ Abra o agente de código em um terminal dentro de `aula_06_streaming_iot/` e man
 claude            # ou o agente que você usa
 ```
 
-Cole os prompts 1 a 5 do material, um por vez. Depois de cada um, responda o quadro "Revise antes de seguir" antes de colar o próximo. Ao final:
+Cole os prompts 1 a 5 do roteiro, um por vez. Depois de cada um, responda o quadro "Revise antes de seguir" antes de colar o próximo. Ao final:
 
 ```bash
 ls docs specs
@@ -241,7 +241,7 @@ Se a conexão pela rede privada falhar, confira no painel o nome do serviço (o 
 
 ## Etapa 8. Prompt 7: validação ATAM
 
-Cole o prompt 7 do material. Ele produz `docs/atam.md`, os ADRs e a matriz requisito, decisão, componente e evidência, usando as saídas das Etapas 5, 6 e 7.
+Cole o prompt 7 do roteiro. Ele produz `docs/atam.md`, os ADRs e a matriz requisito, decisão, componente e evidência, usando as saídas das Etapas 5, 6 e 7.
 
 ## Encerramento
 

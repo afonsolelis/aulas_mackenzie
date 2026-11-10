@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Simulador Aula 07 — Streaming com ClickHouse para IA e Testes Integrados</title>
+  <link rel="stylesheet" href="../../../../assets/simulador.css">
+</head>
+<body class="sim">
+
+  <header class="sim-top">
+    <div class="sim-top-row">
+      <div class="sim-brand">
+        <span>Data Collection and Storage &middot; Aula 07 &middot; Simulador</span>
+        <strong>Rede Tatame: do evento validado ao contexto da IA</strong>
+      </div>
+      <div class="sim-clock"><span id="relogio">--</span><small id="relogio-sub">relógio simulado</small></div>
+      <div class="sim-controls">
+        <label for="velocidade">Velocidade</label>
+        <select id="velocidade">
+          <option value="1">1 s = 1 min</option>
+          <option value="10">1 s = 10 min</option>
+          <option value="60">1 s = 1 h</option>
+        </select>
+        <button id="btn-rodar" class="is-primary">Iniciar</button>
+        <button id="btn-reiniciar">Reiniciar</button>
+      </div>
+    </div>
+    <nav class="sim-tabs" id="abas">
+      <a href="#rede"><span class="n">0</span>Visão geral</a>
+      <a href="#contrato"><span class="n">1</span>Contrato</a>
+      <a href="#ingestao"><span class="n">2</span>Ingestão</a>
+      <a href="#views"><span class="n">3</span>Views</a>
+      <a href="#vetores"><span class="n">4</span>Busca vetorial</a>
+      <a href="#contexto"><span class="n">5</span>Contexto para IA</a>
+      <a href="#testes"><span class="n">6</span>Testes</a>
+      <a href="#missoes"><span class="n">7</span>Missões</a>
+    </nav>
+  </header>
+
+  <main class="sim-main">
+
+    <!-- 0. Visão geral -->
+    <section class="sim-view" id="v-rede">
+      <div class="sim-head">
+        <span class="sim-kicker">Visão geral</span>
+        <h1>Do tópico do Kafka ao contexto entregue à IA</h1>
+        <p>A Aula 06 levou os eventos da Rede Tatame, uma rede fictícia de academias, até o Kafka. Nesta aula eles passam por um contrato, entram no ClickHouse em lotes, alimentam views materializadas e, no caso dos motivos de cancelamento, viram vetores para busca por similaridade. O simulador roda uma amostra de um décimo da rede, com 24 academias e 3.600 alunos.</p>
+        <p class="sim-links"><a href="../../../../index.html">Hub</a> &middot; <a href="../../../../pages/home_data_collection.html">Data Collection</a> &middot; <a href="../slides/slide_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html">Slide</a> &middot; <a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html">Material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Fluxo <small>contagens desde o início da simulação</small></h2>
+          <div class="sim-stat" id="rede-fluxo"></div>
+          <p class="sim-hint">Evento do tópico <code class="sim-mono">tatame.eventos</code>, contrato na entrada, tabela <code class="sim-mono">tatame.eventos</code> no ClickHouse, view materializada de check-ins, tabela de motivos com vetor e contexto montado para o modelo.</p>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Eventos por minuto, por região</h2>
+          <div id="rede-regioes"></div>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>O que fica guardado no navegador</h2>
+          <p class="sim-hint" id="rede-storage"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. Contrato -->
+    <section class="sim-view" id="v-contrato">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 1</span>
+        <h1>Contrato do evento na entrada</h1>
+        <p>O contrato descreve o que o consumidor aceita: campos, tipos, faixas e regras entre campos. O evento que passa segue para o ClickHouse. O que não passa vai para a quarentena com a lista de erros, no formato que o Pydantic devolve.</p>
+        <p class="sim-links"><a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html#prompt-1">Prompt 1 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Configuração do contrato</h2>
+          <div class="sim-inline">
+            <label for="ct-modo">Conversão de tipos</label>
+            <select id="ct-modo"><option value="strict">strict: recusa "120" como inteiro</option><option value="lax">lax: converte "120" em 120</option></select>
+            <label for="ct-extra">Campo desconhecido</label>
+            <select id="ct-extra"><option value="forbid">forbid: recusa o evento</option><option value="ignore">ignore: descarta o campo</option></select>
+          </div>
+          <div class="sim-stat" id="ct-stat" style="margin-top:14px"></div>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Validar um evento</h2>
+          <div class="sim-inline" style="margin-bottom:10px">
+            <label for="ct-preset">Defeito</label>
+            <select id="ct-preset" style="flex:1"></select>
+          </div>
+          <textarea id="ct-json" style="min-height:250px" spellcheck="false"></textarea>
+          <div class="sim-inline" style="margin-top:10px"><button id="ct-validar" class="is-primary">Validar</button><span class="sim-hint" id="ct-veredito"></span></div>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Resultado da validação</h2>
+          <pre class="sim-code is-wrap" id="ct-saida">// escolha um defeito e clique em Validar</pre>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Quarentena por tipo de erro <small>fluxo automático</small></h2>
+          <div class="sim-scroll"><table class="sim-table" id="ct-erros"></table></div>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Últimos eventos em quarentena</h2>
+          <div class="sim-scroll"><table class="sim-table" id="ct-ultimos"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Ingestão -->
+    <section class="sim-view" id="v-ingestao">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 2</span>
+        <h1>Ingestão em lotes, partes e duplicatas</h1>
+        <p>Cada INSERT no ClickHouse cria uma parte no disco, e um processo em segundo plano funde as partes pequenas. Lote pequeno demais cria partes mais rápido do que a fusão consegue juntar. A entrega do Kafka é pelo menos uma vez, então a mesma linha pode chegar duas vezes.</p>
+        <p class="sim-links"><a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html#prompt-2">Prompt 2 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Configuração do sink</h2>
+          <div class="sim-inline">
+            <label for="ig-lote">Linhas por INSERT</label>
+            <select id="ig-lote"><option value="1">1</option><option value="100">100</option><option value="1000" selected>1.000</option><option value="10000">10.000</option></select>
+            <label><input type="checkbox" id="ig-async"> async_insert no servidor</label>
+            <label><input type="checkbox" id="ig-token"> token de deduplicação por lote</label>
+            <button id="ig-reenviar">Reenviar último lote</button>
+          </div>
+          <p class="sim-hint" style="margin-top:8px">O sink fecha o lote pelo tamanho escolhido ou depois de 5 minutos simulados, o que vier primeiro. De cada 100 eventos, 1 chega repetido, como acontece com entrega de pelo menos uma vez. No ClickHouse, o token só tem efeito numa tabela sem replicação quando <code class="sim-mono">non_replicated_deduplication_window</code> é maior que zero.</p>
+          <div class="sim-stat" id="ig-stat" style="margin-top:10px"></div>
+          <div id="ig-aviso"></div>
+        </div>
+        <div class="sim-panel sim-col-7">
+          <h2>Partes ativas da partição 2026-11 <small>cada barra é uma parte; a altura é o número de linhas, em escala logarítmica</small></h2>
+          <div class="sim-bars" id="ig-partes" style="height:110px"></div>
+          <p class="sim-hint" style="margin-top:10px">Limite do simulador: 300 partes ativas. No ClickHouse o limite vem da configuração <code class="sim-mono">parts_to_throw_insert</code>, e o erro devolvido é "Too many parts".</p>
+        </div>
+        <div class="sim-panel sim-col-5">
+          <h2>Contagem com e sem FINAL</h2>
+          <div class="sim-stat" id="ig-final"></div>
+          <p class="sim-hint">A tabela usa ReplacingMergeTree com <code class="sim-mono">event_id</code> na chave de ordenação. A cópia some quando as partes que a contêm são fundidas. Até lá, <code class="sim-mono">count()</code> enxerga a cópia e <code class="sim-mono">FINAL</code> não.</p>
+          <pre class="sim-code is-wrap" id="ig-log" style="margin-top:10px">// nenhum INSERT ainda</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Views -->
+    <section class="sim-view" id="v-views">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 3</span>
+        <h1>Views materializadas incrementais</h1>
+        <p>Uma view materializada do ClickHouse roda a cada bloco inserido e grava o resultado parcial numa tabela de agregados. A consulta do painel lê poucas linhas já somadas. Ela não enxerga o que estava na tabela antes de ser criada e conta o que o bloco trouxer, inclusive a linha repetida.</p>
+        <p class="sim-links"><a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html#prompt-3">Prompt 3 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-8">
+          <h2>Check-ins por minuto, lidos da view <small>últimos 60 minutos</small></h2>
+          <div id="vw-painel"></div>
+        </div>
+        <div class="sim-panel sim-col-4">
+          <h2>Definição da view</h2>
+          <div class="sim-inline"><label><input type="checkbox" id="vw-distinto"> contar event_id distintos (uniqState)</label></div>
+          <p class="sim-hint" style="margin-top:8px">Desligado, a view usa <code class="sim-mono">countState()</code> e conta a linha repetida. A troca vale só para os blocos inseridos depois dela: a view não recalcula o passado.</p>
+          <div class="sim-stat" id="vw-stat" style="margin-top:10px"></div>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>A mesma pergunta na tabela bruta e na view</h2>
+          <div class="sim-inline"><button id="vw-consultar" class="is-primary">Consultar check-ins dos últimos 60 minutos</button></div>
+          <div class="sim-scroll" style="margin-top:10px"><table class="sim-table" id="vw-comparacao"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Busca vetorial -->
+    <section class="sim-view" id="v-vetores">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 4</span>
+        <h1>Busca vetorial nos motivos de cancelamento</h1>
+        <p>Cada motivo de cancelamento é gravado com um vetor que representa o sentido do texto. A consulta também vira vetor, e o banco devolve os motivos mais próximos. A busca exata compara com todos os vetores. A aproximada percorre um grafo de vizinhos e compara com poucos, ao custo de perder alguns resultados.</p>
+        <p class="sim-links"><a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html#prompt-4">Prompt 4 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Consulta</h2>
+          <div class="sim-inline" style="margin-bottom:10px"><button id="vt-historico">Carregar histórico de motivos</button><span class="sim-hint" id="vt-status"></span></div>
+          <div class="sim-form">
+            <label class="is-wide">Texto da consulta <input type="text" id="vt-q" value="mensalidade cara"></label>
+            <label>Resultados (k) <select id="vt-k"><option>5</option><option selected>10</option></select></label>
+            <label>Candidatos na busca aproximada (ef) <select id="vt-ef"><option>2</option><option>8</option><option selected>32</option><option>128</option></select></label>
+            <label>Região <select id="vt-regiao"></select></label>
+            <label>Filtro de região <select id="vt-filtro"><option value="pos">pós-filtro: busca no índice, filtra depois</option><option value="pre">pré-filtro: filtra, busca exata no que sobrou</option></select></label>
+            <div class="is-wide sim-inline"><button id="vt-buscar" class="is-primary">Buscar</button></div>
+          </div>
+          <div class="sim-stat" id="vt-stat" style="margin-top:12px"></div>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Por palavras <small>BM25, como na Aula 06</small></h2>
+          <div class="sim-scroll"><table class="sim-table" id="vt-bm25"></table></div>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Por vetor <small>distância do cosseno, busca aproximada</small></h2>
+          <div class="sim-scroll"><table class="sim-table" id="vt-vetor"></table></div>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Vetor da consulta</h2>
+          <pre class="sim-code is-wrap" id="vt-emb">// faça uma busca</pre>
+          <div class="sim-note">O vetor do simulador tem 16 dimensões e é montado por um dicionário de conceitos, para caber no navegador e ser inspecionado. Na versão real, um modelo de embeddings gera vetores de centenas de dimensões, e o ClickHouse guarda cada um numa coluna <code class="sim-mono">Array(Float32)</code> com índice <code class="sim-mono">vector_similarity</code>. O grafo do simulador tem uma camada só; o HNSW tem várias.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Contexto para IA -->
+    <section class="sim-view" id="v-contexto">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 5</span>
+        <h1>Contexto para a IA: vetores e agregados</h1>
+        <p>A resposta do modelo depende do que ele recebe. O contexto junta os motivos recuperados pela busca vetorial com os números das views materializadas, numa única consulta ao ClickHouse, e limita a quantidade de texto ao que cabe no orçamento de tokens.</p>
+        <p class="sim-links"><a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html#prompt-5">Prompt 5 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Pergunta</h2>
+          <div class="sim-form">
+            <label class="is-wide">Pergunta pronta <select id="cx-pronta"></select></label>
+            <label class="is-wide">Pergunta <input type="text" id="cx-q"></label>
+            <label>Região <select id="cx-regiao"></select></label>
+            <label>Documentos (k) <select id="cx-k"><option>3</option><option selected>5</option><option>10</option></select></label>
+            <label>Filtro de região <select id="cx-filtro"><option value="pos">pós-filtro</option><option value="pre">pré-filtro</option></select></label>
+            <div class="is-wide sim-inline"><button id="cx-montar" class="is-primary">Montar contexto</button><span class="sim-hint" id="cx-info"></span></div>
+          </div>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Contexto montado</h2>
+          <pre class="sim-code is-wrap" id="cx-saida">// monte um contexto</pre>
+          <div class="sim-note">O simulador não chama nenhum modelo. Ele mostra o que seria entregue ao modelo antes da resposta.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Testes -->
+    <section class="sim-view" id="v-testes">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 6</span>
+        <h1>Testes integrados com o serviço real</h1>
+        <p>Um teste de unidade verifica uma função sem sair do processo. Um teste integrado sobe um ClickHouse de verdade num contêiner descartável e verifica o que só o banco sabe responder. Aqui o grupo liga defeitos no pipeline e observa em qual camada cada um é pego.</p>
+        <p class="sim-links"><a href="../material/material_aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados.html#prompt-6">Prompt 6 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-5">
+          <h2>Defeitos no pipeline</h2>
+          <div id="ts-defeitos"></div>
+        </div>
+        <div class="sim-panel sim-col-7">
+          <h2>Suíte</h2>
+          <div class="sim-inline">
+            <label><input type="checkbox" id="ts-uni" checked> unidade</label>
+            <label><input type="checkbox" id="ts-int" checked> integração</label>
+            <label><input type="checkbox" id="ts-e2e"> ponta a ponta</label>
+            <label for="ts-modo">ClickHouse na integração</label>
+            <select id="ts-modo"><option value="real">real, em contêiner (Testcontainers)</option><option value="duble">dublê em memória</option></select>
+            <button id="ts-rodar" class="is-primary">Executar suíte</button>
+          </div>
+          <div class="sim-stat" id="ts-stat" style="margin-top:12px"></div>
+          <div id="ts-escaparam"></div>
+          <div class="sim-scroll"><table class="sim-table" id="ts-resultado"></table></div>
+          <p class="sim-hint" style="margin-top:10px">Durações de referência: o contêiner de ClickHouse levou 5,9 s para subir e aplicar a DDL na medição do professor, em 03/10/2026. As demais durações são hipóteses do simulador.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Missões -->
+    <section class="sim-view" id="v-missoes">
+      <div class="sim-head">
+        <span class="sim-kicker">Atividade em sala</span>
+        <h1>Seis missões e a evidência do grupo</h1>
+        <p>Cada missão é feita junto com o professor numa estação. O simulador marca os passos que consegue observar, e o grupo escreve a resposta à pergunta de cada missão. O texto exportado vai para <code class="sim-mono">aula_07_clickhouse_ia/evidencia_simulador.md</code> no repositório do grupo.</p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Missões</h2>
+          <div id="ms-lista"></div>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Evidência</h2>
+          <div class="sim-inline" style="margin-bottom:10px">
+            <input type="text" id="ms-grupo" placeholder="nome do grupo e integrantes" style="flex:1">
+            <button id="ms-exportar" class="is-primary">Exportar evidência</button>
+            <button id="ms-copiar">Copiar</button>
+            <button id="ms-baixar">Baixar .md</button>
+          </div>
+          <textarea id="ms-saida" readonly style="min-height:260px" placeholder="o texto em Markdown aparece aqui"></textarea>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="sim-foot">
+    Simulador didático. A Rede Tatame, as academias, os alunos e os números são inventados para a aula. Nada sai deste navegador: o estado fica em <code class="sim-mono">localStorage</code>, e o botão Reiniciar apaga tudo.
+  </footer>
+
+  <script src="simulador_aula_07.js"></script>
+</body>
+</html>

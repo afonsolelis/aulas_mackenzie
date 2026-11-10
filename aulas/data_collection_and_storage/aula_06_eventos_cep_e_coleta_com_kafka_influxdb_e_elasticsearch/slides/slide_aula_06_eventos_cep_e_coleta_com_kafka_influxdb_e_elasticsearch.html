@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 06 — Eventos, CEP e Coleta com Kafka, InfluxDB e Elasticsearch</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- 1. Capa -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="06" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Eventos, CEP e Coleta com Kafka, InfluxDB e Elasticsearch</h1>
+          <p class="deck-meta">Aula 06 &nbsp;&bull;&nbsp; 14/11/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Evento, complex event processing e Kafka na teoria. Depois, seis estações num simulador no navegador: coleta com destino tático no InfluxDB e analítico no object storage e no Elasticsearch.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Agenda -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Teoria até 9h50, seis estações até 12h00</h2>
+          <p class="deck-summary">Três blocos teóricos, cada um com exemplo numérico, pausa e pontos-chave. Depois do intervalo, cada estação traz o conceito, o prompt que construiria a peça e a simulação feita junto com a turma.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card">
+            <h3>8h30 &ndash; 9h50 &middot; Teoria</h3>
+            <ul>
+              <li>8h30 &middot; Bloco 1: o que é um evento e o caso da Rede Tatame</li>
+              <li>8h55 &middot; Bloco 2: complex event processing</li>
+              <li>9h20 &middot; Bloco 3: tecnologias de eventos e o Kafka por dentro</li>
+              <li>9h50 &middot; Intervalo</li>
+            </ul>
+          </article>
+          <article class="deck-card">
+            <h3>10h10 &ndash; 12h10 &middot; Simulador</h3>
+            <ul>
+              <li>10h10 &middot; Evento &nbsp; 10h25 &middot; Kafka &nbsp; 10h45 &middot; CEP</li>
+              <li>11h05 &middot; InfluxDB e o painel tático</li>
+              <li>11h25 &middot; Object storage &nbsp; 11h40 &middot; Elasticsearch</li>
+              <li>12h00 &middot; Fechamento e evidência</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Bloco 1: problema -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Problema</span>
+          <h2 class="deck-title">O que a Rede Tatame não vê hoje</h2>
+          <p class="deck-summary">A Rede Tatame é uma rede fictícia de academias de jiu-jitsu. Cada academia fecha o mês numa planilha e envia o resumo. Quando o número chega, o aluno que parou de treinar já cancelou, e a catraca que travou na sexta à noite ficou sem registro.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Resultado observável ao fim da aula</strong>
+          <p style="margin:8px 0 0;">Sete missões feitas no simulador, com a evidência exportada para o repositório do grupo: a chave e a partição, o lag, a falha de um cluster regional, um padrão de CEP, a cardinalidade de séries, o tamanho do lote e uma busca com estimativa.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Bloco 1: cenário condutor -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Cenário condutor</span>
+          <h2 class="deck-title">Os números da Rede Tatame</h2>
+          <p class="deck-summary">A rede, os nomes e os números são inventados para a aula. As taxas de eventos são hipóteses a validar com a rede.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>36.000 alunos em 240 academias</strong>
+            <ul>
+              <li><code>sa-saopaulo</code>: 96 academias, 14.400 alunos</li>
+              <li><code>us-virginia</code>: 72 academias, 10.800 alunos</li>
+              <li><code>eu-estocolmo</code>: 48 academias, 7.200 alunos</li>
+              <li><code>ap-sydney</code>: 24 academias, 3.600 alunos</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Três fontes de evento</strong>
+            <ul>
+              <li>Aplicativo do aluno: abertura, reserva de aula, vídeo</li>
+              <li>Catraca e leitor facial: check-in e heartbeat a cada 30 s</li>
+              <li>Sistema de gestão: matrícula, cobrança, graduação, cancelamento</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Bloco 1: definição -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Definição</span>
+          <h2 class="deck-title">O que é um evento</h2>
+          <p class="deck-summary">Um evento é o registro imutável de um fato que já aconteceu, com o instante em que aconteceu.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Conceito</th><th>O que diz</th><th>Exemplo na academia</th><th>Pode ser recusado?</th></tr></thead>
+          <tbody>
+            <tr><td>Comando</td><td>um pedido para que algo aconteça</td><td>"cobrar a mensalidade de novembro"</td><td>sim</td></tr>
+            <tr><td>Evento</td><td>um fato que já aconteceu</td><td><code>cobranca_falhou</code> às 11h02</td><td>não, só registrado</td></tr>
+            <tr><td>Estado</td><td>a situação atual, resultado dos eventos</td><td>aluno inadimplente há 9 dias</td><td>é recalculado</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O estado pode ser refeito a partir dos eventos. O caminho inverso não existe: a planilha do mês não devolve a sequência de fatos que a produziu.</div>
+      </div>
+    </div>
+
+    <!-- 6. Bloco 1: anatomia -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Anatomia</span>
+          <h2 class="deck-title">Os campos de um evento da rede</h2>
+        </div>
+        <div class="deck-columns">
+          <pre class="is-compact"><code>{
+  "event_id": "7f3b1c9e-52a4-4d0e-9c1b-6a2f8e4d7b10",
+  "tipo": "checkin",
+  "ocorrido_em": "2026-11-14T11:02:07.412Z",
+  "regiao": "eu-estocolmo",
+  "academia": "SE-STO-014",
+  "aluno": "a8f3c1d9e2b47f60",
+  "turma": "adulto-fundamentos",
+  "faixa": "branca",
+  "origem": "catraca"
+}</code></pre>
+          <div class="deck-panel">
+            <strong>Para que serve cada campo</strong>
+            <ul>
+              <li><code>event_id</code>: identifica o fato e permite descartar a cópia</li>
+              <li><code>ocorrido_em</code>: tempo do evento, em UTC</li>
+              <li><code>academia</code>: chave de particionamento e de ordem</li>
+              <li><code>aluno</code>: hash gerado na academia; o nome não sai dela</li>
+              <li><code>tipo</code> e <code>origem</code>: decidem o contrato e o destino</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Bloco 1: dois tempos -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Dois relógios</span>
+          <h2 class="deck-title">Tempo do evento e tempo de chegada</h2>
+          <p class="deck-summary">O check-in aconteceu às 11h02 em Estocolmo. Se o cluster regional estava fora do ar, ele chega à rede às 13h05. Os dois instantes são verdadeiros e respondem a perguntas diferentes.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Tempo do evento</strong>
+            <ul>
+              <li>gravado na origem, no campo <code>ocorrido_em</code></li>
+              <li>responde "quantos alunos treinaram às 11h?"</li>
+              <li>exige lidar com evento atrasado e fora de ordem</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Tempo de chegada</strong>
+            <ul>
+              <li>atribuído por quem recebe</li>
+              <li>responde "o que o pipeline processou às 13h?"</li>
+              <li>simples de ordenar, mas distorce o fato quando há atraso</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. Bloco 1: exemplo numérico 1 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Exemplo numérico 1</span>
+          <h2 class="deck-title">Volume diário e tamanho do evento</h2>
+          <p class="deck-summary">Hipóteses: 10 eventos por aluno por dia e 2 dispositivos por academia, com heartbeat a cada 30 s. Tamanho medido em 100.000 eventos sintéticos.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida</th><th>Conta</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Eventos de aluno por dia</td><td>36.000 &times; 10</td><td>360.000</td></tr>
+            <tr><td>Heartbeats por dia</td><td>240 &times; 2 &times; 2.880</td><td>1.382.400</td></tr>
+            <tr><td>Total por dia</td><td>soma</td><td>1.742.400, média de 20,2 por segundo</td></tr>
+            <tr><td>Tamanho em JSON compacto</td><td>medido</td><td>média de 231 B, de 221 B a 317 B</td></tr>
+            <tr><td>Um dia em JSON</td><td>1.742.400 &times; 231 B</td><td>402 MB</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Quatro em cada cinco eventos são heartbeats. O volume vem da telemetria, e os eventos de negócio são raros. Medição: <code>medicoes_preparo.py</code>.</div>
+      </div>
+    </div>
+
+    <!-- 9. Bloco 1: pausa -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Qual fato da academia vira evento?</h2>
+          <p class="deck-summary">Três minutos em grupo, com o caso da Rede Tatame.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>"Aluno inadimplente" é evento ou estado? Que eventos produzem essa situação?</li>
+          <li>O professor corrige um check-in lançado na turma errada. O evento antigo é editado ou nasce outro?</li>
+          <li>Que campo falta no evento de exemplo para comparar academias de fusos diferentes às 19h locais?</li>
+          <li>Que dado do aluno nunca deveria aparecer num evento que sai da academia?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 10. Bloco 1: pontos-chave -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 1</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Evento é um fato imutável com instante; comando é pedido, estado é resultado.</li>
+          <li>Todo evento carrega dois tempos, o do fato e o da chegada, e a regra de negócio diz qual deles vale.</li>
+          <li><code>event_id</code> permite descartar cópias, e a chave define ordem e particionamento.</li>
+          <li>A rede produz 1.742.400 eventos por dia nas hipóteses da aula, 402 MB em JSON, e a maior parte é telemetria.</li>
+          <li>A anonimização acontece na academia, antes de o evento sair.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 11. Bloco 2: CEP -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Definição</span>
+          <h2 class="deck-title">O que é complex event processing</h2>
+          <p class="deck-summary">Uma cobrança recusada sozinha diz pouco. Duas recusas do mesmo aluno em sete dias indicam risco de inadimplência. O CEP lê o fluxo, reconhece esse padrão e emite um evento novo, chamado de evento complexo.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Evento simples</strong>
+            <ul>
+              <li>um fato registrado na origem</li>
+              <li><code>cobranca_falhou</code>, <code>heartbeat</code>, <code>cancelamento</code></li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Evento complexo</strong>
+            <ul>
+              <li>derivado de vários eventos simples que fecham um padrão</li>
+              <li><code>cobranca_reincidente</code>, <code>academia_silenciosa</code></li>
+              <li>carrega os eventos que o formaram</li>
+            </ul>
+          </div>
+        </div>
+        <div class="deck-note">O termo vem de David Luckham, em The Power of Events (2002).</div>
+      </div>
+    </div>
+
+    <!-- 12. Bloco 2: padrões -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Padrões</span>
+          <h2 class="deck-title">Quatro tipos de padrão sobre o fluxo</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Padrão</th><th>O que procura</th><th>Regra da Rede Tatame</th></tr></thead>
+          <tbody>
+            <tr><td>Sequência</td><td>A seguido de B, pela mesma chave</td><td><code>cobranca_reincidente</code>: 2 recusas do mesmo aluno em 7 dias</td></tr>
+            <tr><td>Ausência</td><td>A que não acontece dentro do prazo</td><td><code>academia_silenciosa</code>: nenhum heartbeat há 5 minutos</td></tr>
+            <tr><td>Limiar em janela</td><td>N ocorrências num intervalo</td><td><code>pico_de_cancelamentos</code>: 3 na mesma academia em 24 horas</td></tr>
+            <tr><td>Sequência com ausência</td><td>A sem B depois</td><td><code>experimental_sem_matricula</code>: aula experimental sem matrícula em 7 dias</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Um quinto tipo, a correlação, junta eventos de fontes diferentes, como a catraca parada e a queda de check-ins da mesma academia.</div>
+      </div>
+    </div>
+
+    <!-- 13. Bloco 2: janelas -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Janelas</span>
+          <h2 class="deck-title">Janela fixa, deslizante e de sessão</h2>
+          <p class="deck-summary">O fluxo não termina, então toda contagem precisa de um recorte de tempo. O tipo de janela muda a resposta.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Fixa (tumbling)</h3><p>Blocos sem sobreposição. Check-ins por minuto no painel tático.</p></article>
+          <article class="deck-card"><h3>Deslizante (sliding)</h3><p>Blocos que se sobrepõem. Cancelamentos nas últimas 24 horas, reavaliados a cada evento.</p></article>
+          <article class="deck-card"><h3>De sessão</h3><p>Fecha depois de um silêncio. Uma visita ao aplicativo termina após 30 minutos sem atividade.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 14. Bloco 2: marca d'água -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Evento atrasado</span>
+          <h2 class="deck-title">Marca d'água e atraso permitido</h2>
+          <p class="deck-summary">A marca d'água é o tempo de evento até onde o processador considera ter visto tudo. Ela avança com os eventos que chegam, e uma janela só fecha quando a marca passa do seu fim.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Sem marca d'água</strong>
+            <ul>
+              <li>a regra de ausência compara com o relógio da máquina</li>
+              <li>consumidor parado por 10 minutos dispara <code>academia_silenciosa</code> para as 240 academias</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Com marca d'água</strong>
+            <ul>
+              <li>a ausência é medida contra o tempo dos eventos lidos</li>
+              <li>o atraso permitido define até quando um evento antigo ainda corrige o resultado</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 15. Bloco 2: exemplo numérico 2 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Exemplo numérico 2</span>
+          <h2 class="deck-title">Quanto estado a regra de cobrança guarda</h2>
+          <p class="deck-summary">A regra <code>cobranca_reincidente</code> precisa lembrar quem teve uma recusa nos últimos 7 dias.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida</th><th>Conta</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Recusas por dia</td><td>0,3% de 360.000 eventos de aluno</td><td>1.080</td></tr>
+            <tr><td>Chaves em estado, no máximo</td><td>1.080 &times; 7 dias</td><td>7.560 alunos</td></tr>
+            <tr><td>Parcela da rede em memória</td><td>7.560 de 36.000</td><td>21%</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout">
+          <strong>O que a conta mostra</strong>
+          <p style="margin:8px 0 0;">O estado cresce com a janela e com a frequência do evento que abre o padrão, e não com o tamanho da base. A proporção de 0,3% é hipótese da aula.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 16. Bloco 2: pausa -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Que padrão responde a cada pergunta?</h2>
+          <p class="deck-summary">Três minutos em grupo. Para cada pergunta, indique o tipo de padrão, a chave e a janela.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Um aluno que treinava três vezes por semana parou de aparecer.</li>
+          <li>Uma academia teve o dobro de check-ins do que costuma ter num sábado.</li>
+          <li>O leitor facial respondeu com mais de 200 ms em cinco heartbeats seguidos.</li>
+          <li>Em qual das três o resultado muda se os eventos chegarem com duas horas de atraso?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 17. Bloco 2: pontos-chave -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 2</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>O CEP transforma vários eventos simples num evento complexo, que guarda os eventos de origem.</li>
+          <li>Sequência, ausência, limiar em janela e correlação cobrem as regras da rede.</li>
+          <li>Toda regra tem chave, janela e estado; a regra de cobrança guarda até 7.560 alunos em 7 dias.</li>
+          <li>Regras de ausência dependem da marca d'água para não disparar quando o consumidor para.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 18. Bloco 3: fila e log -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Fila e log</span>
+          <h2 class="deck-title">Fila e log guardam eventos de formas diferentes</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Aspecto</th><th>Fila (RabbitMQ, Aula 04)</th><th>Log (Apache Kafka)</th></tr></thead>
+          <tbody>
+            <tr><td>Depois da leitura</td><td>a mensagem confirmada é removida</td><td>o registro fica até a retenção vencer</td></tr>
+            <tr><td>Quem guarda a posição</td><td>o broker, por fila</td><td>cada grupo de consumidores, pelo offset</td></tr>
+            <tr><td>Vários leitores do mesmo dado</td><td>uma fila por leitor, via exchange</td><td>vários grupos sobre o mesmo tópico</td></tr>
+            <tr><td>Reprocessar o passado</td><td>não, salvo se outra peça guardou</td><td>sim, voltando o offset</td></tr>
+            <tr><td>Ordem</td><td>por fila</td><td>por partição</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">A arquitetura desta aula tem três leitores do mesmo fluxo (CEP, InfluxDB e object storage), e por isso o log é a peça central.</div>
+      </div>
+    </div>
+
+    <!-- 19. Bloco 3: tecnologias -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Panorama</span>
+          <h2 class="deck-title">Tecnologias que gerenciam eventos</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Papel</th><th>Tecnologias</th><th>Quando entra</th></tr></thead>
+          <tbody>
+            <tr><td>Fila de mensagens</td><td>RabbitMQ</td><td>distribuir trabalho e rotear por tipo</td></tr>
+            <tr><td>Log distribuído</td><td>Apache Kafka, Redpanda, Apache Pulsar</td><td>vários leitores, retenção e reprocessamento</td></tr>
+            <tr><td>Log gerenciado em nuvem</td><td>Amazon Kinesis, Google Pub/Sub, Azure Event Hubs</td><td>mesmo papel, sem operar o cluster</td></tr>
+            <tr><td>Processamento e CEP</td><td>Apache Flink (FlinkCEP), Kafka Streams, ksqlDB, Esper</td><td>janelas, estado e padrões sobre o fluxo</td></tr>
+            <tr><td>Conectores</td><td>Kafka Connect</td><td>levar o tópico a um banco ou a um bucket</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 20. Bloco 3: Kafka por dentro -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Kafka por dentro</span>
+          <h2 class="deck-title">Tópico, partição, offset e chave</h2>
+          <p class="deck-summary">O tópico <code>tatame.eventos</code> é dividido em partições. Cada partição é um log ordenado, e cada registro recebe um número sequencial, o offset.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>A chave escolhe a partição</strong>
+            <ul>
+              <li>partição = hash(chave) mod número de partições</li>
+              <li>chave <code>academia</code>: os eventos de uma academia ficam em ordem</li>
+              <li>entre partições não há ordem garantida</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>A retenção apaga o começo</strong>
+            <ul>
+              <li>por tempo ou por tamanho, independente de leitura</li>
+              <li>consumidor parado além da retenção perde registros</li>
+              <li>mais partições dão mais paralelismo e menos ordem global</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 21. Bloco 3: grupos e lag -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Consumo</span>
+          <h2 class="deck-title">Grupos de consumidores e lag</h2>
+          <p class="deck-summary">Cada grupo lê o tópico inteiro no próprio ritmo e confirma o offset até onde chegou. A distância entre esse offset e o fim do log é o lag.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>cep</h3><p>Aplica as regras e emite os eventos complexos.</p></article>
+          <article class="deck-card"><h3>sink-influxdb</h3><p>Grava os pontos que alimentam o painel tático.</p></article>
+          <article class="deck-card"><h3>sink-lake</h3><p>Fecha lotes e grava objetos no bucket bruto.</p></article>
+        </div>
+        <div class="deck-note">Um grupo parado não atrasa os outros. O lag é a métrica que mostra, por destino, quanto do presente ainda não foi processado.</div>
+      </div>
+    </div>
+
+    <!-- 22. Bloco 3: replicação -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Durabilidade</span>
+          <h2 class="deck-title">Replicação e confirmação de escrita</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Configuração</th><th>O que define</th><th>Valor na rede</th></tr></thead>
+          <tbody>
+            <tr><td>Fator de replicação</td><td>cópias de cada partição em brokers diferentes</td><td>3</td></tr>
+            <tr><td>Réplicas em sincronia (ISR)</td><td>cópias que acompanham o líder</td><td>monitoradas</td></tr>
+            <tr><td><code>acks=all</code></td><td>o produtor só recebe confirmação quando as réplicas em sincronia gravaram</td><td>ligado</td></tr>
+            <tr><td><code>min.insync.replicas</code></td><td>mínimo de cópias para aceitar a escrita</td><td>2</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Com 3 cópias e mínimo de 2, o cluster perde um broker sem perder escrita confirmada. Isso protege contra a queda de um broker, e não contra a queda do cluster regional inteiro. O Kafka atual coordena os brokers em modo KRaft, sem ZooKeeper.</div>
+      </div>
+    </div>
+
+    <!-- 23. Bloco 3: exemplo numérico 3 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Exemplo numérico 3</span>
+          <h2 class="deck-title">Duas horas sem o cluster eu-estocolmo</h2>
+          <p class="deck-summary">As 48 academias da região continuam funcionando e guardam os eventos num outbox local. Hipótese: no retorno, o reenvio corre a 200 eventos por segundo.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida</th><th>Conta</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Taxa média da região</td><td>(72.000 + 276.480) &divide; 86.400 s</td><td>4,03 eventos por segundo</td></tr>
+            <tr><td>Eventos retidos em 2 horas</td><td>4,03 &times; 7.200 s</td><td>29.040</td></tr>
+            <tr><td>Tempo para escoar</td><td>29.040 &divide; (200 &minus; 4,03)</td><td>148 s</td></tr>
+            <tr><td>Kafka com 7 dias de retenção, 3 cópias</td><td>402 MB &times; 7 &times; 3</td><td>8,4 GB</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Os 29.040 eventos chegam com <code>ocorrido_em</code> de até duas horas atrás. O que cada destino faz com eles depende da escolha entre tempo do evento e tempo de chegada.</div>
+      </div>
+    </div>
+
+    <!-- 24. Bloco 3: pausa -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">O que cada peça faz quando a Suécia cai?</h2>
+          <p class="deck-summary">Três minutos em grupo, antes de ver a resposta no simulador.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>O painel tático mostra zero check-ins em Estocolmo. Como distinguir academia vazia de cluster fora do ar?</li>
+          <li>Qual regra de CEP deveria disparar, e contra qual relógio ela mede a ausência?</li>
+          <li>No retorno, os eventos atrasados entram na partição de data de hoje ou na de duas horas atrás?</li>
+          <li>O outbox da academia tem limite. O que se perde primeiro se a falha durar dois dias?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 25. Bloco 3: pontos-chave -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 3</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>A fila remove o que foi lido; o log retém e deixa cada grupo ler no próprio ritmo.</li>
+          <li>A chave define a partição e a ordem; a academia é a chave da rede.</li>
+          <li>O lag mede, por grupo, o que ainda não foi processado.</li>
+          <li>Replicação protege contra a perda de um broker; a queda da região exige outbox na origem.</li>
+          <li>Duas horas sem <code>eu-estocolmo</code> retêm 29.040 eventos, escoados em 148 s nas hipóteses da aula.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 26. Arquitetura -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Arquitetura de coleta</span>
+          <h2 class="deck-title">Do evento aos dois destinos</h2>
+        </div>
+        <div class="method-flow">
+          <div class="method-step"><strong>Evento</strong><span>Aplicativo, catraca e gestão. Anonimizado na academia.</span></div>
+          <div class="method-step"><strong>Kafka</strong><span>Tópico <code>tatame.eventos</code>, um cluster por região.</span></div>
+          <div class="method-step"><strong>CEP</strong><span>Quatro regras sobre o fluxo, com alertas.</span></div>
+          <div class="method-step is-current"><strong>InfluxDB</strong><span>Destino tático: o painel de hoje.</span></div>
+          <div class="method-step is-current"><strong>Object storage</strong><span>Destino analítico: tudo em bruto, e daí ao Elasticsearch.</span></div>
+        </div>
+        <div class="deck-note">Os três grupos de consumidores leem o mesmo tópico. O Elasticsearch é alimentado pelo bucket, e não direto pelo Kafka, para que o índice possa ser refeito a partir do dado bruto.</div>
+      </div>
+    </div>
+
+    <!-- 27. Tático e analítico -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Arquitetura de coleta &middot; Dois destinos</span>
+          <h2 class="deck-title">Tático e analítico respondem a perguntas diferentes</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Aspecto</th><th>InfluxDB (tático)</th><th>Object storage e Elasticsearch (analítico)</th></tr></thead>
+          <tbody>
+            <tr><td>Pergunta típica</td><td>quantos check-ins por minuto agora?</td><td>por que os alunos cancelaram no último ano?</td></tr>
+            <tr><td>Atraso aceito</td><td>segundos</td><td>minutos a horas</td></tr>
+            <tr><td>Retenção</td><td>30 dias, depois só o resumo</td><td>mais de um ano, com camadas por idade</td></tr>
+            <tr><td>Forma do dado</td><td>séries numéricas por tag</td><td>documento inteiro, com texto livre</td></tr>
+            <tr><td>Custo que domina</td><td>número de séries</td><td>número de shards e de arquivos</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Um banco só para as duas perguntas paga o custo das duas: retenção longa de dado em alta resolução, ou busca de texto num motor de séries.</div>
+      </div>
+    </div>
+
+    <!-- 28. Simulador -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Simulador &middot; Como usar</span>
+          <h2 class="deck-title">Seis estações no navegador de cada aluno</h2>
+          <p class="deck-summary">O simulador roda uma amostra de um décimo da rede, com 24 academias e 3.600 alunos. Nada é instalado, e o estado fica em <code>localStorage</code>.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Abra o <a href="../simulador/simulador_aula_06.html">simulador da Aula 06</a> e clique em Iniciar.</li>
+          <li>A velocidade troca um segundo real por 1 minuto, 10 minutos ou 1 hora de simulação.</li>
+          <li>Cada aba é uma estação. Recarregar a página mantém a simulação; Reiniciar apaga tudo.</li>
+          <li>Em cada estação: o conceito, o prompt CREATE que construiria a peça e a missão no simulador.</li>
+        </ol>
+        <div class="deck-note">Os prompts estão completos no material. Em sala eles são lidos e discutidos; a execução com o agente de código de preferência fica para a semana.</div>
+      </div>
+    </div>
+
+    <!-- 29. Estação 1 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 1 &middot; 10h10</span>
+          <h2 class="deck-title">Evento e anonimização na borda</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Conceito</h3><p>O evento nasce na academia com o nome do aluno. Na saída, o nome vira um hash com chave da academia, e a rede recebe só o hash.</p></article>
+          <article class="deck-card"><h3>Prompt 1</h3><p>Gerador de eventos com o contrato do evento, os onze tipos e a anonimização por HMAC antes do envio.</p></article>
+          <article class="deck-card"><h3>Missão 1</h3><p>Registrar um check-in, localizar o <code>event_id</code> no Kafka e conferir que outro evento da mesma academia cai na mesma partição.</p></article>
+        </div>
+        <div class="deck-note">Pergunta do grupo: por que a academia é a chave, e o que se perderia com uma chave aleatória?</div>
+      </div>
+    </div>
+
+    <!-- 30. Estação 2 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 2 &middot; 10h25</span>
+          <h2 class="deck-title">Kafka: partições, grupos e lag</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Conceito</h3><p>Seis partições, três grupos de consumidores e retenção limitada. O lag de um grupo cresce sem atrasar os outros.</p></article>
+          <article class="deck-card"><h3>Prompt 2</h3><p>Kafka em modo KRaft com docker compose, o tópico <code>tatame.eventos</code>, produtor com chave por academia e consumidor de verificação.</p></article>
+          <article class="deck-card"><h3>Missões 2 e 3</h3><p>Pausar <code>sink-influxdb</code> por 30 minutos e medir a drenagem. Derrubar <code>eu-estocolmo</code> por 2 horas e acompanhar o outbox.</p></article>
+        </div>
+        <div class="deck-note">Conta de referência da missão 2: lag &divide; (capacidade &minus; chegada). No simulador, o grupo lê 600 eventos por minuto e a amostra produz perto de 120.</div>
+      </div>
+    </div>
+
+    <!-- 31. Estação 3 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 3 &middot; 10h45</span>
+          <h2 class="deck-title">CEP: quatro regras sobre o fluxo</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Conceito</h3><p>Cada regra tem chave, janela e estado. O evento complexo mostra os eventos simples que o formaram, e a ausência é medida contra a marca d'água.</p></article>
+          <article class="deck-card"><h3>Prompt 3</h3><p>Consumidor CEP com as quatro regras, estado por chave, tratamento de evento atrasado e testes para cada padrão.</p></article>
+          <article class="deck-card"><h3>Missão 4</h3><p>Registrar duas <code>cobranca_falhou</code> para o mesmo aluno, abrir o evento complexo e repetir com outra janela.</p></article>
+        </div>
+        <div class="deck-note">Durante a falha da missão 3, a regra <code>academia_silenciosa</code> dispara para as academias de Estocolmo e se resolve quando o heartbeat volta.</div>
+      </div>
+    </div>
+
+    <!-- 32. Estação 4: conceito -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 4 &middot; 11h05 &middot; Conceito</span>
+          <h2 class="deck-title">Séries temporais: measurement, tags e fields</h2>
+          <p class="deck-summary">No InfluxDB, cada ponto tem um measurement, tags indexadas, fields com os valores e um timestamp. Cada combinação distinta de measurement e tags é uma série.</p>
+        </div>
+        <pre class="is-compact" style="flex-shrink:0"><code>eventos,regiao=eu-estocolmo,academia=SE-STO-014,tipo=checkin contagem=1i 1794654127412000000
+^        ^ tags (indexadas, baixa cardinalidade)               ^ field       ^ timestamp em ns
+measurement</code></pre>
+        <div class="deck-note">O formato acima é o line protocol. Tag serve para filtrar e agrupar; field guarda o valor medido e não é indexado. O identificador do aluno, se for necessário, vai como field.</div>
+      </div>
+    </div>
+
+    <!-- 33. Estação 4: exemplo numérico 4 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 4 &middot; Exemplo numérico 4</span>
+          <h2 class="deck-title">Séries com e sem o aluno como tag</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Esquema de tags</th><th>Conta</th><th>Séries</th></tr></thead>
+          <tbody>
+            <tr><td><code>regiao</code>, <code>academia</code>, <code>tipo</code></td><td>240 academias &times; 11 tipos</td><td>2.640</td></tr>
+            <tr><td>mais <code>aluno</code>, nos 10 tipos de aluno</td><td>36.000 &times; 10</td><td>até 360.000</td></tr>
+            <tr><td>Diferença</td><td>360.000 &divide; 2.640</td><td>136 vezes</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-callout">
+          <strong>Por que isso pesa</strong>
+          <p style="margin:8px 0 0;">Nas versões 1 e 2 do InfluxDB, o índice de séries fica em memória e cresce com a cardinalidade. A versão 3 trocou o motor de armazenamento e trata o problema de outra forma, mas o desenho de tags continua decidindo o custo das consultas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 34. Estação 4: simulação -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 4 &middot; Simulação</span>
+          <h2 class="deck-title">InfluxDB e o painel tático</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>O que o painel mostra</h3><p>Eventos de aluno por minuto em cada região, dispositivos vivos e os últimos pontos em line protocol.</p></article>
+          <article class="deck-card"><h3>Prompt 4</h3><p>Sink do Kafka para o InfluxDB com o esquema de tags e fields, o bucket <code>tatico</code> de 30 dias e as consultas do painel.</p></article>
+          <article class="deck-card"><h3>Missão 5</h3><p>Ligar "Usar aluno como tag", comparar as séries ativas e desligar. As séries criadas continuam até a retenção vencer.</p></article>
+        </div>
+        <div class="deck-note">Com a janela de 3 horas, o buraco da missão 3 aparece no painel e é preenchido em cinza quando os eventos atrasados chegam.</div>
+      </div>
+    </div>
+
+    <!-- 35. Estação 5: conceito -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 5 &middot; 11h25 &middot; Conceito</span>
+          <h2 class="deck-title">Camada bruta particionada no bucket</h2>
+        </div>
+        <pre class="is-compact" style="flex-shrink:0"><code>tatame-bruto/regiao=eu-estocolmo/data=2026-11-14/hora=11/lote-000123.jsonl.gz</code></pre>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Intervalo do lote</strong>
+            <ul>
+              <li>lote curto: dado chega cedo, em muitos arquivos pequenos</li>
+              <li>lote longo: poucos arquivos, dado demora a aparecer</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Data da partição</strong>
+            <ul>
+              <li>data do evento: reprocessar um dia lê uma pasta</li>
+              <li>data de chegada: o evento atrasado não reabre partição antiga</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 36. Estação 5: exemplo numérico 5 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 5 &middot; Exemplo numérico 5</span>
+          <h2 class="deck-title">Um ano de eventos e o número de objetos</h2>
+          <p class="deck-summary">Compressão medida com gzip nível 6 num lote JSONL de 100.000 eventos: 23,15 MB viram 3,83 MB, 6,1 vezes menos.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida</th><th>JSON</th><th>JSONL.gz</th></tr></thead>
+          <tbody>
+            <tr><td>Um dia</td><td>402 MB</td><td>66 MB</td></tr>
+            <tr><td>Um ano</td><td>146,6 GB</td><td>24,2 GB</td></tr>
+            <tr><td>Objetos por dia, lote de 1 minuto, 4 regiões</td><td colspan="2">5.760</td></tr>
+            <tr><td>Objetos por dia, lote de 60 minutos, 4 regiões</td><td colspan="2">96</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Prompt 5: sink para o object storage das aulas anteriores, em JSONL.gz particionado. Missão 6: comparar lote de 1 e de 60 minutos e alternar a data da partição com os eventos atrasados.</div>
+      </div>
+    </div>
+
+    <!-- 37. Estação 6: conceito -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Estação 6 &middot; 11h40 &middot; Conceito</span>
+          <h2 class="deck-title">Elasticsearch: índice invertido e shards</h2>
+          <p class="deck-summary">Cada evento vira um documento JSON. O índice invertido guarda, para cada termo, a lista de documentos em que ele aparece, e por isso a busca por texto não percorre os documentos um a um.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>De onde vem a elasticidade</strong>
+            <ul>
+              <li>o índice é dividido em shards primários, com réplicas</li>
+              <li>os shards se distribuem pelos nós do cluster</li>
+              <li>mais nós recebem shards e dividem a carga</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Índices por período</strong>
+            <ul>
+              <li><code>tatame-eventos-2026.11</code>, um por mês</li>
+              <li>ciclo de vida por idade: hot, warm, cold, frozen</li>
+              <li>o relatório de 13 meses consulta os 13 índices</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 38. Estação 6: BM25 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 6 &middot; Relevância</span>
+          <h2 class="deck-title">Relevância por BM25 na busca de motivos</h2>
+          <p class="deck-summary">O BM25 pontua cada documento pela raridade do termo na coleção, pela frequência do termo no documento e pelo comprimento do documento. É uma função estatística de ordenação, com <code>k1 = 1,2</code> e <code>b = 0,75</code> por padrão.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Motivo de cancelamento (consulta: "preço")</th><th>Termos</th><th>BM25</th></tr></thead>
+          <tbody>
+            <tr><td>achou o preço da mensalidade alto depois do reajuste</td><td>9</td><td>0,952</td></tr>
+            <tr><td>preço alto e pouca turma no horário da noite</td><td>9</td><td>0,952</td></tr>
+            <tr><td>os outros quatro motivos da amostra</td><td>5 a 9</td><td>0</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Calculado sobre seis motivos, com comprimento médio de 7,5 termos. No simulador, um motivo de uma palavra só, "preço", pontua acima dos dois, porque o documento curto concentra o termo.</div>
+      </div>
+    </div>
+
+    <!-- 39. Estação 6: HyperLogLog -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 6 &middot; Exemplo numérico 6</span>
+          <h2 class="deck-title">Alunos únicos estimados com HyperLogLog</h2>
+          <p class="deck-summary">Contar valores distintos em vários shards exige juntar todos os identificadores. A agregação <code>cardinality</code> usa HyperLogLog++ e troca exatidão por memória fixa. Medição sobre os 36.000 alunos.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Precisão p</th><th>Registradores</th><th>Memória</th><th>Estimativa</th><th>Erro medido</th><th>Erro padrão teórico</th></tr></thead>
+          <tbody>
+            <tr><td>8</td><td>256</td><td>0,19 KB</td><td>34.184</td><td>&minus;5,05%</td><td>6,50%</td></tr>
+            <tr><td>10</td><td>1.024</td><td>0,75 KB</td><td>35.342</td><td>&minus;1,83%</td><td>3,25%</td></tr>
+            <tr><td>12</td><td>4.096</td><td>3 KB</td><td>35.287</td><td>&minus;1,98%</td><td>1,62%</td></tr>
+            <tr><td>14</td><td>16.384</td><td>12 KB</td><td>35.896</td><td>&minus;0,29%</td><td>0,81%</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">A contagem exata guarda 562 KB só de chaves. O erro padrão é 1,04 &divide; &radic;m e descreve a dispersão esperada: nesta amostra, p=12 errou mais que p=10. Percentis seguem a mesma ideia, com t-digest.</div>
+      </div>
+    </div>
+
+    <!-- 40. Estação 6: IA e simulação -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 6 &middot; Simulação</span>
+          <h2 class="deck-title">Do índice ao contexto entregue à IA</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Contexto para a IA</h3><p>Para cada pergunta, o simulador recupera documentos por BM25, junta as agregações e monta o texto que iria ao modelo. Nenhum modelo é chamado.</p></article>
+          <article class="deck-card"><h3>Prompt 6</h3><p>Indexador do bucket para o Elasticsearch, com mapping, consultas BM25, agregação <code>cardinality</code> e a montagem do contexto.</p></article>
+          <article class="deck-card"><h3>Missão 7</h3><p>Carregar o histórico, buscar "preço", comparar p=8 e p=14 com a contagem exata e pedir 13 meses ao InfluxDB e ao Elasticsearch.</p></article>
+        </div>
+        <div class="deck-note">A busca vetorial, com campos <code>dense_vector</code> e kNN, estende a recuperação para perguntas em que as palavras do aluno e as da pergunta não coincidem.</div>
+      </div>
+    </div>
+
+    <!-- 41. Prompts -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Seis prompts CREATE</span>
+          <h2 class="deck-title">O que cada prompt constrói na versão real</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Prompt</th><th>Peça</th><th>Gate de verificação</th></tr></thead>
+          <tbody>
+            <tr><td>1 &middot; Evento</td><td>gerador com contrato e anonimização</td><td>nenhum nome de aluno no evento que sai</td></tr>
+            <tr><td>2 &middot; Kafka</td><td>cluster KRaft, tópico e produtor com chave</td><td>mesma academia, mesma partição</td></tr>
+            <tr><td>3 &middot; CEP</td><td>consumidor com as quatro regras</td><td>um teste por padrão, inclusive com evento atrasado</td></tr>
+            <tr><td>4 &middot; InfluxDB</td><td>sink, bucket e consultas do painel</td><td>contagem de séries dentro do previsto</td></tr>
+            <tr><td>5 &middot; Object storage</td><td>sink em JSONL.gz particionado</td><td>chave no padrão e lote reprocessável</td></tr>
+            <tr><td>6 &middot; Elasticsearch</td><td>indexador, mapping e consultas</td><td>busca, <code>cardinality</code> e contexto montado</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Todos em CREATE, com tag de imagem fixada e registrada em ADR, sem segredo no Git e com número não medido marcado como hipótese. O destino é a pasta <code>aula_06_eventos/</code> do repositório do grupo.</div>
+      </div>
+    </div>
+
+    <!-- 42. Missões -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Atividade em sala</span>
+          <h2 class="deck-title">Sete missões no simulador</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Missão</th><th>Estação</th><th>O que o grupo mede</th></tr></thead>
+          <tbody>
+            <tr><td>1 &middot; Chave e partição</td><td>Evento e Kafka</td><td>partição e offset de dois eventos da mesma academia</td></tr>
+            <tr><td>2 &middot; Lag</td><td>Kafka</td><td>lag após 30 minutos e tempo de drenagem</td></tr>
+            <tr><td>3 &middot; Falha regional</td><td>Rede, CEP e InfluxDB</td><td>outbox, alerta, buraco no painel e eventos atrasados</td></tr>
+            <tr><td>4 &middot; Sequência</td><td>Evento e CEP</td><td>evento complexo com os dois eventos simples</td></tr>
+            <tr><td>5 &middot; Cardinalidade</td><td>InfluxDB</td><td>séries antes e depois da tag <code>aluno</code></td></tr>
+            <tr><td>6 &middot; Lote e partição</td><td>Object storage</td><td>objetos por dia e atraso com 1 e com 60 minutos</td></tr>
+            <tr><td>7 &middot; Busca e estimativa</td><td>Elasticsearch e InfluxDB</td><td>BM25, HyperLogLog e a consulta de 13 meses</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 43. Entregável -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; 12h00</span>
+          <h2 class="deck-title">Entregável e o que fica para a semana</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Em sala, até 12h10</h3><p>As sete missões com a resposta do grupo, exportadas pelo botão "Exportar evidência" para <code>aula_06_eventos/evidencia_simulador.md</code>.</p></article>
+          <article class="deck-card"><h3>Na semana, opção A</h3><p>Executar os prompts 1 a 6 com o agente de código de preferência e subir a versão real em <code>aula_06_eventos/</code>.</p></article>
+          <article class="deck-card"><h3>Na semana, opção B</h3><p>Fazer o <a href="../laboratorio/roteiro_streaming_iot.html">laboratório opcional</a> de streaming IoT com RabbitMQ e ClickHouse, base do laboratório opcional da Aula 07.</p></article>
+        </div>
+        <div class="deck-note">Aula 07, em 28/11/2026: streaming com ClickHouse para IA e testes integrados. Não há aula em 21/11.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html" class="material-link">Material</a>
+      <a href="../simulador/simulador_aula_06.html" class="material-link">Simulador</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[index].classList.add("active");
+      currentSlide = index;
+      document.getElementById("current-slide").textContent = currentSlide + 1;
+      document.getElementById("prev-btn").disabled = currentSlide === 0;
+      document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft") previousSlide();
+      if (event.key.toLowerCase() === "f") toggleFullScreen();
+    });
+
+    showSlide(0);
+  </script>
+</body>
+</html>

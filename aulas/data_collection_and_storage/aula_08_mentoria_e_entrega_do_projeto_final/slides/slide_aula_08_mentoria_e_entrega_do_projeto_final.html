@@ -12,25 +12,11 @@
 
     <!-- SLIDE 1 - CAPA -->
     <div class="slide">
-      <div class="deck-shell" data-aula-number="08" data-year="2026">
+      <div class="deck-shell is-dense" data-aula-number="08" data-year="2026">
         <div>
-          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
-          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
-          <h1 class="deck-title">Mentoria e Entrega do Projeto Final</h1>
-          <p class="deck-meta">Aula 08 &nbsp;&bull;&nbsp; 05/12/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
-          <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Atendimento individual sobre o pipeline de cartas Pokémon e entrega até 12/12/2026, 23h59.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 2 - AGENDA -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Agenda &middot; Mentoria</span>
-          <h2 class="deck-title">Como a manhã está organizada</h2>
-          <p class="deck-summary">Sem teoria e sem conteúdo novo. O professor atende cada aluno em rodízio; quem não está sendo atendido trabalha no próprio repositório.</p>
+          <span class="deck-kicker">Data Collection and Storage &middot; Aula 08 &middot; 05/12/2026 &middot; 8h30 &ndash; 12h10</span>
+          <h1 class="deck-title">Acompanhamento do Projeto Final</h1>
+          <p class="deck-summary">Sem teoria e sem conteúdo novo. O professor atende cada aluno em rodízio, e quem não está sendo atendido trabalha no próprio repositório. Entrega até 12/12/2026, 23h59.</p>
         </div>
         <table class="deck-table">
           <thead><tr><th>Horário</th><th>Bloco</th><th>O que sai do bloco</th></tr></thead>
@@ -42,98 +28,7 @@
             <tr><td>11h40 &ndash; 12h10</td><td>Fechamento: autoauditoria e commit</td><td>plano até 12/12 versionado</td></tr>
           </tbody>
         </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 3 - O PROJETO -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Projeto final &middot; Piso comum</span>
-          <h2 class="deck-title">O que precisa estar funcionando</h2>
-          <p class="deck-summary">Uma coleção Pokémon por aluno, coletada todos os dias no data lake da turma e lida por um dashboard que usa os dados de todos.</p>
-        </div>
-        <table class="deck-table">
-          <thead><tr><th>Bloco</th><th>Exigência</th></tr></thead>
-          <tbody>
-            <tr><td>Coleta</td><td>job diário de produtos e preços do TCGplayer, com retry</td></tr>
-            <tr><td>Bruto</td><td><code>tcg/raw/</code> sem sobrescrita, com teste que prova a recusa</td></tr>
-            <tr><td>Silver</td><td>contrato comum da turma, Pydantic e quarentena</td></tr>
-            <tr><td>Câmbio</td><td>PTAX e CDI diários, conversão sem cotação do futuro</td></tr>
-            <tr><td>Gold</td><td>esquema estrela no DuckDB sobre todas as coleções</td></tr>
-            <tr><td>Dashboard</td><td>cinco perguntas em reais e desafio da carteira</td></tr>
-            <tr><td>Testes e SDD</td><td>unidade, VCR, Testcontainers, artefatos e matriz</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- SLIDE 4 - ATENDIMENTO -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Atendimento &middot; Três pedidos para todos</span>
-          <h2 class="deck-title">O que o professor vai pedir</h2>
-          <p class="deck-summary">Nada de apresentação: o aluno abre os arquivos, o dashboard e o terminal.</p>
-        </div>
-        <div class="quality-gates">
-          <div class="quality-gate"><strong>1 &middot; Descer até a origem</strong><span>de um painel do dashboard até a consulta gold, a linha do fato e a chave no bruto</span></div>
-          <div class="quality-gate"><strong>2 &middot; Rastrear uma decisão</strong><span>do requisito ao ADR, ao componente e ao teste</span></div>
-          <div class="quality-gate"><strong>3 &middot; Rodar de novo</strong><span>coleta do dia sem duplicar a série e <code>pytest</code> passando</span></div>
-        </div>
-        <p class="deck-note">Chegue com o checklist da seção 9 do material conferido.</p>
-      </div>
-    </div>
-
-    <!-- SLIDE 5 - AVALIAÇÃO -->
-    <div class="slide">
-      <div class="deck-shell is-dense">
-        <div>
-          <span class="deck-kicker">Avaliação &middot; Pesos e limitadores</span>
-          <h2 class="deck-title">Composição da nota</h2>
-        </div>
-        <div class="deck-columns">
-          <div class="deck-panel">
-            <strong>Pesos</strong>
-            <ul>
-              <li>Coleta e bruto: 20%</li>
-              <li>Lakehouse e modelagem: 20%</li>
-              <li>Dashboard, perguntas e desafio: 20%</li>
-              <li>Artefatos SDD e ATAM: 15%</li>
-              <li>Testes e rastreabilidade: 15%</li>
-              <li>Operação, README e prompts: 10%</li>
-            </ul>
-          </div>
-          <div class="deck-panel">
-            <strong>Limitadores</strong>
-            <ul>
-              <li>pipeline não roda pelo README</li>
-              <li>segredo em qualquer commit</li>
-              <li>silver fora do contrato comum</li>
-              <li>dado inventado ou prefixo alheio</li>
-              <li>código sem especificação prévia</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SLIDE 6 - COMO ENTREGAR -->
-    <div class="slide">
-      <div class="deck-shell">
-        <div>
-          <span class="deck-kicker">Entrega &middot; 12/12/2026, 23h59</span>
-          <h2 class="deck-title">Como entregar</h2>
-          <p class="deck-summary">Vale o último commit do <code>main</code> até o prazo, no repositório informado no formulário.</p>
-        </div>
-        <ol class="deck-steps">
-          <li>Pendências fechadas ou declaradas na matriz como <code>parcial</code></li>
-          <li>Autoauditoria sem limitador e busca de segredos limpa</li>
-          <li>Cópia local do prefixo da sua coleção, fora do repositório</li>
-          <li>Clone limpo seguindo o README até o dashboard</li>
-          <li>Formulário com nome completo e repositório público</li>
-        </ol>
-        <p class="deck-note"><a href="../entrega/entrega_projeto_final.html">Abrir o formulário de entrega</a></p>
+        <div class="deck-note">No atendimento, o aluno abre os arquivos, o dashboard e o terminal. O checklist, os critérios de avaliação e as instruções de entrega estão no <a href="../material/material_aula_08_mentoria_e_entrega_do_projeto_final.html">material</a> e no <a href="../entrega/entrega_projeto_final.html">formulário de entrega</a>.</div>
       </div>
     </div>
 

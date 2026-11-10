@@ -1,11 +1,12 @@
-# Aula 07 · Laboratório de validação com Pydantic e testes integrados
+# Aula 07 · Laboratório opcional de Pydantic, VCR e Testcontainers
 
 Data Collection and Storage · MBA Engenharia de Dados · 28/11/2026 · 8h30 – 12h10
 
-Material completo: `../material/material_aula_07_validacao_com_pydantic_e_testes_integrados.html`
-Slides: `../slides/slide_aula_07_validacao_com_pydantic_e_testes_integrados.html`
+Laboratório opcional para a semana depois da aula de 28/11/2026. Em sala, a Aula 07 usa o simulador de `../simulador/simulador_aula_07.html`.
 
-Este roteiro resume a prática. Os prompts CREATE completos, os quadros "Revise antes de seguir" e as explicações estão no material (seções 11 a 15).
+Roteiro completo: `roteiro_pydantic_e_testes.html`
+
+Este roteiro resume a prática. Os prompts CREATE completos, os quadros "Revise antes de seguir" e as explicações estão no roteiro (seções 11 a 15).
 
 ## O que fica nesta pasta
 
@@ -33,14 +34,14 @@ docker version --format '{{.Server.Version}}'
 docker run --rm hello-world
 ```
 
-Se o segundo comando falhar, os testes de integração serão pulados. Resolva antes de seguir (seção 9.5 do material).
+Se o segundo comando falhar, os testes de integração serão pulados. Resolva antes de seguir (seção 9.5 do roteiro).
 
 ## Passo 1 · Criar a pasta da aula no repositório do grupo
 
 ```bash
 cd /workspaces/<repositorio-do-grupo>
 mkdir -p aula_07_validacao_testes/{docs/adr,docs/contratos,specs,src,tests/unit,tests/contract,tests/integration}
-LAB=<caminho>/aulas_mackenzie/aulas/data_collection_and_storage/aula_07_validacao_com_pydantic_e_testes_integrados/laboratorio
+LAB=<caminho>/aulas_mackenzie/aulas/data_collection_and_storage/aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados/laboratorio
 cp $LAB/requirements-dev.txt $LAB/AGENTS.md aula_07_validacao_testes/
 cd aula_07_validacao_testes
 python3 -m venv .venv
@@ -50,7 +51,7 @@ python -m pip install -r requirements-dev.txt
 python -c "import pydantic, testcontainers, vcr; print(pydantic.VERSION)"
 ```
 
-Se o repositório `aulas_mackenzie` não estiver clonado no Codespace, baixe o arquivo pela interface do GitHub ou copie o conteúdo da tabela de dependências da seção 11 do material.
+Se o repositório `aulas_mackenzie` não estiver clonado no Codespace, baixe o arquivo pela interface do GitHub ou copie o conteúdo da tabela de dependências da seção 11 do roteiro.
 
 Acrescente ao `.gitignore` do repositório: `.venv/`, `.env`, `.pytest_cache/`, `__pycache__/`.
 
@@ -65,7 +66,7 @@ pytest -q --durations=5         # inclui o MinIO em contêiner
 
 Resultado registrado pelo professor em 03/10/2026 (Python 3.12, Docker 29, imagem já baixada): 10 testes passaram em 1,86 s; a subida do MinIO consumiu 1,59 s; os 9 testes de unidade levaram 0,11 s. Sem Docker, o teste de integração aparece como `SKIPPED` com o motivo "Docker indisponível neste ambiente". No primeiro uso, o download da imagem soma tempo.
 
-## Passo 3 · Sequência SDD (prompts no material, seção 12)
+## Passo 3 · Sequência SDD (prompts no roteiro, seção 12)
 
 | Prompt | Artefato | Gate |
 |---|---|---|

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
-  <title>Material Aula 06 — Streaming com RabbitMQ e ClickHouse</title>
+  <title>Laboratório opcional da Aula 06 — Streaming IoT com RabbitMQ e ClickHouse</title>
   <link rel="stylesheet" href="../../../../assets/styles.css">
 </head>
 <body>
@@ -12,20 +12,27 @@
     <div class="material-nav">
       <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
       <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
-      <a href="../laboratorio/README.md">Roteiro do laboratório</a>
-      <a href="../tbl/tbl_aula_06.html">TBL da aula</a>
-      <a href="../slides/slide_aula_06_streaming_com_rabbitmq_e_clickhouse.html">Ver Slide &rarr;</a>
+      <a href="README.md">Comandos do laboratório</a>
+      <a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">Material da Aula 06</a>
+      <a href="../slides/slide_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">Ver Slide &rarr;</a>
     </div>
 
     <header class="hero">
       <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
-      <h1>Aula 06 — Streaming com RabbitMQ e ClickHouse</h1>
-      <p class="meta">Aula 06 &middot; 14/11/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <h1>Laboratório opcional da Aula 06 — Streaming IoT com RabbitMQ e ClickHouse</h1>
+      <p class="meta">Laboratório opcional &middot; para a semana de 14/11 a 28/11/2026</p>
       <p class="summary">As duas primeiras horas, em cinco blocos, comparam batch, micro-batch e streaming, abrem o RabbitMQ por dentro (exchanges, filas, confirmação, prefetch, dead letter), discutem garantias de entrega, ordem e backpressure, e explicam o ClickHouse (MergeTree, lotes, deduplicação, compressão, TTL), com números medidos na preparação da aula. O restante da aula constrói ao vivo, em Spec-Driven Development, um mini projeto IoT: sensores simulados publicam leituras no RabbitMQ, um transformador em Python valida e normaliza, um armazenador grava em lote no ClickHouse. O pipeline roda primeiro no Codespace, com docker compose, e depois no Railway.</p>
     </header>
 
     <article class="material">
+
+      <section class="content-block" id="aviso">
+        <div class="note">
+          <strong>Este roteiro é opcional e fica para a semana</strong>
+          <p>A Aula 06 de 14/11/2026 passou a tratar de eventos, CEP e coleta com Kafka, InfluxDB e Elasticsearch, com um simulador no navegador (veja o <a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">material da aula</a>). O conteúdo abaixo é o roteiro anterior, mantido como laboratório opcional: um pipeline de sensores IoT com RabbitMQ e ClickHouse, construído em SDD no Codespace e publicado no Railway. O laboratório opcional da Aula 07 usa esse pipeline como exemplo de contrato Pydantic. Os horários das agendas servem de referência de duração, e o TBL citado no texto original foi retirado.</p>
+        </div>
+      </section>
 
       <section class="content-block" id="sumario">
         <h2>Sumário</h2>
@@ -69,7 +76,7 @@
             <tr><td>9h45 &ndash; 10h00</td><td>Teoria 4</td><td>Backpressure e tempo de drenagem (seção 5).</td></tr>
             <tr><td>10h00 &ndash; 10h30</td><td>Teoria 5</td><td>ClickHouse: MergeTree, lote, deduplicação, compressão e TTL (seção 6).</td></tr>
             <tr><td>10h30 &ndash; 11h30</td><td>Prática em SDD</td><td>Ambiente, prompts 1 a 5 revisados e início do prompt 6, acompanhando a demonstração (seções 7 a 11).</td></tr>
-            <tr><td>11h30 &ndash; 12h00</td><td>TBL</td><td>Três decisões sobre o pipeline de streaming montado na demonstração (seção 16.1).</td></tr>
+                        <tr><td>depois</td><td>Decisões</td><td>Três decisões sobre o pipeline de streaming, discutidas em grupo (seção 16.1).</td></tr>
             <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>Conferência do que existe às 12h10 e do que fica para a semana (seção 16).</td></tr>
           </tbody>
         </table></div>
@@ -276,7 +283,7 @@
           <p>O cenário 2 do ATAM para o transformador e roda o simulador com <code>SENSORES=200</code> por um minuto: 200 &times; 60 = 12.000 mensagens acumuladas em <code>leituras.brutas</code>. Para estimar a drenagem, mediu-se um consumidor que faz o trabalho do transformador sem a validação completa: lê com prefetch 100, converte o JSON, republica em outra fila quorum com confirmação e dá ack. Foram quatro rodadas de 12.000 mensagens em duas execuções.</p>
           <p>Nas rodadas seguidas, a vazão ficou entre 150 e 169 mensagens por segundo, mediana de 160. A primeira rodada de cada execução chegou a 665 e 745. Com a mediana, e descontando as 12 mensagens por segundo que continuam chegando depois do pico, a fila drena em 12.000 &divide; (160 &minus; 12) &asymp; 81 segundos; com a vazão da primeira rodada, em cerca de 18 segundos.</p>
           <p>Duas conclusões a evidência autoriza. O gargalo do transformador é a confirmação de cada publicação, já medida no exemplo 2, e não a conversão do JSON. E a vazão variou até cinco vezes entre rodadas na mesma máquina, sem mudança de código; a causa provável é o estado interno da fila quorum e a carga da máquina, uma hipótese que esta medição não isola. Por isso o ATAM pede o tempo de drenagem medido no ambiente do grupo, e não calculado.</p>
-          <p>O mesmo raciocínio vale para o ClickHouse parado. Se ele ficar 20 minutos sem responder, a fila de válidas acumula 12 &times; 1.200 = 14.400 mensagens, e cada uma delas chega à consulta com pelo menos 20 minutos de atraso. Esse número é hipótese, coerente com a taxa da aula, e é o ponto de partida da questão 2 do TBL.</p>
+          <p>O mesmo raciocínio vale para o ClickHouse parado. Se ele ficar 20 minutos sem responder, a fila de válidas acumula 12 &times; 1.200 = 14.400 mensagens, e cada uma delas chega à consulta com pelo menos 20 minutos de atraso. Esse número é hipótese, coerente com a taxa da aula, e é o ponto de partida da decisão 2 da seção 16.1.</p>
         </div>
         <div class="note">
           <strong>Pausa para reflexão</strong>
@@ -345,7 +352,7 @@ client.insert("iot.leituras", linhas, column_names=COLUNAS,
         <h3>6.6 TTL</h3>
         <p>A cláusula <code>TTL toDateTime(medido_em) + INTERVAL 90 DAY</code> manda o servidor apagar as linhas com mais de 90 dias durante os merges. O prazo de 90 dias é uma hipótese didática, marcada como tal na DDL, até a persona dizer por quanto tempo o dado detalhado tem valor. Com partição mensal, partes inteiras expiram juntas, o que torna a remoção barata.</p>
         <h3>6.7 A DDL da aula</h3>
-        <p>O arquivo <a href="../laboratorio/sql/001_criar_tabelas.sql"><code>laboratorio/sql/001_criar_tabelas.sql</code></a> foi aplicado num ClickHouse <code>26.8.15.10</code> no preparo da aula:</p>
+        <p>O arquivo <a href="sql/001_criar_tabelas.sql"><code>laboratorio/sql/001_criar_tabelas.sql</code></a> foi aplicado num ClickHouse <code>26.8.15.10</code> no preparo da aula:</p>
         <pre><code>CREATE DATABASE IF NOT EXISTS iot;
 
 CREATE TABLE IF NOT EXISTS iot.leituras
@@ -462,13 +469,13 @@ SETTINGS non_replicated_deduplication_window = 1000;</code></pre>
       <!-- 8 -->
       <section class="content-block" id="s8">
         <h2>8. Preparação do ambiente local</h2>
-        <p>Os arquivos de apoio estão em <a href="../laboratorio/README.md"><code>laboratorio/</code></a>. O <code>docker-compose.yml</code> sobe <code>rabbitmq:4.3.6-management</code> e <code>clickhouse/clickhouse-server:26.8.15.10</code>, ambos com tag fixa, healthcheck e volume. A DDL é montada em <code>/docker-entrypoint-initdb.d</code> e roda sozinha na primeira subida do ClickHouse.</p>
+        <p>Os arquivos de apoio estão em <a href="README.md"><code>laboratorio/</code></a>. O <code>docker-compose.yml</code> sobe <code>rabbitmq:4.3.6-management</code> e <code>clickhouse/clickhouse-server:26.8.15.10</code>, ambos com tag fixa, healthcheck e volume. A DDL é montada em <code>/docker-entrypoint-initdb.d</code> e roda sozinha na primeira subida do ClickHouse.</p>
         <h3>8.1 Criar a pasta e baixar os arquivos</h3>
         <pre><code>cd /workspaces/&lt;repositorio-do-grupo&gt;
 mkdir -p aula_06_streaming_iot/{docs/adr,specs,src,tests,sql,scripts}
 cd aula_06_streaming_iot
 
-BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/data_collection_and_storage/aula_06_streaming_com_rabbitmq_e_clickhouse/laboratorio
+BASE=https://raw.githubusercontent.com/afonsolelis/aulas_mackenzie/main/aulas/data_collection_and_storage/aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/laboratorio
 for f in docker-compose.yml .env.example requirements.txt AGENTS.md .gitignore Dockerfile \
          consultas_analiticas.sql sql/001_criar_tabelas.sql scripts/aplicar_ddl.py; do
   curl -fsSL "$BASE/$f" -o "$f"
@@ -812,7 +819,7 @@ docker compose exec clickhouse clickhouse-client --user iot --password "$CLICKHO
   -q "SELECT count(), uniqExact(device_id), max(medido_em) FROM iot.leituras"
 docker compose exec -T clickhouse clickhouse-client --user iot --password "$CLICKHOUSE_PASSWORD" \
   --multiquery &lt; consultas_analiticas.sql</code></pre>
-        <p>O arquivo <a href="../laboratorio/consultas_analiticas.sql"><code>consultas_analiticas.sql</code></a> traz oito consultas, todas executadas no preparo da aula. As duas centrais para a persona são a média por janela e o último valor por sensor:</p>
+        <p>O arquivo <a href="consultas_analiticas.sql"><code>consultas_analiticas.sql</code></a> traz oito consultas, todas executadas no preparo da aula. As duas centrais para a persona são a média por janela e o último valor por sensor:</p>
         <pre><code>SELECT toStartOfInterval(medido_em, INTERVAL 5 MINUTE) AS janela, local,
        round(avg(temperatura_c), 2) AS temp_media_c,
        round(avg(umidade_pct), 1)   AS umid_media_pct,
@@ -1010,7 +1017,7 @@ Contagem física pode exceder a lógica até o merge. Consultas de média usam F
       <!-- 16 -->
       <section class="content-block" id="s16">
         <h2>16. Atividade em sala e entregável</h2>
-        <p>A atividade acontece no Codespace do repositório do grupo, com o agente de código e o Railway, no ritmo da demonstração do professor. O grupo reproduz cada etapa logo depois de vê-la projetada. Depois das duas horas de teoria, a prática vai das 10h30 às 12h10: uma hora de demonstração, 30 minutos de TBL sobre o pipeline que a demonstração montou (seção 16.1) e dez minutos para conferir o que existe e o que fica para a semana.</p>
+        <p>A atividade acontece no Codespace do repositório do grupo, com o agente de código e o Railway, no ritmo da demonstração do professor. O grupo reproduz cada etapa logo depois de vê-la projetada. Depois das duas horas de teoria, a prática vai das 10h30 às 12h10: uma hora de demonstração, 30 minutos de discussão das decisões sobre o pipeline que a demonstração montou (seção 16.1) e dez minutos para conferir o que existe e o que fica para a semana.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Horário</th><th>Etapa</th><th>Gate</th></tr></thead>
           <tbody>
@@ -1018,7 +1025,7 @@ Contagem física pode exceder a lógica até o merge. Consultas de média usam F
             <tr><td>10h30 &ndash; 10h45</td><td>pasta, arquivos de apoio, docker compose, ambiente Python</td><td>dois serviços <code>healthy</code>; tabelas no ClickHouse</td></tr>
             <tr><td>10h45 &ndash; 11h20</td><td>prompts 1 a 5</td><td>persona, objetivos, spec, plano e tarefas revisados</td></tr>
             <tr><td>11h20 &ndash; 11h30</td><td>prompt 6, primeiras funções puras</td><td>primeiro <code>pytest</code> passando</td></tr>
-            <tr><td>11h30 &ndash; 12h00</td><td>TBL sobre o pipeline de streaming</td><td>três decisões anotadas para os ADRs</td></tr>
+            <tr><td>depois</td><td>revisão das decisões do pipeline</td><td>três decisões anotadas para os ADRs</td></tr>
             <tr><td>12h00 &ndash; 12h10</td><td>fechamento</td><td>commit do que existe; lista do que fica para a semana</td></tr>
           </tbody>
         </table></div>
@@ -1027,10 +1034,10 @@ Contagem física pode exceder a lógica até o merge. Consultas de média usam F
           <tbody>
             <tr><td>Pasta <code>aula_06_streaming_iot/</code>, RabbitMQ e ClickHouse <code>healthy</code>, ambiente Python.</td><td>Prompt 6 completo: simulador, transformador e armazenador com testes, pipeline local gravando (seções 10 e 11).</td></tr>
             <tr><td>Prompts 1 a 5 executados, revisados e commitados; prompt 6 iniciado pelas funções puras.</td><td>Falhas provocadas (seção 12) e publicação no Railway (seção 13).</td></tr>
-            <tr><td>As três decisões do TBL anotadas, com a justificativa do grupo, para virar ADR.</td><td>Prompt 7 (ATAM) com as evidências coladas, e os ADRs que registram as decisões do TBL.</td></tr>
+            <tr><td>As três decisões da seção 16.1 anotadas, com a justificativa do grupo, para virar ADR.</td><td>Prompt 7 (ATAM) com as evidências coladas, e os ADRs que registram as decisões da seção 16.1.</td></tr>
           </tbody>
         </table></div>
-        <p>O que não terminar em sala é concluído pelo grupo, com o mesmo roteiro, antes da Aula 07. A Aula 07 escreve contratos Pydantic e testes integrados com Testcontainers para este pipeline, então o código precisa estar no repositório.</p>
+        <p>O que não terminar em sala é concluído pelo grupo, com o mesmo roteiro, antes da Aula 07. O laboratório opcional da Aula 07 escreve contratos Pydantic e testes integrados com Testcontainers para este pipeline, então o código precisa estar no repositório.</p>
         <div class="note">
           <strong>Entregável: pasta <code>aula_06_streaming_iot/</code> no repositório do grupo</strong>
           <ul>
@@ -1043,8 +1050,8 @@ Contagem física pode exceder a lógica até o merge. Consultas de média usam F
           </ul>
         </div>
         <p>Antes de encerrar, peça ao agente: <code>Revise specs/spec.md contra src/ e tests/. Liste requisitos sem teste e testes sem requisito, sem editar nada.</code> Corrija o que aparecer, rode os testes de novo e faça o commit da pasta.</p>
-        <h3>16.1 TBL: três decisões sobre o pipeline de streaming</h3>
-        <p>Às 11h30, depois da demonstração, a turma revisa o pipeline montado pela manhã num Team-Based Learning. O caso é o próprio projeto: doze sensores simulados, RabbitMQ com exchange topic, filas quorum e DLX, transformador, armazenador com lote por tempo, ClickHouse com token de deduplicação, ReplacingMergeTree e TTL, e cinco serviços no trial do Railway. São três questões, cada uma com quatro táticas de ganho e custo declarados, e nenhuma delas é a correta.</p>
+        <h3>16.1 Três decisões sobre o pipeline de streaming</h3>
+        <p>Com o pipeline montado, o grupo revisa três decisões. O caso é o próprio projeto: doze sensores simulados, RabbitMQ com exchange topic, filas quorum e DLX, transformador, armazenador com lote por tempo, ClickHouse com token de deduplicação, ReplacingMergeTree e TTL, e cinco serviços no trial do Railway. São três questões, cada uma com quatro táticas de ganho e custo declarados, e nenhuma delas é a correta.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Questão</th><th>O que se decide</th><th>Blocos que ela retoma</th></tr></thead>
           <tbody>
@@ -1054,8 +1061,7 @@ Contagem física pode exceder a lógica até o merge. Consultas de média usam F
           </tbody>
         </table></div>
         <ol class="steps">
-          <li>Abra a <a href="../tbl/tbl_aula_06.html">sala do TBL</a> pelo QR projetado e entre com o nome que o professor vai ver.</li>
-          <li>Em cada questão, decida sozinho em três minutos e escreva o que precisa ser verdade para a sua tática funcionar.</li>
+                    <li>Em cada questão, decida sozinho em três minutos e escreva o que precisa ser verdade para a sua tática funcionar.</li>
           <li>Na discussão, defenda primeiro o custo da sua escolha. As justificativas da turma aparecem sem nome.</li>
           <li>Decida outra vez. Manter a escolha também é uma decisão e precisa de justificativa.</li>
           <li>Depois da aula, registre as três decisões do grupo como ADRs em <code>docs/adr/</code> e leve a questão 2 para o cenário 2 do <code>docs/atam.md</code>.</li>

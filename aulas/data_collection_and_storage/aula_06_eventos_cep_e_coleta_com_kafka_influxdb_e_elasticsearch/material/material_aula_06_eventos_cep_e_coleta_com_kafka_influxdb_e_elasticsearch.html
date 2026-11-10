@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Material Aula 06 &middot; Eventos, CEP e Coleta com Kafka, InfluxDB e Elasticsearch</title>
+  <link rel="stylesheet" href="../../../../assets/styles.css">
+</head>
+<body>
+  <main class="page">
+    <div class="material-nav">
+      <a href="../../../../index.html">Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_collection.html">Data Collection &amp; Storage</a>
+      <a href="../simulador/simulador_aula_06.html">Simulador da aula</a>
+      <a href="../laboratorio/roteiro_streaming_iot.html">Laboratório opcional</a>
+      <a href="../slides/slide_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">Ver Slide</a>
+    </div>
+
+    <header class="hero">
+      <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+      <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+      <h1>Aula 06 — Eventos, CEP e Coleta com Kafka, InfluxDB e Elasticsearch</h1>
+      <p class="meta">Aula 06 &middot; 14/11/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
+      <p class="summary">A aula abre com teoria em três blocos: o que é um evento, o que é complex event processing (CEP) e quais tecnologias gerenciam eventos, com o Apache Kafka à frente. Depois do intervalo, a turma percorre seis estações num simulador que roda inteiro no navegador e acompanha um evento desde a catraca de uma academia até dois destinos: o InfluxDB, que serve o painel tático do dia, e o object storage, que guarda tudo em bruto e alimenta o Elasticsearch para busca, estimativas, contexto para IA e relatórios de mais de um ano. Cada estação traz o conceito, o prompt CREATE que construiria a peça de verdade e a simulação. Nada é instalado em sala.</p>
+    </header>
+
+    <article class="material">
+
+      <section class="content-block" id="sumario">
+        <h2>Sumário</h2>
+        <ol>
+          <li><a href="#s1">Onde a aula se encaixa</a></li>
+          <li><a href="#s2">Bloco 1: o que é um evento</a></li>
+          <li><a href="#s3">Bloco 2: complex event processing</a></li>
+          <li><a href="#s4">Bloco 3: tecnologias de eventos e o Kafka por dentro</a></li>
+          <li><a href="#s5">A arquitetura de coleta com dois destinos</a></li>
+          <li><a href="#s6">Como usar o simulador</a></li>
+          <li><a href="#s7">Estação 1: evento e anonimização na borda</a></li>
+          <li><a href="#s8">Estação 2: Kafka, partições, grupos e lag</a></li>
+          <li><a href="#s9">Estação 3: CEP sobre o fluxo</a></li>
+          <li><a href="#s10">Estação 4: InfluxDB e o painel tático</a></li>
+          <li><a href="#s11">Estação 5: object storage e a camada bruta</a></li>
+          <li><a href="#s12">Estação 6: Elasticsearch, estimativas e contexto para IA</a></li>
+          <li><a href="#s13">Missões e evidência</a></li>
+          <li><a href="#s14">Limites do simulador e erros comuns</a></li>
+          <li><a href="#s15">Atividade em sala, entregável e o que fica para a semana</a></li>
+        </ol>
+      </section>
+
+      <!-- 1 -->
+      <section class="content-block" id="s1">
+        <h2>1. Onde a aula se encaixa</h2>
+        <h3>1.1 O que as Aulas 01 a 05 deixaram</h3>
+        <p>A Aula 01 definiu o método da disciplina: Spec-Driven Development, com persona, objetivos de negócio, especificação, plano, tarefas, implementação e validação ATAM, e todo pedido ao agente de código no formato CREATE (<code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code>, <code>[E] Extras</code>). As Aulas 02 e 03 coletaram dados por pull e os gravaram em object storage: um processo acorda, chama uma API ou uma página, grava o resultado e dorme até a próxima execução. A <a href="../../aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Aula 04</a> colocou uma fila (RabbitMQ) entre quem produz e quem grava, com DuckDB e ClickHouse na saída. A <a href="../../aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse/material/material_aula_05_modelagem_dimensional_views_e_observabilidade_no_clickhouse.html">Aula 05</a> modelou os dados para análise no ClickHouse e tratou de observabilidade.</p>
+        <p>Em todas elas, a unidade de trabalho foi o arquivo, a tabela ou a mensagem que some da fila depois de consumida. Nenhuma tratou o fato isolado (um aluno passou pela catraca, uma cobrança falhou) como o dado principal, guardado na ordem em que aconteceu e lido por vários sistemas ao mesmo tempo.</p>
+        <h3>1.2 O que muda nesta aula</h3>
+        <p>A unidade de trabalho passa a ser o evento. O evento é publicado num log (Kafka), fica retido por um período e é lido de forma independente por três consumidores: um motor de CEP, que procura padrões no fluxo, um sink que alimenta o banco de séries temporais e um sink que grava a camada bruta no object storage. A coleta deixa de ter um destino e passa a ter dois, porque as perguntas do dia e as perguntas do ano pedem bancos de natureza diferente (<a href="#s5">seção 5</a>).</p>
+        <p>Muda também o formato da prática. Em vez de construir um pipeline no Codespace, a turma usa um simulador que roda no navegador de cada aluno. A decisão tem motivo: a arquitetura desta aula tem cinco tecnologias de servidor, e subi-las em sala consumiria o tempo que a aula quer dedicar ao comportamento do sistema (o lag que cresce, o outbox que enche, a série que explode, o lote que atrasa). O simulador reproduz esses comportamentos com números visíveis. A construção de verdade fica descrita nos seis prompts CREATE das estações, que o grupo pode executar durante a semana.</p>
+        <p>Esta aula não tem TBL nem quiz. O laboratório com docker da versão anterior da aula (sensores IoT, RabbitMQ e ClickHouse) passou a ser o <a href="../laboratorio/roteiro_streaming_iot.html">laboratório opcional da semana</a>, com os arquivos de apoio descritos no <a href="../laboratorio/README.md">README do laboratório</a>.</p>
+        <div class="note">
+          <strong>Resultado esperado ao fim da aula</strong>
+          <p>O grupo explica a diferença entre evento, comando e estado; descreve um evento complexo como padrão sobre eventos simples numa janela; localiza um evento por partição e offset; justifica por que o painel tático e o relatório de 13 meses saem de bancos diferentes; e entrega o arquivo <code>aula_06_eventos/evidencia_simulador.md</code> no repositório do grupo, com os números observados nas sete missões e as respostas às perguntas de cada uma.</p>
+        </div>
+        <h3>1.3 Agenda</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Horário</th><th>Bloco</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 8h55</td><td>Bloco 1: o que é um evento e o caso da Rede Tatame</td></tr>
+            <tr><td>8h55 &ndash; 9h20</td><td>Bloco 2: complex event processing</td></tr>
+            <tr><td>9h20 &ndash; 9h50</td><td>Bloco 3: tecnologias de eventos e o Kafka por dentro</td></tr>
+            <tr><td>9h50 &ndash; 10h10</td><td>Intervalo</td></tr>
+            <tr><td>10h10 &ndash; 10h25</td><td>Estação 1: evento e anonimização na borda</td></tr>
+            <tr><td>10h25 &ndash; 10h45</td><td>Estação 2: Kafka, partições, grupos e lag</td></tr>
+            <tr><td>10h45 &ndash; 11h05</td><td>Estação 3: CEP sobre o fluxo</td></tr>
+            <tr><td>11h05 &ndash; 11h25</td><td>Estação 4: InfluxDB e o painel tático</td></tr>
+            <tr><td>11h25 &ndash; 11h40</td><td>Estação 5: object storage e a camada bruta</td></tr>
+            <tr><td>11h40 &ndash; 12h00</td><td>Estação 6: Elasticsearch, estimativas e contexto para IA</td></tr>
+            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento e evidência</td></tr>
+          </tbody>
+        </table></div>
+        <p>Os blocos 1 a 3 correspondem às seções 2 a 4 deste material. A seção 5 liga a teoria às estações, a seção 6 apresenta o simulador e as seções 7 a 12 seguem as estações na ordem da agenda. As missões da seção 13 são executadas dentro das estações, à medida que cada aba do simulador é apresentada.</p>
+      </section>
+
+      <!-- 2 -->
+      <section class="content-block" id="s2">
+        <h2>2. Bloco 1: o que é um evento</h2>
+        <p>Este bloco define o evento, separa-o de comando e de estado, mostra os campos de um evento da aula e apresenta os dois relógios que acompanham todo o restante da aula: o instante em que o fato aconteceu e o instante em que o sistema ficou sabendo dele.</p>
+        <h3>2.1 O cenário condutor: a Rede Tatame</h3>
+        <p>A Rede Tatame é uma rede de academias de jiu-jitsu. A rede, os nomes e os números são inventados para esta aula. Ela tem 36.000 alunos ativos em 240 academias, 150 por academia em média, distribuídas em quatro regiões. Cada região tem o próprio cluster Kafka.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Região</th><th>Academias</th><th>Alunos</th></tr></thead>
+          <tbody>
+            <tr><td><code>sa-saopaulo</code></td><td>96</td><td>14.400</td></tr>
+            <tr><td><code>us-virginia</code></td><td>72</td><td>10.800</td></tr>
+            <tr><td><code>eu-estocolmo</code></td><td>48</td><td>7.200</td></tr>
+            <tr><td><code>ap-sydney</code></td><td>24</td><td>3.600</td></tr>
+            <tr><td>Total</td><td>240</td><td>36.000</td></tr>
+          </tbody>
+        </table></div>
+        <p>Os eventos nascem em três fontes: o aplicativo do aluno, a catraca ou o leitor facial da entrada e o sistema de gestão da academia. Os tipos de evento de aluno são <code>app_aberto</code>, <code>video_assistido</code>, <code>reserva_aula</code>, <code>checkin</code>, <code>cobranca_aprovada</code>, <code>cobranca_falhou</code>, <code>aula_experimental</code>, <code>matricula</code>, <code>graduacao</code> e <code>cancelamento</code>, este último com o campo de texto livre <code>motivo</code>. Há ainda um tipo de dispositivo, o <code>heartbeat</code>, que a catraca e o leitor facial emitem a cada 30 segundos para avisar que estão vivos.</p>
+        <p>A gestão da rede faz dois tipos de pergunta. Durante o dia, o gestor regional quer saber se as academias estão operando, quantos check-ins estão entrando por minuto e se algum dispositivo parou. No fim do trimestre e do ano, a diretoria quer saber quantos alunos distintos usaram a rede, por que os alunos cancelam e como este ano se compara com o anterior. As duas perguntas partem dos mesmos eventos e acabam em bancos diferentes.</p>
+        <h3>2.2 Evento, comando e estado</h3>
+        <p>Um evento é o registro imutável de um fato que aconteceu, com o instante em que aconteceu. "O aluno fez check-in na academia SE-STO-014 às 11h02" é um evento. Ele está no passado, e por isso não pode ser recusado nem editado: se o registro estiver errado, publica-se outro evento que o corrige, e os dois ficam no histórico.</p>
+        <p>Um comando é um pedido para que algo aconteça: "liberar a catraca", "cobrar a mensalidade". O comando tem destinatário, pode ser recusado e pode falhar. Quando ele é aceito e executado, o resultado vira um evento (<code>cobranca_aprovada</code> ou <code>cobranca_falhou</code>).</p>
+        <p>O estado é a fotografia atual de alguma coisa: o aluno está ativo, a faixa dele é azul, o plano é o mensal. O estado é o que os bancos das aulas anteriores guardavam. Ele pode ser recalculado a partir dos eventos (a faixa atual é a da última <code>graduacao</code>), mas o caminho inverso não existe: do estado "faixa azul" não se recupera a data da graduação nem quantas aulas vieram antes dela.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Conceito</th><th>Tempo verbal</th><th>Pode ser recusado</th><th>Exemplo na Rede Tatame</th></tr></thead>
+          <tbody>
+            <tr><td>Comando</td><td>imperativo: faça</td><td>sim</td><td>cobrar a mensalidade do aluno</td></tr>
+            <tr><td>Evento</td><td>passado: aconteceu</td><td>não</td><td><code>cobranca_falhou</code> às 03h10</td></tr>
+            <tr><td>Estado</td><td>presente: é</td><td>não se aplica</td><td>aluno inadimplente</td></tr>
+          </tbody>
+        </table></div>
+        <p>Essa separação tem consequência prática para a coleta. Quem coleta estado precisa perguntar de novo a cada intervalo e só enxerga a diferença entre duas fotografias. Quem coleta eventos recebe cada mudança uma vez, na ordem, e pode montar depois qualquer fotografia que precisar, inclusive as que ninguém previu.</p>
+        <h3>2.3 A anatomia de um evento da aula</h3>
+        <p>Todo evento da Rede Tatame sai da academia neste formato. O exemplo abaixo é o mesmo usado no slide e no simulador.</p>
+        <pre><code>{
+  "event_id": "7f3b1c9e-52a4-4d0e-9c1b-6a2f8e4d7b10",
+  "tipo": "checkin",
+  "ocorrido_em": "2026-11-14T11:02:07.412Z",
+  "regiao": "eu-estocolmo",
+  "academia": "SE-STO-014",
+  "aluno": "a8f3c1d9e2b47f60",
+  "turma": "adulto-fundamentos",
+  "faixa": "branca",
+  "origem": "catraca"
+}</code></pre>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Campo</th><th>Função</th></tr></thead>
+          <tbody>
+            <tr><td><code>event_id</code></td><td>Identidade do evento. Um reenvio carrega o mesmo <code>event_id</code>, e é por ele que os destinos descartam a duplicata.</td></tr>
+            <tr><td><code>tipo</code></td><td>O fato que aconteceu, no passado. Define quais campos adicionais o evento carrega (<code>motivo</code> no cancelamento, por exemplo).</td></tr>
+            <tr><td><code>ocorrido_em</code></td><td>Tempo do evento, em UTC, medido pelo relógio da fonte.</td></tr>
+            <tr><td><code>regiao</code> e <code>academia</code></td><td>Onde aconteceu. A academia é a chave de particionamento no Kafka (<a href="#s8">estação 2</a>).</td></tr>
+            <tr><td><code>aluno</code></td><td>Identificador anonimizado, com 16 caracteres. O nome não sai da academia (<a href="#s7">estação 1</a>).</td></tr>
+            <tr><td><code>turma</code> e <code>faixa</code></td><td>Contexto do aluno no momento do fato. Vai dentro do evento para que o consumidor não precise consultar outro sistema.</td></tr>
+            <tr><td><code>origem</code></td><td>Fonte que capturou o fato: aplicativo, catraca ou leitor facial, sistema de gestão.</td></tr>
+          </tbody>
+        </table></div>
+        <p>O evento carrega tudo o que um consumidor precisa para interpretá-lo sozinho. Essa escolha aumenta o tamanho de cada registro, e o preço é medido no exemplo numérico da <a href="#s7">estação 1</a>. Em troca, nenhum consumidor depende de outro banco estar no ar para entender o que leu.</p>
+        <h3>2.4 Tempo do evento e tempo de chegada</h3>
+        <p>O campo <code>ocorrido_em</code> registra quando o fato aconteceu. O instante em que o evento chega ao Kafka, ou ao consumidor, é outro relógio, chamado de tempo de chegada ou tempo de processamento. Em operação normal os dois diferem por milissegundos ou segundos. Quando a academia perde a conexão, o aplicativo fica sem rede no celular do aluno ou o cluster da região cai, a diferença passa a ser de minutos ou horas.</p>
+        <p>A escolha do relógio muda o resultado. Um painel que conta check-ins pelo tempo de chegada mostra um vale durante a falha e um pico artificial na volta. O mesmo painel pelo tempo do evento mostra a curva real, mas só depois que os eventos atrasados chegam, o que obriga a reescrever minutos que já tinham sido exibidos. Nenhuma das duas escolhas é gratuita, e a aula volta a esse compromisso no CEP (<a href="#s3">seção 3.4</a>), no painel tático (<a href="#s10">estação 4</a>) e no particionamento do bucket (<a href="#s11">estação 5</a>).</p>
+        <h3>2.5 Exemplo numérico: quantos eventos a rede produz</h3>
+        <div class="note">
+          <strong>Exemplo numérico 1. Volume diário da Rede Tatame</strong>
+          <p>As contas partem de duas hipóteses, que precisam ser validadas com a rede antes de virar requisito: cada aluno ativo gera 10 eventos por dia, e cada academia tem 2 dispositivos que emitem um heartbeat a cada 30 segundos.</p>
+          <p>Eventos de aluno: 36.000 &times; 10 = 360.000 por dia. Heartbeats: um a cada 30 segundos são 2.880 por dispositivo por dia, e 240 &times; 2 &times; 2.880 = 1.382.400 por dia. O total é 1.742.400 eventos por dia, o que dá 20,2 eventos por segundo em média (1.742.400 &divide; 86.400).</p>
+          <p>Quase quatro em cada cinco eventos são heartbeats de máquina. O evento que interessa à diretoria (o cancelamento, a cobrança que falhou) é raro dentro de um fluxo dominado por sinais de vida de catraca. A arquitetura precisa transportar os dois com a mesma garantia e, ao mesmo tempo, não deixar o volume dos heartbeats ditar o custo de guardar os eventos de aluno por anos.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>Classifique cada frase como comando, evento ou estado: "aluno com mensalidade em atraso", "enviar lembrete de cobrança", "lembrete enviado às 9h", "catraca bloqueada". Depois responda: a média de 20,2 eventos por segundo descreve bem uma rede de academias, em que as turmas se concentram no início da manhã e no começo da noite? Que número faltaria medir antes de dimensionar o cluster?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 1</strong>
+          <ul>
+            <li>Evento é o registro imutável de um fato com instante; correção se faz com outro evento.</li>
+            <li>Comando pede, evento registra, estado resume. Do histórico de eventos se recalcula o estado; do estado não se recupera o histórico.</li>
+            <li>Todo evento tem dois relógios, o do fato e o da chegada, e cada consumidor precisa declarar qual deles usa.</li>
+            <li>Pelas hipóteses da aula, a rede produz 1.742.400 eventos por dia, e a maior parte é heartbeat de dispositivo.</li>
+          </ul>
+        </div>
+        <h3>2.6 Para saber mais</h3>
+        <ul>
+          <li><a href="https://kafka.apache.org/intro">Apache Kafka: introdução</a>, que define evento e fluxo de eventos no vocabulário usado nesta aula.</li>
+          <li>Martin Kleppmann, Designing Data-Intensive Applications (O'Reilly, 2017), capítulo 11, sobre fluxos de eventos, tempo do evento e tempo de processamento.</li>
+          <li>David Luckham, The Power of Events (Addison-Wesley, 2002), capítulos iniciais, sobre o evento como objeto de estudo.</li>
+        </ul>
+      </section>
+
+      <!-- 3 -->
+      <section class="content-block" id="s3">
+        <h2>3. Bloco 2: complex event processing</h2>
+        <p>Um evento isolado raramente pede uma ação. Uma cobrança que falha uma vez pode ser um cartão sem limite naquele dia. Duas falhas do mesmo aluno em uma semana indicam um aluno prestes a sair. O bloco trata da técnica que encontra esse segundo tipo de fato dentro do fluxo.</p>
+        <h3>3.1 Do evento simples ao evento complexo</h3>
+        <p>O termo complex event processing foi consolidado por David Luckham no livro The Power of Events, de 2002. A ideia central é a distinção entre dois níveis. O evento simples é o que a fonte emite: um check-in, um heartbeat, uma cobrança. O evento complexo é derivado: ele passa a existir quando um conjunto de eventos simples satisfaz um padrão. O evento complexo aponta para os eventos simples que o formaram, e essa referência é o que permite a alguém conferir por que o alerta disparou.</p>
+        <p>Na Rede Tatame, <code>cobranca_falhou</code> é um evento simples. <code>cobranca_reincidente</code> é um evento complexo: nenhuma catraca, aplicativo ou sistema de gestão o emite. Ele é produzido pelo motor de CEP quando o padrão "duas falhas do mesmo aluno em sete dias" se completa, e é publicado como qualquer outro evento, para que outros sistemas reajam a ele.</p>
+        <h3>3.2 Quatro famílias de padrão</h3>
+        <p>As regras de CEP usadas na prática se encaixam em poucas famílias. A aula usa uma regra de cada.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Família</th><th>O que detecta</th><th>Regra da aula</th><th>Chave do estado</th></tr></thead>
+          <tbody>
+            <tr><td>Correlação</td><td>eventos relacionados pela mesma chave, dentro de uma janela</td><td><code>cobranca_reincidente</code>: 2 <code>cobranca_falhou</code> do mesmo aluno em 7 dias</td><td>aluno</td></tr>
+            <tr><td>Ausência</td><td>um evento esperado que não veio dentro do prazo</td><td><code>academia_silenciosa</code>: nenhum heartbeat da academia há 5 minutos</td><td>academia</td></tr>
+            <tr><td>Limiar em janela</td><td>uma contagem ou soma que passa de um valor num período</td><td><code>pico_de_cancelamentos</code>: 3 cancelamentos na mesma academia em 24 horas</td><td>academia</td></tr>
+            <tr><td>Sequência</td><td>um evento A seguido (ou não seguido) de um evento B</td><td><code>experimental_sem_matricula</code>: aula experimental sem matrícula do mesmo aluno em 7 dias</td><td>aluno</td></tr>
+          </tbody>
+        </table></div>
+        <p>As regras de ausência têm uma particularidade: nenhum evento as dispara. O motor precisa de um temporizador que vença quando o prazo acaba, porque o silêncio, por definição, não chega pelo tópico. A regra <code>experimental_sem_matricula</code> combina sequência e ausência: ela começa a contar quando chega a <code>aula_experimental</code> e só conclui quando sete dias passam sem a <code>matricula</code>.</p>
+        <h3>3.3 Janelas</h3>
+        <p>Um fluxo não tem fim, e nenhuma regra pode esperar por ele. A janela é o recorte de tempo sobre o qual o padrão é avaliado. Há três formatos principais.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Janela</th><th>Como recorta</th><th>Exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>Tumbling (fixa, sem sobreposição)</td><td>blocos consecutivos do mesmo tamanho; cada evento cai em um só</td><td>check-ins por minuto, por região, no painel tático</td></tr>
+            <tr><td>Deslizante</td><td>janela de tamanho fixo que avança em passos menores, ou que acompanha cada evento; um evento participa de várias</td><td>cancelamentos da academia nas últimas 24 horas, reavaliados a cada cancelamento</td></tr>
+            <tr><td>De sessão</td><td>agrupa eventos próximos e fecha depois de um intervalo de inatividade; o tamanho varia</td><td>uma visita do aluno ao aplicativo: <code>app_aberto</code>, vídeos e reserva até ele parar de interagir</td></tr>
+          </tbody>
+        </table></div>
+        <p>A diferença entre tumbling e deslizante aparece na borda. Com janelas fixas de 24 horas alinhadas à meia-noite, dois cancelamentos às 23h e um à 1h ficam em blocos diferentes e a regra não dispara, embora os três tenham ocorrido em duas horas. A janela deslizante enxerga os três juntos. O preço é guardar mais estado e reavaliar a regra com mais frequência.</p>
+        <h3>3.4 Watermark e atraso permitido</h3>
+        <p>Quando a janela é definida pelo tempo do evento, o motor precisa decidir em que momento ela pode ser considerada completa. Um evento das 10h59 pode chegar às 11h03. O watermark é a estimativa que o motor mantém de até que instante do tempo do evento já chegou tudo, ou quase tudo. Em geral ele é calculado como o maior <code>ocorrido_em</code> visto, menos uma folga. Quando o watermark passa do fim de uma janela, a janela fecha e o resultado é emitido.</p>
+        <p>O atraso permitido (allowed lateness) é um prazo adicional durante o qual a janela, mesmo fechada, ainda aceita retardatários e emite um resultado corrigido. O que chega depois disso é descartado ou desviado para uma saída separada, para ser tratado em lote.</p>
+        <p>A folga é uma decisão de negócio com custo dos dois lados. Uma folga curta entrega o alerta cedo e erra quando eventos se atrasam. Uma folga longa acerta mais e avisa mais tarde. No caso da Rede Tatame, a falha de duas horas do cluster de uma região, simulada na <a href="#s9">estação 3</a>, ultrapassa qualquer folga razoável para uma regra de cinco minutos. O que se pode fazer é escolher como a regra se comporta quando isso acontece e registrar a escolha.</p>
+        <h3>3.5 Estado por chave</h3>
+        <p>Para saber que esta é a segunda falha de cobrança do aluno, o motor precisa lembrar da primeira. Essa memória é o estado, e ela é organizada por chave: um registro por aluno nas regras de aluno, um por academia nas regras de academia. O estado precisa sobreviver à reinicialização do processo (os motores gravam checkpoints ou usam um tópico de changelog para isso) e precisa ter prazo de expiração, senão cresce para sempre.</p>
+        <p>O desenho da regra determina o tamanho do estado. Uma regra que guarda "o último evento de cada aluno" mantém uma entrada por aluno ativo. Uma regra que só abre estado quando o primeiro evento do padrão chega mantém entradas apenas para quem está no meio do padrão.</p>
+        <div class="note">
+          <strong>Exemplo numérico 2. O estado da regra de cobrança</strong>
+          <p>Nos dados sintéticos da aula, <code>cobranca_falhou</code> representa 0,3% dos eventos de aluno. Sobre 360.000 eventos de aluno por dia, são 1.080 falhas por dia (360.000 &times; 0,003).</p>
+          <p>A regra <code>cobranca_reincidente</code> abre estado na primeira falha de um aluno e o descarta sete dias depois. No pior caso, em que cada falha da semana é de um aluno diferente, o motor guarda 7 &times; 1.080 = 7.560 chaves ao mesmo tempo. A rede tem 36.000 alunos, e a regra mantém estado para no máximo 7.560 deles, cerca de um quinto.</p>
+          <p>O número depende da hipótese de 10 eventos por aluno por dia e da proporção de 0,3%, ambas a validar. A conclusão que se sustenta sem elas é de mecanismo: o estado de uma regra de correlação cresce com a frequência do evento que abre o padrão multiplicada pelo tamanho da janela, e não com o número de alunos da rede.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>A regra <code>academia_silenciosa</code> dispara quando uma academia fica cinco minutos sem heartbeat. Liste três causas diferentes para esse silêncio (o dispositivo, a rede da academia, o cluster da região) e diga se a regra, olhando só para o tópico, consegue distinguir entre elas. Depois escolha: a regra <code>pico_de_cancelamentos</code> deve usar o tempo do evento ou o tempo de chegada? O que acontece com ela quando uma academia fica uma tarde sem conexão e envia tudo de uma vez à noite?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 2</strong>
+          <ul>
+            <li>O evento complexo é derivado de um padrão sobre eventos simples e guarda a referência a eles.</li>
+            <li>Correlação, ausência, limiar em janela e sequência cobrem as regras da aula; a ausência depende de temporizador.</li>
+            <li>A janela (tumbling, deslizante ou de sessão) define o recorte; o watermark e o atraso permitido definem quando o recorte é dado por completo.</li>
+            <li>O estado é guardado por chave, precisa expirar e, na regra de cobrança, fica limitado a 7.560 alunos.</li>
+          </ul>
+        </div>
+        <h3>3.6 Para saber mais</h3>
+        <ul>
+          <li>David Luckham, The Power of Events: An Introduction to Complex Event Processing in Distributed Enterprise Systems (Addison-Wesley, 2002).</li>
+          <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/libs/cep/">Apache Flink: biblioteca FlinkCEP</a>, com a API de padrões (sequência, repetição, ausência) sobre fluxos com chave.</li>
+          <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/">Apache Flink: documentação estável</a>, seções sobre tempo do evento, watermarks e janelas.</li>
+          <li><a href="https://kafka.apache.org/documentation/streams/">Kafka Streams</a>, para janelas e estado por chave numa biblioteca que roda dentro da aplicação.</li>
+        </ul>
+      </section>
+
+      <!-- 4 -->
+      <section class="content-block" id="s4">
+        <h2>4. Bloco 3: tecnologias de eventos e o Kafka por dentro</h2>
+        <p>O bloco organiza as tecnologias de eventos em famílias, pelo papel que cada uma cumpre, e depois abre o Kafka: como ele guarda, ordena, entrega e replica.</p>
+        <h3>4.1 Fila e log</h3>
+        <p>A Aula 04 usou uma fila. Na fila, o broker entrega cada mensagem a um consumidor e a remove quando o consumidor confirma o processamento. O modelo serve bem para distribuir trabalho: cada tarefa é feita uma vez, por alguém. Ele serve mal quando três sistemas diferentes precisam ler os mesmos eventos, cada um no seu ritmo, ou quando alguém precisa reler o que já passou.</p>
+        <p>No log, o broker anexa cada evento ao fim de um arquivo ordenado e o mantém ali até a política de retenção apagá-lo, tenha sido lido ou não. O broker não controla quem leu o quê: cada grupo de consumidores guarda a própria posição de leitura, o offset. Um grupo novo pode começar do início; um grupo que errou pode voltar e reprocessar.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Critério</th><th>Fila (RabbitMQ, Aula 04)</th><th>Log (Apache Kafka)</th></tr></thead>
+          <tbody>
+            <tr><td>Depois de consumida</td><td>a mensagem é removida</td><td>o evento continua retido</td></tr>
+            <tr><td>Quem guarda a posição</td><td>o broker, por mensagem</td><td>cada grupo de consumidores, por offset</td></tr>
+            <tr><td>Vários leitores independentes</td><td>uma fila por leitor, com roteamento</td><td>um grupo por leitor, sobre o mesmo tópico</td></tr>
+            <tr><td>Reprocessar o passado</td><td>não, salvo republicação</td><td>sim, dentro da retenção</td></tr>
+            <tr><td>Ordem</td><td>por fila, com ressalvas quando há reentrega e vários consumidores</td><td>por partição</td></tr>
+          </tbody>
+        </table></div>
+        <p>A Rede Tatame precisa de três leitores independentes (CEP, sink do InfluxDB, sink do bucket) e precisa poder reprocessar quando uma regra de CEP muda. Esses dois requisitos levam ao log.</p>
+        <h3>4.2 As famílias de tecnologia</h3>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Família</th><th>Exemplos</th><th>Papel</th></tr></thead>
+          <tbody>
+            <tr><td>Fila de mensagens</td><td>RabbitMQ</td><td>distribui tarefas; entrega e remove</td></tr>
+            <tr><td>Log distribuído</td><td>Apache Kafka, Apache Pulsar, Redpanda</td><td>retém eventos ordenados para vários leitores</td></tr>
+            <tr><td>Log como serviço gerenciado</td><td>Amazon Kinesis, Google Pub/Sub, Azure Event Hubs</td><td>papel equivalente, operado pelo provedor de nuvem</td></tr>
+            <tr><td>Motor de processamento e CEP</td><td>Apache Flink (com a biblioteca FlinkCEP e <code>MATCH_RECOGNIZE</code> em SQL), Kafka Streams, ksqlDB, Esper</td><td>lê o fluxo, mantém estado e janelas, emite eventos derivados</td></tr>
+            <tr><td>Integração com destinos</td><td>Kafka Connect</td><td>lê de um tópico e grava num destino (sink), ou o inverso (source), por configuração</td></tr>
+          </tbody>
+        </table></div>
+        <p>Os serviços gerenciados usam nomes diferentes para ideias parecidas (stream e shard, tópico e assinatura, hub e partição) e diferem em limites, preço e garantias. Os conceitos deste bloco se transferem, mas os detalhes devem ser conferidos na documentação de cada serviço. Redpanda implementa o protocolo do Kafka; Pulsar tem modelo próprio de armazenamento e de assinatura.</p>
+        <p>O motor de CEP é uma peça separada do log. O Kafka transporta e retém; quem procura padrões é um consumidor. Esse consumidor pode ser um programa escrito pelo grupo com uma biblioteca cliente (o que o prompt da <a href="#s9">estação 3</a> pede), uma aplicação Kafka Streams, um job Flink ou uma consulta ksqlDB. A escolha depende de quanto estado a regra guarda, de quantas regras existem e de quem vai operá-las.</p>
+        <h3>4.3 O Kafka por dentro</h3>
+        <p>Um tópico é o nome lógico de um fluxo: na aula, <code>tatame.eventos</code>. O tópico é dividido em partições, e cada partição é um log independente, gravado em disco, em que cada evento recebe um número sequencial, o offset. A posição de um evento no Kafka é o trio tópico, partição e offset.</p>
+        <p>A partição é a unidade de ordem. Dentro de uma partição, os eventos são lidos na ordem em que foram gravados. Entre partições, não há ordem garantida. Quem decide a partição é a chave do evento: o produtor aplica uma função de hash à chave e usa o resultado, módulo o número de partições, para escolher o destino. Eventos com a mesma chave caem sempre na mesma partição, enquanto o número de partições não muda, e por isso ficam em ordem entre si.</p>
+        <p>Na aula, a chave é a academia. Todos os eventos de uma academia ficam numa partição e em ordem, o que atende as regras por academia. Como cada aluno pertence a uma academia, os eventos de um aluno também ficam em ordem. Se a chave fosse o <code>event_id</code>, a distribuição entre partições seria uniforme, mas a ordem por academia e por aluno se perderia.</p>
+        <p>Um grupo de consumidores é um conjunto de processos que divide entre si as partições de um tópico: cada partição é lida por um único membro do grupo por vez. Mais processos no grupo significam mais partições lidas em paralelo, até o limite de um processo por partição. Grupos diferentes são independentes: cada um tem o próprio offset confirmado por partição. Na aula há três grupos, <code>cep</code>, <code>sink-influxdb</code> e <code>sink-lake</code>.</p>
+        <p>O lag de um grupo numa partição é a diferença entre o último offset gravado e o offset que o grupo já confirmou. É a quantidade de eventos que o grupo ainda não processou. Lag estável e baixo indica consumidor acompanhando; lag crescente indica consumidor mais lento que o produtor, ou parado. É a principal métrica de saúde de um consumidor Kafka, e a <a href="#s8">estação 2</a> a provoca de propósito.</p>
+        <p>A retenção define por quanto tempo, ou até que tamanho, o Kafka guarda os eventos de um tópico. Vencido o limite, os segmentos mais antigos são apagados, lidos ou não. Um grupo cujo lag ultrapassa a retenção perde eventos sem que nenhum erro apareça no produtor. Por isso o Kafka da aula retém sete dias e a camada permanente fica no object storage.</p>
+        <p>O fator de replicação é o número de cópias de cada partição, em brokers diferentes. Uma cópia é a líder, que recebe as gravações, e as demais são seguidoras. As réplicas que estão em dia com a líder formam o conjunto de réplicas em sincronia, o ISR. Com <code>acks=all</code>, o produtor só recebe a confirmação depois que todas as réplicas do ISR gravaram o evento, e a configuração <code>min.insync.replicas</code> define o tamanho mínimo do ISR para a gravação ser aceita. Com fator de replicação 3 e <code>min.insync.replicas=2</code>, o cluster continua aceitando gravações com um broker fora e não perde evento confirmado nessa situação. Com dois brokers fora, o cluster recusa gravações em vez de arriscar perda, e a recusa precisa ser absorvida por alguém: na Rede Tatame, pelo outbox local da academia.</p>
+        <p>Três peças completam o quadro. O modo KRaft é a forma atual de o Kafka coordenar o próprio cluster, com um quórum de controladores internos; as versões antigas dependiam de um serviço externo, o ZooKeeper. O Kafka Connect executa conectores prontos, que copiam dados de um tópico para um destino, ou de uma fonte para um tópico, com controle de offset e de reinício. O MirrorMaker 2, construído sobre o Connect, replica tópicos entre clusters, e é a peça que levaria os eventos dos quatro clusters regionais da Rede Tatame para um cluster de agregação, caso a diretoria queira regras globais.</p>
+        <p>Quanto às garantias de entrega, o desenho usual com Kafka é pelo menos uma vez: o consumidor processa o evento e só depois confirma o offset; se cair entre os dois passos, relê o evento ao voltar. A duplicata é tratada no destino, pelo <code>event_id</code>. O Kafka também oferece produtor idempotente e transações, que reduzem duplicatas dentro do próprio Kafka; o comportamento padrão dessas opções mudou entre versões e deve ser conferido na documentação da versão em uso.</p>
+        <h3>4.4 Exemplo numérico: quanto disco o Kafka ocupa</h3>
+        <div class="note">
+          <strong>Exemplo numérico 3. Sete dias de retenção com três réplicas</strong>
+          <p>O script <code>../simulador/medicoes_preparo.py</code> (Python 3.12, só biblioteca padrão, semente fixa) gerou 100.000 eventos sintéticos da rede e mediu o tamanho de cada um em JSON compacto, UTF-8. A média foi de 231 bytes, com mínimo de 221 e máximo de 317.</p>
+          <p>Um dia de eventos ocupa 1.742.400 &times; 231 bytes, cerca de 402 MB em JSON. Com retenção de 7 dias e fator de replicação 3, sem compressão, o Kafka guarda 402 MB &times; 7 &times; 3, cerca de 8,4 GB.</p>
+          <p>O número cabe em qualquer disco. A retenção de sete dias, portanto, é limitada pelo papel do Kafka na arquitetura, e não pelo custo: ele é o transporte e o amortecedor entre produtores e consumidores. Um ano dos mesmos eventos soma 146,6 GB em JSON, e esse histórico vai para o object storage, comprimido (<a href="#s11">estação 5</a>). O volume de eventos não inclui os índices e os metadados do próprio Kafka, que o script não mede.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>O tópico <code>tatame.eventos</code> tem 6 partições e a chave é a academia. O que acontece com a ordem dos eventos de uma academia se alguém aumentar o tópico para 12 partições com o sistema em produção? Uma academia muito maior que as outras produz que efeito na partição em que cai? E se a retenção é de sete dias, quanto tempo o grupo <code>sink-lake</code> pode ficar parado antes de a camada bruta perder eventos?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 3</strong>
+          <ul>
+            <li>A fila entrega e remove; o log retém, e cada grupo de consumidores guarda o próprio offset.</li>
+            <li>A chave define a partição, e a partição é a unidade de ordem: chave por academia preserva a ordem por academia e por aluno.</li>
+            <li>Lag é o que o grupo ainda não leu; lag maior que a retenção é perda silenciosa.</li>
+            <li><code>acks=all</code> com <code>min.insync.replicas</code> troca disponibilidade de gravação por garantia de não perder evento confirmado.</li>
+            <li>Sete dias de eventos, com três réplicas, ocupam cerca de 8,4 GB: o Kafka é transporte, e o histórico mora em outro lugar.</li>
+          </ul>
+        </div>
+        <h3>4.5 Para saber mais</h3>
+        <ul>
+          <li><a href="https://kafka.apache.org/documentation/">Apache Kafka: documentação</a>, seções de design (log, replicação, garantias de entrega) e de configuração de tópicos, produtores e consumidores.</li>
+          <li><a href="https://kafka.apache.org/intro">Apache Kafka: introdução</a>, com tópicos, partições e grupos em poucas páginas.</li>
+          <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/">Apache Flink: documentação estável</a>, para o motor de processamento que mais se usa ao lado do Kafka.</li>
+        </ul>
+      </section>
+
+      <!-- 5 -->
+      <section class="content-block" id="s5">
+        <h2>5. A arquitetura de coleta com dois destinos</h2>
+        <p>Esta seção junta os três blocos numa arquitetura e explica a decisão que organiza as estações: os eventos saem do Kafka para dois destinos, cada um desenhado para um tipo de pergunta.</p>
+        <h3>5.1 O caminho do evento</h3>
+        <div class="method-flow">
+          <div class="method-step"><strong>Academia</strong><span>O fato acontece no aplicativo, na catraca ou no sistema de gestão. O aluno é anonimizado na saída e o evento entra no outbox local.</span></div>
+          <div class="method-step"><strong>Kafka regional</strong><span>O evento é publicado em <code>tatame.eventos</code>, com a academia como chave, e fica retido por sete dias.</span></div>
+          <div class="method-step"><strong>CEP</strong><span>O grupo <code>cep</code> lê o fluxo, mantém estado por chave e emite os eventos complexos.</span></div>
+          <div class="method-step"><strong>InfluxDB</strong><span>O grupo <code>sink-influxdb</code> grava pontos no bucket <code>tatico</code>, retido por 30 dias, que serve o painel do dia.</span></div>
+          <div class="method-step"><strong>Object storage e Elasticsearch</strong><span>O grupo <code>sink-lake</code> grava lotes em bruto no bucket <code>tatame-bruto</code>; um indexador lê o bucket e alimenta o Elasticsearch.</span></div>
+        </div>
+        <p>O CEP e os dois sinks são grupos de consumidores do mesmo tópico. Cada um avança no próprio ritmo, e a parada de um não atrasa os outros. O Elasticsearch não lê do Kafka: ele é alimentado a partir do bucket. Essa ordem faz do object storage a fonte da verdade. Se o índice do Elasticsearch for apagado, corrompido ou precisar de um mapping novo, ele é reconstruído a partir dos arquivos brutos, sem depender da retenção de sete dias do Kafka.</p>
+        <h3>5.2 Por que tático e analítico não cabem no mesmo banco</h3>
+        <p>O gestor regional pergunta, às 11h de um sábado, quantos check-ins entraram por minuto em cada região na última hora e quais catracas pararam. A pergunta é numérica, sobre o passado recente, agregada por tempo e por poucas dimensões, e precisa de resposta em segundos, repetida a cada atualização do painel. Para ela, o que importa é gravar rápido e ler rápido uma faixa curta de tempo. O dado de três meses atrás, nesse nível de detalhe, não tem uso.</p>
+        <p>A diretoria pergunta, em dezembro, quantos alunos distintos usaram a rede nos últimos 13 meses, quais são os motivos de cancelamento mais comuns e o que mudou em relação ao ano anterior. A pergunta atravessa um período longo, envolve texto livre e contagem de valores distintos sobre uma dimensão de alta cardinalidade (o aluno), e admite resposta em alguns segundos ou mais. Para ela, o que importa é reter muito, buscar em texto e agregar sobre qualquer campo.</p>
+        <p>Um banco de séries temporais como o InfluxDB atende a primeira pergunta por construção: os dados são organizados por tempo e por tags, e a retenção curta mantém o volume pequeno. Ele atende mal a segunda. O texto do motivo não é pesquisável por relevância, e o identificador do aluno, usado como dimensão, multiplica o número de séries, que é o principal custo das versões 1 e 2 do banco (<a href="#s10">estação 4</a>). O Elasticsearch atende a segunda pergunta com índice invertido, agregações e índices por período, e seria uma escolha cara para a primeira, porque indexar cada heartbeat como documento custa mais do que gravar um ponto numa série.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Critério</th><th>InfluxDB (tático)</th><th>Object storage e Elasticsearch (analítico)</th></tr></thead>
+          <tbody>
+            <tr><td>Pergunta típica</td><td>quantos eventos por minuto por região na última hora; quais dispositivos estão vivos</td><td>quem cancelou e por quê; quantos alunos distintos em 13 meses; que contexto entregar a uma IA</td></tr>
+            <tr><td>Quem pergunta</td><td>gestor regional, durante o dia</td><td>diretoria, analista, aplicação de IA</td></tr>
+            <tr><td>Latência entre o fato e a resposta</td><td>segundos</td><td>minutos, porque o evento espera o lote fechar e o indexador passar</td></tr>
+            <tr><td>Retenção</td><td>30 dias no bucket <code>tatico</code></td><td>bruto sem prazo no bucket; índices mensais com ciclo de vida</td></tr>
+            <tr><td>Unidade armazenada</td><td>ponto numérico numa série (measurement, tags, fields, timestamp)</td><td>objeto JSONL.gz no bucket; documento JSON no índice</td></tr>
+            <tr><td>Custo dominante</td><td>número de séries (cardinalidade das tags), nas versões 1 e 2</td><td>volume retido e indexado, número de shards e de arquivos</td></tr>
+            <tr><td>O que não faz bem</td><td>texto livre, histórico longo, dimensão de alta cardinalidade</td><td>painel de atualização a cada poucos segundos sobre o último minuto</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">
+          <strong>Exemplo numérico 4. O mesmo evento, dois pesos</strong>
+          <p>No InfluxDB, com as tags <code>regiao</code>, <code>academia</code> e <code>tipo</code>, a rede tem 240 academias &times; 11 tipos de evento = 2.640 séries. O número de séries não cresce com o tempo nem com o número de alunos: depois de 30 dias, as séries são as mesmas e os pontos antigos expiram.</p>
+          <p>No object storage, o histórico cresce todos os dias. Pela medição do script de preparo, um dia de eventos ocupa 66 MB em JSONL comprimido com gzip, e um ano ocupa 24,2 GB. Esse volume é barato de guardar em bucket e seria caro de manter inteiro num banco desenhado para leitura imediata.</p>
+          <p>A divisão aproveita as duas propriedades: o que precisa de resposta em segundos fica pequeno e recente, e o que precisa durar fica barato e completo.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>Para cada pergunta, indique o destino e justifique: (a) a catraca da academia SE-STO-014 está viva agora? (b) quantos alunos distintos fizeram check-in na rede em outubro? (c) quais cancelamentos da última semana mencionam horário? (d) como foi a curva de check-ins por minuto da região <code>sa-saopaulo</code> no sábado de 13 meses atrás? A pergunta (d) tem resposta na arquitetura da aula? Com que perda de detalhe?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave da arquitetura</strong>
+          <ul>
+            <li>Três grupos de consumidores leem o mesmo tópico de forma independente: CEP, sink tático e sink da camada bruta.</li>
+            <li>O InfluxDB guarda pouco e recente para responder em segundos; o bucket guarda tudo, e o Elasticsearch responde busca e agregação sobre o período longo.</li>
+            <li>O Elasticsearch é alimentado a partir do bucket, e por isso pode ser reconstruído sem depender do Kafka.</li>
+            <li>A escolha do destino segue a pergunta, a latência tolerada, a retenção e o custo dominante de cada banco.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section class="content-block" id="s6">
+        <h2>6. Como usar o simulador</h2>
+        <p>O <a href="../simulador/simulador_aula_06.html">simulador da aula</a> é uma página HTML que roda inteira no navegador. Não há servidor, conta nem instalação. Cada aluno abre a página no próprio navegador e acompanha o professor, que projeta a mesma tela.</p>
+        <h3>6.1 O que é simulado</h3>
+        <p>O simulador representa uma amostra de um décimo da Rede Tatame: 24 academias e 3.600 alunos, distribuídos em <code>sa-saopaulo</code> (10 academias), <code>us-virginia</code> (7), <code>eu-estocolmo</code> (5) e <code>ap-sydney</code> (2). Os números absolutos que aparecem na tela são, portanto, cerca de um décimo dos números da rede inteira citados neste material. As proporções e os comportamentos são os mesmos.</p>
+        <p>O estado da simulação fica gravado no <code>localStorage</code> do navegador. Recarregar a página ou fechar a aba não perde a simulação. O botão "Reiniciar" apaga tudo e volta ao início. Como o estado é local, cada aluno tem a própria simulação: os números de dois colegas não precisam coincidir, porque dependem do momento em que cada um clicou.</p>
+        <h3>6.2 A barra superior e as abas</h3>
+        <ol class="steps">
+          <li>Abra o <a href="../simulador/simulador_aula_06.html">simulador</a>. A barra superior mostra o relógio simulado, em UTC.</li>
+          <li>Escolha a "Velocidade". Há três opções: 1 s = 1 min, 1 s = 10 min e 1 s = 1 h. A primeira serve para observar eventos chegando um a um; a última, para atravessar horas e dias simulados.</li>
+          <li>Clique em "Iniciar". O relógio avança e as academias começam a produzir eventos. O mesmo botão passa a ser "Pausar". Pause sempre que for ler um número com calma ou registrar um evento manualmente.</li>
+          <li>Percorra as abas na ordem: Rede (<code>#rede</code>), Evento (<code>#evento</code>), Kafka (<code>#kafka</code>), CEP (<code>#cep</code>), InfluxDB (<code>#influxdb</code>), Object storage (<code>#storage</code>), Elasticsearch (<code>#elasticsearch</code>) e Missões (<code>#missoes</code>). Cada aba é uma âncora, e o endereço com a âncora pode ser compartilhado com o grupo.</li>
+          <li>Se algo sair do controle, clique em "Reiniciar". As missões recomeçam do zero.</li>
+        </ol>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Aba</th><th>O que mostra</th><th>Estação</th></tr></thead>
+          <tbody>
+            <tr><td>Rede</td><td>um cartão por região, com o estado do cluster, a taxa de eventos, a contagem do outbox e o botão "Derrubar cluster" / "Restaurar cluster"</td><td>visão geral; usada na estação 3</td></tr>
+            <tr><td>Evento</td><td>formulário "Registrar evento" e os painéis "Na academia" e "Na saída da academia"</td><td>1</td></tr>
+            <tr><td>Kafka</td><td>tópico <code>tatame.eventos</code>, partições, grupos de consumidores e "Localizar event_id"</td><td>2</td></tr>
+            <tr><td>CEP</td><td>quatro regras e a lista "Eventos complexos detectados"</td><td>3</td></tr>
+            <tr><td>InfluxDB</td><td>line protocol, "Séries ativas", "Painel tático" e a consulta "Últimos 13 meses"</td><td>4</td></tr>
+            <tr><td>Object storage</td><td>bucket <code>tatame-bruto</code>, "Fechar lote a cada" e "Particionar por"</td><td>5</td></tr>
+            <tr><td>Elasticsearch</td><td>índices mensais, busca, "Alunos únicos", "Relatório de 13 meses" e "Contexto para a IA"</td><td>6</td></tr>
+            <tr><td>Missões</td><td>sete missões e o botão "Exportar evidência"</td><td>fechamento</td></tr>
+          </tbody>
+        </table></div>
+        <h3>6.3 Como cada estação é conduzida</h3>
+        <p>Cada estação tem três partes. A primeira é o conceito, retomado da teoria com mais detalhe. A segunda é o prompt CREATE que construiria aquela peça de verdade, com o agente de código de preferência de cada aluno. O prompt é mostrado e discutido em sala: o que ele pede, o que proíbe e como o resultado seria conferido. Ele não é executado em sala. A terceira parte é a simulação, com um passo a passo na aba correspondente.</p>
+        <p>Os seis prompts constroem, juntos, a versão real da arquitetura numa pasta <code>aula_06_eventos/</code> no repositório do grupo, com docker compose. A estrutura esperada é a seguinte.</p>
+        <pre><code>aula_06_eventos/
+├── AGENTS.md
+├── evidencia_simulador.md        (entregue em sala, seção 13)
+├── docs/
+│   ├── contrato_evento.md
+│   └── adr/ADR-001-*.md
+├── src/
+│   ├── gerador/                  (prompt 1)
+│   ├── kafka/                    (prompt 2)
+│   ├── cep/                      (prompt 3)
+│   ├── sink_influxdb/            (prompt 4)
+│   ├── sink_lake/                (prompt 5)
+│   └── indexador/                (prompt 6)
+├── tests/
+├── docker-compose.yml  requirements.txt  .env.example  .gitignore</code></pre>
+        <p>Todos os prompts carregam as mesmas regras de método da disciplina. A tag de cada imagem docker é fixada no <code>docker-compose.yml</code> e registrada num ADR, com o motivo da escolha, em vez de usar <code>latest</code>. Nenhum segredo vai para arquivo versionado. Todo número que não foi medido aparece marcado como "hipótese, validação pendente". O agente mostra o plano antes de editar, para ao fim da etapa e termina com gates que o grupo consegue conferir com um comando.</p>
+      </section>
+
+      <!-- 7 -->
+      <section class="content-block" id="s7">
+        <h2>7. Estação 1: evento e anonimização na borda</h2>
+        <h3>7.1 Conceito</h3>
+        <p>A borda é o último ponto sob controle da academia antes de o evento sair pela rede: o computador da recepção, o controlador da catraca, o servidor do aplicativo na região. A Rede Tatame decidiu que o nome do aluno não sai da academia. Na borda, o identificador interno do aluno é trocado por um código de 16 caracteres, e é esse código que viaja no campo <code>aluno</code>.</p>
+        <p>O código é produzido por uma função de hash com chave secreta (um HMAC), truncada em 16 caracteres hexadecimais. A função é determinística: o mesmo aluno gera sempre o mesmo código, e por isso o CEP consegue correlacionar duas cobranças do mesmo aluno e o Elasticsearch consegue contar alunos distintos, sem que nenhum dos dois conheça o nome. A chave secreta é necessária porque um hash sem chave sobre um identificador previsível (um número de matrícula sequencial, um CPF) pode ser revertido por tentativa: basta calcular o hash de todos os valores possíveis e comparar.</p>
+        <p>Convém usar o termo com cuidado. Tecnicamente, o que a borda faz é pseudonimização: quem tem a chave e a tabela de alunos consegue refazer a associação. A LGPD trata o dado pseudonimizado como dado pessoal para quem tem meios de reverter. A aula usa "anonimização na borda", que é o nome do padrão de arquitetura, e a consequência prática é que a chave fica restrita à academia e nunca entra no fluxo de eventos nem no repositório.</p>
+        <p>A anonimização não se resume ao campo <code>aluno</code>. O campo de texto livre <code>motivo</code>, do cancelamento, pode conter nome, telefone ou diagnóstico médico escritos pela recepção. A borda é também o lugar de limitar o que entra nesse campo, porque depois de publicado o evento é imutável e fica replicado em todos os destinos.</p>
+        <p>A outra responsabilidade da borda é o outbox. O evento é gravado primeiro num armazenamento local da academia e só depois enviado ao Kafka. Quando o envio é confirmado, o evento é marcado como entregue. Se a rede ou o cluster estiverem fora, os eventos se acumulam no outbox e são reenviados, na ordem, quando a conexão volta. O <code>event_id</code> é gerado uma única vez, antes de o evento entrar no outbox, para que um reenvio seja reconhecido como duplicata pelos destinos.</p>
+        <p>O contrato do evento reúne essas decisões num documento: campos obrigatórios e opcionais por tipo, formato de cada campo, o que é proibido (nome, documento, e-mail), como o contrato evolui sem quebrar consumidores. A Aula 07 transforma esse contrato num modelo Pydantic na entrada do ClickHouse.</p>
+        <div class="note">
+          <strong>Exemplo numérico 5. O tamanho do evento, medido</strong>
+          <p>Nos 100.000 eventos sintéticos do script <code>../simulador/medicoes_preparo.py</code>, o evento médio tem 231 bytes em JSON compacto. Por tipo, o heartbeat tem 228 bytes em média, o check-in tem 240 e o cancelamento, que carrega o <code>motivo</code>, tem 301. O menor evento da amostra tem 221 bytes e o maior, 317.</p>
+          <p>A diferença entre o menor e o maior é pequena porque a maior parte de cada evento é estrutura: os nomes dos campos, o UUID de 36 caracteres, o instante com milissegundos, os códigos de região e academia. Essa repetição é o que a compressão explora na <a href="#s11">estação 5</a>, onde o mesmo lote cai de 23,15 MB para 3,83 MB.</p>
+          <p>Os tamanhos valem para os eventos sintéticos do script. Eventos reais, com motivos mais longos ou campos adicionais, devem ser medidos de novo.</p>
+        </div>
+        <h3 id="prompt-1">7.2 Prompt CREATE 1: gerador de eventos, anonimização e contrato</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados que escreve produtores de eventos para sistemas de borda. Você trata o contrato do evento como artefato de primeira classe, escreve em português e separa o que foi informado do que está sendo suposto.
+
+[R] Pedido
+Na pasta aula_06_eventos/, crie (1) docs/contrato_evento.md com o contrato dos eventos da Rede Tatame, uma rede fictícia de academias de jiu-jitsu, e (2) o módulo src/gerador/, um gerador de eventos sintéticos que aplica a anonimização na borda e grava os eventos num outbox local antes de qualquer envio. Nesta etapa não há Kafka: o gerador só produz, anonimiza, valida contra o contrato e grava no outbox.
+Contexto fornecido pelo professor: 240 academias em quatro regiões (sa-saopaulo 96, us-virginia 72, eu-estocolmo 48, ap-sydney 24), 150 alunos por academia em média. Tipos de evento de aluno: app_aberto, video_assistido, reserva_aula, checkin, cobranca_aprovada, cobranca_falhou, aula_experimental, matricula, graduacao, cancelamento (com o campo de texto livre motivo). Tipo de dispositivo: heartbeat, um a cada 30 s por catraca ou leitor facial. Origens: app, catraca, gestao, dispositivo.
+
+[E] Exemplos
+Evento de referência, já anonimizado, como sai da academia:
+{"event_id":"7f3b1c9e-52a4-4d0e-9c1b-6a2f8e4d7b10","tipo":"checkin","ocorrido_em":"2026-11-14T11:02:07.412Z","regiao":"eu-estocolmo","academia":"SE-STO-014","aluno":"a8f3c1d9e2b47f60","turma":"adulto-fundamentos","faixa":"branca","origem":"catraca"}
+Regra de anonimização: aluno = 16 primeiros caracteres hexadecimais de HMAC-SHA-256(chave secreta, identificador interno do aluno). A chave vem da variável de ambiente ANON_CHAVE.
+
+[A] Ajustes
+- O contrato lista, por tipo de evento, campos obrigatórios e opcionais, formato de cada campo e exemplos válidos e inválidos. Inclua a seção "Campos proibidos" (nome, documento, e-mail, telefone) e a seção "Evolução do contrato" (o que pode mudar sem quebrar consumidores).
+- event_id é um UUID gerado uma única vez, antes da gravação no outbox. ocorrido_em é UTC, ISO 8601, com milissegundos.
+- A anonimização e a validação são funções puras, testadas com pytest sem nenhuma dependência externa. Teste: mesmo aluno gera o mesmo código; alunos diferentes geram códigos diferentes; a chave ausente interrompe o programa com erro claro; nenhum campo proibido aparece na saída.
+- O gerador aceita semente, taxa de eventos e proporção de tipos por parâmetro. Toda taxa ou proporção sem fonte fica marcada como "hipótese, validação pendente" no contrato e no código.
+- O outbox é um arquivo local (SQLite ou JSONL), com o estado de cada evento: pendente ou enviado.
+- Nenhum segredo em arquivo versionado: ANON_CHAVE só em .env, que está no .gitignore; forneça .env.example sem valor.
+- Não crie produtor Kafka nem docker compose nesta etapa.
+
+[T] Tipo de saída
+docs/contrato_evento.md (até 120 linhas), src/gerador/ com módulos separados para geração, anonimização, validação e outbox, tests/ com os testes citados e um trecho de README com o comando de execução. Mostre o plano de arquivos antes de gravar.
+
+[E] Extras
+Leia AGENTS.md antes de começar. Se faltar informação essencial, pergunte antes de escrever. Gates ao final: (1) python -m pytest -q passa; (2) o gerador produz 1.000 eventos com semente fixa e a segunda execução gera a mesma sequência de tipos e academias; (3) uma busca por nomes do cadastro sintético no outbox não encontra nada; (4) git status não lista .env. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>O que discutir no prompt</strong>
+          <p>O pedido separa a regra (anonimizar, validar) do transporte, que só entra no prompt 2. Por que essa ordem facilita o teste? O gate 3 procura nomes no outbox: o que ele prova e o que deixa de provar sobre o campo <code>motivo</code>? O prompt manda gerar o <code>event_id</code> antes do outbox: o que aconteceria com as duplicatas se ele fosse gerado no momento do envio?</p>
+        </div>
+        <h3>7.3 Passo a passo no simulador</h3>
+        <ol class="steps">
+          <li>Com a simulação pausada, abra a aba Evento (<code>#evento</code>).</li>
+          <li>No formulário "Registrar evento", escolha uma academia, o tipo <code>checkin</code> e um aluno. Clique em "Registrar".</li>
+          <li>Compare os dois painéis. "Na academia" mostra o registro com o nome do aluno. "Na saída da academia" mostra o evento anonimizado, no formato da <a href="#s2">seção 2.3</a>.</li>
+          <li>Anote o <code>event_id</code>, a partição e o offset que o evento recebeu. Eles são usados na missão 1.</li>
+          <li>Registre outro evento para o mesmo aluno, de outro tipo. Confira que o campo <code>aluno</code> tem o mesmo código nos dois eventos.</li>
+          <li>Registre um <code>cancelamento</code> e observe o campo <code>motivo</code> no painel de saída.</li>
+        </ol>
+        <h3>7.4 O que observar</h3>
+        <p>O código do aluno se repete entre eventos do mesmo aluno e muda entre alunos, o que mantém a correlação sem expor o nome. O painel de saída não contém nenhum campo do cadastro. O <code>motivo</code> atravessa a borda como texto, e é o único campo em que um dado pessoal pode passar por descuido de quem digitou. A <a href="#s13">missão 1</a> começa aqui.</p>
+        <div class="note">
+          <strong>Pontos-chave da estação 1</strong>
+          <ul>
+            <li>A borda troca o identificador do aluno por um código determinístico com chave secreta; a correlação se mantém, o nome fica na academia.</li>
+            <li>Hash com chave é pseudonimização: a chave não entra no fluxo nem no Git.</li>
+            <li>O outbox local grava antes de enviar, e o <code>event_id</code> nasce antes do outbox.</li>
+            <li>O evento médio da amostra tem 231 bytes, e a maior parte é estrutura repetida.</li>
+          </ul>
+        </div>
+        <h3>7.5 Para saber mais</h3>
+        <ul>
+          <li><a href="https://kafka.apache.org/documentation/">Apache Kafka: documentação</a>, seção sobre o formato do registro (chave, valor, cabeçalhos e timestamp).</li>
+          <li>Lei nº 13.709/2018 (LGPD), artigos 5º, 12 e 13, para as definições de dado anonimizado e de pseudonimização.</li>
+          <li>Martin Kleppmann, Designing Data-Intensive Applications (O'Reilly, 2017), capítulo 4, sobre evolução de esquemas e compatibilidade entre produtores e consumidores.</li>
+        </ul>
+      </section>
+
+      <!-- 8 -->
+      <section class="content-block" id="s8">
+        <h2>8. Estação 2: Kafka, partições, grupos e lag</h2>
+        <h3>8.1 Conceito</h3>
+        <p>A <a href="#s4">seção 4.3</a> apresentou as peças do Kafka. Esta estação as observa em movimento, no tópico <code>tatame.eventos</code>, com 6 partições e três grupos de consumidores.</p>
+        <p>O primeiro comportamento é o endereçamento. Cada evento registrado recebe uma partição, decidida pela chave (a academia), e um offset, que é a posição dele naquela partição. Dois eventos da mesma academia caem na mesma partição, com offsets crescentes. Com 24 academias da amostra em 6 partições, várias academias dividem cada partição, e a distribuição depende do hash de cada código de academia: algumas partições recebem mais academias que outras. Numa rede real, uma academia muito movimentada torna a partição dela mais carregada que as demais, e o consumidor dessa partição passa a ser o gargalo do grupo.</p>
+        <p>O segundo comportamento é a independência dos grupos. Os grupos <code>cep</code>, <code>sink-influxdb</code> e <code>sink-lake</code> leem as mesmas seis partições, e cada um guarda o próprio offset em cada uma. Pausar um grupo faz o lag dele crescer e não altera os outros. Quando o grupo volta, ele retoma do offset em que parou: nada se perde, desde que a pausa seja menor que a retenção.</p>
+        <p>O terceiro é a recuperação. Um grupo que volta com lag acumulado lê mais rápido do que os eventos chegam, e o lag cai. O tempo para zerar depende da diferença entre a vazão do consumidor e a taxa de chegada. Se a vazão do consumidor for só um pouco maior que a taxa de chegada, o lag leva muito tempo para zerar; se for menor, o lag nunca zera.</p>
+        <div class="note">
+          <strong>Exemplo numérico 6. O lag de uma pausa de 30 minutos</strong>
+          <p>Pela hipótese de volume da aula, a rede inteira produz 1.742.400 eventos por dia, 20,2 por segundo em média. Em 30 minutos (um dia dividido por 48), chegam 1.742.400 &divide; 48 = 36.300 eventos. Um grupo pausado por 30 minutos volta com lag de 36.300 eventos, somadas as partições. Na amostra de um décimo do simulador, a ordem de grandeza esperada é dez vezes menor.</p>
+          <p>A pausa de 30 minutos equivale a 0,3% da retenção de sete dias (30 minutos em 10.080). O grupo teria de ficar parado por sete dias inteiros para começar a perder eventos. O lag é, portanto, um atraso recuperável, e o que ele custa depende do destino: 30 minutos de atraso no <code>sink-lake</code> quase não se nota num relatório mensal, e 30 minutos de atraso no <code>sink-influxdb</code> deixam o painel tático cego durante meia hora.</p>
+        </div>
+        <h3 id="prompt-2">8.2 Prompt CREATE 2: Kafka em modo KRaft, tópico, produtor e consumidor de verificação</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de plataforma de dados com experiência em operar Apache Kafka. Você prefere configurações explícitas a valores padrão e registra cada decisão de infraestrutura num ADR.
+
+[R] Pedido
+Na pasta aula_06_eventos/, adicione ao docker-compose.yml um broker Apache Kafka em modo KRaft (sem ZooKeeper), crie o tópico tatame.eventos com 6 partições e implemente em src/kafka/: (1) um produtor que lê os eventos pendentes do outbox do prompt 1 e os publica com a academia como chave; (2) um consumidor de verificação, no grupo "verificacao", que imprime tópico, partição, offset, chave e event_id de cada evento lido.
+
+[E] Exemplos
+Saída esperada do consumidor de verificação, uma linha por evento:
+tatame.eventos p=4 offset=1287 chave=SE-STO-014 event_id=7f3b1c9e-52a4-4d0e-9c1b-6a2f8e4d7b10
+Linha esperada num ADR: "ADR-002 Imagem do Kafka: imagem e tag escolhidas, data da escolha, motivo, como atualizar."
+
+[A] Ajustes
+- Fixe a tag da imagem do Kafka no docker-compose.yml (nunca latest) e registre a imagem, a tag e o motivo em docs/adr/. Não cite números de versão de memória: consulte a documentação oficial da imagem escolhida e registre o que encontrou.
+- Ambiente local com um único broker: o fator de replicação é 1. Registre no ADR que a meta de produção é fator de replicação 3 com min.insync.replicas=2 e que ela não é verificável neste ambiente.
+- Produtor com acks=all e idempotência habilitada explicitamente, sem depender do padrão da versão. A chave do registro é o campo academia. O evento só é marcado como enviado no outbox depois da confirmação do broker.
+- Retenção do tópico: 7 dias, configurada no tópico e conferida por comando.
+- O consumidor de verificação confirma o offset depois de processar, e não antes.
+- Inclua um teste de integração que publica dez eventos de duas academias e verifica que todos os eventos da mesma academia caíram na mesma partição, com offsets crescentes.
+- Usuário e senha, se houver, só em .env. Portas publicadas apenas em localhost.
+- Qualquer número de vazão citado na documentação gerada precisa ter sido medido neste ambiente; caso contrário, escreva "hipótese, validação pendente".
+
+[T] Tipo de saída
+Alterações em docker-compose.yml, src/kafka/produtor.py, src/kafka/verificador.py, um script de criação do tópico, tests/ com o teste de integração e o ADR. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md. Gates ao final: (1) docker compose ps mostra o broker saudável; (2) o comando de descrição do tópico mostra 6 partições e a retenção configurada; (3) o teste de integração passa; (4) o comando de descrição de grupos mostra o grupo "verificacao" com lag 0 depois da leitura; (5) parar o verificador, publicar 100 eventos e descrever o grupo mostra lag 100. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>O que discutir no prompt</strong>
+          <p>O prompt declara que o fator de replicação 3 não é verificável com um broker. Por que registrar a limitação é melhor do que subir três brokers no Codespace? O gate 5 mede o lag de propósito: o que ele ensina sobre a diferença entre "o consumidor está parado" e "o consumidor perdeu eventos"? Por que o prompt pede a idempotência do produtor de forma explícita?</p>
+        </div>
+        <h3>8.3 Passo a passo no simulador</h3>
+        <ol class="steps">
+          <li>Abra a aba Kafka (<code>#kafka</code>). A tabela de partições mostra as 6 partições do tópico <code>tatame.eventos</code> e o último offset de cada uma.</li>
+          <li>Com a simulação em andamento, observe os offsets crescendo. Compare o ritmo entre as partições.</li>
+          <li>Cole no campo "Localizar event_id" o identificador anotado na estação 1. O simulador mostra a partição e o offset em que o evento está.</li>
+          <li>Observe os grupos <code>cep</code>, <code>sink-influxdb</code> e <code>sink-lake</code>, cada um com o lag atual.</li>
+          <li>Clique em "Pausar" no grupo <code>sink-influxdb</code>. Acompanhe o lag desse grupo crescer enquanto o lag dos outros dois continua baixo.</li>
+          <li>Clique em "Retomar" e acompanhe o lag cair até zero.</li>
+        </ol>
+        <h3>8.4 O que observar</h3>
+        <p>Os offsets não crescem no mesmo ritmo em todas as partições, porque as academias não se distribuem de forma igual. O lag de um grupo pausado cresce na mesma velocidade em que o tópico recebe eventos. Os outros grupos não percebem a pausa. As <a href="#s13">missões 1 e 2</a> usam esta aba.</p>
+        <div class="note">
+          <strong>Pontos-chave da estação 2</strong>
+          <ul>
+            <li>O endereço de um evento é tópico, partição e offset; a chave por academia mantém cada academia numa partição.</li>
+            <li>Grupos de consumidores são independentes: pausar um não atrasa os outros.</li>
+            <li>O lag de uma pausa é a taxa de chegada multiplicada pela duração: 36.300 eventos em 30 minutos, na rede inteira.</li>
+            <li>O custo do lag depende do destino que o grupo alimenta.</li>
+          </ul>
+        </div>
+        <h3>8.5 Para saber mais</h3>
+        <ul>
+          <li><a href="https://kafka.apache.org/documentation/">Apache Kafka: documentação</a>, seções sobre grupos de consumidores, configuração de tópicos (retenção) e modo KRaft.</li>
+          <li><a href="https://kafka.apache.org/documentation/#connect">Kafka Connect</a>, para sinks prontos como alternativa aos consumidores escritos à mão nos prompts 4 e 5.</li>
+        </ul>
+      </section>
+
+      <!-- 9 -->
+      <section class="content-block" id="s9">
+        <h2>9. Estação 3: CEP sobre o fluxo</h2>
+        <h3>9.1 Conceito</h3>
+        <p>O grupo <code>cep</code> lê o tópico e avalia quatro regras, uma de cada família da <a href="#s3">seção 3.2</a>. No simulador, cada regra tem uma chave liga/desliga e um parâmetro editável.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Regra</th><th>Condição</th><th>Para que serve</th></tr></thead>
+          <tbody>
+            <tr><td><code>cobranca_reincidente</code></td><td>2 <code>cobranca_falhou</code> do mesmo aluno em 7 dias</td><td>avisar a academia antes de o aluno desistir por um problema de pagamento</td></tr>
+            <tr><td><code>academia_silenciosa</code></td><td>nenhum heartbeat da academia há 5 minutos</td><td>avisar a operação de que uma academia está sem dispositivos ou sem conexão</td></tr>
+            <tr><td><code>pico_de_cancelamentos</code></td><td>3 cancelamentos na mesma academia em 24 horas</td><td>chamar a atenção do gestor regional para um problema local</td></tr>
+            <tr><td><code>experimental_sem_matricula</code></td><td>aula experimental sem matrícula do mesmo aluno em 7 dias</td><td>acionar o contato comercial com quem experimentou e não voltou</td></tr>
+          </tbody>
+        </table></div>
+        <p>Cada evento complexo detectado carrega a lista dos eventos simples que o formaram. Essa lista é a explicação do alerta: quem recebe um <code>pico_de_cancelamentos</code> consegue abrir os três cancelamentos e ler os motivos.</p>
+        <p>A estação provoca a situação mais difícil para um motor de CEP, que é a falha da infraestrutura que transporta os eventos. Quando o cluster de uma região cai, as academias daquela região continuam funcionando: os alunos entram, as catracas registram, o outbox local guarda. Do ponto de vista do tópico, porém, todas as academias da região ficam em silêncio ao mesmo tempo, e a regra <code>academia_silenciosa</code> dispara para cada uma delas. O alerta está correto pelo que a regra enxerga e errado pelo que aconteceu no mundo: nenhuma academia parou.</p>
+        <p>Quando o cluster volta, os outboxes descarregam os eventos retidos. Eles chegam com o <code>ocorrido_em</code> de duas horas atrás. Uma regra que usa o tempo de chegada enxerga uma rajada de eventos "agora" e pode disparar limiares que nunca foram atingidos de fato. Uma regra que usa o tempo do evento posiciona cada evento no instante correto, mas avalia o padrão com duas horas de atraso, quando o alerta talvez não sirva mais. A decisão sobre o que fazer com eventos muito atrasados (avaliar e emitir com uma marca de atraso, avaliar e não notificar, desviar para análise em lote) pertence à regra e deve estar escrita.</p>
+        <div class="note">
+          <strong>Exemplo numérico 7. Duas horas sem o cluster eu-estocolmo</strong>
+          <p>A região <code>eu-estocolmo</code> tem 48 academias e 7.200 alunos. Pelas hipóteses da aula, ela produz 72.000 eventos de aluno por dia (7.200 &times; 10) e 276.480 heartbeats por dia (48 &times; 2 &times; 2.880), num total de 348.480 eventos por dia, 4,03 por segundo em média.</p>
+          <p>Em duas horas de falha (7.200 segundos), 29.040 eventos ficam retidos nos outboxes das academias (348.480 &divide; 12). Durante a falha, a regra <code>academia_silenciosa</code> dispara para as 48 academias da região.</p>
+          <p>No retorno, o reenvio trabalha a 200 eventos por segundo, que é uma hipótese a validar com a rede. Enquanto a fila escoa, eventos novos continuam chegando a 4,03 por segundo, de modo que a fila diminui a 200 &minus; 4,03 = 195,97 eventos por segundo. O tempo de escoamento é 29.040 &divide; 195,97 = 148 segundos, cerca de dois minutos e meio.</p>
+          <p>Duas horas de falha se recuperam em menos de três minutos porque a vazão de reenvio é quase 50 vezes a taxa de chegada. Se a vazão de reenvio fosse próxima de 4,03, a recuperação levaria horas. A conta usa a taxa média; uma falha no horário de pico das turmas retém mais eventos do que a média indica.</p>
+        </div>
+        <h3 id="prompt-3">9.2 Prompt CREATE 3: consumidor CEP com quatro regras, estado por chave e testes</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de software especializado em processamento de fluxos. Você escreve regras de detecção como funções puras sobre estado explícito, testa as bordas das janelas antes de ligar o código a um broker e documenta o comportamento com eventos atrasados.
+
+[R] Pedido
+Na pasta aula_06_eventos/, implemente em src/cep/ um consumidor do tópico tatame.eventos, no grupo "cep", que avalia quatro regras e publica cada evento complexo detectado no tópico tatame.alertas. As regras:
+1. cobranca_reincidente: 2 eventos cobranca_falhou do mesmo aluno em 7 dias. Chave: aluno.
+2. academia_silenciosa: nenhum heartbeat da academia há 5 minutos. Chave: academia.
+3. pico_de_cancelamentos: 3 eventos cancelamento na mesma academia em 24 horas (janela deslizante). Chave: academia.
+4. experimental_sem_matricula: evento aula_experimental sem evento matricula do mesmo aluno em 7 dias. Chave: aluno.
+
+[E] Exemplos
+Evento complexo esperado:
+{"event_id":"&lt;uuid novo&gt;","tipo":"cobranca_reincidente","detectado_em":"2026-11-14T11:05:00.000Z","chave":"a8f3c1d9e2b47f60","regiao":"eu-estocolmo","academia":"SE-STO-014","janela":"P7D","eventos_origem":["&lt;event_id 1&gt;","&lt;event_id 2&gt;"],"atrasado":false}
+Assinatura esperada de uma regra: avaliar(estado_da_chave, evento, agora) devolve (novo_estado, lista_de_eventos_complexos).
+
+[A] Ajustes
+- Parâmetros (quantidade, janela) lidos de configuração, com os valores acima como padrão. Os valores são hipóteses de negócio: marque-os como "hipótese, validação pendente" na documentação.
+- As regras usam o tempo do evento (ocorrido_em). O relógio do motor avança pelo maior ocorrido_em visto, menos uma folga configurável (watermark). As regras 2 e 4 dependem de temporizador: vencem quando o watermark passa do prazo, sem depender de um evento novo da mesma chave.
+- Evento que chega com ocorrido_em anterior ao watermark é avaliado, e o evento complexo resultante sai com "atrasado": true. Documente essa decisão num ADR, com as alternativas descartadas.
+- Estado por chave com expiração: cada regra descarta o estado da chave quando a janela vence. O estado é persistido em disco local e recarregado na partida. Registre no ADR que, em produção, o estado ficaria num motor com checkpoints (Flink, Kafka Streams).
+- Duplicatas: o mesmo event_id recebido duas vezes não conta duas vezes.
+- O offset só é confirmado depois de o estado ser persistido e os eventos complexos serem publicados.
+- Testes com pytest, sem Kafka, para cada regra: caso que dispara, caso que não dispara, borda exata da janela, evento duplicado, evento atrasado, expiração do estado. Um teste mede o número de chaves em estado depois de processar um dia sintético e compara com o esperado.
+- Não invente limiares de alerta nem destinatários de notificação.
+
+[T] Tipo de saída
+src/cep/ com um módulo por regra, um módulo de estado e o consumidor; tests/ com os casos acima; ADR da decisão sobre eventos atrasados; trecho de README com a execução. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -q passa; (2) publicar duas cobranca_falhou do mesmo aluno produz um evento em tatame.alertas com os dois event_id de origem; (3) interromper o gerador de heartbeats de uma academia produz academia_silenciosa depois do prazo; (4) reiniciar o consumidor no meio de uma janela não perde o estado (o padrão se completa depois da reinicialização); (5) o grupo "cep" aparece com lag 0. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>O que discutir no prompt</strong>
+          <p>O prompt escolhe o tempo do evento e marca os resultados atrasados com um campo. Que outra decisão seria defensável para a regra <code>academia_silenciosa</code>, em que um alerta com duas horas de atraso não serve a ninguém? O gate 4 reinicia o consumidor no meio da janela: que defeito ele detecta? O prompt não resolve o falso alerta da falha de cluster. Que informação a regra precisaria receber para distinguir "academia fora" de "cluster fora"?</p>
+        </div>
+        <h3>9.3 Passo a passo no simulador</h3>
+        <ol class="steps">
+          <li>Abra a aba CEP (<code>#cep</code>). Confira que as quatro regras estão ligadas e leia o parâmetro de cada uma.</li>
+          <li>Abra a aba Rede (<code>#rede</code>). Cada cartão mostra o estado do cluster da região, a taxa de eventos e a contagem do outbox.</li>
+          <li>No cartão <code>eu-estocolmo</code>, clique em "Derrubar cluster". Avance o relógio e observe a contagem do outbox da região crescer.</li>
+          <li>Volte à aba CEP e acompanhe a lista "Eventos complexos detectados". Depois de cinco minutos simulados, a regra <code>academia_silenciosa</code> dispara para as academias da região.</li>
+          <li>Abra um dos eventos complexos e confira os eventos simples que o formaram.</li>
+          <li>Na aba Rede, clique em "Restaurar cluster" e acompanhe o outbox esvaziar.</li>
+          <li>Na aba Evento, registre duas <code>cobranca_falhou</code> para o mesmo aluno e volte à aba CEP para ver a regra <code>cobranca_reincidente</code>.</li>
+        </ol>
+        <h3>9.4 O que observar</h3>
+        <p>A regra de ausência dispara sem que nenhum evento novo chegue. O número de alertas <code>academia_silenciosa</code> é igual ao número de academias da região derrubada, o que indica uma causa comum. Depois da restauração, os eventos retidos entram no tópico com o <code>ocorrido_em</code> original. As <a href="#s13">missões 3 e 4</a> usam esta estação.</p>
+        <div class="note">
+          <strong>Pontos-chave da estação 3</strong>
+          <ul>
+            <li>O evento complexo leva consigo os eventos simples que o formaram, e essa lista é a explicação do alerta.</li>
+            <li>A regra enxerga o tópico, e não o mundo: uma falha do cluster aparece como silêncio de todas as academias da região.</li>
+            <li>Duas horas de falha retêm 29.040 eventos em <code>eu-estocolmo</code> e escoam em 148 segundos a 200 eventos por segundo.</li>
+            <li>O comportamento com eventos atrasados é uma decisão da regra e precisa estar registrada.</li>
+          </ul>
+        </div>
+        <h3>9.5 Para saber mais</h3>
+        <ul>
+          <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/libs/cep/">Apache Flink: biblioteca FlinkCEP</a>, com padrões de sequência, ausência dentro de um prazo e tratamento de eventos atrasados.</li>
+          <li><a href="https://kafka.apache.org/documentation/streams/">Kafka Streams</a>, para estado por chave com tópicos de changelog.</li>
+          <li>David Luckham, The Power of Events (Addison-Wesley, 2002), sobre hierarquias de eventos e rastreabilidade causal.</li>
+        </ul>
+      </section>
+
+      <!-- 10 -->
+      <section class="content-block" id="s10">
+        <h2>10. Estação 4: InfluxDB e o painel tático</h2>
+        <h3>10.1 Conceito</h3>
+        <p>O InfluxDB é um banco de séries temporais: ele guarda valores numéricos associados a instantes e é organizado para gravar muitos pontos por segundo e ler faixas de tempo com agregação. O modelo de dados tem quatro elementos.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Elemento</th><th>O que é</th><th>Na aula</th></tr></thead>
+          <tbody>
+            <tr><td>Measurement</td><td>o nome do que está sendo medido; faz o papel de uma tabela</td><td><code>eventos</code></td></tr>
+            <tr><td>Tags</td><td>pares chave e valor de texto, indexados; são as dimensões de filtro e agrupamento</td><td><code>regiao</code>, <code>academia</code>, <code>tipo</code></td></tr>
+            <tr><td>Fields</td><td>os valores medidos; não são indexados</td><td><code>contagem</code>, o número de eventos que o ponto representa</td></tr>
+            <tr><td>Timestamp</td><td>o instante do ponto</td><td>o <code>ocorrido_em</code> do evento</td></tr>
+          </tbody>
+        </table></div>
+        <p>O formato de escrita é o line protocol, uma linha de texto por ponto: measurement, tags separadas por vírgula, um espaço, fields, um espaço e o timestamp. O ponto abaixo é o check-in da <a href="#s2">seção 2.3</a> como o simulador o grava: um ponto por evento, com o field <code>contagem</code> igual a 1 e o <code>ocorrido_em</code> convertido em nanossegundos.</p>
+        <pre><code>eventos,regiao=eu-estocolmo,academia=SE-STO-014,tipo=checkin contagem=1i 1794654127412000000</code></pre>
+        <p>Cada combinação distinta de measurement e valores de tags forma uma série. O ponto acima pertence à série "eventos de check-in da academia SE-STO-014 da região eu-estocolmo". O banco mantém um índice das séries para responder rápido a filtros por tag. Nas versões 1 e 2 do InfluxDB, com o motor TSM e o índice TSI, o número de séries é o principal fator de custo: cada série nova ocupa memória e índice, e uma tag com muitos valores distintos multiplica as séries. A versão 3 trocou o motor de armazenamento por um modelo colunar, com arquivos Parquet, e trata alta cardinalidade de outra forma. A regra de desenho continua útil nas três: tag é dimensão com poucos valores, usada em filtro e agrupamento; o que tem muitos valores distintos vai para field ou para outro banco.</p>
+        <p>Dois pontos com o mesmo measurement, as mesmas tags e o mesmo timestamp são o mesmo ponto: a segunda escrita substitui o valor do field. Essa propriedade tem dois efeitos. Quem grava um ponto por evento, como o simulador faz para deixar cada evento visível, descobre que dois check-ins da mesma academia no mesmo milissegundo se sobrescrevem. A saída tentadora é acrescentar o aluno como tag, para que os dois pontos fiquem em séries diferentes, e o número de séries então dispara. A saída adotada no prompt desta estação é agregar antes de gravar: o sink conta os eventos de cada série em cada minuto e grava um ponto por série por minuto. Nesse desenho a sobrescrita passa a ajudar, porque reescrever o minuto com a contagem atualizada é uma operação repetível, e os eventos atrasados da estação 3 corrigem o minuto em que aconteceram.</p>
+        <p>A retenção é definida por bucket: os pontos mais antigos que o prazo são apagados pelo próprio banco. O bucket <code>tatico</code> da aula retém 30 dias. Para guardar mais tempo sem guardar o detalhe, usa-se downsampling: uma tarefa periódica resume os pontos de um minuto em pontos de uma hora e os grava em outro bucket, com retenção maior. Na arquitetura da aula, o histórico longo é atendido pelo Elasticsearch, e o InfluxDB fica só com o período tático.</p>
+        <div class="note">
+          <strong>Exemplo numérico 8. Séries com e sem o aluno como tag</strong>
+          <p>Com as tags <code>regiao</code>, <code>academia</code> e <code>tipo</code>, o número de séries é o número de academias vezes o número de tipos de evento: 240 &times; 11 = 2.640. A região não multiplica, porque cada academia pertence a uma só.</p>
+          <p>Se <code>aluno</code> virar tag nos 10 tipos de evento de aluno, cada aluno passa a ter uma série por tipo: até 36.000 &times; 10 = 360.000 séries, 136 vezes mais (360.000 &divide; 2.640).</p>
+          <p>O volume de pontos tem um teto conhecido no primeiro desenho, quando o sink agrega por minuto: a um ponto por série por minuto, são 2.640 &times; 1.440 = 3.801.600 pontos por dia no pior caso, em que todas as séries têm evento em todos os minutos. Na prática o número é menor, porque uma série sem evento no minuto não gera ponto. No segundo desenho, a quantidade de séries cresce com cada aluno novo e com cada tipo de evento que ele gera pela primeira vez, e não há teto fixo.</p>
+        </div>
+        <h3 id="prompt-4">10.2 Prompt CREATE 4: sink para InfluxDB e consultas do painel tático</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados com experiência em bancos de séries temporais. Você desenha o esquema de tags e fields a partir das perguntas do painel, controla a cardinalidade de séries e justifica cada tag.
+
+[R] Pedido
+Na pasta aula_06_eventos/, adicione o InfluxDB ao docker-compose.yml e implemente em src/sink_influxdb/ um consumidor do tópico tatame.eventos, no grupo "sink-influxdb", que agrega os eventos por minuto e grava os pontos no bucket "tatico". Entregue também as consultas do painel tático: (a) eventos por minuto por região nos últimos 60 minutos; (b) dispositivos vivos por região, a partir dos heartbeats recentes; (c) check-ins por academia na última hora, para uma região escolhida.
+
+[E] Exemplos
+Ponto esperado, em line protocol:
+eventos,regiao=eu-estocolmo,academia=SE-STO-014,tipo=checkin contagem=1i 1794654120000000000
+Esquema: measurement "eventos"; tags regiao, academia, tipo; field contagem (inteiro, número de eventos da série no minuto); timestamp = início do minuto, pelo campo ocorrido_em do evento.
+
+[A] Ajustes
+- Fixe a tag da imagem do InfluxDB no docker-compose.yml e registre no ADR a imagem, a tag e a linguagem de consulta que essa versão usa. Não cite números de versão de memória: consulte a documentação oficial. Escreva as consultas na linguagem da versão fixada.
+- O campo aluno nunca é tag. Escreva um teste que falha se o conjunto de tags gravado for diferente de {regiao, academia, tipo}.
+- Bucket "tatico" com retenção de 30 dias, criada por comando ou configuração versionada.
+- Agregação por minuto pelo tempo do evento. Um evento atrasado atualiza o ponto do minuto em que ocorreu: a escrita do mesmo ponto é repetível e substitui o valor.
+- Duplicatas: o mesmo event_id não incrementa a contagem duas vezes dentro da janela de deduplicação. Declare o tamanho dessa janela como "hipótese, validação pendente".
+- O offset só é confirmado depois da escrita bem-sucedida. Escritas em lote, com tamanho e intervalo configuráveis.
+- Entregue um comando que mostra a cardinalidade de séries do bucket e registre o valor observado depois de uma carga de teste.
+- Token do InfluxDB só em .env; .env.example sem valor.
+- Não crie painel gráfico: só as consultas, com um exemplo de resultado de cada uma.
+
+[T] Tipo de saída
+Alterações em docker-compose.yml, src/sink_influxdb/, um arquivo consultas_painel com as três consultas, tests/ com os testes de esquema, agregação e duplicata, e o ADR. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -q passa; (2) depois de 10 minutos de gerador, a consulta (a) devolve uma linha por região e por minuto; (3) a cardinalidade de séries observada é menor ou igual ao número de academias do gerador vezes o número de tipos; (4) reprocessar os mesmos eventos (reiniciando o grupo do início) não altera os totais; (5) o grupo "sink-influxdb" aparece com lag 0. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>O que discutir no prompt</strong>
+          <p>O prompt transforma a regra "aluno nunca é tag" num teste. Por que um teste protege melhor que um aviso no README? O gate 4 reprocessa o tópico inteiro: que propriedade do sink ele verifica, e por que ela importa depois de uma falha como a da estação 3? O prompt pede a linguagem de consulta da versão fixada em vez de nomear uma. O que isso evita?</p>
+        </div>
+        <h3>10.3 Passo a passo no simulador</h3>
+        <ol class="steps">
+          <li>Abra a aba InfluxDB (<code>#influxdb</code>). Os últimos pontos gravados aparecem em line protocol. Identifique measurement, tags, field e timestamp em um deles.</li>
+          <li>Leia o contador "Séries ativas" e anote o valor.</li>
+          <li>Observe o "Painel tático": eventos por minuto por região nos últimos 60 minutos e dispositivos vivos por região. O seletor "Janela" amplia o painel para as últimas 3 horas.</li>
+          <li>Se a falha de <code>eu-estocolmo</code> da estação 3 ainda estiver visível, localize o intervalo sem pontos da região no painel e confira se os eventos atrasados o preencheram depois da restauração.</li>
+          <li>Ligue a chave "Usar aluno como tag", avance alguns minutos simulados e leia "Séries ativas" de novo. Desligue a chave em seguida.</li>
+          <li>Execute a consulta "Últimos 13 meses" e observe o período que ela devolve. O bucket <code>tatico</code> retém 30 dias.</li>
+        </ol>
+        <h3>10.4 O que observar</h3>
+        <p>O contador de séries fica estável enquanto as tags são <code>regiao</code>, <code>academia</code> e <code>tipo</code>, e cresce a cada minuto com o aluno como tag. A consulta de 13 meses devolve só os 30 dias retidos, sem erro: o banco responde com o que tem, e quem lê o resultado precisa saber da retenção para não tomar 30 dias por 13 meses. As <a href="#s13">missões 3, 5 e 7</a> passam por esta aba.</p>
+        <div class="note">
+          <strong>Pontos-chave da estação 4</strong>
+          <ul>
+            <li>Um ponto é measurement, tags, fields e timestamp; tags são indexadas e definem as séries.</li>
+            <li>Com <code>regiao</code>, <code>academia</code> e <code>tipo</code>, a rede tem 2.640 séries; com o aluno como tag, até 360.000.</li>
+            <li>Nas versões 1 e 2, a cardinalidade de séries é o custo principal; a versão 3 mudou o motor, e o comportamento deve ser conferido na versão em uso.</li>
+            <li>A retenção de 30 dias mantém o banco pequeno e limita o que ele consegue responder.</li>
+          </ul>
+        </div>
+        <h3>10.5 Para saber mais</h3>
+        <ul>
+          <li><a href="https://docs.influxdata.com/">Documentação da InfluxData</a>, ponto de entrada para as três linhas de versão do InfluxDB.</li>
+          <li><a href="https://docs.influxdata.com/influxdb/v2/">InfluxDB v2: documentação</a>, com o modelo de dados, o line protocol, a cardinalidade de séries e as tarefas de downsampling.</li>
+          <li><a href="https://kafka.apache.org/documentation/#connect">Kafka Connect</a>, para avaliar um conector de sink no lugar do consumidor escrito à mão.</li>
+        </ul>
+      </section>
+
+      <!-- 11 -->
+      <section class="content-block" id="s11">
+        <h2>11. Estação 5: object storage e a camada bruta</h2>
+        <h3>11.1 Conceito</h3>
+        <p>O grupo <code>sink-lake</code> grava todos os eventos, sem transformação, no bucket <code>tatame-bruto</code>. É a camada bruta que as Aulas 02 a 04 construíram com MinIO e RustFS, agora alimentada por um fluxo contínuo. Ela é imutável: um objeto gravado não é editado. Ela é completa: nenhum evento é filtrado nem resumido. E ela é a fonte a partir da qual os outros destinos podem ser reconstruídos.</p>
+        <p>Os objetos são lotes de eventos em JSONL (um evento JSON por linha), comprimidos com gzip. A chave de cada objeto segue o particionamento no estilo Hive, em que o caminho carrega pares nome e valor.</p>
+        <pre><code>regiao=&lt;regiao&gt;/data=&lt;AAAA-MM-DD&gt;/hora=&lt;HH&gt;/lote-&lt;n&gt;.jsonl.gz
+
+regiao=eu-estocolmo/data=2026-11-14/hora=11/lote-0042.jsonl.gz</code></pre>
+        <p>Esse formato de chave permite que um leitor (o indexador do Elasticsearch, o DuckDB da Aula 04) leia só os prefixos que interessam: todos os eventos de uma região num dia, sem listar o bucket inteiro.</p>
+        <p>A primeira decisão do sink é quando fechar um lote. Um object storage não permite acrescentar linhas a um objeto existente, então o sink acumula eventos em memória ou em disco local e grava o objeto inteiro quando o lote fecha. Lotes curtos entregam o dado ao bucket em pouco tempo e produzem muitos objetos pequenos. Lotes longos produzem poucos objetos grandes e fazem o dado esperar. Muitos objetos pequenos custam caro para quem lê: cada objeto é uma requisição, a listagem de um prefixo com milhares de chaves é lenta, e a compressão rende menos em arquivos curtos, porque há menos repetição a explorar. Esse é o problema dos arquivos pequenos.</p>
+        <p>A segunda decisão é qual data vai na chave. Particionar pela data do evento coloca cada evento na pasta do dia e da hora em que ele aconteceu. A consulta por período fica correta, mas um evento atrasado obriga o sink a gravar um lote novo numa partição antiga, que um leitor pode já ter processado. Particionar pela data de chegada mantém as partições antigas fechadas (toda partição passada está completa e não muda mais), mas a pasta de uma hora passa a conter eventos de outras horas, e quem consulta por período precisa ler partições vizinhas e filtrar pelo <code>ocorrido_em</code>. Com a falha de duas horas da estação 3, a diferença é visível: pela data do evento, os 29.040 eventos retidos se espalham pelas duas horas em que ocorreram; pela data de chegada, eles caem todos na hora da restauração.</p>
+        <p>A terceira decisão é a confirmação. O sink só confirma o offset no Kafka depois que o object storage confirma a gravação do objeto. Se o processo cair entre os dois passos, o lote é gravado de novo na volta. Para que a regravação não duplique eventos, o nome do lote é derivado de algo determinístico (a partição do Kafka e o primeiro offset do lote), de modo que o segundo envio sobrescreve o primeiro.</p>
+        <div class="note">
+          <strong>Exemplo numérico 9. Compressão e tamanho do lote</strong>
+          <p>O script <code>../simulador/medicoes_preparo.py</code> serializou os 100.000 eventos sintéticos num lote JSONL de 23,15 MB e o comprimiu com gzip nível 6. O resultado tem 3,83 MB, 6,1 vezes menor. Projetado para o volume da rede, um dia ocupa 402 MB em JSON e 66 MB em JSONL.gz; um ano, 146,6 GB em JSON e 24,2 GB em JSONL.gz.</p>
+          <p>O tamanho do lote decide em quantos objetos esses 66 MB diários se dividem. Supondo um lote por região a cada fechamento, lotes de 60 minutos produzem 4 &times; 24 = 96 objetos por dia, com cerca de 0,69 MB cada (66 &divide; 96). Lotes de 1 minuto produzem 4 &times; 1.440 = 5.760 objetos por dia, com cerca de 11,5 KB cada. Em um ano, são 35.040 objetos num caso e 2.102.400 no outro, para guardar os mesmos eventos.</p>
+          <p>A divisão por 5.760 supõe a mesma taxa de compressão, o que é otimista: a taxa de 6,1 vezes foi medida num lote de 100.000 eventos, e lotes de poucas centenas de eventos comprimem menos. O atraso vai na direção oposta: com lote de 60 minutos, um evento espera até uma hora para chegar ao bucket e, depois, ao Elasticsearch.</p>
+        </div>
+        <h3 id="prompt-5">11.2 Prompt CREATE 5: sink para object storage em JSONL.gz particionado</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de dados responsável pela camada bruta de um data lake. Você trata o bucket como fonte da verdade, grava objetos imutáveis e desenha o sink para que um reenvio nunca duplique eventos.
+
+[R] Pedido
+Na pasta aula_06_eventos/, implemente em src/sink_lake/ um consumidor do tópico tatame.eventos, no grupo "sink-lake", que grava os eventos, sem transformação, no bucket "tatame-bruto" do object storage compatível com S3 já usado pelo grupo nas aulas anteriores (MinIO ou RustFS). Os objetos são lotes JSONL comprimidos com gzip, com chave particionada.
+
+[E] Exemplos
+Formato da chave:
+regiao=&lt;regiao&gt;/data=&lt;AAAA-MM-DD&gt;/hora=&lt;HH&gt;/lote-&lt;n&gt;.jsonl.gz
+Exemplo: regiao=eu-estocolmo/data=2026-11-14/hora=11/lote-0042.jsonl.gz
+Conteúdo: uma linha por evento, JSON compacto, exatamente como lido do tópico.
+
+[A] Ajustes
+- Reaproveite o serviço de object storage e o cliente S3 que o repositório do grupo já usa. Se for preciso adicionar o serviço ao docker-compose.yml, fixe a tag da imagem e registre no ADR, sem citar número de versão de memória.
+- O lote fecha por tempo (FECHAR_LOTE_MINUTOS) ou por tamanho (FECHAR_LOTE_BYTES), o que vier primeiro. Os valores padrão são hipóteses: marque como "hipótese, validação pendente" e registre no ADR o compromisso entre número de objetos e atraso.
+- PARTICIONAR_POR aceita "evento" (data e hora de ocorrido_em) ou "chegada" (data e hora em que o sink leu o evento). Documente no ADR a consequência de cada opção para eventos atrasados e para quem lê o bucket.
+- O número n do lote é determinístico, derivado da partição do Kafka e do primeiro offset do lote, para que a regravação do mesmo lote sobrescreva o mesmo objeto.
+- O offset só é confirmado depois que o object storage confirma a gravação. Nunca altere um objeto já gravado com conteúdo diferente.
+- Entregue um script de conferência que, para um intervalo de offsets, conta as linhas nos objetos e compara com a quantidade de eventos do tópico, e que procura event_id repetido.
+- Meça e registre: tamanho do lote antes e depois do gzip e a taxa de compressão observada. Não reutilize taxas de outras fontes.
+- Credenciais do object storage só em .env.
+
+[T] Tipo de saída
+src/sink_lake/, o script de conferência, tests/ com testes da função que monta a chave (as duas formas de particionar, virada de hora, virada de dia, evento atrasado) e da função que decide o fechamento do lote, e o ADR. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md. Gates ao final: (1) python -m pytest -q passa; (2) depois de 10 minutos de gerador, a listagem do bucket mostra chaves no formato pedido, em todas as regiões do gerador; (3) o script de conferência mostra a mesma contagem no tópico e no bucket e nenhum event_id repetido; (4) matar o sink durante a gravação e reiniciar não altera o resultado do gate 3; (5) o grupo "sink-lake" aparece com lag 0. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>O que discutir no prompt</strong>
+          <p>O nome do lote é derivado da partição e do offset. Que defeito apareceria se o nome fosse um contador em memória ou um horário? O prompt proíbe reutilizar taxas de compressão de outras fontes, inclusive a deste material. Por quê? O gate 4 mata o processo no meio da gravação: quais são os dois resultados errados possíveis, e qual decisão do prompt evita cada um?</p>
+        </div>
+        <h3>11.3 Passo a passo no simulador</h3>
+        <ol class="steps">
+          <li>Abra a aba Object storage (<code>#storage</code>). A lista mostra os objetos do bucket <code>tatame-bruto</code>, com as chaves no formato <code>regiao=&lt;regiao&gt;/data=&lt;AAAA-MM-DD&gt;/hora=&lt;HH&gt;/lote-&lt;n&gt;.jsonl.gz</code>.</li>
+          <li>Leia a contagem de objetos, os bytes gravados e os objetos por dia projetados.</li>
+          <li>No seletor "Fechar lote a cada", escolha 1 minuto simulado. Avance o relógio e observe a contagem de objetos e a projeção diária.</li>
+          <li>Troque para 60 minutos. Avance o relógio e compare a projeção. Observe quanto tempo um evento registrado agora leva para aparecer num objeto.</li>
+          <li>No seletor "Particionar por", confira a opção atual (data do evento ou data de chegada).</li>
+          <li>Se houver eventos atrasados da falha da estação 3, alterne o seletor e veja em quais prefixos de <code>data=</code> e <code>hora=</code> eles são gravados em cada opção.</li>
+        </ol>
+        <h3>11.4 O que observar</h3>
+        <p>A projeção de objetos por dia cai na proporção em que o intervalo do lote cresce, e o atraso até o dado chegar ao bucket sobe na mesma proporção. A opção de particionamento não muda a quantidade de eventos gravados: muda o endereço deles, e portanto o que um leitor encontra ao pedir "os eventos das 9h". A <a href="#s13">missão 6</a> usa esta aba.</p>
+        <div class="note">
+          <strong>Pontos-chave da estação 5</strong>
+          <ul>
+            <li>A camada bruta é imutável, completa e serve de fonte para reconstruir os outros destinos.</li>
+            <li>O gzip reduziu o lote medido em 6,1 vezes; um ano de eventos ocupa 24,2 GB comprimido.</li>
+            <li>O intervalo do lote troca número de objetos por atraso: 96 ou 5.760 objetos por dia, para os mesmos eventos.</li>
+            <li>Particionar pela data do evento ou pela data de chegada decide onde caem os eventos atrasados e quem paga por eles, o sink ou o leitor.</li>
+          </ul>
+        </div>
+        <h3>11.5 Para saber mais</h3>
+        <ul>
+          <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/">Amazon S3: guia do usuário</a>, referência da API que o MinIO e o RustFS implementam (chaves, prefixos, listagem, consistência).</li>
+          <li><a href="https://kafka.apache.org/documentation/#connect">Kafka Connect</a>, onde conectores de sink para object storage resolvem fechamento de lote e particionamento por configuração.</li>
+          <li><a href="../../aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse/material/material_aula_04_dados_semiestruturados_parquet_duckdb_e_lakehouse.html">Material da Aula 04</a>, para a leitura de prefixos particionados com DuckDB e a conversão para Parquet.</li>
+        </ul>
+      </section>
+
+      <!-- 12 -->
+      <section class="content-block" id="s12">
+        <h2>12. Estação 6: Elasticsearch, estimativas e contexto para IA</h2>
+        <h3>12.1 Conceito</h3>
+        <p>O Elasticsearch guarda documentos JSON e os torna pesquisáveis por meio de um índice invertido: para cada termo, a lista dos documentos em que ele aparece. Uma busca por "preço" consulta essa lista em vez de ler todos os documentos. Cada índice é dividido em shards primários, e cada shard pode ter réplicas. Os shards são distribuídos pelos nós do cluster, e é dessa distribuição que vem a elasticidade do nome: acrescentar nós permite espalhar shards e dividir a carga. O número de shards primários é definido na criação do índice.</p>
+        <p>O mapping é o esquema do índice: o tipo de cada campo e a forma de indexá-lo. Um campo <code>keyword</code> é guardado inteiro, para filtro, agrupamento e contagem (região, academia, tipo, aluno). Um campo <code>text</code> passa por um analisador, que o divide em termos e os normaliza, para busca por relevância (o <code>motivo</code>). O mapping errado é o defeito mais comum num índice novo: o motivo mapeado como <code>keyword</code> só é encontrado pela frase exata, e a academia mapeada como <code>text</code> não agrega direito.</p>
+        <p>Os eventos são indexados em índices mensais, <code>tatame-eventos-AAAA.MM</code>, com 3 shards primários cada. A divisão por período permite tratar meses de idades diferentes de formas diferentes. O gerenciamento de ciclo de vida (ILM) move um índice por fases, hot, warm, cold, frozen e delete, cada uma com hardware e custo próprios, e o rollover cria um índice novo quando o atual atinge uma idade ou um tamanho. Uma consulta de 13 meses lê os índices do período, e os meses antigos podem estar em armazenamento mais barato e mais lento.</p>
+        <p>O indexador lê os objetos do bucket <code>tatame-bruto</code> e usa o <code>event_id</code> como identificador do documento. Indexar o mesmo evento duas vezes sobrescreve o documento, e o reprocessamento de um lote não gera duplicata.</p>
+        <h3>12.2 Relevância: o BM25</h3>
+        <p>Quando a busca é textual, o Elasticsearch ordena os resultados por uma pontuação de relevância, calculada por padrão com a função BM25. A pontuação de um documento para um termo combina três ideias. A primeira é a raridade do termo no conjunto (IDF): um termo que aparece em poucos documentos distingue mais do que um que aparece em quase todos. A segunda é a frequência do termo no documento, com saturação: a segunda ocorrência vale menos que a primeira, e o parâmetro k1 controla essa curva. A terceira é o comprimento do documento: um termo num texto curto pesa mais que o mesmo termo num texto longo, e o parâmetro b controla quanto.</p>
+        <div class="note">
+          <strong>Exemplo numérico 10. BM25 sobre seis motivos de cancelamento</strong>
+          <p>O script <code>../simulador/medicoes_preparo.py</code> calcula o BM25, com k1 = 1,2 e b = 0,75, para a consulta "preço" sobre seis motivos: "mudou de cidade e não há academia da rede perto", "achou o preço da mensalidade alto depois do reajuste", "lesão no joelho, médico pediu pausa", "horário das turmas não encaixa no trabalho", "preço alto e pouca turma no horário da noite" e "trocou por outra modalidade". São N = 6 documentos, com comprimento médio de 7,5 termos.</p>
+          <p>O termo "preço" aparece em 2 documentos. O IDF é ln(1 + (6 &minus; 2 + 0,5) &divide; (2 + 0,5)) = ln(2,8) = 1,030. Os dois documentos têm 9 termos e uma ocorrência do termo. A parcela de frequência é 1 &times; (1,2 + 1) &divide; (1 + 1,2 &times; (1 &minus; 0,75 + 0,75 &times; 9 &divide; 7,5)) = 2,2 &divide; 2,38 = 0,924. A pontuação é 1,030 &times; 0,924 = 0,952 para cada um dos dois documentos. Os outros quatro pontuam zero.</p>
+          <p>Os dois documentos empatam porque têm o mesmo comprimento e a mesma frequência do termo. O motivo "horário das turmas não encaixa no trabalho" não é encontrado pela consulta "preço", como esperado, e também não seria encontrado por "mensalidade cara", embora um leitor humano pudesse ver relação entre horário, preço e valor percebido. A busca por termos encontra palavras, e não significados. A busca vetorial trata dessa limitação.</p>
+        </div>
+        <h3>12.3 Estimativas: contar distintos sem guardar todos</h3>
+        <p>A pergunta "quantos alunos distintos fizeram check-in nos últimos 13 meses" é cara para responder de forma exata. Cada shard precisa montar o conjunto de todos os alunos que viu e enviar esse conjunto para ser unido com os dos outros shards, porque o mesmo aluno aparece em vários índices e vários shards. A memória cresce com o número de valores distintos.</p>
+        <p>A agregação <code>cardinality</code> do Elasticsearch responde com uma estimativa, usando o algoritmo HyperLogLog++. A ideia do HyperLogLog é probabilística. Cada valor passa por uma função de hash, que o transforma numa sequência de bits de aparência aleatória. Os primeiros p bits escolhem um entre 2<sup>p</sup> registradores. No restante, conta-se a posição do primeiro bit 1. Cada registrador guarda a maior posição já vista. Sequências com muitos zeros à esquerda são raras, e ver uma delas indica que muitos valores distintos passaram por aquele registrador. A estimativa combina os registradores por uma média harmônica. Valores repetidos geram o mesmo hash e não alteram nada, e por isso a estrutura conta distintos.</p>
+        <p>Duas propriedades tornam o algoritmo adequado a um sistema distribuído. A memória é fixa, definida por p, e não depende de quantos valores passaram. E dois conjuntos de registradores se fundem tomando o máximo de cada posição, de modo que cada shard calcula o seu e o resultado final é a fusão, sem transportar os conjuntos de alunos. A agregação <code>percentiles</code> segue o mesmo princípio com outro algoritmo, o t-digest: um resumo de tamanho limitado que se funde entre shards e devolve percentis aproximados.</p>
+        <div class="note">
+          <strong>Exemplo numérico 11. HyperLogLog sobre os 36.000 alunos, medido</strong>
+          <p>O script de preparo implementa o HyperLogLog e o aplica a um fluxo em que cada um dos 36.000 alunos aparece três vezes. O valor exato é 36.000. O erro padrão teórico do algoritmo é 1,04 &divide; &radic;m, em que m é o número de registradores.</p>
+          <div class="table-scroll"><table>
+            <thead><tr><th>p</th><th>Registradores (m)</th><th>Memória</th><th>Estimativa</th><th>Erro observado</th><th>Erro padrão teórico</th></tr></thead>
+            <tbody>
+              <tr><td>8</td><td>256</td><td>0,19 KB</td><td>34.184</td><td>&minus;5,05%</td><td>6,50%</td></tr>
+              <tr><td>10</td><td>1.024</td><td>0,75 KB</td><td>35.342</td><td>&minus;1,83%</td><td>3,25%</td></tr>
+              <tr><td>12</td><td>4.096</td><td>3 KB</td><td>35.287</td><td>&minus;1,98%</td><td>1,62%</td></tr>
+              <tr><td>14</td><td>16.384</td><td>12 KB</td><td>35.896</td><td>&minus;0,29%</td><td>0,81%</td></tr>
+            </tbody>
+          </table></div>
+          <p>O conjunto exato precisa de 562 KB só para as chaves (36.000 códigos de 16 caracteres). Com p = 14, a estimativa usa 12 KB e erra 0,29%, ou 104 alunos em 36.000.</p>
+          <p>Nesta amostra, p = 12 errou mais que p = 10 (1,98% contra 1,83%), e o erro de p = 12 ficou acima do erro padrão teórico de 1,62%. O resultado não indica defeito. O erro padrão descreve a dispersão esperada das estimativas em torno do valor real, ao longo de muitas execuções com dados diferentes, e não um teto para cada execução. Uma estimativa isolada pode ficar a mais de um erro padrão de distância. Quem usa a estimativa numa decisão precisa tratá-la como um intervalo.</p>
+        </div>
+        <h3>12.4 Contexto para IA</h3>
+        <p>Um modelo de linguagem responde com base no texto que recebe. Para responder sobre a Rede Tatame, ele precisa receber os fatos da rede junto com a pergunta. A técnica de recuperar esses fatos de uma base e entregá-los ao modelo é chamada de RAG (retrieval-augmented generation), e o Elasticsearch cumpre o papel de base de recuperação de duas formas. Pela busca textual com BM25, que encontra documentos com os termos da pergunta. E pela busca vetorial: cada texto é convertido num vetor numérico por um modelo de embeddings, guardado num campo <code>dense_vector</code>, e a consulta kNN devolve os vetores mais próximos do vetor da pergunta, o que recupera textos de sentido parecido mesmo sem palavras em comum. As agregações completam o contexto com números (quantos cancelamentos, em quais regiões, em que período).</p>
+        <p>O simulador não chama nenhum modelo de IA. O painel "Contexto para a IA" tem três perguntas prontas e, para cada uma, monta e mostra o contexto que seria entregue ao modelo. O objeto de estudo é esse contexto. A qualidade da resposta de um modelo depende do que foi recuperado: se a busca trouxe os motivos errados ou a agregação cobriu o período errado, o modelo responde com fluência sobre dados que não respondem à pergunta. A anonimização da estação 1 também se justifica aqui, porque o que estiver no índice pode acabar no contexto e ser enviado a um serviço externo.</p>
+        <h3 id="prompt-6">12.5 Prompt CREATE 6: indexador do bucket para o Elasticsearch</h3>
+        <pre class="is-wrap"><code>[C] Personagem
+Você é um engenheiro de busca e dados com experiência em Elasticsearch. Você define o mapping antes de indexar o primeiro documento, distingue resultado exato de estimativa em toda saída e nunca envia dado a um serviço externo sem autorização explícita.
+
+[R] Pedido
+Na pasta aula_06_eventos/, adicione o Elasticsearch ao docker-compose.yml e implemente em src/indexador/: (1) um indexador que lê os objetos JSONL.gz do bucket "tatame-bruto" e indexa os eventos em índices mensais tatame-eventos-AAAA.MM; (2) um arquivo de consultas com busca textual nos motivos de cancelamento, contagem de alunos únicos e um relatório por mês; (3) um módulo que monta o contexto para uma pergunta em linguagem natural, sem chamar nenhum modelo de IA.
+
+[E] Exemplos
+Mapping esperado (resumo): event_id keyword; tipo, regiao, academia, aluno, turma, faixa, origem keyword; ocorrido_em date; motivo text com analisador para português.
+Saída esperada da busca por "preço": lista de documentos com _score, event_id, academia e motivo, em ordem decrescente de pontuação.
+Saída esperada do contexto: um arquivo Markdown com a pergunta, os trechos recuperados (com event_id e pontuação), os números agregados (com a marca "exato" ou "estimativa" e o período coberto) e a consulta que gerou cada parte.
+
+[A] Ajustes
+- Fixe a tag da imagem do Elasticsearch no docker-compose.yml e registre no ADR, sem citar número de versão de memória; consulte a documentação oficial da versão fixada para a sintaxe do mapping e das consultas. Ambiente local de nó único: registre no ADR o que isso impede de verificar (réplicas, distribuição de shards).
+- Crie um template de índice com o mapping e 3 shards primários antes de indexar. O identificador do documento é o event_id, para que a reindexação do mesmo objeto não duplique documentos.
+- O indexador registra quais objetos do bucket já processou e é repetível: rodar duas vezes sobre o mesmo prefixo não altera as contagens.
+- Indexação em lote pela API de bulk, com tratamento dos itens rejeitados (registrar e seguir, sem descartar em silêncio).
+- Contagem de alunos únicos: entregue a agregação cardinality e, para comparação em volume pequeno, uma contagem exata por outro caminho. Mostre as duas lado a lado e a diferença percentual. Toda saída com cardinality ou percentiles leva a palavra "estimativa".
+- Busca textual: registre a pontuação de cada resultado. Documente que a pontuação BM25 depende das estatísticas de cada shard e que, com poucos documentos em vários shards, as pontuações podem diferir do cálculo manual.
+- O módulo de contexto não chama modelo, não usa chave de API e não envia dados para fora. Escreva um teste que falha se o contexto contiver qualquer campo fora do contrato do evento.
+- Não crie política de ciclo de vida completa: descreva no ADR as fases pretendidas (hot, warm, cold, frozen, delete) e marque os prazos como "hipótese, validação pendente".
+- Credenciais só em .env.
+
+[T] Tipo de saída
+Alterações em docker-compose.yml, src/indexador/, um arquivo de consultas, tests/ com testes do mapping, da repetibilidade do indexador e da montagem do contexto, e o ADR. Mostre o plano antes de editar.
+
+[E] Extras
+Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -q passa; (2) a contagem de documentos nos índices é igual à contagem de eventos distintos no bucket; (3) rodar o indexador de novo não altera o gate 2; (4) a busca por "preço" devolve só cancelamentos cujo motivo contém o termo, com pontuação; (5) a saída de alunos únicos mostra o valor exato, a estimativa e a diferença; (6) o arquivo de contexto de uma pergunta é gerado sem nenhuma chamada de rede além do Elasticsearch local. Pare ao final desta etapa e aguarde revisão.</code></pre>
+        <div class="note">
+          <strong>O que discutir no prompt</strong>
+          <p>O prompt exige a palavra "estimativa" em toda saída de <code>cardinality</code>. Que erro de leitura isso previne num relatório para a diretoria? O indexador lê do bucket, e não do Kafka: o que essa escolha permite fazer quando o mapping precisar mudar? O gate 6 verifica que não há chamada de rede externa. Por que esse gate existe num módulo que só monta um arquivo de texto?</p>
+        </div>
+        <h3>12.6 Passo a passo no simulador</h3>
+        <ol class="steps">
+          <li>Abra a aba Elasticsearch (<code>#elasticsearch</code>). Confira os índices mensais <code>tatame-eventos-AAAA.MM</code>, os 3 shards primários de cada um e o estado do indexador, que lê do bucket.</li>
+          <li>Na busca textual, digite <code>preço</code>. Leia os motivos de cancelamento devolvidos e a pontuação BM25 de cada resultado.</li>
+          <li>Repita com outro termo, como <code>horário</code>, e compare a lista e as pontuações.</li>
+          <li>Na agregação "Alunos únicos", leia a contagem exata. Selecione a precisão p = 8 e leia a estimativa por HyperLogLog. Repita com p = 14.</li>
+          <li>Clique em "Carregar histórico de 13 meses". Os índices dos meses anteriores são preenchidos.</li>
+          <li>Abra o "Relatório de 13 meses" e compare o período coberto com o da consulta "Últimos 13 meses" da aba InfluxDB.</li>
+          <li>No painel "Contexto para a IA", escolha cada uma das três perguntas prontas ("Por que os alunos cancelam na região eu-estocolmo?", "Quais academias concentram os cancelamentos do período?" e "Quantos alunos únicos passaram pela rede no período?") e leia o contexto montado: a fonte, o período coberto e de onde vem cada trecho e cada número.</li>
+        </ol>
+        <h3>12.7 O que observar</h3>
+        <p>Um evento só aparece na busca depois de o lote fechar no bucket e de o indexador passar: o intervalo configurado na estação 5 determina o atraso desta. A estimativa com p = 8 se afasta mais do valor exato do que com p = 14, e o valor exato da amostra (3.600 alunos, no máximo) é diferente do exemplo medido com 36.000. O relatório de 13 meses existe no Elasticsearch e não existe no InfluxDB. O contexto montado para a IA contém códigos de aluno e textos de motivo, e nenhum nome. A <a href="#s13">missão 7</a> usa esta aba.</p>
+        <div class="note">
+          <strong>Pontos-chave da estação 6</strong>
+          <ul>
+            <li>O índice invertido e o mapping (<code>keyword</code> ou <code>text</code>) decidem o que cada campo consegue responder.</li>
+            <li>O BM25 pontua por raridade do termo, frequência com saturação e comprimento do documento: 0,952 para os dois motivos com "preço".</li>
+            <li>O HyperLogLog conta distintos com memória fixa e funde resultados entre shards; com 12 KB, errou 0,29% em 36.000.</li>
+            <li>O erro padrão é uma dispersão esperada, e não um teto: p = 12 errou mais que p = 10 na amostra.</li>
+            <li>O simulador monta o contexto para a IA e não chama modelo; a resposta de um modelo depende do que a recuperação entregou.</li>
+          </ul>
+        </div>
+        <h3>12.8 Para saber mais</h3>
+        <ul>
+          <li><a href="https://www.elastic.co/docs">Documentação da Elastic</a>, seções sobre mapping, agregações (<code>cardinality</code>, <code>percentiles</code>), ciclo de vida de índices e busca vetorial.</li>
+          <li><a href="https://www.elastic.co/guide/index.html">Guias da Elastic</a>, com a referência do Elasticsearch por versão.</li>
+          <li>Philippe Flajolet, Éric Fusy, Olivier Gandouet e Frédéric Meunier, HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm (2007); e Stefan Heule, Marc Nunkesser e Alexander Hall, HyperLogLog in Practice (2013), que descreve a variante HyperLogLog++.</li>
+          <li>Stephen Robertson e Hugo Zaragoza, The Probabilistic Relevance Framework: BM25 and Beyond (2009).</li>
+        </ul>
+      </section>
+
+      <!-- 13 -->
+      <section class="content-block" id="s13">
+        <h2>13. Missões e evidência</h2>
+        <p>A aba Missões (<code>#missoes</code>) do simulador lista sete missões. Cada uma é executada na estação correspondente e termina com números observados na tela e com uma pergunta que o grupo responde por escrito. O botão "Exportar evidência" gera um texto em Markdown com os números observados, e as respostas do grupo são acrescentadas a esse texto.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Missão</th><th>Abas</th><th>Estação</th><th>O que mede</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Evento, Kafka</td><td>1 e 2</td><td>partição e offset de um evento; chave por academia</td></tr>
+            <tr><td>2</td><td>Kafka</td><td>2</td><td>lag de uma pausa de 30 minutos e tempo de recuperação</td></tr>
+            <tr><td>3</td><td>Rede, CEP, InfluxDB</td><td>3 e 4</td><td>falha regional de 2 horas, outbox e eventos atrasados</td></tr>
+            <tr><td>4</td><td>Evento, CEP</td><td>3</td><td>regra de correlação e efeito da janela</td></tr>
+            <tr><td>5</td><td>InfluxDB</td><td>4</td><td>cardinalidade de séries com o aluno como tag</td></tr>
+            <tr><td>6</td><td>Object storage</td><td>5</td><td>intervalo do lote e data de particionamento</td></tr>
+            <tr><td>7</td><td>Elasticsearch, InfluxDB</td><td>6</td><td>BM25, HyperLogLog e relatório de 13 meses</td></tr>
+          </tbody>
+        </table></div>
+        <p>Antes de começar, use a velocidade 1 s = 1 min, a menos que a missão indique outra. As durações abaixo são em tempo simulado: 30 minutos simulados levam 30 segundos de relógio a 1 s = 1 min e 3 segundos a 1 s = 10 min.</p>
+
+        <h3>Missão 1. Localizar um evento no Kafka</h3>
+        <ol class="steps">
+          <li>Pause a simulação e abra a aba Evento.</li>
+          <li>Em "Registrar evento", escolha uma academia, o tipo <code>checkin</code> e um aluno. Clique em "Registrar".</li>
+          <li>Anote o <code>event_id</code>, a partição e o offset mostrados.</li>
+          <li>Abra a aba Kafka, cole o identificador em "Localizar event_id" e confira que a partição e o offset são os mesmos.</li>
+          <li>Volte à aba Evento e registre outro evento da mesma academia, com outro aluno e outro tipo.</li>
+          <li>Confira a partição do segundo evento.</li>
+        </ol>
+        <p>O que observar: os dois eventos estão na mesma partição, e o offset do segundo é maior que o do primeiro. Um evento de outra academia pode cair em outra partição ou na mesma, porque 24 academias dividem 6 partições.</p>
+        <p>Pergunta do grupo: por que a academia foi escolhida como chave, e o que se perderia com uma chave aleatória? Que regra de CEP deixaria de funcionar corretamente se dois eventos da mesma academia pudessem ser lidos fora de ordem?</p>
+
+        <h3>Missão 2. Medir o lag de um grupo pausado</h3>
+        <ol class="steps">
+          <li>Com a simulação em andamento, abra a aba Kafka e anote o lag dos três grupos.</li>
+          <li>Clique em "Pausar" no grupo <code>sink-influxdb</code> e anote o horário do relógio simulado.</li>
+          <li>Deixe passar 30 minutos simulados. Anote o lag do grupo <code>sink-influxdb</code> e o lag dos outros dois.</li>
+          <li>Abra a aba InfluxDB e observe o "Painel tático" durante a pausa.</li>
+          <li>Volte à aba Kafka, clique em "Retomar" e anote o horário simulado.</li>
+          <li>Acompanhe o lag cair e anote o horário em que ele chega a zero.</li>
+        </ol>
+        <p>O que observar: o lag do grupo pausado cresce de forma aproximadamente linear, os outros grupos permanecem com lag baixo, o painel tático para de receber pontos durante a pausa e é preenchido depois da retomada. O tempo para zerar o lag é bem menor que os 30 minutos da pausa.</p>
+        <p>Pergunta do grupo: a conta lag &divide; (capacidade &minus; chegada) bate com o tempo observado? O CEP e o object storage foram afetados pela pausa? O que aconteceria com o tempo de recuperação se a pausa durasse 6 horas?</p>
+
+        <h3>Missão 3. Derrubar o cluster de uma região</h3>
+        <ol class="steps">
+          <li>Abra a aba Rede e anote, no cartão <code>eu-estocolmo</code>, a taxa de eventos e a contagem do outbox.</li>
+          <li>Clique em "Derrubar cluster" no cartão <code>eu-estocolmo</code> e anote o horário simulado.</li>
+          <li>Mude a velocidade para 1 s = 10 min e deixe passar 2 horas simuladas. Acompanhe a contagem do outbox da região.</li>
+          <li>Durante a falha, abra a aba CEP e conte os alertas <code>academia_silenciosa</code> na lista "Eventos complexos detectados".</li>
+          <li>Abra a aba InfluxDB, amplie a "Janela" do "Painel tático" para as últimas 3 horas e localize o intervalo sem pontos da região e a contagem de dispositivos vivos.</li>
+          <li>Pause a simulação ao completar 2 horas. Anote a contagem final do outbox.</li>
+          <li>Volte à velocidade 1 s = 1 min, clique em "Restaurar cluster" e retome a simulação.</li>
+          <li>Acompanhe o outbox esvaziar e, na aba InfluxDB, o intervalo vazio do painel ser preenchido com os eventos atrasados.</li>
+        </ol>
+        <p>O que observar: o outbox cresce durante a falha e as outras três regiões continuam normais. A regra <code>academia_silenciosa</code> dispara para todas as academias da região, embora nenhuma tenha parado. Depois da restauração, os eventos entram no tópico com o <code>ocorrido_em</code> original e preenchem o passado do painel.</p>
+        <p>Pergunta do grupo: o que cada destino mostrou durante a falha e depois dela, e que decisão dependeu do tempo do evento? Quantos eventos ficaram retidos na amostra e como esse número se compara, na proporção de um décimo, aos 29.040 calculados para a rede inteira? Os alertas <code>academia_silenciosa</code> estavam certos? Que mudança na regra ou na arquitetura evitaria o alerta em massa sem esconder uma academia que de fato parou?</p>
+
+        <h3>Missão 4. Provocar a regra de cobrança</h3>
+        <ol class="steps">
+          <li>Abra a aba CEP e confira que a regra <code>cobranca_reincidente</code> está ligada, com a janela de 7 dias.</li>
+          <li>Na aba Evento, registre uma <code>cobranca_falhou</code> para um aluno de uma academia. Anote o código do aluno.</li>
+          <li>Registre uma segunda <code>cobranca_falhou</code> para o mesmo aluno.</li>
+          <li>Na aba CEP, localize o evento complexo <code>cobranca_reincidente</code> e abra os dois eventos simples que o formaram.</li>
+          <li>Altere a janela da regra de 7 dias para 1 dia.</li>
+          <li>Escolha outro aluno e registre uma <code>cobranca_falhou</code>. Mude a velocidade para 1 s = 1 h, deixe passar mais de 1 dia e menos de 7 dias simulados, pause e registre a segunda falha.</li>
+          <li>Confira na aba CEP se a regra disparou para o segundo aluno.</li>
+        </ol>
+        <p>O que observar: com as duas falhas dentro da janela, o evento complexo aparece e lista os dois <code>event_id</code> de origem. Com a janela de 1 dia e as falhas mais espaçadas que ela, a regra não dispara, embora as duas falhas existam no tópico e coubessem na janela de 7 dias.</p>
+        <p>Pergunta do grupo: que estado o CEP precisa guardar para essa regra, e por quanto tempo? Quem na Rede Tatame deveria decidir o tamanho da janela, e com que dado? Uma janela de 14 dias detectaria mais alunos em risco. O que ela custaria em estado guardado, pela conta do exemplo numérico 2, e em alertas que não levam a nenhuma ação?</p>
+
+        <h3>Missão 5. Medir a explosão de séries</h3>
+        <ol class="steps">
+          <li>Com a simulação em andamento, abra a aba InfluxDB e anote o valor de "Séries ativas".</li>
+          <li>Ligue a chave "Usar aluno como tag" e anote o horário simulado.</li>
+          <li>Deixe passar alguns minutos simulados e anote "Séries ativas" a cada minuto.</li>
+          <li>Leia os últimos pontos em line protocol e localize a tag nova.</li>
+          <li>Desligue a chave, deixe passar mais alguns minutos e anote o valor final de "Séries ativas".</li>
+        </ol>
+        <p>O que observar: antes da chave, o contador fica estável, limitado pelo número de academias da amostra vezes o número de tipos. Com a chave ligada, ele cresce a cada minuto, à medida que alunos diferentes geram eventos. Depois de desligar a chave, o contador para de crescer e não volta ao valor inicial: as séries criadas continuam no banco até a retenção apagar os pontos delas.</p>
+        <p>Pergunta do grupo: onde o identificador do aluno deveria ficar, se o painel tático não precisa dele? Por quanto o número de séries foi multiplicado no intervalo observado, sabendo que o teto da rede inteira é de 360.000 séries contra 2.640? Se o gestor pedir "check-ins por aluno" no painel tático, que alternativa o grupo oferece sem transformar o aluno em tag?</p>
+
+        <h3>Missão 6. Escolher o lote e a partição</h3>
+        <ol class="steps">
+          <li>Abra a aba Object storage. Em "Fechar lote a cada", escolha 1 minuto.</li>
+          <li>Deixe passar uma hora simulada. Anote a contagem de objetos, os bytes e os objetos por dia projetados.</li>
+          <li>Registre um evento na aba Evento e meça quanto tempo simulado ele leva para aparecer num objeto do bucket.</li>
+          <li>Troque "Fechar lote a cada" para 60 minutos. Mude a velocidade para 1 s = 10 min, deixe passar 2 horas simuladas e anote os mesmos três números.</li>
+          <li>Registre outro evento e meça de novo o tempo até ele aparecer no bucket.</li>
+          <li>Em "Particionar por", selecione a data do evento. Repita a falha da missão 3 por um período curto (derrubar e restaurar <code>eu-estocolmo</code>) e anote em quais prefixos <code>data=</code> e <code>hora=</code> os eventos atrasados foram gravados.</li>
+          <li>Selecione a data de chegada, repita a falha e anote os prefixos de novo.</li>
+        </ol>
+        <p>O que observar: a projeção de objetos por dia com lote de 1 minuto é muitas vezes maior que com lote de 60 minutos, e o atraso até o bucket é o inverso. Pela data do evento, os eventos atrasados aparecem em partições de horas passadas. Pela data de chegada, aparecem todos na hora da restauração.</p>
+        <p>Pergunta do grupo: que intervalo o grupo escolheria para a Rede Tatame, sabendo que o Elasticsearch só enxerga o evento depois que o lote fecha, e que partição facilita reprocessar um dia? O que o leitor do bucket precisa fazer por causa da partição escolhida?</p>
+
+        <h3>Missão 7. Buscar, estimar e comparar 13 meses</h3>
+        <ol class="steps">
+          <li>Abra a aba Elasticsearch e busque <code>preço</code> nos motivos de cancelamento. Anote quantos resultados voltaram e a pontuação BM25 do primeiro.</li>
+          <li>Em "Alunos únicos", anote a contagem exata.</li>
+          <li>Selecione p = 8 e anote a estimativa por HyperLogLog. Selecione p = 14 e anote de novo.</li>
+          <li>Calcule o erro percentual de cada estimativa em relação à contagem exata.</li>
+          <li>Clique em "Carregar histórico de 13 meses" e aguarde os índices mensais serem preenchidos.</li>
+          <li>Abra o "Relatório de 13 meses" e anote o período coberto e os totais.</li>
+          <li>Abra a aba InfluxDB, execute a consulta "Últimos 13 meses" e anote o período que ela devolve.</li>
+          <li>Volte à aba Elasticsearch e leia o painel "Contexto para a IA" para uma das três perguntas prontas.</li>
+        </ol>
+        <p>O que observar: a busca devolve só os motivos que contêm o termo, ordenados por pontuação. A estimativa com p = 14 fica mais próxima da contagem exata do que com p = 8, na maior parte das execuções. O relatório do Elasticsearch cobre os 13 meses, e a consulta do InfluxDB devolve 30 dias.</p>
+        <p>Pergunta do grupo: que perguntas da rede aceitam uma estimativa, e quais exigem a contagem exata? Os erros observados com p = 8 e p = 14 ficaram dentro do erro padrão teórico (6,50% e 0,81%)? Se não ficaram, isso contradiz a teoria? Para um relatório à diretoria com "alunos distintos em 13 meses", o grupo usaria a estimativa ou pagaria pela contagem exata, e como apresentaria o número?</p>
+
+        <h3>Exportar a evidência</h3>
+        <ol class="steps">
+          <li>Abra a aba Missões e confira o estado das sete missões.</li>
+          <li>Clique em "Exportar evidência". O simulador gera um texto em Markdown com os números observados.</li>
+          <li>Salve o texto como <code>aula_06_eventos/evidencia_simulador.md</code> no repositório do grupo.</li>
+          <li>Abaixo dos números de cada missão, escreva a resposta do grupo à pergunta correspondente. Quando o grupo tiver feito a missão em mais de um navegador, identifique de qual simulação vieram os números.</li>
+          <li>Faça o commit do arquivo.</li>
+        </ol>
+      </section>
+
+      <!-- 14 -->
+      <section class="content-block" id="s14">
+        <h2>14. Limites do simulador e erros comuns</h2>
+        <h3>14.1 O que o simulador não mostra</h3>
+        <p>O simulador é um modelo didático. Ele reproduz os mecanismos da arquitetura com regras simples e deixa de fora boa parte do que torna a operação real difícil. Os números obtidos nele servem para comparar configurações entre si e não devem ser lidos como medidas de desempenho de Kafka, InfluxDB ou Elasticsearch.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>No simulador</th><th>Num sistema real</th></tr></thead>
+          <tbody>
+            <tr><td>Uma amostra de 24 academias e 3.600 alunos, no navegador.</td><td>240 academias e 36.000 alunos, com rede, disco e concorrência. Os números absolutos são cerca de dez vezes maiores, e os gargalos aparecem em lugares que a amostra não exercita.</td></tr>
+            <tr><td>Taxas de eventos geradas por um modelo simples.</td><td>Picos nos horários das turmas, sazonalidade, campanhas. A média de 20,2 eventos por segundo esconde o pico, que é o que dimensiona o cluster.</td></tr>
+            <tr><td>O cluster de uma região está no ar ou fora, por um botão.</td><td>Falhas parciais: um broker fora, uma partição sem líder, rede lenta, disco cheio, rebalanceamento de grupo. Um cluster degradado dá mais trabalho que um cluster ausente.</td></tr>
+            <tr><td>Um tópico com 6 partições visto numa só tela.</td><td>Um cluster por região, com replicação entre clusters (MirrorMaker 2) se houver consumo global, e atraso de replicação entre eles.</td></tr>
+            <tr><td>O outbox reenvia tudo, na ordem, sem perda.</td><td>O outbox tem limite de disco, pode ser corrompido e precisa de política para quando enche.</td></tr>
+            <tr><td>O CEP avalia quatro regras com estado em memória do navegador.</td><td>Estado persistido, checkpoints, reprocessamento quando a regra muda e ordenação de eventos entre partições.</td></tr>
+            <tr><td>A pontuação BM25 usa uma separação simples de termos sobre poucos documentos.</td><td>O analisador do campo define os termos (minúsculas, acentos, radicais), e as estatísticas são calculadas por shard, o que altera as pontuações em índices pequenos.</td></tr>
+            <tr><td>O HyperLogLog é aplicado à amostra, com a precisão p escolhida na tela.</td><td>A agregação <code>cardinality</code> tem um parâmetro próprio de precisão e é quase exata abaixo de um limiar, conforme a documentação da versão em uso.</td></tr>
+            <tr><td>O painel "Contexto para a IA" monta o texto e não chama modelo.</td><td>A resposta depende do modelo, do custo por chamada, da latência e de uma avaliação sistemática da qualidade da recuperação.</td></tr>
+            <tr><td>O estado fica no <code>localStorage</code> do navegador.</td><td>Cada tecnologia tem durabilidade, replicação e backup próprios.</td></tr>
+          </tbody>
+        </table></div>
+        <h3>14.2 Erros comuns</h3>
+        <p>A primeira tabela reúne dificuldades de uso do simulador em sala. A segunda reúne erros de desenho que os prompts das estações tentam prevenir e que aparecem quando a arquitetura é construída de verdade.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Sintoma no simulador</th><th>Causa provável</th><th>Correção</th></tr></thead>
+          <tbody>
+            <tr><td>Os números não mudam</td><td>simulação pausada</td><td>clicar em "Iniciar" na barra superior</td></tr>
+            <tr><td>O lag não cresce depois de "Pausar" num grupo</td><td>o relógio simulado está parado, ou a região observada está com o cluster fora</td><td>iniciar a simulação e conferir a aba Rede</td></tr>
+            <tr><td><code>academia_silenciosa</code> não dispara na falha</td><td>regra desligada, ou menos de 5 minutos simulados desde a queda</td><td>ligar a regra na aba CEP e avançar o relógio</td></tr>
+            <tr><td><code>cobranca_reincidente</code> não dispara</td><td>as duas falhas foram registradas para alunos diferentes, ou fora da janela</td><td>conferir o código do aluno nos dois eventos e o parâmetro da regra</td></tr>
+            <tr><td>O evento registrado não aparece na busca do Elasticsearch</td><td>o lote ainda não fechou no bucket, ou o indexador ainda não passou</td><td>avançar o relógio além do intervalo de "Fechar lote a cada"</td></tr>
+            <tr><td>"Últimos 13 meses" devolve poucos dias</td><td>comportamento esperado: o bucket <code>tatico</code> retém 30 dias</td><td>usar o "Relatório de 13 meses" do Elasticsearch</td></tr>
+            <tr><td>Os números do colega são diferentes</td><td>cada navegador tem a própria simulação</td><td>comparar proporções e comportamentos, e não valores absolutos</td></tr>
+            <tr><td>A simulação voltou ao início</td><td>"Reiniciar" foi clicado, os dados do navegador foram limpos ou a página foi aberta em janela anônima</td><td>refazer as missões; exportar a evidência antes de fechar a janela</td></tr>
+            <tr><td>A página fica lenta depois de muitos dias simulados</td><td>estado grande no <code>localStorage</code>, cujo limite varia por navegador</td><td>exportar a evidência e clicar em "Reiniciar"</td></tr>
+          </tbody>
+        </table></div>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Erro de desenho</th><th>Consequência</th><th>Onde o material trata</th></tr></thead>
+          <tbody>
+            <tr><td>Gerar o <code>event_id</code> no envio, e não na criação do evento</td><td>cada reenvio do outbox parece um evento novo, e os destinos duplicam</td><td><a href="#s7">estação 1</a></td></tr>
+            <tr><td>Hash do aluno sem chave secreta</td><td>o código pode ser revertido por tentativa sobre identificadores previsíveis</td><td><a href="#s7">estação 1</a></td></tr>
+            <tr><td>Chave do Kafka sem relação com as regras (ou sem chave)</td><td>eventos da mesma academia em partições diferentes, lidos fora de ordem</td><td><a href="#s8">estação 2</a></td></tr>
+            <tr><td>Aumentar o número de partições em produção</td><td>a mesma chave passa a cair em outra partição, e a ordem por chave se quebra na transição</td><td><a href="#s4">seção 4.3</a></td></tr>
+            <tr><td>Confirmar o offset antes de gravar no destino</td><td>uma queda entre os dois passos perde eventos sem erro visível</td><td>estações 3, 4 e 5</td></tr>
+            <tr><td>Tratar o Kafka como arquivo permanente</td><td>o que passa da retenção é apagado, lido ou não</td><td><a href="#s4">seção 4.3</a></td></tr>
+            <tr><td>Regra de CEP sem expiração de estado</td><td>o estado cresce até esgotar a memória</td><td><a href="#s3">seção 3.5</a></td></tr>
+            <tr><td>Regra de janela pelo tempo de chegada</td><td>uma rajada de eventos atrasados dispara limiares que nunca ocorreram</td><td><a href="#s9">estação 3</a></td></tr>
+            <tr><td>Identificador de alta cardinalidade como tag no InfluxDB</td><td>o número de séries dispara</td><td><a href="#s10">estação 4</a></td></tr>
+            <tr><td>Lote de poucos segundos no object storage</td><td>milhões de objetos pequenos por ano, listagem e leitura lentas</td><td><a href="#s11">estação 5</a></td></tr>
+            <tr><td>Indexar sem definir o mapping</td><td>o tipo de cada campo é inferido, e texto e identificadores ficam com tipos inadequados</td><td><a href="#s12">estação 6</a></td></tr>
+            <tr><td>Apresentar <code>cardinality</code> como contagem exata</td><td>o leitor toma uma estimativa por fato e compara números que diferem só pelo erro do algoritmo</td><td><a href="#s12">estação 6</a></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="content-block" id="s15">
+        <h2>15. Atividade em sala, entregável e o que fica para a semana</h2>
+        <h3>15.1 Em sala</h3>
+        <p>A atividade em sala acontece no navegador de cada aluno, com o <a href="../simulador/simulador_aula_06.html">simulador</a>, no ritmo do professor. Depois dos três blocos de teoria e do intervalo, cada estação segue a mesma ordem: o conceito, a leitura comentada do prompt CREATE e a simulação, com as missões daquela estação. O grupo trabalha junto, mas cada integrante roda a própria simulação, e um deles fica responsável por exportar a evidência.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Horário</th><th>Etapa</th><th>Gate</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 9h50</td><td>teoria em três blocos: evento, CEP, tecnologias de eventos e Kafka</td><td>o grupo explica por que a chave do tópico é a academia</td></tr>
+            <tr><td>9h50 &ndash; 10h10</td><td>intervalo</td><td>simulador aberto no navegador de cada aluno</td></tr>
+            <tr><td>10h10 &ndash; 10h25</td><td>estação 1: evento e anonimização na borda</td><td>um evento registrado, com <code>event_id</code>, partição e offset anotados</td></tr>
+            <tr><td>10h25 &ndash; 10h45</td><td>estação 2: Kafka, partições, grupos e lag</td><td>missões 1 e 2 concluídas</td></tr>
+            <tr><td>10h45 &ndash; 11h05</td><td>estação 3: CEP sobre o fluxo</td><td>missões 3 e 4 concluídas</td></tr>
+            <tr><td>11h05 &ndash; 11h25</td><td>estação 4: InfluxDB e o painel tático</td><td>missão 5 concluída; intervalo vazio da missão 3 localizado no painel</td></tr>
+            <tr><td>11h25 &ndash; 11h40</td><td>estação 5: object storage e a camada bruta</td><td>missão 6 concluída</td></tr>
+            <tr><td>11h40 &ndash; 12h00</td><td>estação 6: Elasticsearch, estimativas e contexto para IA</td><td>missão 7 concluída</td></tr>
+            <tr><td>12h00 &ndash; 12h10</td><td>fechamento e evidência</td><td><code>evidencia_simulador.md</code> exportado e commitado</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note">
+          <strong>Entregável da aula: <code>aula_06_eventos/evidencia_simulador.md</code> no repositório do grupo</strong>
+          <ul>
+            <li>O texto gerado pelo botão "Exportar evidência", com os números observados nas sete missões.</li>
+            <li>A resposta do grupo à pergunta de cada missão (seção 13), escrita abaixo dos números correspondentes.</li>
+            <li>A indicação de quem rodou a simulação exportada e da velocidade usada nas missões 2, 3 e 6.</li>
+            <li>Nenhum dado pessoal real: os nomes que aparecem no painel "Na academia" são sintéticos e não precisam ser copiados.</li>
+          </ul>
+        </div>
+        <p>As respostas podem ser redigidas com o apoio da IA de preferência de cada aluno, desde que os números sejam os da simulação do grupo e que a decisão registrada seja a que o grupo defende. Uma resposta que cita 36.300 eventos de lag quando o simulador mostrou outro valor indica que o texto veio do material, e não da missão.</p>
+        <h3>15.2 Na semana</h3>
+        <p>O que não couber em sala é concluído pelo grupo até a Aula 07, em 28/11/2026. Além de completar a evidência, o grupo escolhe um de dois caminhos para a semana.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Caminho</th><th>O que o grupo faz</th><th>Ambiente</th><th>O que fica pronto</th></tr></thead>
+          <tbody>
+            <tr><td>A. Construir a arquitetura da aula</td><td>executa os prompts 1 a 6 (<a href="#prompt-1">1</a>, <a href="#prompt-2">2</a>, <a href="#prompt-3">3</a>, <a href="#prompt-4">4</a>, <a href="#prompt-5">5</a>, <a href="#prompt-6">6</a>), um por vez, revisando o resultado e conferindo os gates antes do próximo</td><td>Codespace ou máquina do aluno, com Docker e o agente de código de preferência</td><td>a pasta <code>aula_06_eventos/</code> com gerador, Kafka, CEP, os dois sinks e o indexador, com testes e ADRs</td></tr>
+            <tr><td>B. Laboratório opcional de streaming IoT</td><td>segue o <a href="../laboratorio/roteiro_streaming_iot.html">roteiro do laboratório</a> e o <a href="../laboratorio/README.md">README</a>: sensores simulados, RabbitMQ, transformador e armazenador em Python, ClickHouse</td><td>Codespace com Docker, o agente de código de preferência e, na etapa de publicação, o Railway</td><td>o pipeline IoT que o laboratório opcional da Aula 07 usa como exemplo de contrato Pydantic</td></tr>
+          </tbody>
+        </table></div>
+        <p>Os dois caminhos são equivalentes para a disciplina. O caminho A aprofunda as tecnologias desta aula e pede mais memória da máquina, porque sobe Kafka, InfluxDB, object storage e Elasticsearch ao mesmo tempo; se o Codespace não comportar todos os serviços, o grupo executa os prompts 1 a 3 e registra a limitação num ADR. O caminho B usa tecnologias que a turma já conhece das Aulas 04 e 05 e deixa pronto o código sobre o qual o laboratório opcional da Aula 07 escreve contratos e testes integrados.</p>
+        <ol class="steps">
+          <li>Em sala, até 12h10: commit de <code>aula_06_eventos/evidencia_simulador.md</code> com os números exportados.</li>
+          <li>Depois da aula: completar as respostas das sete missões e revisar o arquivo em grupo.</li>
+          <li>Escolher o caminho A ou B e registrar a escolha no início do arquivo de evidência.</li>
+          <li>Caminho A: criar <code>aula_06_eventos/AGENTS.md</code> com as regras de método da disciplina, executar os prompts na ordem e fazer um commit por prompt, depois de conferir os gates.</li>
+          <li>Caminho B: seguir o roteiro do laboratório na ordem em que ele está escrito.</li>
+          <li>Em qualquer caminho, conferir antes da Aula 07 que nenhum <code>.env</code> nem senha entrou no histórico do Git.</li>
+        </ol>
+        <p>Quem seguir o caminho A pode encerrar com um pedido de revisão ao agente: <code>Compare docs/contrato_evento.md com src/ e tests/. Liste campos do contrato sem validação e validações sem campo no contrato, sem editar nada.</code> O resultado antecipa a primeira estação da Aula 07, que parte desse contrato para validar o evento antes do ClickHouse.</p>
+        <p>Links de navegação: <a href="../slides/slide_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">slide desta aula</a>, <a href="../simulador/simulador_aula_06.html">simulador</a>, <a href="../../../../pages/home_data_collection.html">página da disciplina</a> e <a href="../../../../index.html">hub de disciplinas</a>.</p>
+      </section>
+
+    </article>
+  </main>
+</body>
+</html>

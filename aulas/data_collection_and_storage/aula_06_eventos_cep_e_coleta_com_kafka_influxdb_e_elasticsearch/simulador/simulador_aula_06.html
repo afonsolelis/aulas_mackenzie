@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Simulador Aula 06 — Eventos, CEP e Coleta com Kafka, InfluxDB e Elasticsearch</title>
+  <link rel="stylesheet" href="../../../../assets/simulador.css">
+</head>
+<body class="sim">
+
+  <header class="sim-top">
+    <div class="sim-top-row">
+      <div class="sim-brand">
+        <span>Data Collection and Storage &middot; Aula 06 &middot; Simulador</span>
+        <strong>Rede Tatame: do evento aos dois destinos</strong>
+      </div>
+      <div class="sim-clock"><span id="relogio">--</span><small id="relogio-sub">relógio simulado</small></div>
+      <div class="sim-controls">
+        <label for="velocidade">Velocidade</label>
+        <select id="velocidade">
+          <option value="1">1 s = 1 min</option>
+          <option value="10">1 s = 10 min</option>
+          <option value="60">1 s = 1 h</option>
+        </select>
+        <button id="btn-rodar" class="is-primary">Iniciar</button>
+        <button id="btn-reiniciar">Reiniciar</button>
+      </div>
+    </div>
+    <nav class="sim-tabs" id="abas">
+      <a href="#rede"><span class="n">0</span>Rede</a>
+      <a href="#evento"><span class="n">1</span>Evento</a>
+      <a href="#kafka"><span class="n">2</span>Kafka</a>
+      <a href="#cep"><span class="n">3</span>CEP</a>
+      <a href="#influxdb"><span class="n">4</span>InfluxDB</a>
+      <a href="#storage"><span class="n">5</span>Object storage</a>
+      <a href="#elasticsearch"><span class="n">6</span>Elasticsearch</a>
+      <a href="#missoes"><span class="n">7</span>Missões</a>
+    </nav>
+  </header>
+
+  <main class="sim-main">
+
+    <!-- 0. Rede -->
+    <section class="sim-view" id="v-rede">
+      <div class="sim-head">
+        <span class="sim-kicker">Visão geral</span>
+        <h1>A rede e os quatro clusters regionais</h1>
+        <p>A Rede Tatame é fictícia: 36.000 alunos em 240 academias de jiu-jitsu, em quatro regiões. O simulador roda uma amostra de um décimo, com 24 academias e 3.600 alunos, inteira neste navegador. Cada região publica num cluster Kafka próprio, e um cluster pode sair do ar.</p>
+        <p class="sim-links"><a href="../../../../index.html">Hub</a> &middot; <a href="../../../../pages/home_data_collection.html">Data Collection</a> &middot; <a href="../slides/slide_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">Slide</a> &middot; <a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">Material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Fluxo da coleta <small>contagens desde o início da simulação</small></h2>
+          <div class="sim-stat" id="rede-fluxo"></div>
+          <p class="sim-hint">Evento na academia, Kafka regional, CEP e dois destinos: o InfluxDB para a operação tática e o object storage, que alimenta o Elasticsearch para busca, estimativas, contexto de IA e relatórios longos.</p>
+        </div>
+        <div class="sim-col-12 sim-grid" id="rede-regioes"></div>
+        <div class="sim-panel sim-col-12">
+          <h2>O que fica guardado no navegador</h2>
+          <p class="sim-hint" id="rede-storage"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. Evento -->
+    <section class="sim-view" id="v-evento">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 1</span>
+        <h1>Evento e anonimização na borda</h1>
+        <p>Um evento registra um fato que já aconteceu, com o instante em que aconteceu. Na saída da academia, o nome do aluno é trocado por um hash, e é essa versão que segue para a rede.</p>
+        <p class="sim-links"><a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html#prompt-1">Prompt 1 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Registrar evento</h2>
+          <div class="sim-form">
+            <label>Academia <select id="ev-academia"></select></label>
+            <label>Tipo <select id="ev-tipo"></select></label>
+            <label>Aluno <select id="ev-aluno"></select></label>
+            <label class="is-wide" id="ev-motivo-wrap" hidden>Motivo do cancelamento (texto livre) <input type="text" id="ev-motivo" value="achou o preço da mensalidade alto depois do reajuste"></label>
+            <div class="is-wide sim-inline"><button id="ev-registrar" class="is-primary">Registrar</button><span class="sim-hint" id="ev-status"></span></div>
+          </div>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Na academia <small>com o nome do aluno</small></h2>
+          <pre class="sim-code" id="ev-local">// registre um evento</pre>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Na saída da academia <small>anonimizado</small></h2>
+          <pre class="sim-code" id="ev-saida">// aguardando</pre>
+          <p class="sim-hint" id="ev-destino" style="margin-top:10px"></p>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Eventos registrados à mão nesta sessão</h2>
+          <div class="sim-scroll"><table class="sim-table" id="ev-manuais"></table></div>
+          <div class="sim-note">No simulador o hash é uma função simples e determinística. Na versão real, a academia usa HMAC-SHA-256 com uma chave que não sai dela, de modo que a rede não consegue refazer o caminho do hash até o nome.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Kafka -->
+    <section class="sim-view" id="v-kafka">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 2</span>
+        <h1>Kafka: partições, grupos e lag</h1>
+        <p>O tópico <code class="sim-mono">tatame.eventos</code> tem 6 partições. A chave do registro é a academia, então todos os eventos de uma academia caem na mesma partição e mantêm a ordem. Cada grupo de consumidores guarda o próprio offset, e a distância até o fim do log é o lag.</p>
+        <p class="sim-links"><a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html#prompt-2">Prompt 2 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-7">
+          <h2>Partições de tatame.eventos</h2>
+          <div class="sim-scroll"><table class="sim-table" id="kf-particoes"></table></div>
+          <p class="sim-hint" style="margin-top:10px">Retenção do simulador: 3.000 registros por partição. O registro mais antigo é apagado quando a partição passa do limite, mesmo que algum grupo ainda não o tenha lido.</p>
+        </div>
+        <div class="sim-panel sim-col-5">
+          <h2>Grupos de consumidores</h2>
+          <div class="sim-scroll"><table class="sim-table" id="kf-grupos"></table></div>
+          <p class="sim-hint" style="margin-top:10px">Capacidade em eventos por minuto simulado. A chegada normal da amostra fica perto de 120 por minuto.</p>
+        </div>
+        <div class="sim-panel sim-col-5">
+          <h2>Localizar event_id</h2>
+          <div class="sim-inline"><input type="text" id="kf-busca" placeholder="cole o event_id" style="flex:1"><button id="kf-localizar">Localizar</button></div>
+          <pre class="sim-code is-wrap" id="kf-achado" style="margin-top:10px">// nenhum event_id procurado</pre>
+        </div>
+        <div class="sim-panel sim-col-7">
+          <h2>Últimos registros <small><label><input type="checkbox" id="kf-sem-hb" checked> ocultar heartbeat</label></small></h2>
+          <div class="sim-scroll"><table class="sim-table" id="kf-cauda"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. CEP -->
+    <section class="sim-view" id="v-cep">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 3</span>
+        <h1>CEP: regras sobre o fluxo</h1>
+        <p>O processamento de eventos complexos lê o fluxo e procura padrões: uma sequência, uma ausência, um limiar dentro de uma janela. Quando o padrão fecha, nasce um evento complexo, que carrega os eventos simples que o formaram.</p>
+        <p class="sim-links"><a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html#prompt-3">Prompt 3 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-5">
+          <h2>Regras</h2>
+          <div id="cep-regras"></div>
+          <div class="sim-stat" id="cep-stat" style="margin-top:12px"></div>
+          <p class="sim-hint">A marca d'água é o maior tempo de evento que o grupo <code class="sim-mono">cep</code> já leu. As regras de ausência comparam com ela, e não com o relógio da máquina, para não disparar quando o próprio consumidor está parado.</p>
+        </div>
+        <div class="sim-panel sim-col-7">
+          <h2>Eventos complexos detectados <small id="cep-total"></small></h2>
+          <ul class="sim-list" id="cep-alertas"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. InfluxDB -->
+    <section class="sim-view" id="v-influxdb">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 4</span>
+        <h1>InfluxDB e o painel tático</h1>
+        <p>O banco de séries temporais responde às perguntas da operação de hoje. Cada combinação de measurement e tags forma uma série, e o número de séries é o custo que se controla no desenho do esquema.</p>
+        <p class="sim-links"><a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html#prompt-4">Prompt 4 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-8">
+          <h2>Painel tático <small>eventos de aluno por minuto, por região</small></h2>
+          <div class="sim-inline" style="margin-bottom:12px">
+            <label for="ix-janela">Janela</label>
+            <select id="ix-janela"><option value="60">últimos 60 min</option><option value="180">últimas 3 h</option></select>
+            <span class="sim-hint">Barra cinza: minuto preenchido por evento que chegou atrasado.</span>
+          </div>
+          <div id="ix-painel"></div>
+        </div>
+        <div class="sim-panel sim-col-4">
+          <h2>Dispositivos vivos</h2>
+          <div id="ix-dispositivos"></div>
+          <p class="sim-hint">Vivo: heartbeat nos últimos 2 minutos, pelo tempo do evento.</p>
+        </div>
+        <div class="sim-panel sim-col-7">
+          <h2>Últimos pontos em line protocol</h2>
+          <pre class="sim-code" id="ix-linhas">// sem pontos ainda</pre>
+        </div>
+        <div class="sim-panel sim-col-5">
+          <h2>Esquema e séries</h2>
+          <div class="sim-stat" id="ix-series"></div>
+          <div class="sim-inline"><label><input type="checkbox" id="ix-tag-aluno"> Usar aluno como tag</label></div>
+          <p class="sim-hint" style="margin-top:8px">Measurement <code class="sim-mono">eventos</code>, tags <code class="sim-mono">regiao</code>, <code class="sim-mono">academia</code> e <code class="sim-mono">tipo</code>, field <code class="sim-mono">contagem</code>. Uma série criada continua existindo até a retenção vencer.</p>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Bucket tatico <small>retenção de 30 dias</small></h2>
+          <div class="sim-inline"><button id="ix-13m">Consultar últimos 13 meses</button><span class="sim-hint" id="ix-13m-res"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Object storage -->
+    <section class="sim-view" id="v-storage">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 5</span>
+        <h1>Object storage: a camada bruta</h1>
+        <p>O grupo <code class="sim-mono">sink-lake</code> junta os eventos em lotes e grava cada lote como um objeto imutável no bucket <code class="sim-mono">tatame-bruto</code>. O intervalo do lote troca atraso por quantidade de arquivos.</p>
+        <p class="sim-links"><a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html#prompt-5">Prompt 5 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Configuração do sink</h2>
+          <div class="sim-inline">
+            <label for="st-lote">Fechar lote a cada</label>
+            <select id="st-lote"><option value="1">1 min</option><option value="5" selected>5 min</option><option value="15">15 min</option><option value="60">60 min</option></select>
+            <label for="st-part">Particionar por</label>
+            <select id="st-part"><option value="evento">data do evento</option><option value="chegada">data de chegada</option></select>
+          </div>
+          <div class="sim-stat" id="st-stat" style="margin-top:14px"></div>
+        </div>
+        <div class="sim-panel sim-col-7">
+          <h2>Objetos mais recentes em tatame-bruto</h2>
+          <div class="sim-scroll"><table class="sim-table" id="st-objetos"></table></div>
+        </div>
+        <div class="sim-panel sim-col-5">
+          <h2>Conteúdo do último objeto <small>três primeiras linhas</small></h2>
+          <pre class="sim-code is-wrap" id="st-previa">// nenhum lote fechado</pre>
+          <p class="sim-hint" style="margin-top:10px">O tamanho em gzip usa a razão de 6,1 vezes medida na preparação da aula.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Elasticsearch -->
+    <section class="sim-view" id="v-elasticsearch">
+      <div class="sim-head">
+        <span class="sim-kicker">Estação 6</span>
+        <h1>Elasticsearch: busca, estimativa e contexto para IA</h1>
+        <p>Um indexador lê os objetos do bucket e grava documentos em índices mensais com 3 shards primários. O índice invertido ordena a busca por relevância com BM25, e contagens caras, como a de alunos únicos, são estimadas com HyperLogLog.</p>
+        <p class="sim-links"><a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html#prompt-6">Prompt 6 no material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-7">
+          <h2>Índices mensais</h2>
+          <div class="sim-inline" style="margin-bottom:10px"><button id="es-historico">Carregar histórico de 13 meses</button><span class="sim-hint" id="es-hist-status"></span></div>
+          <div class="sim-scroll"><table class="sim-table" id="es-indices"></table></div>
+        </div>
+        <div class="sim-panel sim-col-5">
+          <h2>Alunos únicos</h2>
+          <div class="sim-inline" style="margin-bottom:10px">
+            <label for="es-p">Precisão p</label>
+            <select id="es-p"><option>8</option><option>10</option><option>12</option><option selected>14</option></select>
+          </div>
+          <div class="sim-stat" id="es-hll"></div>
+          <p class="sim-hint">O HyperLogLog guarda 2<sup>p</sup> registradores de 6 bits. A contagem exata guarda um identificador por aluno.</p>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Busca nos motivos de cancelamento</h2>
+          <div class="sim-inline"><input type="text" id="es-q" value="preço" style="flex:1"><button id="es-buscar" class="is-primary">Buscar</button></div>
+          <p class="sim-hint" id="es-busca-info" style="margin-top:8px"></p>
+          <div class="sim-scroll"><table class="sim-table" id="es-resultados"></table></div>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Relatório de 13 meses <small>matrículas e cancelamentos por mês, amostra da rede</small></h2>
+          <div id="es-relatorio"><p class="sim-hint">Carregue o histórico para montar o relatório.</p></div>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Contexto para a IA</h2>
+          <div class="sim-inline">
+            <select id="es-pergunta" style="flex:1"></select>
+            <button id="es-contexto">Montar contexto</button>
+          </div>
+          <pre class="sim-code is-wrap" id="es-ctx" style="margin-top:10px">// escolha uma pergunta</pre>
+          <div class="sim-note">O simulador não chama nenhum modelo. Ele mostra o que seria entregue ao modelo antes da resposta: os documentos recuperados, as agregações e a instrução de citar a origem.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Missões -->
+    <section class="sim-view" id="v-missoes">
+      <div class="sim-head">
+        <span class="sim-kicker">Atividade em sala</span>
+        <h1>Sete missões e a evidência do grupo</h1>
+        <p>Cada missão é feita junto com o professor numa estação. O simulador marca os passos que consegue observar, e o grupo escreve a resposta à pergunta de cada missão. O texto exportado vai para <code class="sim-mono">aula_06_eventos/evidencia_simulador.md</code> no repositório do grupo.</p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>Missões</h2>
+          <div id="ms-lista"></div>
+        </div>
+        <div class="sim-panel sim-col-12">
+          <h2>Evidência</h2>
+          <div class="sim-inline" style="margin-bottom:10px">
+            <input type="text" id="ms-grupo" placeholder="nome do grupo e integrantes" style="flex:1">
+            <button id="ms-exportar" class="is-primary">Exportar evidência</button>
+            <button id="ms-copiar">Copiar</button>
+            <button id="ms-baixar">Baixar .md</button>
+          </div>
+          <textarea id="ms-saida" readonly style="min-height:260px" placeholder="o texto em Markdown aparece aqui"></textarea>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="sim-foot">
+    Simulador didático. A Rede Tatame, as academias, os alunos e os números são inventados para a aula. Nada sai deste navegador: o estado fica em <code class="sim-mono">localStorage</code>, e o botão Reiniciar apaga tudo.
+  </footer>
+
+  <script src="simulador_aula_06.js"></script>
+</body>
+</html>
