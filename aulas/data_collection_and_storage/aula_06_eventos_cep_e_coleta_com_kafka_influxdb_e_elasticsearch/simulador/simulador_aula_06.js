@@ -794,7 +794,30 @@
       pintar(); salvar();
     });
     $('kf-localizar').addEventListener('click', localizar);
+    $('kf-outros').addEventListener('click', montarExemplos);
+    $('kf-exemplos').addEventListener('click', ev => {
+      const b = ev.target.closest('button[data-id]'); if (!b) return;
+      $('kf-busca').value = b.dataset.id; localizar();
+    });
     $('kf-busca').addEventListener('keydown', e => { if (e.key === 'Enter') localizar(); });
+  }
+
+  // event_ids reais do estado atual. Só muda ao entrar na aba ou no botão Outros exemplos,
+  // para os botões não trocarem de lugar enquanto o aluno clica.
+  function montarExemplos() {
+    const ex = [], sorteio = l => l[Math.floor(Math.random() * l.length)];
+    const manual = S.manuais.find(m => m.p !== null);
+    if (manual) ex.push(['Seu último evento registrado à mão', manual.id, `${manual.tipo} · ${manual.academia}`]);
+    const recentes = caudaKafka(true, 30);
+    if (recentes.length) { const [, r] = sorteio(recentes); ex.push(['Um evento recente de aluno', r.e.event_id, `${r.e.tipo} · ${r.e.academia}`]); }
+    const hb = caudaKafka(false, 30).filter(([, r]) => r.e.tipo === 'heartbeat');
+    if (hb.length) { const [, r] = sorteio(hb); ex.push(['Um heartbeat de dispositivo', r.e.event_id, `${r.e.dispositivo} · ${r.e.academia}`]); }
+    const cheia = S.kafka.part.reduce((m, p) => p.recs.length > m.recs.length ? p : m);
+    if (cheia.recs.length) { const r = cheia.recs[0]; ex.push(['O registro mais antigo ainda retido', r.e.event_id, `${r.e.tipo} · offset ${fmt(r.o)}`]); }
+    S.reg.forEach((st, i) => { if (st.outbox.length) { const x = st.outbox[st.outbox.length - 1]; ex.push([`Retido no outbox (${REGIOES[i].id} fora do ar)`, x.e.event_id, `${x.e.tipo} · ${x.e.academia}`]); } });
+    $('kf-exemplos').innerHTML = ex.length
+      ? ex.map(([t, id, d]) => `<button data-id="${id}"><b>${t}</b><span>${d} · ${id}</span></button>`).join('')
+      : '<p class="sim-hint">Ainda não há eventos. Clique em Iniciar ou registre um evento na aba Evento.</p>';
   }
 
   function localizar() {
@@ -1044,6 +1067,7 @@
     document.querySelectorAll('.sim-view').forEach(v => v.classList.toggle('is-active', v.id === 'v-' + aba));
     document.querySelectorAll('#abas a').forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === '#' + aba));
     assinaturaAlertas = '';
+    if (aba === 'kafka') montarExemplos();
     pintar();
     window.scrollTo(0, 0);
   }
