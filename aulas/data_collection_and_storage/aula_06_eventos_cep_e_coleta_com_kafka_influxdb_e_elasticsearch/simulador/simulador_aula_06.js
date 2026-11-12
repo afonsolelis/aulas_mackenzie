@@ -159,8 +159,10 @@
   let exatos = new Set();        // espelho de S.es.exatos
   let manuaisIds = new Set();
   let ultimoSalvo = 0, tamanhoSalvo = 0;
+  let reiniciando = false;       // bloqueia o salvar() do pagehide durante o Reiniciar
 
   function salvar() {
+    if (reiniciando) return;
     try {
       const k = S.kafka;
       const copia = Object.assign({}, S, {
@@ -300,7 +302,13 @@
       st.flushAcc += VAZAO_OUTBOX * dtMin;
       const n = Math.min(st.outbox.length, Math.floor(st.flushAcc)); st.flushAcc -= n;
       const sai = st.outbox.splice(0, n);
-      for (const x of sai) kafkaPub(x.e, x.t, x.ai, agora);
+      for (const x of sai) {
+        const pos = kafkaPub(x.e, x.t, x.ai, agora);
+        if (manuaisIds.has(x.e.event_id)) {
+          const m = S.manuais.find(y => y.id === x.e.event_id);
+          if (m) { m.p = pos.p; m.o = pos.o; }
+        }
+      }
     });
   }
 
@@ -969,6 +977,7 @@
     $('btn-rodar').addEventListener('click', () => rodar(!S.rodando));
     $('btn-reiniciar').addEventListener('click', () => {
       if (!window.confirm('Apagar a simulação, as missões e as respostas guardadas neste navegador?')) return;
+      reiniciando = true;
       rodar(false);
       try { localStorage.removeItem(CHAVE); } catch (e) { /* sem storage */ }
       location.reload();
