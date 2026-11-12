@@ -133,7 +133,7 @@
         part: Array.from({ length: N_PART }, () => ({ base: 0, recs: [] })),
         grupos: Object.fromEntries(Object.keys(CAP).map(g => [g, { pausado: false, off: Array(N_PART).fill(0), perdidos: 0, acc: 0 }])),
       },
-      retries: [], prospects: [],
+      retries: [], prospects: [], agenda: [],
       cep: {
         regras: { cobranca_reincidente: { on: true, p: 7 }, academia_silenciosa: { on: true, p: 5 }, pico_de_cancelamentos: { on: true, p: 3 }, experimental_sem_matricula: { on: true, p: 7 } },
         marca: 0, lidos: 0, atrasados: 0, falhas: {}, hb: {}, silenciosa: {}, cancel: {}, pend: {}, alertas: [], n: 0,
@@ -183,8 +183,36 @@
     ultimoSalvo = Date.now();
   }
 
+  // A rede já operava antes das 8h30 do dia 14. Sem esse histórico, o CEP passaria
+  // horas simuladas sem fechar nenhum padrão, porque as regras olham para dias atrás.
+  function aquecer() {
+    const c = S.cep, sorteiaAcad = () => ACADEMIAS[Math.floor(Math.random() * ACADEMIAS.length)];
+    const registro = ev => ({ t: Date.parse(ev.ocorrido_em), tipo: ev.tipo, ocorrido_em: ev.ocorrido_em, event_id: ev.event_id });
+    // cobranças recusadas há 2 dias; a nova tentativa cai nas primeiras horas e também falha
+    for (let k = 0; k < 8; k++) {
+      const acad = sorteiaAcad(), al = Math.floor(Math.random() * ALUNOS_POR);
+      const t = INICIO + (3 + k * 12 + Math.random() * 6) * MIN;
+      const ev = eventoAluno(acad, al, 'cobranca_falhou', t - 2 * DIA);
+      c.falhas[ev.aluno] = [registro(ev)];
+      S.agenda.push({ t, ac: acad.idx, al, tipo: 'cobranca_falhou' });
+    }
+    // aulas experimentais de 7 dias atrás, ainda sem matrícula; o prazo vence na primeira hora
+    for (let k = 0; k < 5; k++) {
+      const acad = sorteiaAcad();
+      const ev = eventoAluno(acad, -1, 'aula_experimental', INICIO - 7 * DIA + (5 + k * 11) * MIN);
+      c.pend[ev.aluno] = Object.assign(registro(ev), { academia: acad.cod });
+    }
+    // duas academias com 2 cancelamentos nas últimas 24 h; o terceiro chega na primeira hora
+    [20, 50].forEach(m => {
+      const acad = sorteiaAcad();
+      c.cancel[acad.cod] = [16, 5].map(h => registro(eventoAluno(acad, Math.floor(Math.random() * ALUNOS_POR), 'cancelamento', INICIO - h * HORA)));
+      S.agenda.push({ t: INICIO + m * MIN, ac: acad.idx, al: Math.floor(Math.random() * ALUNOS_POR), tipo: 'cancelamento' });
+    });
+  }
+
   function carregar() {
     S = novoEstado();
+    let salvo = false;
     try {
       const txt = localStorage.getItem(CHAVE);
       if (txt) {
@@ -194,9 +222,11 @@
           S = Object.assign(base, d);
           for (const m of Object.keys(base.ms)) S.ms[m] = Object.assign(novoEstado().ms[m], d.ms && d.ms[m]);
           tamanhoSalvo = txt.length;
+          salvo = true;
         }
       }
     } catch (e) { S = novoEstado(); }
+    if (!salvo) aquecer();
     S.rodando = false;
     // o que não foi salvo do log já foi lido: os offsets recomeçam no que restou
     S.kafka.part.forEach((p, i) => { for (const g of Object.values(S.kafka.grupos)) if (g.off[i] < p.base) g.off[i] = p.base; });
@@ -271,6 +301,15 @@
         lote.push({ e: ev, t: x.t, ai: -1, ri: acad.reg });
       }
       S.prospects = fica;
+    }
+    if (S.agenda.length) {
+      const fica = [];
+      for (const x of S.agenda) {
+        if (x.t > t1) { fica.push(x); continue; }
+        const acad = ACADEMIAS[x.ac];
+        lote.push({ e: eventoAluno(acad, x.al, x.tipo, x.t), t: x.t, ai: x.ac * ALUNOS_POR + x.al, ri: acad.reg });
+      }
+      S.agenda = fica;
     }
     lote.sort((a, b) => a.t - b.t);
     for (const x of lote) publicar(x, x.t);
@@ -686,6 +725,7 @@
     $('ev-academia').addEventListener('change', alunos);
     $('ev-tipo').addEventListener('change', () => { $('ev-motivo-wrap').hidden = $('ev-tipo').value !== 'cancelamento'; });
     $('ev-registrar').addEventListener('click', registrarManual);
+    $('ev-sem-hb').addEventListener('change', pintar);
   }
 
   function registrarManual() {
@@ -712,9 +752,34 @@
     pintar(); salvar();
   }
 
+  // Registros mais recentes de todas as partições, do mais novo ao mais antigo.
+  function caudaKafka(semHb, n) {
+    const cauda = [];
+    S.kafka.part.forEach((p, i) => { for (let k = p.recs.length - 1, c = 0; k >= 0 && c < n; k--) { const r = p.recs[k]; if (semHb && r.e.tipo === 'heartbeat') continue; cauda.push([i, r]); c++; } });
+    cauda.sort((a, b) => b[1].a - a[1].a || b[1].o - a[1].o);
+    return cauda.slice(0, n);
+  }
+
+  const ROTULO_GRUPO = { 'cep': 'CEP', 'sink-influxdb': 'Influx', 'sink-lake': 'Lake' };
+  const lidoPor = (p, o) => Object.entries(S.kafka.grupos).map(([n, g]) => {
+    const leu = g.off[p] > o;
+    return `<span class="sim-badge ${leu ? 'is-on' : 'is-soft'}" title="${n}: ${leu ? 'já leu' : 'na fila'}">${ROTULO_GRUPO[n]}</span>`;
+  }).join(' ');
+
+  let vistoAte = 0;   // maior chegada já mostrada no fluxo da aba Evento
   pintores.evento = () => {
-    $('ev-manuais').innerHTML = '<thead><tr><th>event_id</th><th>Tipo</th><th>Academia</th><th>Aluno</th><th>Tempo do evento</th><th class="num">Partição</th><th class="num">Offset</th></tr></thead><tbody>' +
-      (S.manuais.length ? S.manuais.map(m => `<tr><td><code>${m.id}</code></td><td>${m.tipo}</td><td>${m.academia}</td><td><code>${m.aluno}</code></td><td>${curto(m.t)}</td><td class="num">${m.p === null ? 'outbox' : m.p}</td><td class="num">${m.o === null ? '' : fmt(m.o)}</td></tr>`).join('') : '<tr><td colspan="7" class="sim-hint">Nenhum evento registrado à mão.</td></tr>') + '</tbody>';
+    const linhas = caudaKafka($('ev-sem-hb').checked, 15);
+    const retidos = S.reg.reduce((s, r) => s + r.outbox.length, 0);
+    $('ev-fluxo-info').textContent = (S.rodando
+      ? `${fmt(S.total.kafka)} registros publicados desde o início.`
+      : 'A simulação está pausada. Clique em Iniciar para ver os eventos das academias chegando.')
+      + (retidos ? ` ${fmt(retidos)} eventos retidos em outbox, esperando o cluster voltar.` : '');
+    $('ev-fluxo').innerHTML = '<thead><tr><th>Chegada</th><th class="num">Part.</th><th class="num">Offset</th><th>Academia</th><th>Tipo</th><th>Aluno (hash)</th><th>Lido por</th></tr></thead><tbody>' +
+      (linhas.length ? linhas.map(([i, r]) => `<tr${r.a > vistoAte ? ' class="is-new"' : ''}><td>${curto(r.a)}${r.a - r.t > 5 * MIN ? ' <span class="sim-badge is-on">atrasado</span>' : ''}</td><td class="num">${i}</td><td class="num">${fmt(r.o)}</td><td><code>${r.e.academia}</code></td><td>${r.e.tipo}${manuaisIds.has(r.e.event_id) ? ' <span class="sim-badge">manual</span>' : ''}</td><td><code>${r.e.aluno || r.e.dispositivo || ''}</code></td><td>${lidoPor(i, r.o)}</td></tr>`).join('')
+        : '<tr><td colspan="7" class="sim-hint">Nenhum registro no Kafka ainda.</td></tr>') + '</tbody>';
+    if (linhas.length) vistoAte = Math.max(vistoAte, linhas[0][1].a);
+    $('ev-manuais').innerHTML = '<thead><tr><th>event_id</th><th>Tipo</th><th>Academia</th><th>Aluno</th><th>Tempo do evento</th><th class="num">Partição</th><th class="num">Offset</th><th>Lido por</th></tr></thead><tbody>' +
+      (S.manuais.length ? S.manuais.map(m => `<tr><td><code>${m.id}</code></td><td>${m.tipo}</td><td>${m.academia}</td><td><code>${m.aluno}</code></td><td>${curto(m.t)}</td><td class="num">${m.p === null ? 'outbox' : m.p}</td><td class="num">${m.o === null ? '' : fmt(m.o)}</td><td>${m.p === null ? '<span class="sim-hint">ainda no outbox</span>' : lidoPor(m.p, m.o)}</td></tr>`).join('') : '<tr><td colspan="8" class="sim-hint">Nenhum evento registrado à mão.</td></tr>') + '</tbody>';
   };
 
   // --- kafka
@@ -756,11 +821,23 @@
       const st = $('kg-st-' + n); st.textContent = g.pausado ? 'pausado' : 'lendo'; st.classList.toggle('is-on', g.pausado); st.classList.toggle('is-soft', !g.pausado);
       $('kg-bt-' + n).textContent = g.pausado ? 'Retomar' : 'Pausar';
     }
-    const semHb = $('kf-sem-hb').checked, cauda = [];
-    S.kafka.part.forEach((p, i) => { for (let k = p.recs.length - 1, n = 0; k >= 0 && n < 40; k--) { const r = p.recs[k]; if (semHb && r.e.tipo === 'heartbeat') continue; cauda.push([i, r]); n++; } });
-    cauda.sort((a, b) => b[1].a - a[1].a || b[1].o - a[1].o);
+    const JANELA = 48;
+    $('kf-fila').innerHTML = S.kafka.part.map((p, i) => {
+      const fim = p.base + p.recs.length, ini = Math.max(p.base, fim - JANELA), vazios = JANELA - (fim - ini);
+      const faixas = Object.entries(S.kafka.grupos).map(([n, g]) => {
+        let cel = '<i class="is-void"></i>'.repeat(vazios);
+        for (let o = ini; o < fim; o++) {
+          const r = p.recs[o - p.base];
+          cel += `<i class="${g.off[i] > o ? 'is-read' : ''}${manuaisIds.has(r.e.event_id) ? ' is-manual' : ''}" title="offset ${o} · ${r.e.tipo} · ${r.e.academia}"></i>`;
+        }
+        const lag = Math.max(0, fim - Math.max(g.off[i], p.base));
+        return `<div class="sim-queue-row"><span>${n}${g.pausado ? ' (pausado)' : ''}</span><div class="sim-cells">${cel}</div><span class="num${lag ? ' is-lag' : ''}">lag ${fmt(lag)}</span></div>`;
+      }).join('');
+      return `<div><h3>Partição ${i}<small>${fim > ini ? `offsets ${fmt(ini)} a ${fmt(fim - 1)}` : 'sem registros ainda'}</small></h3>${faixas}</div>`;
+    }).join('');
+    const cauda = caudaKafka($('kf-sem-hb').checked, 12);
     $('kf-cauda').innerHTML = '<thead><tr><th class="num">Part.</th><th class="num">Offset</th><th>Chave</th><th>Tipo</th><th>Tempo do evento</th><th>Chegada</th></tr></thead><tbody>' +
-      cauda.slice(0, 12).map(([i, r]) => `<tr><td class="num">${i}</td><td class="num">${fmt(r.o)}</td><td><code>${r.e.academia}</code></td><td>${r.e.tipo}${manuaisIds.has(r.e.event_id) ? ' <span class="sim-badge">manual</span>' : ''}</td><td>${curto(r.t)}</td><td>${curto(r.a)}${r.a - r.t > 5 * MIN ? ' <span class="sim-badge is-on">atrasado</span>' : ''}</td></tr>`).join('') + '</tbody>';
+      cauda.map(([i, r]) => `<tr><td class="num">${i}</td><td class="num">${fmt(r.o)}</td><td><code>${r.e.academia}</code></td><td>${r.e.tipo}${manuaisIds.has(r.e.event_id) ? ' <span class="sim-badge">manual</span>' : ''}</td><td>${curto(r.t)}</td><td>${curto(r.a)}${r.a - r.t > 5 * MIN ? ' <span class="sim-badge is-on">atrasado</span>' : ''}</td></tr>`).join('') + '</tbody>';
   };
 
   // --- cep
@@ -783,14 +860,16 @@
     const c = S.cep;
     $('cep-stat').innerHTML = stat([[fmt(c.lidos), 'eventos lidos'], [fmt(c.atrasados), 'atrasados (+5 min)'], [c.marca ? curto(c.marca) : '--', "marca d'água"], [fmt(Object.keys(c.falhas).length), 'alunos em estado']]);
     $('cep-total').textContent = `${fmt(c.n)} no total, ${c.alertas.length} na lista`;
-    const ass = c.n + '|' + c.alertas.filter(a => a.resolvido).length;
+    const nCancel = Object.values(c.cancel).filter(l => l.length).length, nPend = Object.keys(c.pend).length, nFalhas = Object.keys(c.falhas).length;
+    const ass = c.n + '|' + c.alertas.filter(a => a.resolvido).length + (c.n ? '' : `|${S.rodando}|${nFalhas}|${nPend}|${nCancel}`);
     if (ass === assinaturaAlertas) return;
     assinaturaAlertas = ass;
+    const vazio = `<li class="sim-hint">Nenhum padrão fechou ainda.${S.rodando ? '' : ' Clique em Iniciar.'} O CEP guarda em estado ${fmt(nFalhas)} alunos com uma cobrança recusada, ${fmt(nPend)} aulas experimentais esperando matrícula e ${fmt(nCancel)} academias com cancelamento nas últimas 24 h. Quando o evento que completa um desses padrões chegar, o alerta aparece aqui.</li>`;
     $('cep-alertas').innerHTML = c.alertas.length ? c.alertas.slice(0, 40).map(a => `
       <li><span class="sim-badge${a.resolvido ? ' is-soft' : ' is-on'}">${a.regra}</span> <span class="sim-mono">#${a.id} · ${curto(a.quando)} UTC${a.resolvido ? ' · voltou em ' + curto(a.resolvido) : ''}</span>
         <div>${esc(a.texto)}</div>
         <details><summary>eventos simples que formaram o padrão (${a.evs.length})</summary><pre class="sim-code is-wrap">${esc(a.evs.map(x => `${x.ocorrido_em}  ${x.tipo}  ${x.event_id}`).join('\n'))}</pre></details>
-      </li>`).join('') : '<li class="sim-hint">Nenhum padrão detectado ainda. Inicie a simulação.</li>';
+      </li>`).join('') : vazio;
   };
 
   // --- influxdb

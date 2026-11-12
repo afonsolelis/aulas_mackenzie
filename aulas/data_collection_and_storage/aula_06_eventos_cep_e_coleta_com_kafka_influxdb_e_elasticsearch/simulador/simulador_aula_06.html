@@ -19,6 +19,7 @@
       <div class="sim-controls">
         <label for="velocidade">Velocidade</label>
         <select id="velocidade">
+          <option value="0.1">1 s = 6 s</option>
           <option value="1">1 s = 1 min</option>
           <option value="10">1 s = 10 min</option>
           <option value="60">1 s = 1 h</option>
@@ -92,6 +93,12 @@
           <p class="sim-hint" id="ev-destino" style="margin-top:10px"></p>
         </div>
         <div class="sim-panel sim-col-12">
+          <h2>Eventos chegando ao Kafka <small><label><input type="checkbox" id="ev-sem-hb" checked> ocultar heartbeat</label></small></h2>
+          <p class="sim-hint" id="ev-fluxo-info"></p>
+          <div class="sim-scroll"><table class="sim-table" id="ev-fluxo"></table></div>
+          <p class="sim-hint" style="margin-top:10px">Linha destacada: chegou desde a última atualização. Na coluna Lido por, a etiqueta preenchida indica que o grupo já leu o registro; a vazada indica que ele ainda está na fila do grupo. Para acompanhar evento por evento, use a velocidade 1 s = 6 s.</p>
+        </div>
+        <div class="sim-panel sim-col-12">
           <h2>Eventos registrados à mão nesta sessão</h2>
           <div class="sim-scroll"><table class="sim-table" id="ev-manuais"></table></div>
           <div class="sim-note">No simulador o hash é uma função simples e determinística. Na versão real, a academia usa HMAC-SHA-256 com uma chave que não sai dela, de modo que a rede não consegue refazer o caminho do hash até o nome.</div>
@@ -108,6 +115,11 @@
         <p class="sim-links"><a href="../material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html#prompt-2">Prompt 2 no material</a></p>
       </div>
       <div class="sim-grid">
+        <div class="sim-panel sim-col-12">
+          <h2>A fila de cada partição <small>os 48 offsets mais recentes</small></h2>
+          <p class="sim-hint">Cada quadrado é um registro, do mais antigo, à esquerda, ao último offset, à direita. Cada faixa é um grupo de consumidores: quadrado preenchido já foi lido pelo grupo, quadrado vazio ainda está na fila dele. O número à direita é o lag do grupo naquela partição. O quadrado com contorno grosso é um evento registrado à mão. Pause um grupo na tabela abaixo para ver a fila crescer.</p>
+          <div class="sim-queue" id="kf-fila"></div>
+        </div>
         <div class="sim-panel sim-col-7">
           <h2>Partições de tatame.eventos</h2>
           <div class="sim-scroll"><table class="sim-table" id="kf-particoes"></table></div>
