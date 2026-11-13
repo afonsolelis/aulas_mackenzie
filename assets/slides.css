@@ -1204,3 +1204,21 @@ pre.is-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 }
 
 .deck-live-vazio { margin: 0; color: var(--deck-muted); }
+
+.deck-live-barra { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; }
+.deck-live-barra .deck-summary { margin: 0; }
+
+.deck-live-limpar {
+  padding: 8px 12px;
+  border: 1px solid #b42318;
+  background: var(--deck-panel);
+  color: #b42318;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deck-live-limpar[hidden] { display: none; }
+.deck-live-limpar:hover { background: #b42318; color: var(--deck-panel); }
+.deck-live-limpar:disabled { opacity: 0.5; cursor: default; }

@@ -955,7 +955,10 @@ measurement</code></pre>
         <div>
           <span class="deck-kicker">Atividade em sala &middot; Ao vivo</span>
           <h2 class="deck-title">Respostas da turma às missões</h2>
-          <p class="deck-summary" id="live-resumo">As respostas aparecem à medida que os grupos escrevem na aba Missões do simulador.</p>
+          <div class="deck-live-barra">
+            <p class="deck-summary" id="live-resumo">As respostas aparecem à medida que os grupos escrevem na aba Missões do simulador.</p>
+            <button type="button" class="deck-live-limpar" id="live-limpar" hidden>Limpar painel</button>
+          </div>
         </div>
         <form class="deck-live-token" id="live-form" hidden>
           <label for="live-token">Token do professor</label>
@@ -1146,6 +1149,7 @@ measurement</code></pre>
         return;
       }
       $live("live-form").hidden = true; $live("live-erro").textContent = "";
+      $live("live-limpar").hidden = false;
       live.dados = data.respostas || [];
       desenharAoVivo();
     }
@@ -1155,6 +1159,20 @@ measurement</code></pre>
       live.token = $live("live-token").value.trim();
       try { localStorage.setItem(CHAVE_TOKEN, live.token); } catch (e) { /* sem storage */ }
       painelAoVivo(true);
+    });
+
+    // Ao fim da aula: apaga todas as respostas da sala, depois de confirmar.
+    $live("live-limpar").addEventListener("click", async () => {
+      const total = live.dados.length;
+      if (!window.confirm("Apagar as " + total + " respostas do painel? Esta ação não pode ser desfeita.")) return;
+      const botao = $live("live-limpar");
+      botao.disabled = true;
+      const { data, error } = await window.aulasApi.cliente().rpc("aovivo_limpar", { p_token: live.token, p_sala: SALA_AO_VIVO });
+      botao.disabled = false;
+      if (error || !data.ok) { $live("live-resumo").textContent = "Não foi possível limpar o painel: " + ((data && data.erro) || error.message); return; }
+      live.dados = []; live.vistos.clear(); live.missao = 1;
+      desenharAoVivo();
+      $live("live-resumo").textContent = "Painel limpo: " + data.apagadas + (data.apagadas === 1 ? " resposta apagada." : " respostas apagadas.");
     });
 
     // Teclas 1 a 7 escolhem a missão no painel ao vivo.
