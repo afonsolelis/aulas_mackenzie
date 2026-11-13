@@ -1096,6 +1096,7 @@
     for (const n of pendentes) {
       const texto = (S.respostas[n] || '').trim();
       const { data, error } = await db.rpc('aovivo_enviar', { p_sala: SALA_AO_VIVO, p_cliente: S.cliente, p_pergunta: n, p_grupo: grupo, p_texto: texto });
+      if (error && error.code === 'PGRST202') { erro = 'o painel ao vivo ainda não está ativo.'; break; }
       if (error || !data || !data.ok) { erro = (data && data.erro) || (error && error.message) || 'falha no envio'; break; }
       enviados[n] = grupo + '\u0000' + texto;
     }
@@ -1151,6 +1152,11 @@
       window.addEventListener('message', e => {
         if (e.source !== window.parent || !e.data || !e.data.simAba) return;
         if (location.hash.slice(1) !== e.data.simAba) location.hash = e.data.simAba;
+      });
+      // Botão de pausa e play do indicador flutuante do deck.
+      window.addEventListener('message', e => {
+        if (e.source !== window.parent || !e.data || typeof e.data.simRodar !== 'boolean') return;
+        if (e.data.simRodar !== S.rodando) rodar(e.data.simRodar);
       });
       window.parent.postMessage({ simPronto: true }, '*');
       // Estado resumido para o indicador flutuante do deck, visível em qualquer slide.

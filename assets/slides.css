@@ -1222,3 +1222,25 @@ pre.is-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 .deck-live-limpar[hidden] { display: none; }
 .deck-live-limpar:hover { background: #b42318; color: var(--deck-panel); }
 .deck-live-limpar:disabled { opacity: 0.5; cursor: default; }
+
+/* Botão de pausa e play do indicador do simulador. */
+.deck-sim-toggle {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-left: 2px;
+  padding: 0;
+  border: 1px solid var(--deck-border);
+  background: var(--deck-panel);
+  color: var(--deck-text);
+  cursor: pointer;
+}
+
+.deck-sim-toggle:hover { background: var(--deck-text); color: var(--deck-panel); }
+.deck-sim-toggle svg { width: 9px; height: 9px; fill: currentColor; }
+.deck-sim-toggle .ico-pause { display: none; }
+.deck-sim-status.is-running .deck-sim-toggle .ico-play { display: none; }
+.deck-sim-status.is-running .deck-sim-toggle .ico-pause { display: inline; }

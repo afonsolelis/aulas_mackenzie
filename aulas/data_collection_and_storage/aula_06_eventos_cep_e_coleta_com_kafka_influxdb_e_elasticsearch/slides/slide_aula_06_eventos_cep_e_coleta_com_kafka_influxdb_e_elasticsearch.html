@@ -995,6 +995,9 @@ measurement</code></pre>
   <div id="sim-status" class="deck-sim-status" role="status" aria-live="off" hidden>
     <span class="deck-sim-dot"></span>
     <span id="sim-status-texto">Simulador</span>
+    <button type="button" class="deck-sim-toggle" id="sim-toggle" aria-label="Iniciar simulador" title="Iniciar simulador">
+      <svg viewBox="0 0 10 10" aria-hidden="true"><path class="ico-play" d="M2 1 L9 5 L2 9 Z"/><path class="ico-pause" d="M2 1 H4 V9 H2 Z M6 1 H8 V9 H6 Z"/></svg>
+    </button>
   </div>
 
   <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
@@ -1058,10 +1061,21 @@ measurement</code></pre>
     const simStatus = document.getElementById("sim-status");
     const simStatusTexto = document.getElementById("sim-status-texto");
     const numero = new Intl.NumberFormat("pt-BR");
+    const simToggle = document.getElementById("sim-toggle");
+    let simRodando = false;
+
+    simToggle.addEventListener("click", event => {
+      simFrame.contentWindow.postMessage({ simRodar: !simRodando }, "*");
+      simToggle.blur(); // devolve o foco ao deck, para as setas e o espaço continuarem passando slide
+      event.preventDefault();
+    });
 
     function atualizarStatus(st) {
       simStatus.hidden = false;
       simStatus.classList.toggle("is-running", st.rodando);
+      simRodando = st.rodando;
+      const rotulo = st.rodando ? "Pausar simulador" : "Iniciar simulador";
+      simToggle.setAttribute("aria-label", rotulo); simToggle.title = rotulo;
       simStatusTexto.textContent = (st.rodando ? "Simulador rodando" : "Simulador pausado") +
         " \u00b7 " + numero.format(st.gerados) + " eventos \u00b7 " + st.relogio;
     }
@@ -1138,7 +1152,13 @@ measurement</code></pre>
     async function consultarAoVivo() {
       if (!window.aulasApi) return;
       const { data, error } = await window.aulasApi.cliente().rpc("aovivo_painel", { p_token: live.token, p_sala: SALA_AO_VIVO });
-      if (error) { $live("live-resumo").textContent = "Sem conexão com o servidor do painel: " + error.message; return; }
+      if (error) {
+        // PGRST202: a API não conhece a função, ou seja, o SQL do painel não foi aplicado no banco.
+        $live("live-resumo").textContent = error.code === "PGRST202"
+          ? "O painel ao vivo ainda não foi instalado no banco. Rode npm run aovivo:apply com o túnel aberto (ver supabase/README.md)."
+          : "Sem conexão com o servidor do painel: " + error.message;
+        return;
+      }
       if (!data.ok) {
         if (/token/i.test(data.erro || "")) {
           clearInterval(live.timer); live.timer = null; live.token = "";
