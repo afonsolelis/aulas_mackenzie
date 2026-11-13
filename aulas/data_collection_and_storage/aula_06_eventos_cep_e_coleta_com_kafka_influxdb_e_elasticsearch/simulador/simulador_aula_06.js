@@ -1088,6 +1088,23 @@
     window.addEventListener('hashchange', trocarAba);
     window.addEventListener('pagehide', salvar);
     trocarAba();
+    if (document.body.classList.contains('sim-embed') && window.parent !== window) {
+      // Dentro do slide, as setas e a barra de espaço continuam passando slide,
+      // exceto quando o foco está num campo de formulário.
+      document.addEventListener('keydown', e => {
+        if (!['ArrowRight', 'ArrowLeft', ' ', 'f', 'F'].includes(e.key)) return;
+        if (e.target.closest('input, select, textarea')) return;
+        if (e.key === ' ' && e.target.closest('button, a')) return;
+        e.preventDefault();
+        window.parent.postMessage({ simTecla: e.key }, '*');
+      });
+      // O deck escolhe a aba por mensagem, o que funciona também em file://.
+      window.addEventListener('message', e => {
+        if (e.source !== window.parent || !e.data || !e.data.simAba) return;
+        if (location.hash.slice(1) !== e.data.simAba) location.hash = e.data.simAba;
+      });
+      window.parent.postMessage({ simPronto: true }, '*');
+    }
     window.__sim = { estado: () => S, passo, salvar, lagDe, hllEstimar, exatos: () => exatos, nSeries };
   }
 

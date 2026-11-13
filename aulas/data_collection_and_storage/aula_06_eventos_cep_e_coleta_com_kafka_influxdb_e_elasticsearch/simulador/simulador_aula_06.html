@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="../../../../assets/simulador.css">
 </head>
 <body class="sim">
+  <script>
+    /* Aberto dentro do slide (?embed=1): o deck controla a aba e a navegação. */
+    if (new URLSearchParams(location.search).get('embed') === '1') document.body.classList.add('sim-embed');
+  </script>
 
   <header class="sim-top">
     <div class="sim-top-row">

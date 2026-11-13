@@ -22,7 +22,7 @@
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
       <h1>Aula 06 — Eventos, CEP e Coleta com Kafka, InfluxDB e Elasticsearch</h1>
       <p class="meta">Aula 06 &middot; 14/11/2026 &middot; Sábado &middot; 8h30 &ndash; 12h10</p>
-      <p class="summary">A aula abre com teoria em três blocos: o que é um evento, o que é complex event processing (CEP) e quais tecnologias gerenciam eventos, com o Apache Kafka à frente. Depois do intervalo, a turma percorre seis estações num simulador que roda inteiro no navegador e acompanha um evento desde a catraca de uma academia até dois destinos: o InfluxDB, que serve o painel tático do dia, e o object storage, que guarda tudo em bruto e alimenta o Elasticsearch para busca, estimativas, contexto para IA e relatórios de mais de um ano. Cada estação traz o conceito, o prompt CREATE que construiria a peça de verdade e a simulação. Nada é instalado em sala.</p>
+      <p class="summary">A aula alterna teoria e simulação em três blocos: o que é um evento, quais tecnologias gerenciam eventos, com o Apache Kafka à frente, e o que é complex event processing (CEP). Logo depois de cada explicação, o conceito é mostrado num simulador que roda inteiro no navegador, aberto dentro dos slides, e a turma percorre seis estações, acompanhando um evento desde a catraca de uma academia até dois destinos: o InfluxDB, que serve o painel tático do dia, e o object storage, que guarda tudo em bruto e alimenta o Elasticsearch para busca, estimativas, contexto para IA e relatórios de mais de um ano. Cada estação traz o conceito, o prompt CREATE que construiria a peça de verdade e a simulação. Nada é instalado em sala.</p>
     </header>
 
     <article class="material">
@@ -32,8 +32,8 @@
         <ol>
           <li><a href="#s1">Onde a aula se encaixa</a></li>
           <li><a href="#s2">Bloco 1: o que é um evento</a></li>
-          <li><a href="#s3">Bloco 2: complex event processing</a></li>
-          <li><a href="#s4">Bloco 3: tecnologias de eventos e o Kafka por dentro</a></li>
+          <li><a href="#s3">Bloco 2: tecnologias de eventos e o Kafka por dentro</a></li>
+          <li><a href="#s4">Bloco 3: complex event processing</a></li>
           <li><a href="#s5">A arquitetura de coleta com dois destinos</a></li>
           <li><a href="#s6">Como usar o simulador</a></li>
           <li><a href="#s7">Estação 1: evento e anonimização na borda</a></li>
@@ -66,20 +66,21 @@
         <div class="table-scroll"><table>
           <thead><tr><th>Horário</th><th>Bloco</th></tr></thead>
           <tbody>
-            <tr><td>8h30 &ndash; 8h55</td><td>Bloco 1: o que é um evento e o caso da Rede Tatame</td></tr>
-            <tr><td>8h55 &ndash; 9h20</td><td>Bloco 2: complex event processing</td></tr>
-            <tr><td>9h20 &ndash; 9h50</td><td>Bloco 3: tecnologias de eventos e o Kafka por dentro</td></tr>
+            <tr><td>8h30 &ndash; 8h45</td><td>A Rede Tatame, a arquitetura de coleta e o simulador</td></tr>
+            <tr><td>8h45 &ndash; 9h00</td><td>Bloco 1: o que é um evento</td></tr>
+            <tr><td>9h00 &ndash; 9h15</td><td>Estação 1: evento e anonimização na borda</td></tr>
+            <tr><td>9h15 &ndash; 9h35</td><td>Bloco 2: tecnologias de eventos e o Kafka por dentro</td></tr>
+            <tr><td>9h35 &ndash; 9h50</td><td>Estação 2: Kafka, partições, grupos e lag</td></tr>
             <tr><td>9h50 &ndash; 10h10</td><td>Intervalo</td></tr>
-            <tr><td>10h10 &ndash; 10h25</td><td>Estação 1: evento e anonimização na borda</td></tr>
-            <tr><td>10h25 &ndash; 10h45</td><td>Estação 2: Kafka, partições, grupos e lag</td></tr>
-            <tr><td>10h45 &ndash; 11h05</td><td>Estação 3: CEP sobre o fluxo</td></tr>
-            <tr><td>11h05 &ndash; 11h25</td><td>Estação 4: InfluxDB e o painel tático</td></tr>
-            <tr><td>11h25 &ndash; 11h40</td><td>Estação 5: object storage e a camada bruta</td></tr>
-            <tr><td>11h40 &ndash; 12h00</td><td>Estação 6: Elasticsearch, estimativas e contexto para IA</td></tr>
-            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento e evidência</td></tr>
+            <tr><td>10h10 &ndash; 10h35</td><td>Bloco 3: complex event processing</td></tr>
+            <tr><td>10h35 &ndash; 10h50</td><td>Estação 3: CEP sobre o fluxo</td></tr>
+            <tr><td>10h50 &ndash; 11h15</td><td>Estação 4: InfluxDB e o painel tático</td></tr>
+            <tr><td>11h15 &ndash; 11h30</td><td>Estação 5: object storage e a camada bruta</td></tr>
+            <tr><td>11h30 &ndash; 11h55</td><td>Estação 6: Elasticsearch, estimativas e contexto para IA</td></tr>
+            <tr><td>11h55 &ndash; 12h10</td><td>Missões, evidência e fechamento</td></tr>
           </tbody>
         </table></div>
-        <p>Os blocos 1 a 3 correspondem às seções 2 a 4 deste material. A seção 5 liga a teoria às estações, a seção 6 apresenta o simulador e as seções 7 a 12 seguem as estações na ordem da agenda. As missões da seção 13 são executadas dentro das estações, à medida que cada aba do simulador é apresentada.</p>
+        <p>Em sala, cada bloco teórico é seguido pela estação correspondente, e o simulador aparece dentro dos próprios slides: o professor explica o conceito e em seguida o mostra na aba do simulador. A simulação continua rodando de um slide de demonstração para o outro, com o mesmo estado. Os blocos 1 a 3 correspondem às seções 2 a 4 deste material, a seção 5 apresenta a arquitetura de coleta, a seção 6 apresenta o simulador e as seções 7 a 12 seguem as estações. As missões da seção 13 são executadas dentro das estações, à medida que cada aba é apresentada.</p>
       </section>
 
       <!-- 2 -->
@@ -141,7 +142,7 @@
         <p>O evento carrega tudo o que um consumidor precisa para interpretá-lo sozinho. Essa escolha aumenta o tamanho de cada registro, e o preço é medido no exemplo numérico da <a href="#s7">estação 1</a>. Em troca, nenhum consumidor depende de outro banco estar no ar para entender o que leu.</p>
         <h3>2.4 Tempo do evento e tempo de chegada</h3>
         <p>O campo <code>ocorrido_em</code> registra quando o fato aconteceu. O instante em que o evento chega ao Kafka, ou ao consumidor, é outro relógio, chamado de tempo de chegada ou tempo de processamento. Em operação normal os dois diferem por milissegundos ou segundos. Quando a academia perde a conexão, o aplicativo fica sem rede no celular do aluno ou o cluster da região cai, a diferença passa a ser de minutos ou horas.</p>
-        <p>A escolha do relógio muda o resultado. Um painel que conta check-ins pelo tempo de chegada mostra um vale durante a falha e um pico artificial na volta. O mesmo painel pelo tempo do evento mostra a curva real, mas só depois que os eventos atrasados chegam, o que obriga a reescrever minutos que já tinham sido exibidos. Nenhuma das duas escolhas é gratuita, e a aula volta a esse compromisso no CEP (<a href="#s3">seção 3.4</a>), no painel tático (<a href="#s10">estação 4</a>) e no particionamento do bucket (<a href="#s11">estação 5</a>).</p>
+        <p>A escolha do relógio muda o resultado. Um painel que conta check-ins pelo tempo de chegada mostra um vale durante a falha e um pico artificial na volta. O mesmo painel pelo tempo do evento mostra a curva real, mas só depois que os eventos atrasados chegam, o que obriga a reescrever minutos que já tinham sido exibidos. Nenhuma das duas escolhas é gratuita, e a aula volta a esse compromisso no CEP (<a href="#s4">seção 4.4</a>), no painel tático (<a href="#s10">estação 4</a>) e no particionamento do bucket (<a href="#s11">estação 5</a>).</p>
         <h3>2.5 Exemplo numérico: quantos eventos a rede produz</h3>
         <div class="note">
           <strong>Exemplo numérico 1. Volume diário da Rede Tatame</strong>
@@ -172,74 +173,9 @@
 
       <!-- 3 -->
       <section class="content-block" id="s3">
-        <h2>3. Bloco 2: complex event processing</h2>
-        <p>Um evento isolado raramente pede uma ação. Uma cobrança que falha uma vez pode ser um cartão sem limite naquele dia. Duas falhas do mesmo aluno em uma semana indicam um aluno prestes a sair. O bloco trata da técnica que encontra esse segundo tipo de fato dentro do fluxo.</p>
-        <h3>3.1 Do evento simples ao evento complexo</h3>
-        <p>O termo complex event processing foi consolidado por David Luckham no livro The Power of Events, de 2002. A ideia central é a distinção entre dois níveis. O evento simples é o que a fonte emite: um check-in, um heartbeat, uma cobrança. O evento complexo é derivado: ele passa a existir quando um conjunto de eventos simples satisfaz um padrão. O evento complexo aponta para os eventos simples que o formaram, e essa referência é o que permite a alguém conferir por que o alerta disparou.</p>
-        <p>Na Rede Tatame, <code>cobranca_falhou</code> é um evento simples. <code>cobranca_reincidente</code> é um evento complexo: nenhuma catraca, aplicativo ou sistema de gestão o emite. Ele é produzido pelo motor de CEP quando o padrão "duas falhas do mesmo aluno em sete dias" se completa, e é publicado como qualquer outro evento, para que outros sistemas reajam a ele.</p>
-        <h3>3.2 Quatro famílias de padrão</h3>
-        <p>As regras de CEP usadas na prática se encaixam em poucas famílias. A aula usa uma regra de cada.</p>
-        <div class="table-scroll"><table>
-          <thead><tr><th>Família</th><th>O que detecta</th><th>Regra da aula</th><th>Chave do estado</th></tr></thead>
-          <tbody>
-            <tr><td>Correlação</td><td>eventos relacionados pela mesma chave, dentro de uma janela</td><td><code>cobranca_reincidente</code>: 2 <code>cobranca_falhou</code> do mesmo aluno em 7 dias</td><td>aluno</td></tr>
-            <tr><td>Ausência</td><td>um evento esperado que não veio dentro do prazo</td><td><code>academia_silenciosa</code>: nenhum heartbeat da academia há 5 minutos</td><td>academia</td></tr>
-            <tr><td>Limiar em janela</td><td>uma contagem ou soma que passa de um valor num período</td><td><code>pico_de_cancelamentos</code>: 3 cancelamentos na mesma academia em 24 horas</td><td>academia</td></tr>
-            <tr><td>Sequência</td><td>um evento A seguido (ou não seguido) de um evento B</td><td><code>experimental_sem_matricula</code>: aula experimental sem matrícula do mesmo aluno em 7 dias</td><td>aluno</td></tr>
-          </tbody>
-        </table></div>
-        <p>As regras de ausência têm uma particularidade: nenhum evento as dispara. O motor precisa de um temporizador que vença quando o prazo acaba, porque o silêncio, por definição, não chega pelo tópico. A regra <code>experimental_sem_matricula</code> combina sequência e ausência: ela começa a contar quando chega a <code>aula_experimental</code> e só conclui quando sete dias passam sem a <code>matricula</code>.</p>
-        <h3>3.3 Janelas</h3>
-        <p>Um fluxo não tem fim, e nenhuma regra pode esperar por ele. A janela é o recorte de tempo sobre o qual o padrão é avaliado. Há três formatos principais.</p>
-        <div class="table-scroll"><table>
-          <thead><tr><th>Janela</th><th>Como recorta</th><th>Exemplo</th></tr></thead>
-          <tbody>
-            <tr><td>Tumbling (fixa, sem sobreposição)</td><td>blocos consecutivos do mesmo tamanho; cada evento cai em um só</td><td>check-ins por minuto, por região, no painel tático</td></tr>
-            <tr><td>Deslizante</td><td>janela de tamanho fixo que avança em passos menores, ou que acompanha cada evento; um evento participa de várias</td><td>cancelamentos da academia nas últimas 24 horas, reavaliados a cada cancelamento</td></tr>
-            <tr><td>De sessão</td><td>agrupa eventos próximos e fecha depois de um intervalo de inatividade; o tamanho varia</td><td>uma visita do aluno ao aplicativo: <code>app_aberto</code>, vídeos e reserva até ele parar de interagir</td></tr>
-          </tbody>
-        </table></div>
-        <p>A diferença entre tumbling e deslizante aparece na borda. Com janelas fixas de 24 horas alinhadas à meia-noite, dois cancelamentos às 23h e um à 1h ficam em blocos diferentes e a regra não dispara, embora os três tenham ocorrido em duas horas. A janela deslizante enxerga os três juntos. O preço é guardar mais estado e reavaliar a regra com mais frequência.</p>
-        <h3>3.4 Watermark e atraso permitido</h3>
-        <p>Quando a janela é definida pelo tempo do evento, o motor precisa decidir em que momento ela pode ser considerada completa. Um evento das 10h59 pode chegar às 11h03. O watermark é a estimativa que o motor mantém de até que instante do tempo do evento já chegou tudo, ou quase tudo. Em geral ele é calculado como o maior <code>ocorrido_em</code> visto, menos uma folga. Quando o watermark passa do fim de uma janela, a janela fecha e o resultado é emitido.</p>
-        <p>O atraso permitido (allowed lateness) é um prazo adicional durante o qual a janela, mesmo fechada, ainda aceita retardatários e emite um resultado corrigido. O que chega depois disso é descartado ou desviado para uma saída separada, para ser tratado em lote.</p>
-        <p>A folga é uma decisão de negócio com custo dos dois lados. Uma folga curta entrega o alerta cedo e erra quando eventos se atrasam. Uma folga longa acerta mais e avisa mais tarde. No caso da Rede Tatame, a falha de duas horas do cluster de uma região, simulada na <a href="#s9">estação 3</a>, ultrapassa qualquer folga razoável para uma regra de cinco minutos. O que se pode fazer é escolher como a regra se comporta quando isso acontece e registrar a escolha.</p>
-        <h3>3.5 Estado por chave</h3>
-        <p>Para saber que esta é a segunda falha de cobrança do aluno, o motor precisa lembrar da primeira. Essa memória é o estado, e ela é organizada por chave: um registro por aluno nas regras de aluno, um por academia nas regras de academia. O estado precisa sobreviver à reinicialização do processo (os motores gravam checkpoints ou usam um tópico de changelog para isso) e precisa ter prazo de expiração, senão cresce para sempre.</p>
-        <p>O desenho da regra determina o tamanho do estado. Uma regra que guarda "o último evento de cada aluno" mantém uma entrada por aluno ativo. Uma regra que só abre estado quando o primeiro evento do padrão chega mantém entradas apenas para quem está no meio do padrão.</p>
-        <div class="note">
-          <strong>Exemplo numérico 2. O estado da regra de cobrança</strong>
-          <p>Nos dados sintéticos da aula, <code>cobranca_falhou</code> representa 0,3% dos eventos de aluno. Sobre 360.000 eventos de aluno por dia, são 1.080 falhas por dia (360.000 &times; 0,003).</p>
-          <p>A regra <code>cobranca_reincidente</code> abre estado na primeira falha de um aluno e o descarta sete dias depois. No pior caso, em que cada falha da semana é de um aluno diferente, o motor guarda 7 &times; 1.080 = 7.560 chaves ao mesmo tempo. A rede tem 36.000 alunos, e a regra mantém estado para no máximo 7.560 deles, cerca de um quinto.</p>
-          <p>O número depende da hipótese de 10 eventos por aluno por dia e da proporção de 0,3%, ambas a validar. A conclusão que se sustenta sem elas é de mecanismo: o estado de uma regra de correlação cresce com a frequência do evento que abre o padrão multiplicada pelo tamanho da janela, e não com o número de alunos da rede.</p>
-        </div>
-        <div class="note">
-          <strong>Pausa para reflexão</strong>
-          <p>A regra <code>academia_silenciosa</code> dispara quando uma academia fica cinco minutos sem heartbeat. Liste três causas diferentes para esse silêncio (o dispositivo, a rede da academia, o cluster da região) e diga se a regra, olhando só para o tópico, consegue distinguir entre elas. Depois escolha: a regra <code>pico_de_cancelamentos</code> deve usar o tempo do evento ou o tempo de chegada? O que acontece com ela quando uma academia fica uma tarde sem conexão e envia tudo de uma vez à noite?</p>
-        </div>
-        <div class="note">
-          <strong>Pontos-chave do bloco 2</strong>
-          <ul>
-            <li>O evento complexo é derivado de um padrão sobre eventos simples e guarda a referência a eles.</li>
-            <li>Correlação, ausência, limiar em janela e sequência cobrem as regras da aula; a ausência depende de temporizador.</li>
-            <li>A janela (tumbling, deslizante ou de sessão) define o recorte; o watermark e o atraso permitido definem quando o recorte é dado por completo.</li>
-            <li>O estado é guardado por chave, precisa expirar e, na regra de cobrança, fica limitado a 7.560 alunos.</li>
-          </ul>
-        </div>
-        <h3>3.6 Para saber mais</h3>
-        <ul>
-          <li>David Luckham, The Power of Events: An Introduction to Complex Event Processing in Distributed Enterprise Systems (Addison-Wesley, 2002).</li>
-          <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/libs/cep/">Apache Flink: biblioteca FlinkCEP</a>, com a API de padrões (sequência, repetição, ausência) sobre fluxos com chave.</li>
-          <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/">Apache Flink: documentação estável</a>, seções sobre tempo do evento, watermarks e janelas.</li>
-          <li><a href="https://kafka.apache.org/documentation/streams/">Kafka Streams</a>, para janelas e estado por chave numa biblioteca que roda dentro da aplicação.</li>
-        </ul>
-      </section>
-
-      <!-- 4 -->
-      <section class="content-block" id="s4">
-        <h2>4. Bloco 3: tecnologias de eventos e o Kafka por dentro</h2>
+        <h2>3. Bloco 2: tecnologias de eventos e o Kafka por dentro</h2>
         <p>O bloco organiza as tecnologias de eventos em famílias, pelo papel que cada uma cumpre, e depois abre o Kafka: como ele guarda, ordena, entrega e replica.</p>
-        <h3>4.1 Fila e log</h3>
+        <h3>3.1 Fila e log</h3>
         <p>A Aula 04 usou uma fila. Na fila, o broker entrega cada mensagem a um consumidor e a remove quando o consumidor confirma o processamento. O modelo serve bem para distribuir trabalho: cada tarefa é feita uma vez, por alguém. Ele serve mal quando três sistemas diferentes precisam ler os mesmos eventos, cada um no seu ritmo, ou quando alguém precisa reler o que já passou.</p>
         <p>No log, o broker anexa cada evento ao fim de um arquivo ordenado e o mantém ali até a política de retenção apagá-lo, tenha sido lido ou não. O broker não controla quem leu o quê: cada grupo de consumidores guarda a própria posição de leitura, o offset. Um grupo novo pode começar do início; um grupo que errou pode voltar e reprocessar.</p>
         <div class="table-scroll"><table>
@@ -253,7 +189,7 @@
           </tbody>
         </table></div>
         <p>A Rede Tatame precisa de três leitores independentes (CEP, sink do InfluxDB, sink do bucket) e precisa poder reprocessar quando uma regra de CEP muda. Esses dois requisitos levam ao log.</p>
-        <h3>4.2 As famílias de tecnologia</h3>
+        <h3>3.2 As famílias de tecnologia</h3>
         <div class="table-scroll"><table>
           <thead><tr><th>Família</th><th>Exemplos</th><th>Papel</th></tr></thead>
           <tbody>
@@ -266,7 +202,7 @@
         </table></div>
         <p>Os serviços gerenciados usam nomes diferentes para ideias parecidas (stream e shard, tópico e assinatura, hub e partição) e diferem em limites, preço e garantias. Os conceitos deste bloco se transferem, mas os detalhes devem ser conferidos na documentação de cada serviço. Redpanda implementa o protocolo do Kafka; Pulsar tem modelo próprio de armazenamento e de assinatura.</p>
         <p>O motor de CEP é uma peça separada do log. O Kafka transporta e retém; quem procura padrões é um consumidor. Esse consumidor pode ser um programa escrito pelo grupo com uma biblioteca cliente (o que o prompt da <a href="#s9">estação 3</a> pede), uma aplicação Kafka Streams, um job Flink ou uma consulta ksqlDB. A escolha depende de quanto estado a regra guarda, de quantas regras existem e de quem vai operá-las.</p>
-        <h3>4.3 O Kafka por dentro</h3>
+        <h3>3.3 O Kafka por dentro</h3>
         <p>Um tópico é o nome lógico de um fluxo: na aula, <code>tatame.eventos</code>. O tópico é dividido em partições, e cada partição é um log independente, gravado em disco, em que cada evento recebe um número sequencial, o offset. A posição de um evento no Kafka é o trio tópico, partição e offset.</p>
         <p>A partição é a unidade de ordem. Dentro de uma partição, os eventos são lidos na ordem em que foram gravados. Entre partições, não há ordem garantida. Quem decide a partição é a chave do evento: o produtor aplica uma função de hash à chave e usa o resultado, módulo o número de partições, para escolher o destino. Eventos com a mesma chave caem sempre na mesma partição, enquanto o número de partições não muda, e por isso ficam em ordem entre si.</p>
         <p>Na aula, a chave é a academia. Todos os eventos de uma academia ficam numa partição e em ordem, o que atende as regras por academia. Como cada aluno pertence a uma academia, os eventos de um aluno também ficam em ordem. Se a chave fosse o <code>event_id</code>, a distribuição entre partições seria uniforme, mas a ordem por academia e por aluno se perderia.</p>
@@ -276,9 +212,9 @@
         <p>O fator de replicação é o número de cópias de cada partição, em brokers diferentes. Uma cópia é a líder, que recebe as gravações, e as demais são seguidoras. As réplicas que estão em dia com a líder formam o conjunto de réplicas em sincronia, o ISR. Com <code>acks=all</code>, o produtor só recebe a confirmação depois que todas as réplicas do ISR gravaram o evento, e a configuração <code>min.insync.replicas</code> define o tamanho mínimo do ISR para a gravação ser aceita. Com fator de replicação 3 e <code>min.insync.replicas=2</code>, o cluster continua aceitando gravações com um broker fora e não perde evento confirmado nessa situação. Com dois brokers fora, o cluster recusa gravações em vez de arriscar perda, e a recusa precisa ser absorvida por alguém: na Rede Tatame, pelo outbox local da academia.</p>
         <p>Três peças completam o quadro. O modo KRaft é a forma atual de o Kafka coordenar o próprio cluster, com um quórum de controladores internos; as versões antigas dependiam de um serviço externo, o ZooKeeper. O Kafka Connect executa conectores prontos, que copiam dados de um tópico para um destino, ou de uma fonte para um tópico, com controle de offset e de reinício. O MirrorMaker 2, construído sobre o Connect, replica tópicos entre clusters, e é a peça que levaria os eventos dos quatro clusters regionais da Rede Tatame para um cluster de agregação, caso a diretoria queira regras globais.</p>
         <p>Quanto às garantias de entrega, o desenho usual com Kafka é pelo menos uma vez: o consumidor processa o evento e só depois confirma o offset; se cair entre os dois passos, relê o evento ao voltar. A duplicata é tratada no destino, pelo <code>event_id</code>. O Kafka também oferece produtor idempotente e transações, que reduzem duplicatas dentro do próprio Kafka; o comportamento padrão dessas opções mudou entre versões e deve ser conferido na documentação da versão em uso.</p>
-        <h3>4.4 Exemplo numérico: quanto disco o Kafka ocupa</h3>
+        <h3>3.4 Exemplo numérico: quanto disco o Kafka ocupa</h3>
         <div class="note">
-          <strong>Exemplo numérico 3. Sete dias de retenção com três réplicas</strong>
+          <strong>Exemplo numérico 2. Sete dias de retenção com três réplicas</strong>
           <p>O script <code>../simulador/medicoes_preparo.py</code> (Python 3.12, só biblioteca padrão, semente fixa) gerou 100.000 eventos sintéticos da rede e mediu o tamanho de cada um em JSON compacto, UTF-8. A média foi de 231 bytes, com mínimo de 221 e máximo de 317.</p>
           <p>Um dia de eventos ocupa 1.742.400 &times; 231 bytes, cerca de 402 MB em JSON. Com retenção de 7 dias e fator de replicação 3, sem compressão, o Kafka guarda 402 MB &times; 7 &times; 3, cerca de 8,4 GB.</p>
           <p>O número cabe em qualquer disco. A retenção de sete dias, portanto, é limitada pelo papel do Kafka na arquitetura, e não pelo custo: ele é o transporte e o amortecedor entre produtores e consumidores. Um ano dos mesmos eventos soma 146,6 GB em JSON, e esse histórico vai para o object storage, comprimido (<a href="#s11">estação 5</a>). O volume de eventos não inclui os índices e os metadados do próprio Kafka, que o script não mede.</p>
@@ -288,7 +224,7 @@
           <p>O tópico <code>tatame.eventos</code> tem 6 partições e a chave é a academia. O que acontece com a ordem dos eventos de uma academia se alguém aumentar o tópico para 12 partições com o sistema em produção? Uma academia muito maior que as outras produz que efeito na partição em que cai? E se a retenção é de sete dias, quanto tempo o grupo <code>sink-lake</code> pode ficar parado antes de a camada bruta perder eventos?</p>
         </div>
         <div class="note">
-          <strong>Pontos-chave do bloco 3</strong>
+          <strong>Pontos-chave do bloco 2</strong>
           <ul>
             <li>A fila entrega e remove; o log retém, e cada grupo de consumidores guarda o próprio offset.</li>
             <li>A chave define a partição, e a partição é a unidade de ordem: chave por academia preserva a ordem por academia e por aluno.</li>
@@ -297,11 +233,76 @@
             <li>Sete dias de eventos, com três réplicas, ocupam cerca de 8,4 GB: o Kafka é transporte, e o histórico mora em outro lugar.</li>
           </ul>
         </div>
-        <h3>4.5 Para saber mais</h3>
+        <h3>3.5 Para saber mais</h3>
         <ul>
           <li><a href="https://kafka.apache.org/documentation/">Apache Kafka: documentação</a>, seções de design (log, replicação, garantias de entrega) e de configuração de tópicos, produtores e consumidores.</li>
           <li><a href="https://kafka.apache.org/intro">Apache Kafka: introdução</a>, com tópicos, partições e grupos em poucas páginas.</li>
           <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/">Apache Flink: documentação estável</a>, para o motor de processamento que mais se usa ao lado do Kafka.</li>
+        </ul>
+      </section>
+
+      <!-- 4 -->
+      <section class="content-block" id="s4">
+        <h2>4. Bloco 3: complex event processing</h2>
+        <p>Um evento isolado raramente pede uma ação. Uma cobrança que falha uma vez pode ser um cartão sem limite naquele dia. Duas falhas do mesmo aluno em uma semana indicam um aluno prestes a sair. O bloco trata da técnica que encontra esse segundo tipo de fato dentro do fluxo.</p>
+        <h3>4.1 Do evento simples ao evento complexo</h3>
+        <p>O termo complex event processing foi consolidado por David Luckham no livro The Power of Events, de 2002. A ideia central é a distinção entre dois níveis. O evento simples é o que a fonte emite: um check-in, um heartbeat, uma cobrança. O evento complexo é derivado: ele passa a existir quando um conjunto de eventos simples satisfaz um padrão. O evento complexo aponta para os eventos simples que o formaram, e essa referência é o que permite a alguém conferir por que o alerta disparou.</p>
+        <p>Na Rede Tatame, <code>cobranca_falhou</code> é um evento simples. <code>cobranca_reincidente</code> é um evento complexo: nenhuma catraca, aplicativo ou sistema de gestão o emite. Ele é produzido pelo motor de CEP quando o padrão "duas falhas do mesmo aluno em sete dias" se completa, e é publicado como qualquer outro evento, para que outros sistemas reajam a ele.</p>
+        <h3>4.2 Quatro famílias de padrão</h3>
+        <p>As regras de CEP usadas na prática se encaixam em poucas famílias. A aula usa uma regra de cada.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Família</th><th>O que detecta</th><th>Regra da aula</th><th>Chave do estado</th></tr></thead>
+          <tbody>
+            <tr><td>Correlação</td><td>eventos relacionados pela mesma chave, dentro de uma janela</td><td><code>cobranca_reincidente</code>: 2 <code>cobranca_falhou</code> do mesmo aluno em 7 dias</td><td>aluno</td></tr>
+            <tr><td>Ausência</td><td>um evento esperado que não veio dentro do prazo</td><td><code>academia_silenciosa</code>: nenhum heartbeat da academia há 5 minutos</td><td>academia</td></tr>
+            <tr><td>Limiar em janela</td><td>uma contagem ou soma que passa de um valor num período</td><td><code>pico_de_cancelamentos</code>: 3 cancelamentos na mesma academia em 24 horas</td><td>academia</td></tr>
+            <tr><td>Sequência</td><td>um evento A seguido (ou não seguido) de um evento B</td><td><code>experimental_sem_matricula</code>: aula experimental sem matrícula do mesmo aluno em 7 dias</td><td>aluno</td></tr>
+          </tbody>
+        </table></div>
+        <p>As regras de ausência têm uma particularidade: nenhum evento as dispara. O motor precisa de um temporizador que vença quando o prazo acaba, porque o silêncio, por definição, não chega pelo tópico. A regra <code>experimental_sem_matricula</code> combina sequência e ausência: ela começa a contar quando chega a <code>aula_experimental</code> e só conclui quando sete dias passam sem a <code>matricula</code>.</p>
+        <h3>4.3 Janelas</h3>
+        <p>Um fluxo não tem fim, e nenhuma regra pode esperar por ele. A janela é o recorte de tempo sobre o qual o padrão é avaliado. Há três formatos principais.</p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Janela</th><th>Como recorta</th><th>Exemplo</th></tr></thead>
+          <tbody>
+            <tr><td>Tumbling (fixa, sem sobreposição)</td><td>blocos consecutivos do mesmo tamanho; cada evento cai em um só</td><td>check-ins por minuto, por região, no painel tático</td></tr>
+            <tr><td>Deslizante</td><td>janela de tamanho fixo que avança em passos menores, ou que acompanha cada evento; um evento participa de várias</td><td>cancelamentos da academia nas últimas 24 horas, reavaliados a cada cancelamento</td></tr>
+            <tr><td>De sessão</td><td>agrupa eventos próximos e fecha depois de um intervalo de inatividade; o tamanho varia</td><td>uma visita do aluno ao aplicativo: <code>app_aberto</code>, vídeos e reserva até ele parar de interagir</td></tr>
+          </tbody>
+        </table></div>
+        <p>A diferença entre tumbling e deslizante aparece na borda. Com janelas fixas de 24 horas alinhadas à meia-noite, dois cancelamentos às 23h e um à 1h ficam em blocos diferentes e a regra não dispara, embora os três tenham ocorrido em duas horas. A janela deslizante enxerga os três juntos. O preço é guardar mais estado e reavaliar a regra com mais frequência.</p>
+        <h3>4.4 Watermark e atraso permitido</h3>
+        <p>Quando a janela é definida pelo tempo do evento, o motor precisa decidir em que momento ela pode ser considerada completa. Um evento das 10h59 pode chegar às 11h03. O watermark é a estimativa que o motor mantém de até que instante do tempo do evento já chegou tudo, ou quase tudo. Em geral ele é calculado como o maior <code>ocorrido_em</code> visto, menos uma folga. Quando o watermark passa do fim de uma janela, a janela fecha e o resultado é emitido.</p>
+        <p>O atraso permitido (allowed lateness) é um prazo adicional durante o qual a janela, mesmo fechada, ainda aceita retardatários e emite um resultado corrigido. O que chega depois disso é descartado ou desviado para uma saída separada, para ser tratado em lote.</p>
+        <p>A folga é uma decisão de negócio com custo dos dois lados. Uma folga curta entrega o alerta cedo e erra quando eventos se atrasam. Uma folga longa acerta mais e avisa mais tarde. No caso da Rede Tatame, a falha de duas horas do cluster de uma região, simulada na <a href="#s9">estação 3</a>, ultrapassa qualquer folga razoável para uma regra de cinco minutos. O que se pode fazer é escolher como a regra se comporta quando isso acontece e registrar a escolha.</p>
+        <h3>4.5 Estado por chave</h3>
+        <p>Para saber que esta é a segunda falha de cobrança do aluno, o motor precisa lembrar da primeira. Essa memória é o estado, e ela é organizada por chave: um registro por aluno nas regras de aluno, um por academia nas regras de academia. O estado precisa sobreviver à reinicialização do processo (os motores gravam checkpoints ou usam um tópico de changelog para isso) e precisa ter prazo de expiração, senão cresce para sempre.</p>
+        <p>O desenho da regra determina o tamanho do estado. Uma regra que guarda "o último evento de cada aluno" mantém uma entrada por aluno ativo. Uma regra que só abre estado quando o primeiro evento do padrão chega mantém entradas apenas para quem está no meio do padrão.</p>
+        <div class="note">
+          <strong>Exemplo numérico 3. O estado da regra de cobrança</strong>
+          <p>Nos dados sintéticos da aula, <code>cobranca_falhou</code> representa 0,3% dos eventos de aluno. Sobre 360.000 eventos de aluno por dia, são 1.080 falhas por dia (360.000 &times; 0,003).</p>
+          <p>A regra <code>cobranca_reincidente</code> abre estado na primeira falha de um aluno e o descarta sete dias depois. No pior caso, em que cada falha da semana é de um aluno diferente, o motor guarda 7 &times; 1.080 = 7.560 chaves ao mesmo tempo. A rede tem 36.000 alunos, e a regra mantém estado para no máximo 7.560 deles, cerca de um quinto.</p>
+          <p>O número depende da hipótese de 10 eventos por aluno por dia e da proporção de 0,3%, ambas a validar. A conclusão que se sustenta sem elas é de mecanismo: o estado de uma regra de correlação cresce com a frequência do evento que abre o padrão multiplicada pelo tamanho da janela, e não com o número de alunos da rede.</p>
+        </div>
+        <div class="note">
+          <strong>Pausa para reflexão</strong>
+          <p>A regra <code>academia_silenciosa</code> dispara quando uma academia fica cinco minutos sem heartbeat. Liste três causas diferentes para esse silêncio (o dispositivo, a rede da academia, o cluster da região) e diga se a regra, olhando só para o tópico, consegue distinguir entre elas. Depois escolha: a regra <code>pico_de_cancelamentos</code> deve usar o tempo do evento ou o tempo de chegada? O que acontece com ela quando uma academia fica uma tarde sem conexão e envia tudo de uma vez à noite?</p>
+        </div>
+        <div class="note">
+          <strong>Pontos-chave do bloco 3</strong>
+          <ul>
+            <li>O evento complexo é derivado de um padrão sobre eventos simples e guarda a referência a eles.</li>
+            <li>Correlação, ausência, limiar em janela e sequência cobrem as regras da aula; a ausência depende de temporizador.</li>
+            <li>A janela (tumbling, deslizante ou de sessão) define o recorte; o watermark e o atraso permitido definem quando o recorte é dado por completo.</li>
+            <li>O estado é guardado por chave, precisa expirar e, na regra de cobrança, fica limitado a 7.560 alunos.</li>
+          </ul>
+        </div>
+        <h3>4.6 Para saber mais</h3>
+        <ul>
+          <li>David Luckham, The Power of Events: An Introduction to Complex Event Processing in Distributed Enterprise Systems (Addison-Wesley, 2002).</li>
+          <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/docs/libs/cep/">Apache Flink: biblioteca FlinkCEP</a>, com a API de padrões (sequência, repetição, ausência) sobre fluxos com chave.</li>
+          <li><a href="https://nightlies.apache.org/flink/flink-docs-stable/">Apache Flink: documentação estável</a>, seções sobre tempo do evento, watermarks e janelas.</li>
+          <li><a href="https://kafka.apache.org/documentation/streams/">Kafka Streams</a>, para janelas e estado por chave numa biblioteca que roda dentro da aplicação.</li>
         </ul>
       </section>
 
@@ -358,7 +359,7 @@
       <!-- 6 -->
       <section class="content-block" id="s6">
         <h2>6. Como usar o simulador</h2>
-        <p>O <a href="../simulador/simulador_aula_06.html">simulador da aula</a> é uma página HTML que roda inteira no navegador. Não há servidor, conta nem instalação. Cada aluno abre a página no próprio navegador e acompanha o professor, que projeta a mesma tela.</p>
+        <p>O <a href="../simulador/simulador_aula_06.html">simulador da aula</a> é uma página HTML que roda inteira no navegador. Não há servidor, conta nem instalação. Em sala, o professor mostra o simulador dentro dos slides, logo depois de cada explicação. Cada aluno abre a página no próprio navegador, pelo link acima ou pelo rodapé dos slides, e acompanha a demonstração.</p>
         <h3>6.1 O que é simulado</h3>
         <p>O simulador representa uma amostra de um décimo da Rede Tatame: 24 academias e 3.600 alunos, distribuídos em <code>sa-saopaulo</code> (10 academias), <code>us-virginia</code> (7), <code>eu-estocolmo</code> (5) e <code>ap-sydney</code> (2). Os números absolutos que aparecem na tela são, portanto, cerca de um décimo dos números da rede inteira citados neste material. As proporções e os comportamentos são os mesmos.</p>
         <p>O estado da simulação fica gravado no <code>localStorage</code> do navegador. Recarregar a página ou fechar a aba não perde a simulação. O botão "Reiniciar" apaga tudo e volta ao início. Como o estado é local, cada aluno tem a própria simulação: os números de dois colegas não precisam coincidir, porque dependem do momento em que cada um clicou.</p>
@@ -483,7 +484,7 @@ Leia AGENTS.md antes de começar. Se faltar informação essencial, pergunte ant
       <section class="content-block" id="s8">
         <h2>8. Estação 2: Kafka, partições, grupos e lag</h2>
         <h3>8.1 Conceito</h3>
-        <p>A <a href="#s4">seção 4.3</a> apresentou as peças do Kafka. Esta estação as observa em movimento, no tópico <code>tatame.eventos</code>, com 6 partições e três grupos de consumidores.</p>
+        <p>A <a href="#s3">seção 3.3</a> apresentou as peças do Kafka. Esta estação as observa em movimento, no tópico <code>tatame.eventos</code>, com 6 partições e três grupos de consumidores.</p>
         <p>O primeiro comportamento é o endereçamento. Cada evento registrado recebe uma partição, decidida pela chave (a academia), e um offset, que é a posição dele naquela partição. Dois eventos da mesma academia caem na mesma partição, com offsets crescentes. Com 24 academias da amostra em 6 partições, várias academias dividem cada partição, e a distribuição depende do hash de cada código de academia: algumas partições recebem mais academias que outras. Numa rede real, uma academia muito movimentada torna a partição dela mais carregada que as demais, e o consumidor dessa partição passa a ser o gargalo do grupo.</p>
         <p>O segundo comportamento é a independência dos grupos. Os grupos <code>cep</code>, <code>sink-influxdb</code> e <code>sink-lake</code> leem as mesmas seis partições, e cada um guarda o próprio offset em cada uma. Pausar um grupo faz o lag dele crescer e não altera os outros. Quando o grupo volta, ele retoma do offset em que parou: nada se perde, desde que a pausa seja menor que a retenção.</p>
         <p>O terceiro é a recuperação. Um grupo que volta com lag acumulado lê mais rápido do que os eventos chegam, e o lag cai. O tempo para zerar depende da diferença entre a vazão do consumidor e a taxa de chegada. Se a vazão do consumidor for só um pouco maior que a taxa de chegada, o lag leva muito tempo para zerar; se for menor, o lag nunca zera.</p>
@@ -554,7 +555,7 @@ Leia AGENTS.md. Gates ao final: (1) docker compose ps mostra o broker saudável;
       <section class="content-block" id="s9">
         <h2>9. Estação 3: CEP sobre o fluxo</h2>
         <h3>9.1 Conceito</h3>
-        <p>O grupo <code>cep</code> lê o tópico e avalia quatro regras, uma de cada família da <a href="#s3">seção 3.2</a>. No simulador, cada regra tem uma chave liga/desliga e um parâmetro editável.</p>
+        <p>O grupo <code>cep</code> lê o tópico e avalia quatro regras, uma de cada família da <a href="#s4">seção 4.2</a>. No simulador, cada regra tem uma chave liga/desliga e um parâmetro editável.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Regra</th><th>Condição</th><th>Para que serve</th></tr></thead>
           <tbody>
@@ -1062,10 +1063,10 @@ Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -
             <tr><td>Gerar o <code>event_id</code> no envio, e não na criação do evento</td><td>cada reenvio do outbox parece um evento novo, e os destinos duplicam</td><td><a href="#s7">estação 1</a></td></tr>
             <tr><td>Hash do aluno sem chave secreta</td><td>o código pode ser revertido por tentativa sobre identificadores previsíveis</td><td><a href="#s7">estação 1</a></td></tr>
             <tr><td>Chave do Kafka sem relação com as regras (ou sem chave)</td><td>eventos da mesma academia em partições diferentes, lidos fora de ordem</td><td><a href="#s8">estação 2</a></td></tr>
-            <tr><td>Aumentar o número de partições em produção</td><td>a mesma chave passa a cair em outra partição, e a ordem por chave se quebra na transição</td><td><a href="#s4">seção 4.3</a></td></tr>
+            <tr><td>Aumentar o número de partições em produção</td><td>a mesma chave passa a cair em outra partição, e a ordem por chave se quebra na transição</td><td><a href="#s3">seção 3.3</a></td></tr>
             <tr><td>Confirmar o offset antes de gravar no destino</td><td>uma queda entre os dois passos perde eventos sem erro visível</td><td>estações 3, 4 e 5</td></tr>
-            <tr><td>Tratar o Kafka como arquivo permanente</td><td>o que passa da retenção é apagado, lido ou não</td><td><a href="#s4">seção 4.3</a></td></tr>
-            <tr><td>Regra de CEP sem expiração de estado</td><td>o estado cresce até esgotar a memória</td><td><a href="#s3">seção 3.5</a></td></tr>
+            <tr><td>Tratar o Kafka como arquivo permanente</td><td>o que passa da retenção é apagado, lido ou não</td><td><a href="#s3">seção 3.3</a></td></tr>
+            <tr><td>Regra de CEP sem expiração de estado</td><td>o estado cresce até esgotar a memória</td><td><a href="#s4">seção 4.5</a></td></tr>
             <tr><td>Regra de janela pelo tempo de chegada</td><td>uma rajada de eventos atrasados dispara limiares que nunca ocorreram</td><td><a href="#s9">estação 3</a></td></tr>
             <tr><td>Identificador de alta cardinalidade como tag no InfluxDB</td><td>o número de séries dispara</td><td><a href="#s10">estação 4</a></td></tr>
             <tr><td>Lote de poucos segundos no object storage</td><td>milhões de objetos pequenos por ano, listagem e leitura lentas</td><td><a href="#s11">estação 5</a></td></tr>

@@ -298,3 +298,12 @@ body.sim {
   .sim-queue-row .sim-cells { grid-column: 1 / -1; grid-row: 2; }
   .sim-head h1 { font-size: 1.35em; }
 }
+
+/* Modo embutido no slide (?embed=1): o deck escolhe a aba e mostra o título,
+   então a marca, as abas, os links e o rodapé saem para liberar altura. */
+.sim-embed .sim-brand,
+.sim-embed .sim-tabs,
+.sim-embed .sim-head .sim-links,
+.sim-embed .sim-foot { display: none; }
+.sim-embed .sim-top-row { padding: 6px 16px; justify-content: flex-end; }
+.sim-embed .sim-main { padding: 14px 16px 24px; }

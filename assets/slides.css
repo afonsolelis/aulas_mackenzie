@@ -1034,3 +1034,42 @@ pre.is-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
   .bias-frame figcaption { margin-top: 4px; padding-top: 6px; font-size: 0.72em; }
   .deck-shell.is-dense:has(.bias-pair) { gap: 14px; padding-top: 34px; }
 }
+
+/* --------------------------------------------------------------------------
+   Slide com simulador embutido. O deck mantém um único iframe (.deck-sim-frame)
+   para que a simulação siga rodando, com o mesmo estado, de um slide de
+   demonstração para o outro. O script do deck posiciona o iframe entre o
+   cabeçalho do slide (.slide-sim-head) e o rodapé fixo.
+   -------------------------------------------------------------------------- */
+
+.slide.slide-sim { overflow: hidden; }
+
+.slide-sim-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 14px 24px 12px;
+  border-bottom: 1px solid var(--deck-line);
+  background: var(--deck-panel);
+}
+
+.slide-sim-head h2 {
+  margin: 0;
+  font-size: 1.35em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.deck-sim-frame {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  border: 0;
+  background: var(--deck-bg);
+  visibility: hidden;
+  z-index: 5;
+}
+
+.deck-sim-frame.is-visible { visibility: visible; }
