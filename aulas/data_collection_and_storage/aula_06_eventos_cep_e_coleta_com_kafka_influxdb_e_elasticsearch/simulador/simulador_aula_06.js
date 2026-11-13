@@ -1104,6 +1104,10 @@
         if (location.hash.slice(1) !== e.data.simAba) location.hash = e.data.simAba;
       });
       window.parent.postMessage({ simPronto: true }, '*');
+      // Estado resumido para o indicador flutuante do deck, visível em qualquer slide.
+      setInterval(() => window.parent.postMessage({
+        simStatus: { rodando: S.rodando, gerados: S.total.gerados, relogio: $('relogio').textContent }
+      }, '*'), 500);
     }
     window.__sim = { estado: () => S, passo, salvar, lagDe, hllEstimar, exatos: () => exatos, nSeries };
   }

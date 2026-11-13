@@ -1073,3 +1073,53 @@ pre.is-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 }
 
 .deck-sim-frame.is-visible { visibility: visible; }
+
+/* Indicador flutuante do simulador embutido: aparece depois que o simulador
+   carrega e continua visível nos slides de teoria. */
+.deck-sim-status {
+  position: fixed;
+  top: 12px;
+  right: 14px;
+  z-index: 101;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--deck-border);
+  background: var(--deck-panel);
+  font-family: var(--font-mono);
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--deck-text);
+  pointer-events: none;
+}
+
+.deck-sim-status[hidden] { display: none; }
+
+.deck-sim-dot {
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--deck-border);
+  background: transparent;
+}
+
+.deck-sim-status.is-running .deck-sim-dot {
+  background: #1a7f37;
+  border-color: #1a7f37;
+  animation: deckSimPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes deckSimPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-sim-status.is-running .deck-sim-dot { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .deck-sim-status { top: 6px; right: 6px; font-size: 0.62em; }
+}

@@ -969,6 +969,10 @@ measurement</code></pre>
 
   <!-- Iframe único do simulador, compartilhado pelos slides .slide-sim -->
   <iframe id="sim-frame" class="deck-sim-frame" title="Simulador da Aula 06" tabindex="-1"></iframe>
+  <div id="sim-status" class="deck-sim-status" role="status" aria-live="off" hidden>
+    <span class="deck-sim-dot"></span>
+    <span id="sim-status-texto">Simulador</span>
+  </div>
 
   <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
 
@@ -1026,6 +1030,17 @@ measurement</code></pre>
       simFrame.classList.add("is-visible");
     }
 
+    const simStatus = document.getElementById("sim-status");
+    const simStatusTexto = document.getElementById("sim-status-texto");
+    const numero = new Intl.NumberFormat("pt-BR");
+
+    function atualizarStatus(st) {
+      simStatus.hidden = false;
+      simStatus.classList.toggle("is-running", st.rodando);
+      simStatusTexto.textContent = (st.rodando ? "Simulador rodando" : "Simulador pausado") +
+        " \u00b7 " + numero.format(st.gerados) + " eventos \u00b7 " + st.relogio;
+    }
+
     window.addEventListener("resize", () => {
       if (slides[currentSlide].dataset.sim) posicionarSimulador(slides[currentSlide]);
     });
@@ -1034,6 +1049,7 @@ measurement</code></pre>
     window.addEventListener("message", event => {
       if (event.source !== simFrame.contentWindow || !event.data) return;
       if (event.data.simPronto && abaAtual) simFrame.contentWindow.postMessage({ simAba: abaAtual }, "*");
+      if (event.data.simStatus) atualizarStatus(event.data.simStatus);
       const tecla = event.data.simTecla;
       if (tecla === "ArrowRight" || tecla === " ") nextSlide();
       if (tecla === "ArrowLeft") previousSlide();
