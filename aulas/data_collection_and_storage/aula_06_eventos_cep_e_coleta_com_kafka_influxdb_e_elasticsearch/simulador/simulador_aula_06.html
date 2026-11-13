@@ -290,8 +290,8 @@
     <section class="sim-view" id="v-missoes">
       <div class="sim-head">
         <span class="sim-kicker">Atividade em sala</span>
-        <h1>Sete missões e a evidência de cada aluno</h1>
-        <p>Cada missão é feita junto com o professor numa estação. O simulador marca os passos que consegue observar, e cada aluno escreve a própria resposta à pergunta de cada missão. O texto exportado vai para <code class="sim-mono">aula_06_eventos/evidencia_simulador_&lt;seu_nome&gt;.md</code> no repositório do grupo.</p>
+        <h1>Sete missões e a resposta de cada aluno</h1>
+        <p>Cada missão é feita junto com o professor numa estação. O simulador marca os passos que consegue observar, e cada aluno escreve a própria resposta à pergunta de cada missão. Cada resposta enviada fica guardada no painel da turma, que o professor projeta para a discussão.</p>
       </div>
       <div class="sim-grid">
         <div class="sim-panel sim-col-12">
@@ -300,17 +300,8 @@
             <label for="ms-grupo">Aluno</label>
             <input type="text" id="ms-grupo" placeholder="seu nome" style="flex:1">
           </div>
-          <p class="sim-hint" id="ms-envio">As respostas vão para o painel da turma assim que o seu nome estiver preenchido.</p>
+          <p class="sim-hint" id="ms-envio">Preencha o seu nome. Em cada missão, escreva a resposta e clique em Enviar resposta: ela fica guardada e aparece no painel da turma. Para corrigir, edite e envie de novo.</p>
           <div id="ms-lista"></div>
-        </div>
-        <div class="sim-panel sim-col-12">
-          <h2>Evidência</h2>
-          <div class="sim-inline" style="margin-bottom:10px">
-            <button id="ms-exportar" class="is-primary">Exportar evidência</button>
-            <button id="ms-copiar">Copiar</button>
-            <button id="ms-baixar">Baixar .md</button>
-          </div>
-          <textarea id="ms-saida" readonly style="min-height:260px" placeholder="o texto em Markdown aparece aqui"></textarea>
         </div>
       </div>
     </section>

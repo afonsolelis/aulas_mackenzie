@@ -1010,20 +1010,25 @@
           <div class="sim-check" id="ms-obs-${i + 1}"></div>
           <p class="sim-hint" style="margin:6px 0 4px">${m.q}</p>
           <textarea data-m="${i + 1}" placeholder="sua resposta">${esc(S.respostas[i + 1] || '')}</textarea>
+          <div class="sim-inline" style="margin-top:6px">
+            <button class="is-primary" data-enviar="${i + 1}">Enviar resposta</button>
+            <span class="sim-hint" id="ms-st-${i + 1}"></span>
+          </div>
         </div>
       </div>`).join('');
-    $('ms-lista').addEventListener('input', e => { if (e.target.dataset.m) { S.respostas[e.target.dataset.m] = e.target.value; agendarEnvio(); } });
+    $('ms-lista').addEventListener('input', e => { const n = e.target.dataset.m; if (n) { S.respostas[n] = e.target.value; statusMissao(n); } });
     $('ms-lista').addEventListener('change', salvar);
+    $('ms-lista').addEventListener('click', e => { const b = e.target.closest('[data-enviar]'); if (b) enviarMissao(+b.dataset.enviar); });
     $('ms-grupo').value = S.grupo;
-    $('ms-grupo').addEventListener('input', e => { S.grupo = e.target.value; agendarEnvio(); });
+    $('ms-grupo').addEventListener('input', e => { S.grupo = e.target.value; });
     $('ms-grupo').addEventListener('change', salvar);
-    agendarEnvio();
-    $('ms-exportar').addEventListener('click', () => { $('ms-saida').value = evidencia(); salvar(); });
-    $('ms-copiar').addEventListener('click', () => { if (!$('ms-saida').value) $('ms-saida').value = evidencia(); $('ms-saida').select(); if (navigator.clipboard) navigator.clipboard.writeText($('ms-saida').value).catch(() => {}); });
-    $('ms-baixar').addEventListener('click', () => {
-      const txt = $('ms-saida').value || evidencia(); $('ms-saida').value = txt;
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/markdown' })); a.download = 'evidencia_simulador_' + ((S.grupo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'aluno') + '.md'; a.click(); URL.revokeObjectURL(a.href);
-    });
+    if (document.body.classList.contains('sim-embed')) {
+      // No slide, este é o simulador do professor: ele não envia respostas.
+      document.querySelectorAll('[data-enviar]').forEach(b => { b.hidden = true; });
+      $('ms-envio').textContent = 'Este é o simulador do professor, que não envia respostas ao painel. Cada aluno responde no simulador aberto no próprio navegador, pelo link Simulador no rodapé dos slides.';
+    } else {
+      MISSOES.forEach((m, i) => statusMissao(i + 1));
+    }
   }
 
   // Cada observação: [rótulo, feito?]
@@ -1046,27 +1051,13 @@
     for (let i = 1; i <= 7; i++) $('ms-obs-' + i).innerHTML = obs[i].map(([txt, ok]) => `<span class="sim-badge${ok ? ' is-on' : ' is-soft'}">${ok ? 'feito' : 'pendente'} · ${esc(txt)}</span>`).join('');
   };
 
-  function evidencia() {
-    const obs = observacoes(), L = [];
-    L.push('# Evidência do simulador da Aula 06', '');
-    L.push(`- Aluno: ${S.grupo || '(preencher)'}`);
-    L.push(`- Exportado em: ${new Date().toLocaleString('pt-BR')}`);
-    L.push(`- Relógio simulado: ${curto(S.relogio)} UTC, dia ${Math.floor((S.relogio - INICIO) / DIA) + 1} da simulação`);
-    L.push(`- Totais: ${fmt(S.total.gerados)} eventos gerados, ${fmt(S.total.kafka)} publicados no Kafka, ${fmt(S.cep.n)} eventos complexos, ${fmt(S.influx.pontos)} pontos no InfluxDB, ${fmt(S.lake.nObj)} objetos no bucket, ${fmt(S.es.nDocs)} documentos no Elasticsearch`, '');
-    MISSOES.forEach((m, i) => {
-      L.push(`## Missão ${i + 1}. ${m.t}`, '');
-      for (const [txt, ok] of obs[i + 1]) L.push(`- [${ok ? 'x' : ' '}] ${txt}`);
-      if (i === 5) for (const [k, v] of Object.entries(S.ms.m6.lotes)) L.push(`- lote de ${k}: ${fmt(v.obj)} objetos por dia, atraso médio de ${v.atraso === null ? 'não medido' : duracao(v.atraso)}`);
-      L.push('', `Pergunta: ${m.q}`, '', `Resposta: ${(S.respostas[i + 1] || '(preencher)').trim()}`, '');
-    });
-    return L.join('\n');
-  }
 
-  // --- painel da turma: as respostas das missões vão para o slide ao vivo.
+
+  // --- painel da turma: cada missão tem o próprio botão Enviar resposta.
   // Só o simulador dos alunos envia; o que está embutido no slide do professor não.
+  // S.enviadas guarda, por missão, o texto aceito pelo servidor e a hora.
   const SALA_AO_VIVO = 'mack-dcs-a06-2026-2';
-  const enviados = {};             // pergunta -> "grupo\u0000texto" já aceito pelo servidor
-  let timerEnvio = null, enviando = false;
+  const horaCurta = d => new Date(d).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
   function novoCliente() {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -1075,39 +1066,31 @@
     });
   }
 
-  function agendarEnvio() {
-    if (document.body.classList.contains('sim-embed') || !window.aulasApi) return;
-    clearTimeout(timerEnvio);
-    timerEnvio = setTimeout(enviarRespostas, 1500);
+  function statusMissao(n, msg) {
+    const el = $('ms-st-' + n); if (!el) return;
+    if (msg) { el.textContent = msg; return; }
+    const env = (S.enviadas || {})[n], atual = (S.respostas[n] || '').trim();
+    el.textContent = !env ? 'Ainda não enviada.'
+      : env.texto === atual ? `Enviada às ${horaCurta(env.em)}.`
+      : 'Resposta alterada depois do envio. Clique em Enviar resposta de novo.';
   }
 
-  async function enviarRespostas() {
-    if (enviando) { agendarEnvio(); return; }
-    const grupo = (S.grupo || '').trim(), info = $('ms-envio');
-    if (!grupo) { info.textContent = 'Preencha o seu nome para enviar as respostas ao painel da turma.'; return; }
-    if (!S.cliente) { S.cliente = novoCliente(); salvar(); }
-    const pendentes = MISSOES.map((m, i) => i + 1)
-      .filter(n => enviados[n] !== grupo + '\u0000' + (S.respostas[n] || '').trim())
-      .filter(n => (S.respostas[n] || '').trim() || enviados[n] !== undefined);
-    if (!pendentes.length) return;
-    enviando = true;
-    const db = window.aulasApi.cliente();
-    let erro = null;
-    for (const n of pendentes) {
-      const texto = (S.respostas[n] || '').trim();
-      const { data, error } = await db.rpc('aovivo_enviar', { p_sala: SALA_AO_VIVO, p_cliente: S.cliente, p_pergunta: n, p_grupo: grupo, p_texto: texto });
-      if (error && error.code === 'PGRST202') { erro = 'o painel ao vivo ainda não está ativo.'; break; }
-      if (error || !data || !data.ok) { erro = (data && data.erro) || (error && error.message) || 'falha no envio'; break; }
-      enviados[n] = grupo + '\u0000' + texto;
-    }
-    enviando = false;
-    const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    if (erro) {
-      info.textContent = `Painel da turma: ${erro} Nova tentativa em 10 segundos.`;
-      clearTimeout(timerEnvio); timerEnvio = setTimeout(enviarRespostas, 10000);
-    } else {
-      info.textContent = `Painel da turma: respostas enviadas às ${hora}.`;
-    }
+  async function enviarMissao(n) {
+    if (document.body.classList.contains('sim-embed') || !window.aulasApi) return;
+    const nome = (S.grupo || '').trim(), texto = (S.respostas[n] || '').trim();
+    if (!nome) { statusMissao(n, 'Preencha o seu nome, no alto da aba, antes de enviar.'); $('ms-grupo').focus(); return; }
+    if (!texto) { statusMissao(n, 'Escreva a resposta antes de enviar.'); return; }
+    if (!S.cliente) S.cliente = novoCliente();
+    const botao = document.querySelector(`[data-enviar="${n}"]`);
+    botao.disabled = true; statusMissao(n, 'Enviando…');
+    const { data, error } = await window.aulasApi.cliente().rpc('aovivo_enviar', { p_sala: SALA_AO_VIVO, p_cliente: S.cliente, p_pergunta: n, p_grupo: nome, p_texto: texto });
+    botao.disabled = false;
+    if (error && error.code === 'PGRST202') { statusMissao(n, 'O painel da turma ainda não está ativo. Avise o professor.'); return; }
+    if (error || !data || !data.ok) { statusMissao(n, 'Não foi enviada: ' + ((data && data.erro) || (error && error.message) || 'falha no envio') + ' Tente de novo.'); return; }
+    S.enviadas = S.enviadas || {};
+    S.enviadas[n] = { texto, em: data.em || new Date().toISOString() };
+    salvar();
+    statusMissao(n);
   }
 
   // ------------------------------------------------------------ abas e início

@@ -1244,3 +1244,19 @@ pre.is-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 .deck-sim-toggle .ico-pause { display: none; }
 .deck-sim-status.is-running .deck-sim-toggle .ico-play { display: none; }
 .deck-sim-status.is-running .deck-sim-toggle .ico-pause { display: inline; }
+
+.deck-live-acoes { display: inline-flex; gap: 8px; }
+
+.deck-live-csv {
+  padding: 8px 12px;
+  border: 1px solid var(--deck-border);
+  background: var(--deck-panel);
+  color: var(--deck-text);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deck-live-csv[hidden] { display: none; }
+.deck-live-csv:hover { background: var(--deck-text); color: var(--deck-panel); }

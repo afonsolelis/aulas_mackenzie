@@ -48,7 +48,7 @@
               <li>10h10 &middot; Bloco 3 e Estação 3: complex event processing</li>
               <li>10h50 &middot; Estação 4: InfluxDB e o painel tático</li>
               <li>11h15 &middot; Estação 5: object storage &nbsp; 11h30 &middot; Estação 6: Elasticsearch</li>
-              <li>11h55 &middot; Missões, evidência e fechamento</li>
+              <li>11h55 &middot; Painel da turma, discussão e fechamento</li>
             </ul>
           </article>
         </div>
@@ -65,7 +65,7 @@
         </div>
         <div class="deck-callout">
           <strong>Resultado observável ao fim da aula</strong>
-          <p style="margin:8px 0 0;">Sete missões feitas no simulador, com a evidência exportada para o repositório do grupo: a chave e a partição, o lag, a falha de um cluster regional, um padrão de CEP, a cardinalidade de séries, o tamanho do lote e uma busca com estimativa.</p>
+          <p style="margin:8px 0 0;">Sete missões feitas no simulador, com a resposta de cada aluno enviada ao painel da turma: a chave e a partição, o lag, a falha de um cluster regional, um padrão de CEP, a cardinalidade de séries, o tamanho do lote e uma busca com estimativa.</p>
         </div>
       </div>
     </div>
@@ -945,7 +945,7 @@ measurement</code></pre>
     <div class="slide slide-sim" data-sim="missoes">
       <div class="slide-sim-head">
         <span class="deck-kicker">Atividade em sala &middot; Simulador</span>
-        <h2>Missões e exportação da evidência</h2>
+        <h2>Missões e respostas de cada aluno</h2>
       </div>
     </div>
 
@@ -957,7 +957,10 @@ measurement</code></pre>
           <h2 class="deck-title">Respostas da turma às missões</h2>
           <div class="deck-live-barra">
             <p class="deck-summary" id="live-resumo">As respostas aparecem à medida que os alunos escrevem na aba Missões do simulador.</p>
-            <button type="button" class="deck-live-limpar" id="live-limpar" hidden>Limpar painel</button>
+            <span class="deck-live-acoes">
+              <button type="button" class="deck-live-csv" id="live-csv" hidden>Baixar CSV</button>
+              <button type="button" class="deck-live-limpar" id="live-limpar" hidden>Limpar painel</button>
+            </span>
           </div>
         </div>
         <form class="deck-live-token" id="live-form" hidden>
@@ -980,7 +983,7 @@ measurement</code></pre>
           <h2 class="deck-title">Entregável e o que fica para a semana</h2>
         </div>
         <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
-          <article class="deck-card"><h3>Em sala, até 12h10</h3><p>As sete missões com a resposta de cada aluno, exportadas pelo botão "Exportar evidência" para <code>aula_06_eventos/evidencia_simulador_&lt;seu_nome&gt;.md</code>.</p></article>
+          <article class="deck-card"><h3>Em sala, até 12h10</h3><p>A resposta de cada aluno às sete missões, enviada pelo botão Enviar resposta de cada missão. As respostas ficam guardadas no painel da turma.</p></article>
           <article class="deck-card"><h3>Na semana, opção A</h3><p>Executar os prompts 1 a 6 com o agente de código de preferência e subir a versão real em <code>aula_06_eventos/</code>.</p></article>
           <article class="deck-card"><h3>Na semana, opção B</h3><p>Fazer o <a href="../laboratorio/roteiro_streaming_iot.html">laboratório opcional</a> de streaming IoT com RabbitMQ e ClickHouse, base do laboratório opcional da Aula 07.</p></article>
         </div>
@@ -1170,6 +1173,7 @@ measurement</code></pre>
       }
       $live("live-form").hidden = true; $live("live-erro").textContent = "";
       $live("live-limpar").hidden = false;
+      $live("live-csv").hidden = false;
       live.dados = data.respostas || [];
       desenharAoVivo();
     }
@@ -1181,10 +1185,25 @@ measurement</code></pre>
       painelAoVivo(true);
     });
 
+    // As respostas no banco são a evidência da aula: o CSV guarda uma cópia antes de limpar.
+    $live("live-csv").addEventListener("click", () => {
+      const campo = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
+      const linhas = [["missao", "pergunta", "aluno", "resposta", "enviada_em"].join(";")];
+      [...live.dados].sort((a, b) => a.pergunta - b.pergunta || a.grupo.localeCompare(b.grupo, "pt-BR"))
+        .forEach(r => linhas.push([r.pergunta, MISSOES[r.pergunta - 1][0], r.grupo, r.texto, new Date(r.em).toLocaleString("pt-BR")].map(campo).join(";")));
+      // BOM para o Excel abrir os acentos corretamente.
+      const blob = new Blob(["\ufeff" + linhas.join("\r\n")], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "respostas_aula_06_" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.click(); URL.revokeObjectURL(a.href);
+      $live("live-csv").blur();
+    });
+
     // Ao fim da aula: apaga todas as respostas da sala, depois de confirmar.
     $live("live-limpar").addEventListener("click", async () => {
       const total = live.dados.length;
-      if (!window.confirm("Apagar as " + total + " respostas do painel? Esta ação não pode ser desfeita.")) return;
+      if (!window.confirm("Apagar as " + total + " respostas do painel? Esta ação não pode ser desfeita. Se ainda não baixou o CSV, cancele e baixe antes.")) return;
       const botao = $live("live-limpar");
       botao.disabled = true;
       const { data, error } = await window.aulasApi.cliente().rpc("aovivo_limpar", { p_token: live.token, p_sala: SALA_AO_VIVO });

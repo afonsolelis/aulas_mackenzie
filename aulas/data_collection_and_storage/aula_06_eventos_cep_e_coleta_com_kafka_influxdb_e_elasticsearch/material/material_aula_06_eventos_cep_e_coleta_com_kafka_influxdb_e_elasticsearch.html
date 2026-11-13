@@ -42,7 +42,7 @@
           <li><a href="#s10">Estação 4: InfluxDB e o painel tático</a></li>
           <li><a href="#s11">Estação 5: object storage e a camada bruta</a></li>
           <li><a href="#s12">Estação 6: Elasticsearch, estimativas e contexto para IA</a></li>
-          <li><a href="#s13">Missões e evidência</a></li>
+          <li><a href="#s13">Missões e painel da turma</a></li>
           <li><a href="#s14">Limites do simulador e erros comuns</a></li>
           <li><a href="#s15">Atividade em sala, entregável e o que fica para a semana</a></li>
         </ol>
@@ -60,7 +60,7 @@
         <p>Esta aula não tem TBL nem quiz. O laboratório com docker da versão anterior da aula (sensores IoT, RabbitMQ e ClickHouse) passou a ser o <a href="../laboratorio/roteiro_streaming_iot.html">laboratório opcional da semana</a>, com os arquivos de apoio descritos no <a href="../laboratorio/README.md">README do laboratório</a>.</p>
         <div class="note">
           <strong>Resultado esperado ao fim da aula</strong>
-          <p>Cada aluno explica a diferença entre evento, comando e estado; descreve um evento complexo como padrão sobre eventos simples numa janela; localiza um evento por partição e offset; justifica por que o painel tático e o relatório de 13 meses saem de bancos diferentes; e cada aluno entrega o arquivo <code>aula_06_eventos/evidencia_simulador_&lt;seu_nome&gt;.md</code> no repositório do grupo, com os números observados nas sete missões e as próprias respostas às perguntas de cada uma.</p>
+          <p>Cada aluno explica a diferença entre evento, comando e estado; descreve um evento complexo como padrão sobre eventos simples numa janela; localiza um evento por partição e offset; justifica por que o painel tático e o relatório de 13 meses saem de bancos diferentes; e cada aluno envia, pelo simulador, a própria resposta à pergunta de cada uma das sete missões, com os números que observou.</p>
         </div>
         <h3>1.3 Agenda</h3>
         <div class="table-scroll"><table>
@@ -77,7 +77,7 @@
             <tr><td>10h50 &ndash; 11h15</td><td>Estação 4: InfluxDB e o painel tático</td></tr>
             <tr><td>11h15 &ndash; 11h30</td><td>Estação 5: object storage e a camada bruta</td></tr>
             <tr><td>11h30 &ndash; 11h55</td><td>Estação 6: Elasticsearch, estimativas e contexto para IA</td></tr>
-            <tr><td>11h55 &ndash; 12h10</td><td>Missões, evidência e fechamento</td></tr>
+            <tr><td>11h55 &ndash; 12h10</td><td>Painel da turma, discussão e fechamento</td></tr>
           </tbody>
         </table></div>
         <p>Em sala, cada bloco teórico é seguido pela estação correspondente, e o simulador aparece dentro dos próprios slides: o professor explica o conceito e em seguida o mostra na aba do simulador. A simulação continua rodando de um slide de demonstração para o outro, com o mesmo estado. Os blocos 1 a 3 correspondem às seções 2 a 4 deste material, a seção 5 apresenta a arquitetura de coleta, a seção 6 apresenta o simulador e as seções 7 a 12 seguem as estações. As missões da seção 13 são executadas dentro das estações, à medida que cada aba é apresentada.</p>
@@ -381,7 +381,7 @@
             <tr><td>InfluxDB</td><td>line protocol, "Séries ativas", "Painel tático" e a consulta "Últimos 13 meses"</td><td>4</td></tr>
             <tr><td>Object storage</td><td>bucket <code>tatame-bruto</code>, "Fechar lote a cada" e "Particionar por"</td><td>5</td></tr>
             <tr><td>Elasticsearch</td><td>índices mensais, busca, "Alunos únicos", "Relatório de 13 meses" e "Contexto para a IA"</td><td>6</td></tr>
-            <tr><td>Missões</td><td>sete missões e o botão "Exportar evidência"</td><td>fechamento</td></tr>
+            <tr><td>Missões</td><td>sete missões, o campo "Aluno" e o botão "Enviar resposta" de cada missão</td><td>fechamento</td></tr>
           </tbody>
         </table></div>
         <h3>6.3 Como cada estação é conduzida</h3>
@@ -389,7 +389,6 @@
         <p>Os seis prompts constroem, juntos, a versão real da arquitetura numa pasta <code>aula_06_eventos/</code> no repositório do grupo, com docker compose. A estrutura esperada é a seguinte.</p>
         <pre><code>aula_06_eventos/
 ├── AGENTS.md
-├── evidencia_simulador_&lt;nome&gt;.md  (um por aluno, entregue em sala, seção 13)
 ├── docs/
 │   ├── contrato_evento.md
 │   └── adr/ADR-001-*.md
@@ -906,8 +905,8 @@ Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -
 
       <!-- 13 -->
       <section class="content-block" id="s13">
-        <h2>13. Missões e evidência</h2>
-        <p>A aba Missões (<code>#missoes</code>) do simulador lista sete missões. Cada uma é executada na estação correspondente e termina com números observados na tela e com uma pergunta que cada aluno responde por escrito. O botão "Exportar evidência" gera um texto em Markdown com os números observados e as respostas do aluno.</p>
+        <h2>13. Missões e painel da turma</h2>
+        <p>A aba Missões (<code>#missoes</code>) do simulador lista sete missões. Cada uma é executada na estação correspondente e termina com números observados na tela e com uma pergunta que cada aluno responde por escrito, citando os números da própria simulação. Cada resposta é enviada pelo botão "Enviar resposta" da missão e fica guardada no banco da disciplina. Essas respostas são a evidência da aula.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Missão</th><th>Abas</th><th>Estação</th><th>O que mede</th></tr></thead>
           <tbody>
@@ -921,15 +920,15 @@ Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -
           </tbody>
         </table></div>
         <h3>Painel da turma ao vivo</h3>
-        <p>A resposta de cada missão é individual. As respostas escritas na aba Missões não ficam só no navegador do aluno: enquanto a turma trabalha, cada resposta é enviada a um painel que o professor projeta no slide seguinte às missões, organizado por missão. Esse painel serve à discussão do fechamento: respostas diferentes para a mesma pergunta mostram onde a turma interpretou o comportamento do sistema de formas distintas.</p>
+        <p>A resposta de cada missão é individual. Cada resposta enviada vai para um painel que o professor projeta no slide seguinte às missões, organizado por missão. Esse painel serve à discussão do fechamento: respostas diferentes para a mesma pergunta mostram onde a turma interpretou o comportamento do sistema de formas distintas.</p>
         <ol class="steps">
           <li>Abra o <a href="../simulador/simulador_aula_06.html#missoes">simulador na aba Missões</a>, no seu navegador.</li>
           <li>Preencha o campo "Aluno" com o seu nome. Sem esse campo, nada é enviado.</li>
-          <li>Escreva a resposta de cada missão no campo abaixo da pergunta. O envio acontece sozinho, cerca de dois segundos depois que você para de digitar.</li>
-          <li>Confira a linha "Painel da turma", acima das missões. Ela mostra a hora do último envio ou o motivo de uma falha, com nova tentativa em 10 segundos.</li>
-          <li>Para corrigir uma resposta, edite o texto. O painel mostra sempre a versão mais recente; apagar o texto retira o cartão do painel.</li>
+          <li>Escreva a resposta da missão no campo abaixo da pergunta e clique em "Enviar resposta", logo abaixo do campo. Nada é enviado antes do clique, e uma resposta em branco não é enviada.</li>
+          <li>Confira a linha ao lado do botão. Ela mostra "Enviada às" e a hora, ou o motivo de uma falha. Nesse caso, clique de novo.</li>
+          <li>Para corrigir uma resposta, edite o texto e clique em "Enviar resposta" outra vez. Enquanto a correção não é enviada, a linha avisa que a resposta foi alterada depois do envio. O painel mostra sempre a última versão enviada.</li>
         </ol>
-        <p>Só o nome do aluno e o texto das respostas saem do navegador. O estado da simulação continua guardado localmente. A exportação da evidência para o repositório do grupo não muda.</p>
+        <p>Só o nome do aluno e o texto das respostas saem do navegador. O estado da simulação continua guardado localmente.</p>
         <p>Antes de começar, use a velocidade 1 s = 1 min, a menos que a missão indique outra. As durações abaixo são em tempo simulado: 30 minutos simulados levam 30 segundos de relógio a 1 s = 1 min e 3 segundos a 1 s = 10 min.</p>
 
         <h3>Missão 1. Localizar um evento no Kafka</h3>
@@ -1021,13 +1020,11 @@ Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -
         <p>O que observar: a busca devolve só os motivos que contêm o termo, ordenados por pontuação. A estimativa com p = 14 fica mais próxima da contagem exata do que com p = 8, na maior parte das execuções. O relatório do Elasticsearch cobre os 13 meses, e a consulta do InfluxDB devolve 30 dias.</p>
         <p>Pergunta: que perguntas da rede aceitam uma estimativa, e quais exigem a contagem exata? Os erros observados com p = 8 e p = 14 ficaram dentro do erro padrão teórico (6,50% e 0,81%)? Se não ficaram, isso contradiz a teoria? Para um relatório à diretoria com "alunos distintos em 13 meses", o grupo usaria a estimativa ou pagaria pela contagem exata, e como apresentaria o número?</p>
 
-        <h3>Exportar a evidência</h3>
+        <h3>Conferir as respostas antes do fechamento</h3>
         <ol class="steps">
           <li>Abra a aba Missões e confira o estado das sete missões.</li>
-          <li>Clique em "Exportar evidência". O simulador gera um texto em Markdown com os números observados.</li>
-          <li>Salve o texto como <code>aula_06_eventos/evidencia_simulador_&lt;seu_nome&gt;.md</code> no repositório do grupo.</li>
-          <li>Confira se a sua resposta aparece abaixo dos números de cada missão. Os números são os da sua própria simulação.</li>
-          <li>Faça o commit do arquivo.</li>
+          <li>Em cada missão, confira se a linha ao lado do botão diz "Enviada às". Se disser "Ainda não enviada" ou "Resposta alterada depois do envio", clique em "Enviar resposta".</li>
+          <li>Confira se as respostas citam os números da sua própria simulação.</li>
         </ol>
       </section>
 
@@ -1063,8 +1060,8 @@ Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -
             <tr><td>O evento registrado não aparece na busca do Elasticsearch</td><td>o lote ainda não fechou no bucket, ou o indexador ainda não passou</td><td>avançar o relógio além do intervalo de "Fechar lote a cada"</td></tr>
             <tr><td>"Últimos 13 meses" devolve poucos dias</td><td>comportamento esperado: o bucket <code>tatico</code> retém 30 dias</td><td>usar o "Relatório de 13 meses" do Elasticsearch</td></tr>
             <tr><td>Os números do colega são diferentes</td><td>cada navegador tem a própria simulação</td><td>comparar proporções e comportamentos, e não valores absolutos</td></tr>
-            <tr><td>A simulação voltou ao início</td><td>"Reiniciar" foi clicado, os dados do navegador foram limpos ou a página foi aberta em janela anônima</td><td>refazer as missões; exportar a evidência antes de fechar a janela</td></tr>
-            <tr><td>A página fica lenta depois de muitos dias simulados</td><td>estado grande no <code>localStorage</code>, cujo limite varia por navegador</td><td>exportar a evidência e clicar em "Reiniciar"</td></tr>
+            <tr><td>A simulação voltou ao início</td><td>"Reiniciar" foi clicado, os dados do navegador foram limpos ou a página foi aberta em janela anônima</td><td>refazer as missões; as respostas já enviadas continuam guardadas no painel da turma</td></tr>
+            <tr><td>A página fica lenta depois de muitos dias simulados</td><td>estado grande no <code>localStorage</code>, cujo limite varia por navegador</td><td>enviar as respostas pendentes e clicar em "Reiniciar"</td></tr>
           </tbody>
         </table></div>
         <div class="table-scroll"><table>
@@ -1102,21 +1099,21 @@ Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -
             <tr><td>10h50 &ndash; 11h15</td><td>estação 4: InfluxDB e o painel tático</td><td>missão 5 concluída; intervalo vazio da missão 3 localizado no painel</td></tr>
             <tr><td>11h15 &ndash; 11h30</td><td>estação 5: object storage e a camada bruta</td><td>missão 6 concluída</td></tr>
             <tr><td>11h30 &ndash; 11h55</td><td>estação 6: Elasticsearch, estimativas e contexto para IA</td><td>missão 7 concluída</td></tr>
-            <tr><td>11h55 &ndash; 12h10</td><td>painel da turma, discussão e evidência</td><td><code>evidencia_simulador_&lt;seu_nome&gt;.md</code> exportado e commitado</td></tr>
+            <tr><td>11h55 &ndash; 12h10</td><td>painel da turma e discussão</td><td>respostas das sete missões enviadas por cada aluno</td></tr>
           </tbody>
         </table></div>
         <div class="note">
-          <strong>Entregável da aula: <code>aula_06_eventos/evidencia_simulador_&lt;seu_nome&gt;.md</code>, um por aluno, no repositório do grupo</strong>
+          <strong>Entregável da aula: as respostas de cada aluno às sete missões, enviadas pelo simulador</strong>
           <ul>
-            <li>O texto gerado pelo botão "Exportar evidência", com os números observados nas sete missões.</li>
-            <li>A resposta do aluno à pergunta de cada missão (seção 13), abaixo dos números correspondentes.</li>
-            <li>A velocidade usada nas missões 2, 3 e 6.</li>
+            <li>Uma resposta por missão (seção 13), enviada pelo botão "Enviar resposta" com o nome do aluno preenchido.</li>
+            <li>Os números observados na própria simulação, citados na resposta.</li>
+            <li>Quando a missão depender da velocidade (missões 2, 3 e 6), a velocidade usada.</li>
             <li>Nenhum dado pessoal real: os nomes que aparecem no painel "Na academia" são sintéticos e não precisam ser copiados.</li>
           </ul>
         </div>
         <p>As respostas podem ser redigidas com o apoio da IA de preferência de cada aluno, desde que os números sejam os da simulação do próprio aluno e que a decisão registrada seja a que ele defende. Uma resposta que cita 36.300 eventos de lag quando o simulador mostrou outro valor indica que o texto veio do material, e não da missão.</p>
         <h3>15.2 Na semana</h3>
-        <p>O que não couber em sala é concluído pelo grupo até a Aula 07, em 28/11/2026. Além de completar a evidência, o grupo escolhe um de dois caminhos para a semana.</p>
+        <p>Até a Aula 07, em 28/11/2026, o grupo escolhe um de dois caminhos para a semana.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Caminho</th><th>O que o grupo faz</th><th>Ambiente</th><th>O que fica pronto</th></tr></thead>
           <tbody>
@@ -1126,9 +1123,8 @@ Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -
         </table></div>
         <p>Os dois caminhos são equivalentes para a disciplina. O caminho A aprofunda as tecnologias desta aula e pede mais memória da máquina, porque sobe Kafka, InfluxDB, object storage e Elasticsearch ao mesmo tempo; se o Codespace não comportar todos os serviços, o grupo executa os prompts 1 a 3 e registra a limitação num ADR. O caminho B usa tecnologias que a turma já conhece das Aulas 04 e 05 e deixa pronto o código sobre o qual o laboratório opcional da Aula 07 escreve contratos e testes integrados.</p>
         <ol class="steps">
-          <li>Em sala, até 12h10: cada aluno faz o commit de <code>aula_06_eventos/evidencia_simulador_&lt;seu_nome&gt;.md</code> com os números e as respostas exportados.</li>
-          <li>Depois da aula: completar as respostas que faltarem e comparar as evidências dos integrantes do grupo.</li>
-          <li>Escolher o caminho A ou B e registrar a escolha no início do arquivo de evidência.</li>
+          <li>Em sala, até 12h10: cada aluno envia as respostas das sete missões pelo simulador.</li>
+          <li>Escolher o caminho A ou B e registrar a escolha em <code>aula_06_eventos/README.md</code>, no repositório do grupo.</li>
           <li>Caminho A: criar <code>aula_06_eventos/AGENTS.md</code> com as regras de método da disciplina, executar os prompts na ordem e fazer um commit por prompt, depois de conferir os gates.</li>
           <li>Caminho B: seguir o roteiro do laboratório na ordem em que ele está escrito.</li>
           <li>Em qualquer caminho, conferir antes da Aula 07 que nenhum <code>.env</code> nem senha entrou no histórico do Git.</li>
