@@ -294,7 +294,7 @@
           <article class="deck-card"><h3>Prompt 1</h3><p>Gerador de eventos com o contrato do evento, os onze tipos e a anonimização por HMAC antes do envio.</p></article>
           <article class="deck-card"><h3>Missão 1</h3><p>Registrar um check-in, localizar o <code>event_id</code> no Kafka e conferir que outro evento da mesma academia cai na mesma partição.</p></article>
         </div>
-        <div class="deck-note">Pergunta do grupo: por que a academia é a chave, e o que se perderia com uma chave aleatória?</div>
+        <div class="deck-note">Pergunta da missão: por que a academia é a chave, e o que se perderia com uma chave aleatória?</div>
       </div>
     </div>
 
@@ -956,7 +956,7 @@ measurement</code></pre>
           <span class="deck-kicker">Atividade em sala &middot; Ao vivo</span>
           <h2 class="deck-title">Respostas da turma às missões</h2>
           <div class="deck-live-barra">
-            <p class="deck-summary" id="live-resumo">As respostas aparecem à medida que os grupos escrevem na aba Missões do simulador.</p>
+            <p class="deck-summary" id="live-resumo">As respostas aparecem à medida que os alunos escrevem na aba Missões do simulador.</p>
             <button type="button" class="deck-live-limpar" id="live-limpar" hidden>Limpar painel</button>
           </div>
         </div>
@@ -980,7 +980,7 @@ measurement</code></pre>
           <h2 class="deck-title">Entregável e o que fica para a semana</h2>
         </div>
         <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
-          <article class="deck-card"><h3>Em sala, até 12h10</h3><p>As sete missões com a resposta do grupo, exportadas pelo botão "Exportar evidência" para <code>aula_06_eventos/evidencia_simulador.md</code>.</p></article>
+          <article class="deck-card"><h3>Em sala, até 12h10</h3><p>As sete missões com a resposta de cada aluno, exportadas pelo botão "Exportar evidência" para <code>aula_06_eventos/evidencia_simulador_&lt;seu_nome&gt;.md</code>.</p></article>
           <article class="deck-card"><h3>Na semana, opção A</h3><p>Executar os prompts 1 a 6 com o agente de código de preferência e subir a versão real em <code>aula_06_eventos/</code>.</p></article>
           <article class="deck-card"><h3>Na semana, opção B</h3><p>Fazer o <a href="../laboratorio/roteiro_streaming_iot.html">laboratório opcional</a> de streaming IoT com RabbitMQ e ClickHouse, base do laboratório opcional da Aula 07.</p></article>
         </div>
@@ -1080,7 +1080,7 @@ measurement</code></pre>
         " \u00b7 " + numero.format(st.gerados) + " eventos \u00b7 " + st.relogio;
     }
 
-    // Painel ao vivo: lê as respostas das missões que os grupos escrevem no
+    // Painel ao vivo: lê as respostas das missões que os alunos escrevem no
     // simulador avulso. Consulta a API a cada 2 s enquanto o slide está aberto.
     const SALA_AO_VIVO = "mack-dcs-a06-2026-2";
     const CHAVE_TOKEN = "aovivo_token_dcs";
@@ -1128,7 +1128,7 @@ measurement</code></pre>
       grid.innerHTML = "";
       if (!daMissao.length) {
         const p = document.createElement("p"); p.className = "deck-live-vazio";
-        p.textContent = "Nenhum grupo respondeu esta missão ainda.";
+        p.textContent = "Nenhum aluno respondeu esta missão ainda.";
         grid.appendChild(p);
       }
       daMissao.forEach(r => {
@@ -1143,10 +1143,10 @@ measurement</code></pre>
       });
       live.dados.forEach(r => live.vistos.add(r.cliente + ":" + r.pergunta + ":" + r.em));
       live.primeira = false;
-      const grupos = new Set(live.dados.map(r => r.cliente)).size;
-      $live("live-resumo").textContent = grupos
-        ? grupos + (grupos === 1 ? " grupo enviou " : " grupos enviaram ") + live.dados.length + (live.dados.length === 1 ? " resposta" : " respostas") + ". O painel atualiza a cada 2 segundos."
-        : "Ainda não há respostas. Os grupos escrevem na aba Missões do simulador, com o nome do grupo preenchido.";
+      const alunos = new Set(live.dados.map(r => r.cliente)).size;
+      $live("live-resumo").textContent = alunos
+        ? alunos + (alunos === 1 ? " aluno enviou " : " alunos enviaram ") + live.dados.length + (live.dados.length === 1 ? " resposta" : " respostas") + ". O painel atualiza a cada 2 segundos."
+        : "Ainda não há respostas. Cada aluno escreve na aba Missões do simulador, com o próprio nome preenchido.";
     }
 
     async function consultarAoVivo() {

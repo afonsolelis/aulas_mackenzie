@@ -1009,7 +1009,7 @@
           <ol>${m.passos.map(p => `<li>${p}</li>`).join('')}</ol>
           <div class="sim-check" id="ms-obs-${i + 1}"></div>
           <p class="sim-hint" style="margin:6px 0 4px">${m.q}</p>
-          <textarea data-m="${i + 1}" placeholder="resposta do grupo">${esc(S.respostas[i + 1] || '')}</textarea>
+          <textarea data-m="${i + 1}" placeholder="sua resposta">${esc(S.respostas[i + 1] || '')}</textarea>
         </div>
       </div>`).join('');
     $('ms-lista').addEventListener('input', e => { if (e.target.dataset.m) { S.respostas[e.target.dataset.m] = e.target.value; agendarEnvio(); } });
@@ -1022,7 +1022,7 @@
     $('ms-copiar').addEventListener('click', () => { if (!$('ms-saida').value) $('ms-saida').value = evidencia(); $('ms-saida').select(); if (navigator.clipboard) navigator.clipboard.writeText($('ms-saida').value).catch(() => {}); });
     $('ms-baixar').addEventListener('click', () => {
       const txt = $('ms-saida').value || evidencia(); $('ms-saida').value = txt;
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/markdown' })); a.download = 'evidencia_simulador.md'; a.click(); URL.revokeObjectURL(a.href);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/markdown' })); a.download = 'evidencia_simulador_' + ((S.grupo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'aluno') + '.md'; a.click(); URL.revokeObjectURL(a.href);
     });
   }
 
@@ -1049,7 +1049,7 @@
   function evidencia() {
     const obs = observacoes(), L = [];
     L.push('# Evidência do simulador da Aula 06', '');
-    L.push(`- Grupo: ${S.grupo || '(preencher)'}`);
+    L.push(`- Aluno: ${S.grupo || '(preencher)'}`);
     L.push(`- Exportado em: ${new Date().toLocaleString('pt-BR')}`);
     L.push(`- Relógio simulado: ${curto(S.relogio)} UTC, dia ${Math.floor((S.relogio - INICIO) / DIA) + 1} da simulação`);
     L.push(`- Totais: ${fmt(S.total.gerados)} eventos gerados, ${fmt(S.total.kafka)} publicados no Kafka, ${fmt(S.cep.n)} eventos complexos, ${fmt(S.influx.pontos)} pontos no InfluxDB, ${fmt(S.lake.nObj)} objetos no bucket, ${fmt(S.es.nDocs)} documentos no Elasticsearch`, '');
@@ -1057,7 +1057,7 @@
       L.push(`## Missão ${i + 1}. ${m.t}`, '');
       for (const [txt, ok] of obs[i + 1]) L.push(`- [${ok ? 'x' : ' '}] ${txt}`);
       if (i === 5) for (const [k, v] of Object.entries(S.ms.m6.lotes)) L.push(`- lote de ${k}: ${fmt(v.obj)} objetos por dia, atraso médio de ${v.atraso === null ? 'não medido' : duracao(v.atraso)}`);
-      L.push('', `Pergunta: ${m.q}`, '', `Resposta do grupo: ${(S.respostas[i + 1] || '(preencher)').trim()}`, '');
+      L.push('', `Pergunta: ${m.q}`, '', `Resposta: ${(S.respostas[i + 1] || '(preencher)').trim()}`, '');
     });
     return L.join('\n');
   }
@@ -1084,7 +1084,7 @@
   async function enviarRespostas() {
     if (enviando) { agendarEnvio(); return; }
     const grupo = (S.grupo || '').trim(), info = $('ms-envio');
-    if (!grupo) { info.textContent = 'Preencha o nome do grupo para enviar as respostas ao painel da turma.'; return; }
+    if (!grupo) { info.textContent = 'Preencha o seu nome para enviar as respostas ao painel da turma.'; return; }
     if (!S.cliente) { S.cliente = novoCliente(); salvar(); }
     const pendentes = MISSOES.map((m, i) => i + 1)
       .filter(n => enviados[n] !== grupo + '\u0000' + (S.respostas[n] || '').trim())
