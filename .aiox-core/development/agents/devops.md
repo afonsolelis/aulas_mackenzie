@@ -57,7 +57,20 @@ agent:
   title: GitHub Repository Manager & DevOps Specialist
   icon: ⚡
   whenToUse: 'Use for repository operations, version management, CI/CD, quality gates, and GitHub push operations. ONLY agent authorized to push to remote repository.'
-  customization: null
+  customization: |
+    POLÍTICA DE PUBLICAÇÃO DESTE REPOSITÓRIO (aulas_mackenzie). Tem precedência sobre o restante deste arquivo.
+    - O professor confere tudo em produção (GitHub Pages, publicado a partir do main). Todo push vai direto para o main.
+    - Não abrir pull request nem deixar trabalho parado em branch de feature, salvo pedido explícito do professor.
+    - Ao terminar uma alteração, fazer tudo de uma vez, sem pedir confirmação a cada etapa:
+        git add -A <arquivos alterados>
+        git commit -m "<tipo>: <descrição>"
+        git fetch origin main
+        git rebase origin/main            # se houver commits novos no remoto
+        git push origin HEAD:main
+    - Se a sessão estiver num branch de trabalho (por exemplo claude/*), publicar também no main com
+      git push origin HEAD:main, e manter o branch de trabalho sincronizado com git push -u origin <branch>.
+    - Nunca usar --force no main. Em conflito de rebase, resolver e seguir; se não for possível, parar e avisar.
+    - Depois do push, informar ao professor o intervalo de commits (ex.: abc123..def456) e que o GitHub Pages leva de 1 a 2 minutos para atualizar.
 
 persona_profile:
   archetype: Operator
@@ -453,9 +466,8 @@ dependencies:
         1. Detect repository context (dynamic)
         2. Run *pre-push (quality gates for THIS repository)
         3. If ALL PASS: Present summary to user
-        4. User confirms: Execute git push to detected repository
-        5. Create PR if on feature branch
-        6. Report success with PR URL
+        4. Execute git push origin HEAD:main (política deste repositório: sempre no main, sem PR)
+        5. Report the pushed commit range and remind that GitHub Pages updates in 1-2 minutes
 
     release_creation: |
       User: "Create v4.32.0 release"
@@ -567,8 +579,8 @@ Type `*help` to see all commands.
 
 1. **Quality gates** → `*pre-push` runs all checks (lint, test, typecheck, build, CodeRabbit)
 2. **Version check** → `*version-check` for semantic versioning
-3. **Push** → `*push` after gates pass and user confirms
-4. **PR creation** → `*create-pr` with generated description
+3. **Push** → `*push` direto para o main (política deste repositório)
+4. **PR creation** → só quando o professor pedir explicitamente
 5. **Release** → `*release` with changelog generation
 
 ### Common Pitfalls

@@ -82,3 +82,7 @@ Use the appropriate sub-agent when creating or reviewing slides, materials, or v
 ## Escrita (obrigatório)
 
 Todo texto destinado ao aluno (slides, materiais, páginas, quizzes, atividades) segue as skills `escrita-afonso` e `humanizacao`, em `.claude/skills/`. Aplique-as já na redação, e não só numa revisão posterior. Evite linguagem de rede social: título em forma de aforismo, travessão como conector, "não é X, é Y", negrito na prosa, setas decorativas e frases de efeito no fechamento. Títulos de slide devem ser descritivos e curtos, cabendo em uma linha na projeção. Preserve números, fatos, código e prompts.
+
+## Publicação (obrigatório)
+
+O professor confere tudo em produção (GitHub Pages, publicado a partir do `main`). Ao concluir qualquer alteração, faça commit e push direto para o `main` (`git push origin HEAD:main`), sem abrir pull request e sem pedir confirmação. Se a sessão estiver num branch de trabalho, publique no `main` e também nesse branch. Nunca use `--force` no `main`. O procedimento completo está em `customization` na skill do devops (`.claude/skills/AIOX/agents/devops/SKILL.md`).
