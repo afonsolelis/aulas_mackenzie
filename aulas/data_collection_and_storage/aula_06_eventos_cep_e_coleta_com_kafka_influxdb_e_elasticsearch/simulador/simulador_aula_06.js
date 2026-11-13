@@ -1012,10 +1012,12 @@
           <textarea data-m="${i + 1}" placeholder="resposta do grupo">${esc(S.respostas[i + 1] || '')}</textarea>
         </div>
       </div>`).join('');
-    $('ms-lista').addEventListener('input', e => { if (e.target.dataset.m) S.respostas[e.target.dataset.m] = e.target.value; });
+    $('ms-lista').addEventListener('input', e => { if (e.target.dataset.m) { S.respostas[e.target.dataset.m] = e.target.value; agendarEnvio(); } });
     $('ms-lista').addEventListener('change', salvar);
     $('ms-grupo').value = S.grupo;
-    $('ms-grupo').addEventListener('input', e => { S.grupo = e.target.value; });
+    $('ms-grupo').addEventListener('input', e => { S.grupo = e.target.value; agendarEnvio(); });
+    $('ms-grupo').addEventListener('change', salvar);
+    agendarEnvio();
     $('ms-exportar').addEventListener('click', () => { $('ms-saida').value = evidencia(); salvar(); });
     $('ms-copiar').addEventListener('click', () => { if (!$('ms-saida').value) $('ms-saida').value = evidencia(); $('ms-saida').select(); if (navigator.clipboard) navigator.clipboard.writeText($('ms-saida').value).catch(() => {}); });
     $('ms-baixar').addEventListener('click', () => {
@@ -1058,6 +1060,53 @@
       L.push('', `Pergunta: ${m.q}`, '', `Resposta do grupo: ${(S.respostas[i + 1] || '(preencher)').trim()}`, '');
     });
     return L.join('\n');
+  }
+
+  // --- painel da turma: as respostas das missões vão para o slide ao vivo.
+  // Só o simulador dos alunos envia; o que está embutido no slide do professor não.
+  const SALA_AO_VIVO = 'mack-dcs-a06-2026-2';
+  const enviados = {};             // pergunta -> "grupo\u0000texto" já aceito pelo servidor
+  let timerEnvio = null, enviando = false;
+
+  function novoCliente() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+    });
+  }
+
+  function agendarEnvio() {
+    if (document.body.classList.contains('sim-embed') || !window.aulasApi) return;
+    clearTimeout(timerEnvio);
+    timerEnvio = setTimeout(enviarRespostas, 1500);
+  }
+
+  async function enviarRespostas() {
+    if (enviando) { agendarEnvio(); return; }
+    const grupo = (S.grupo || '').trim(), info = $('ms-envio');
+    if (!grupo) { info.textContent = 'Preencha o nome do grupo para enviar as respostas ao painel da turma.'; return; }
+    if (!S.cliente) { S.cliente = novoCliente(); salvar(); }
+    const pendentes = MISSOES.map((m, i) => i + 1)
+      .filter(n => enviados[n] !== grupo + '\u0000' + (S.respostas[n] || '').trim())
+      .filter(n => (S.respostas[n] || '').trim() || enviados[n] !== undefined);
+    if (!pendentes.length) return;
+    enviando = true;
+    const db = window.aulasApi.cliente();
+    let erro = null;
+    for (const n of pendentes) {
+      const texto = (S.respostas[n] || '').trim();
+      const { data, error } = await db.rpc('aovivo_enviar', { p_sala: SALA_AO_VIVO, p_cliente: S.cliente, p_pergunta: n, p_grupo: grupo, p_texto: texto });
+      if (error || !data || !data.ok) { erro = (data && data.erro) || (error && error.message) || 'falha no envio'; break; }
+      enviados[n] = grupo + '\u0000' + texto;
+    }
+    enviando = false;
+    const hora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    if (erro) {
+      info.textContent = `Painel da turma: ${erro} Nova tentativa em 10 segundos.`;
+      clearTimeout(timerEnvio); timerEnvio = setTimeout(enviarRespostas, 10000);
+    } else {
+      info.textContent = `Painel da turma: respostas enviadas às ${hora}.`;
+    }
   }
 
   // ------------------------------------------------------------ abas e início

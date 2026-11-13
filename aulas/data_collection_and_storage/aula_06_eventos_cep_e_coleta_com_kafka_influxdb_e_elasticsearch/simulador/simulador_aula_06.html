@@ -296,12 +296,16 @@
       <div class="sim-grid">
         <div class="sim-panel sim-col-12">
           <h2>Missões</h2>
+          <div class="sim-inline" style="margin-bottom:6px">
+            <label for="ms-grupo">Grupo</label>
+            <input type="text" id="ms-grupo" placeholder="nome do grupo e integrantes" style="flex:1">
+          </div>
+          <p class="sim-hint" id="ms-envio">As respostas vão para o painel da turma assim que o nome do grupo estiver preenchido.</p>
           <div id="ms-lista"></div>
         </div>
         <div class="sim-panel sim-col-12">
           <h2>Evidência</h2>
           <div class="sim-inline" style="margin-bottom:10px">
-            <input type="text" id="ms-grupo" placeholder="nome do grupo e integrantes" style="flex:1">
             <button id="ms-exportar" class="is-primary">Exportar evidência</button>
             <button id="ms-copiar">Copiar</button>
             <button id="ms-baixar">Baixar .md</button>
@@ -314,9 +318,10 @@
   </main>
 
   <footer class="sim-foot">
-    Simulador didático. A Rede Tatame, as academias, os alunos e os números são inventados para a aula. Nada sai deste navegador: o estado fica em <code class="sim-mono">localStorage</code>, e o botão Reiniciar apaga tudo.
+    Simulador didático. A Rede Tatame, as academias, os alunos e os números são inventados para a aula. O estado da simulação fica neste navegador, em <code class="sim-mono">localStorage</code>, e o botão Reiniciar apaga tudo. Só o nome do grupo e as respostas das missões são enviados ao painel da turma.
   </footer>
 
+  <script src="../../../../assets/api_aulas.js"></script>
   <script src="simulador_aula_06.js"></script>
 </body>
 </html>

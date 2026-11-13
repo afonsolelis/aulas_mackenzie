@@ -1123,3 +1123,84 @@ pre.is-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 640px) {
   .deck-sim-status { top: 6px; right: 6px; font-size: 0.62em; }
 }
+
+/* --------------------------------------------------------------------------
+   Painel ao vivo: respostas que os grupos escrevem durante a atividade.
+   -------------------------------------------------------------------------- */
+
+.deck-live { justify-content: flex-start; gap: 16px; }
+
+.deck-live-token {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+.deck-live-token[hidden] { display: none; }
+
+.deck-live-token input {
+  padding: 8px 10px;
+  border: 1px solid var(--deck-border);
+  font: inherit;
+  min-width: 200px;
+}
+
+.deck-live-token button,
+.deck-live-tabs button {
+  padding: 8px 12px;
+  border: 1px solid var(--deck-border);
+  background: var(--deck-panel);
+  color: var(--deck-text);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.deck-live-token button { background: var(--deck-text); color: var(--deck-panel); }
+#live-erro { color: #b42318; }
+
+.deck-live-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.deck-live-tabs button.is-active { background: var(--deck-text); color: var(--deck-panel); }
+
+.deck-live-pergunta { margin: 0; font-size: 1.05em; font-weight: 600; }
+
+.deck-live-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.deck-live-card {
+  border: 1px solid var(--deck-line);
+  border-top: 3px solid var(--deck-border);
+  background: var(--deck-panel);
+  padding: 12px 14px;
+}
+
+.deck-live-card h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-mono);
+  font-size: 0.78em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.deck-live-card p { margin: 0 0 6px; font-size: 0.95em; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.deck-live-card small { font-family: var(--font-mono); color: var(--deck-muted); font-size: 0.72em; }
+
+.deck-live-card.is-new { animation: deckLiveNovo 2.4s ease-out; }
+
+@keyframes deckLiveNovo {
+  from { background: #fff4c2; }
+  to   { background: var(--deck-panel); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-live-card.is-new { animation: none; }
+}
+
+.deck-live-vazio { margin: 0; color: var(--deck-muted); }

@@ -949,7 +949,27 @@ measurement</code></pre>
       </div>
     </div>
 
-    <!-- 51. Entregável -->
+    <!-- 51. Painel ao vivo -->
+    <div class="slide" data-painel-ao-vivo>
+      <div class="deck-shell is-dense deck-live">
+        <div>
+          <span class="deck-kicker">Atividade em sala &middot; Ao vivo</span>
+          <h2 class="deck-title">Respostas da turma às missões</h2>
+          <p class="deck-summary" id="live-resumo">As respostas aparecem à medida que os grupos escrevem na aba Missões do simulador.</p>
+        </div>
+        <form class="deck-live-token" id="live-form" hidden>
+          <label for="live-token">Token do professor</label>
+          <input type="password" id="live-token" autocomplete="off">
+          <button type="submit">Conectar</button>
+          <span id="live-erro"></span>
+        </form>
+        <div class="deck-live-tabs" id="live-tabs" role="tablist"></div>
+        <p class="deck-live-pergunta" id="live-pergunta"></p>
+        <div class="deck-live-grid" id="live-grid"></div>
+      </div>
+    </div>
+
+    <!-- 52. Entregável -->
     <div class="slide">
       <div class="deck-shell">
         <div>
@@ -991,6 +1011,7 @@ measurement</code></pre>
     <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
   </div>
 
+  <script src="../../../../assets/api_aulas.js"></script>
   <script>
     let currentSlide = 0;
     const slides = document.querySelectorAll(".slide");
@@ -1005,6 +1026,7 @@ measurement</code></pre>
       document.getElementById("prev-btn").disabled = currentSlide === 0;
       document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
       mostrarSimulador(slides[index]);
+      painelAoVivo(slides[index].hasAttribute("data-painel-ao-vivo"));
     }
 
     // Um só iframe para todas as demonstrações: a simulação carrega uma vez,
@@ -1041,6 +1063,107 @@ measurement</code></pre>
         " \u00b7 " + numero.format(st.gerados) + " eventos \u00b7 " + st.relogio;
     }
 
+    // Painel ao vivo: lê as respostas das missões que os grupos escrevem no
+    // simulador avulso. Consulta a API a cada 2 s enquanto o slide está aberto.
+    const SALA_AO_VIVO = "mack-dcs-a06-2026-2";
+    const CHAVE_TOKEN = "aovivo_token_dcs";
+    const MISSOES = [
+      ["A chave decide a partição", "Por que a academia foi escolhida como chave, e o que se perderia com uma chave aleatória?"],
+      ["Lag de um consumidor parado", "A conta lag \u00f7 (capacidade \u2212 chegada) bate com o tempo observado? O CEP e o object storage foram afetados?"],
+      ["Falha do cluster da Suécia", "O que cada destino mostrou durante a falha e depois dela? Que decisão dependeu do tempo do evento?"],
+      ["Um padrão de sequência", "Que estado o CEP precisa guardar para essa regra, e por quanto tempo?"],
+      ["Cardinalidade de séries", "Onde o identificador do aluno deveria ficar, se o painel tático não precisa dele?"],
+      ["Tamanho do lote e partição", "Que intervalo o grupo escolheria para a Rede Tatame, e que partição facilita reprocessar um dia?"],
+      ["Busca, estimativa e 13 meses", "Que perguntas da rede aceitam uma estimativa, e quais exigem a contagem exata?"],
+    ];
+    const live = { timer: null, token: "", missao: 1, dados: [], vistos: new Set(), primeira: true };
+    const $live = id => document.getElementById(id);
+    try { live.token = new URLSearchParams(location.search).get("token") || localStorage.getItem(CHAVE_TOKEN) || ""; } catch (e) { /* sem storage */ }
+
+    function painelAoVivo(ativo) {
+      clearInterval(live.timer); live.timer = null;
+      if (!ativo) return;
+      montarAbasAoVivo();
+      if (!live.token) { $live("live-form").hidden = false; return; }
+      consultarAoVivo();
+      live.timer = setInterval(consultarAoVivo, 2000);
+    }
+
+    function montarAbasAoVivo() {
+      const contagem = {};
+      live.dados.forEach(r => { contagem[r.pergunta] = (contagem[r.pergunta] || 0) + 1; });
+      $live("live-tabs").innerHTML = "";
+      MISSOES.forEach((m, i) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.setAttribute("role", "tab");
+        b.className = i + 1 === live.missao ? "is-active" : "";
+        b.textContent = "Missão " + (i + 1) + " \u00b7 " + (contagem[i + 1] || 0);
+        b.addEventListener("click", () => { live.missao = i + 1; desenharAoVivo(); });
+        $live("live-tabs").appendChild(b);
+      });
+      $live("live-pergunta").textContent = MISSOES[live.missao - 1][0] + ". " + MISSOES[live.missao - 1][1];
+    }
+
+    function desenharAoVivo() {
+      montarAbasAoVivo();
+      const grid = $live("live-grid");
+      const daMissao = live.dados.filter(r => r.pergunta === live.missao);
+      grid.innerHTML = "";
+      if (!daMissao.length) {
+        const p = document.createElement("p"); p.className = "deck-live-vazio";
+        p.textContent = "Nenhum grupo respondeu esta missão ainda.";
+        grid.appendChild(p);
+      }
+      daMissao.forEach(r => {
+        const chave = r.cliente + ":" + r.pergunta + ":" + r.em;
+        const card = document.createElement("article");
+        card.className = "deck-live-card" + (!live.primeira && !live.vistos.has(chave) ? " is-new" : "");
+        const h = document.createElement("h3"); h.textContent = r.grupo;
+        const t = document.createElement("p"); t.textContent = r.texto;
+        const q = document.createElement("small");
+        q.textContent = new Date(r.em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+        card.append(h, t, q); grid.appendChild(card);
+      });
+      live.dados.forEach(r => live.vistos.add(r.cliente + ":" + r.pergunta + ":" + r.em));
+      live.primeira = false;
+      const grupos = new Set(live.dados.map(r => r.cliente)).size;
+      $live("live-resumo").textContent = grupos
+        ? grupos + (grupos === 1 ? " grupo enviou " : " grupos enviaram ") + live.dados.length + (live.dados.length === 1 ? " resposta" : " respostas") + ". O painel atualiza a cada 2 segundos."
+        : "Ainda não há respostas. Os grupos escrevem na aba Missões do simulador, com o nome do grupo preenchido.";
+    }
+
+    async function consultarAoVivo() {
+      if (!window.aulasApi) return;
+      const { data, error } = await window.aulasApi.cliente().rpc("aovivo_painel", { p_token: live.token, p_sala: SALA_AO_VIVO });
+      if (error) { $live("live-resumo").textContent = "Sem conexão com o servidor do painel: " + error.message; return; }
+      if (!data.ok) {
+        if (/token/i.test(data.erro || "")) {
+          clearInterval(live.timer); live.timer = null; live.token = "";
+          try { localStorage.removeItem(CHAVE_TOKEN); } catch (e) { /* sem storage */ }
+          $live("live-form").hidden = false;
+        }
+        $live("live-erro").textContent = data.erro || "";
+        return;
+      }
+      $live("live-form").hidden = true; $live("live-erro").textContent = "";
+      live.dados = data.respostas || [];
+      desenharAoVivo();
+    }
+
+    $live("live-form").addEventListener("submit", event => {
+      event.preventDefault();
+      live.token = $live("live-token").value.trim();
+      try { localStorage.setItem(CHAVE_TOKEN, live.token); } catch (e) { /* sem storage */ }
+      painelAoVivo(true);
+    });
+
+    // Teclas 1 a 7 escolhem a missão no painel ao vivo.
+    document.addEventListener("keydown", event => {
+      if (!slides[currentSlide].hasAttribute("data-painel-ao-vivo") || event.target.closest("input")) return;
+      const n = Number(event.key);
+      if (n >= 1 && n <= MISSOES.length) { live.missao = n; desenharAoVivo(); }
+    });
+
     window.addEventListener("resize", () => {
       if (slides[currentSlide].dataset.sim) posicionarSimulador(slides[currentSlide]);
     });
@@ -1070,6 +1193,7 @@ measurement</code></pre>
     }
 
     document.addEventListener("keydown", event => {
+      if (event.target.closest && event.target.closest("input, textarea, select")) return;
       if (event.key === "ArrowRight" || event.key === " ") {
         event.preventDefault();
         nextSlide();

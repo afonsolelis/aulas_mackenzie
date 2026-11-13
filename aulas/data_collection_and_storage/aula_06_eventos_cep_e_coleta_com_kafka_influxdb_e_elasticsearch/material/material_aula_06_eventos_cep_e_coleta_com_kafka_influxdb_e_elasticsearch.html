@@ -920,6 +920,16 @@ Leia AGENTS.md e docs/contrato_evento.md. Gates ao final: (1) python -m pytest -
             <tr><td>7</td><td>Elasticsearch, InfluxDB</td><td>6</td><td>BM25, HyperLogLog e relatório de 13 meses</td></tr>
           </tbody>
         </table></div>
+        <h3>Painel da turma ao vivo</h3>
+        <p>As respostas escritas na aba Missões não ficam só no navegador do grupo. Enquanto a turma trabalha, cada resposta é enviada a um painel que o professor projeta no slide seguinte às missões, organizado por missão. Esse painel serve à discussão do fechamento: respostas diferentes para a mesma pergunta mostram onde a turma interpretou o comportamento do sistema de formas distintas.</p>
+        <ol class="steps">
+          <li>Abra o <a href="../simulador/simulador_aula_06.html#missoes">simulador na aba Missões</a>, no navegador do grupo.</li>
+          <li>Preencha o campo "Grupo" com o nome do grupo e dos integrantes. Sem esse campo, nada é enviado.</li>
+          <li>Escreva a resposta de cada missão no campo abaixo da pergunta. O envio acontece sozinho, cerca de dois segundos depois que o grupo para de digitar.</li>
+          <li>Confira a linha "Painel da turma", acima das missões. Ela mostra a hora do último envio ou o motivo de uma falha, com nova tentativa em 10 segundos.</li>
+          <li>Para corrigir uma resposta, edite o texto. O painel mostra sempre a versão mais recente; apagar o texto retira o cartão do painel.</li>
+        </ol>
+        <p>Só o nome do grupo e o texto das respostas saem do navegador. O estado da simulação continua guardado localmente. A exportação da evidência para o repositório do grupo não muda.</p>
         <p>Antes de começar, use a velocidade 1 s = 1 min, a menos que a missão indique outra. As durações abaixo são em tempo simulado: 30 minutos simulados levam 30 segundos de relógio a 1 s = 1 min e 3 segundos a 1 s = 10 min.</p>
 
         <h3>Missão 1. Localizar um evento no Kafka</h3>

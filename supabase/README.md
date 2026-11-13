@@ -38,3 +38,20 @@ que a sala começou ou recebeu participantes.
 Não execute `quiz-schema.sql` do repositório `aulas_senac`: ele foi escrito
 para o Supabase e recria as tabelas. A estrutura e as RPCs já estão instaladas
 no banco da VPS.
+
+## Respostas ao vivo (`aovivo_*`)
+
+`aovivo_schema.sql` cria as tabelas e as RPCs do painel ao vivo: os grupos
+escrevem as respostas das missões no simulador da Aula 06 de Data Collection
+(`aovivo_enviar`), e o slide 51 do deck mostra as respostas por missão
+(`aovivo_painel`, com o token do professor). O token vem de
+`AOVIVO_HOST_TOKEN` ou, na falta dele, de `DCS_HOST_TOKEN`, ambos no `.env`.
+
+```bash
+npm run aovivo:apply
+npm run aovivo:check
+```
+
+O script é idempotente e não apaga respostas. Para limpar a sala depois de um
+ensaio, chame `aovivo_limpar(token, 'mack-dcs-a06-2026-2')`; para bloquear
+novos envios, `aovivo_abrir(token, 'mack-dcs-a06-2026-2', false)`.
