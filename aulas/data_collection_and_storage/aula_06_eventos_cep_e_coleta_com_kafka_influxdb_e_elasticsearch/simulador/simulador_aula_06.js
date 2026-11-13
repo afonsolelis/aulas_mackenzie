@@ -1022,13 +1022,7 @@
     $('ms-grupo').value = S.grupo;
     $('ms-grupo').addEventListener('input', e => { S.grupo = e.target.value; });
     $('ms-grupo').addEventListener('change', salvar);
-    if (document.body.classList.contains('sim-embed')) {
-      // No slide, este é o simulador do professor: ele não envia respostas.
-      document.querySelectorAll('[data-enviar]').forEach(b => { b.hidden = true; });
-      $('ms-envio').textContent = 'Este é o simulador do professor, que não envia respostas ao painel. Cada aluno responde no simulador aberto no próprio navegador, pelo link Simulador no rodapé dos slides.';
-    } else {
-      MISSOES.forEach((m, i) => statusMissao(i + 1));
-    }
+    MISSOES.forEach((m, i) => statusMissao(i + 1));
   }
 
   // Cada observação: [rótulo, feito?]
@@ -1054,7 +1048,7 @@
 
 
   // --- painel da turma: cada missão tem o próprio botão Enviar resposta.
-  // Só o simulador dos alunos envia; o que está embutido no slide do professor não.
+  // Vale também no simulador embutido no slide: o envio só acontece com o clique.
   // S.enviadas guarda, por missão, o texto aceito pelo servidor e a hora.
   const SALA_AO_VIVO = 'mack-dcs-a06-2026-2';
   const horaCurta = d => new Date(d).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -1076,7 +1070,7 @@
   }
 
   async function enviarMissao(n) {
-    if (document.body.classList.contains('sim-embed') || !window.aulasApi) return;
+    if (!window.aulasApi) { statusMissao(n, 'Sem conexão com o painel da turma.'); return; }
     const nome = (S.grupo || '').trim(), texto = (S.respostas[n] || '').trim();
     if (!nome) { statusMissao(n, 'Preencha o seu nome, no alto da aba, antes de enviar.'); $('ms-grupo').focus(); return; }
     if (!texto) { statusMissao(n, 'Escreva a resposta antes de enviar.'); return; }
