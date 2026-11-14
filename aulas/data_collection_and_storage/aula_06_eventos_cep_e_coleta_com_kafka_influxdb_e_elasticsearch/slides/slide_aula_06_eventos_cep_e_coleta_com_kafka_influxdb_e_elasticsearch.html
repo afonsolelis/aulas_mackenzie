@@ -19,7 +19,7 @@
           <h1 class="deck-title">Eventos, CEP e Coleta com Kafka, InfluxDB e Elasticsearch</h1>
           <p class="deck-meta">Aula 06 &nbsp;&bull;&nbsp; 14/11/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Cada conceito é explicado e logo em seguida mostrado no simulador, dentro do próprio slide: evento, Kafka, CEP, o destino tático no InfluxDB e o analítico no object storage e no Elasticsearch.</p>
+          <p class="deck-subtitle">A aula começa pelos sistemas distribuídos que sustentam a coleta de eventos. Depois, cada conceito é explicado e logo em seguida mostrado no simulador, dentro do próprio slide: evento, Kafka, CEP, o destino tático no InfluxDB e o analítico no object storage e no Elasticsearch.</p>
         </div>
       </div>
     </div>
@@ -30,28 +30,390 @@
         <div>
           <span class="deck-kicker">Agenda</span>
           <h2 class="deck-title">Explicação e simulador, estação por estação</h2>
-          <p class="deck-summary">Cada estação começa pelo conceito, com exemplo numérico e pausa quando houver, e termina no simulador, aberto dentro do slide. A simulação continua rodando de uma estação para a outra.</p>
+          <p class="deck-summary">A primeira hora trata de sistemas distribuídos, sem simulador. Depois, cada estação começa pelo conceito, com exemplo numérico e pausa quando houver, e termina no simulador, aberto dentro do slide. A simulação continua rodando de uma estação para a outra.</p>
         </div>
         <div class="deck-grid">
           <article class="deck-card">
-            <h3>8h30 &ndash; 9h50</h3>
+            <h3>8h30 &ndash; 10h30</h3>
             <ul>
-              <li>8h30 &middot; A Rede Tatame, a arquitetura e o simulador</li>
-              <li>8h45 &middot; Bloco 1 e Estação 1: o que é um evento</li>
-              <li>9h15 &middot; Bloco 2 e Estação 2: tecnologias de eventos e o Kafka</li>
-              <li>9h50 &middot; Intervalo</li>
+              <li>8h30 &middot; Bloco 0: sistemas distribuídos por baixo da coleta</li>
+              <li>9h30 &middot; A Rede Tatame, a arquitetura e o simulador</li>
+              <li>9h40 &middot; Bloco 1 e Estação 1: o que é um evento</li>
+              <li>10h05 &middot; Bloco 2 e Estação 2: tecnologias de eventos e o Kafka</li>
             </ul>
           </article>
           <article class="deck-card">
-            <h3>10h10 &ndash; 12h10</h3>
+            <h3>10h30 &ndash; 12h10</h3>
             <ul>
-              <li>10h10 &middot; Bloco 3 e Estação 3: complex event processing</li>
-              <li>10h50 &middot; Estação 4: InfluxDB e o painel tático</li>
-              <li>11h15 &middot; Estação 5: object storage &nbsp; 11h30 &middot; Estação 6: Elasticsearch</li>
+              <li>10h30 &middot; Intervalo &nbsp; 10h45 &middot; Bloco 3 e Estação 3: CEP</li>
+              <li>11h15 &middot; Estação 4: InfluxDB e o painel tático</li>
+              <li>11h30 &middot; Estação 5: object storage &nbsp; 11h40 &middot; Estação 6: Elasticsearch</li>
               <li>11h55 &middot; Painel da turma, discussão e fechamento</li>
             </ul>
           </article>
         </div>
+      </div>
+    </div>
+
+    <!-- 0.1 Bloco 0: abertura -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Sistemas distribuídos</span>
+          <h2 class="deck-title">A Rede Tatame é um sistema distribuído</h2>
+          <p class="deck-summary">São 240 academias, quatro clusters Kafka regionais e três grupos de consumidores trocando mensagens pela rede. Nenhuma dessas peças enxerga o estado das outras no mesmo instante, e cada uma pode falhar sozinha.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Leslie Lamport, 1987</strong>
+          <p style="margin:8px 0 0;">"Um sistema distribuído é aquele em que a falha de um computador que você nem sabia que existia pode tornar o seu próprio computador inutilizável."</p>
+        </div>
+        <div class="deck-note">Este bloco trata do que acontece por baixo de cada evento: a rede, as falhas, os relógios e as cópias. Os blocos 1 a 3 usam esses conceitos o tempo todo.</div>
+      </div>
+    </div>
+
+    <!-- 0.2 Bloco 0: definição -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Definição</span>
+          <h2 class="deck-title">O que é um sistema distribuído</h2>
+          <p class="deck-summary">Componentes autônomos que se comunicam por mensagens e coordenam ações para um objetivo comum. O critério é a comunicação não instantânea entre participantes que falham de forma independente, e vale também dentro de um único datacenter.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Propriedade</th><th>O que significa</th><th>Na Rede Tatame</th></tr></thead>
+          <tbody>
+            <tr><td>Pluralidade</td><td>mais de um processo participa</td><td>catracas, aplicativos, brokers e consumidores</td></tr>
+            <tr><td>Falha independente</td><td>cada participante pode parar sozinho</td><td>o cluster <code>eu-estocolmo</code> cai e <code>sa-saopaulo</code> segue</td></tr>
+            <tr><td>Comunicação por mensagem</td><td>não há memória compartilhada</td><td>o check-in viaja da catraca ao broker pela internet</td></tr>
+            <tr><td>Sem estado global</td><td>ninguém vê tudo no mesmo instante</td><td>o painel mostra só o que já chegou até ele</td></tr>
+            <tr><td>Sem relógio comum</td><td>cada máquina mede o tempo com o próprio relógio</td><td>catraca e celular discordam por milissegundos ou segundos</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 0.3 Bloco 0: falácias -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Suposições</span>
+          <h2 class="deck-title">As oito falácias da computação distribuída</h2>
+          <p class="deck-summary">Lista atribuída a L. Peter Deutsch e colegas da Sun Microsystems, nos anos 1990. Cada item parece verdadeiro num teste local e falha em produção.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Suposição falsa</th><th>O que acontece na Rede Tatame</th></tr></thead>
+          <tbody>
+            <tr><td>A rede é confiável</td><td>o pacote do check-in se perde entre a academia e o cluster</td></tr>
+            <tr><td>A latência é zero</td><td>o evento chega segundos, ou horas, depois do fato</td></tr>
+            <tr><td>A banda é infinita</td><td>48 academias reenviando o outbox ao mesmo tempo congestionam o link</td></tr>
+            <tr><td>A rede é segura</td><td>o evento atravessa a internet e precisa de TLS e de anonimização</td></tr>
+            <tr><td>A topologia não muda</td><td>um broker sai do cluster e as partições trocam de líder</td></tr>
+            <tr><td>Existe um administrador</td><td>cada academia tem roteador e provedor próprios</td></tr>
+            <tr><td>O transporte não custa nada</td><td>1,7 milhão de eventos por dia custam CPU, serialização e tráfego</td></tr>
+            <tr><td>A rede é homogênea</td><td>catraca, celular e servidor rodam versões e formatos diferentes</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 0.4 Bloco 0: timeout -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Falha parcial</span>
+          <h2 class="deck-title">Cinco leituras de um mesmo timeout</h2>
+          <p class="deck-summary">A catraca da academia SE-STO-014 envia um check-in ao cluster <code>eu-estocolmo</code> e não recebe a confirmação no prazo. Do lado da catraca, as cinco situações abaixo produzem o mesmo sintoma.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>O evento não chegou ao broker.</li>
+          <li>Chegou e ainda está sendo gravado.</li>
+          <li>Foi gravado, e a confirmação se perdeu na volta.</li>
+          <li>O broker está lento e vai responder depois do prazo.</li>
+          <li>O broker caiu antes de gravar.</li>
+        </ol>
+        <div class="deck-note">Reenviar duplica o check-in nas leituras 2, 3 e 4. Desistir perde um check-in válido nas leituras 1 e 5. Como a catraca não distingue os casos, o desenho usual é reenviar com o mesmo <code>event_id</code> e deixar o destino descartar a cópia.</div>
+      </div>
+    </div>
+
+    <!-- 0.5 Bloco 0: modelos de falha -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Modelos de falha</span>
+          <h2 class="deck-title">Quatro modelos de falha</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Modelo</th><th>Comportamento</th><th>Exemplo na rede</th></tr></thead>
+          <tbody>
+            <tr><td>Parada (crash)</td><td>para e não responde mais</td><td>o broker 2 de <code>eu-estocolmo</code> desliga</td></tr>
+            <tr><td>Omissão</td><td>perde algumas mensagens e segue com as outras</td><td>heartbeats descartados por um roteador sobrecarregado</td></tr>
+            <tr><td>Temporização</td><td>responde certo, mas fora do prazo</td><td>o broker sob pressão de memória responde em 8 s</td></tr>
+            <tr><td>Arbitrária (bizantina)</td><td>responde errado ou de forma inconsistente</td><td>a catraca com relógio desajustado grava <code>ocorrido_em</code> em 2019</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Projetar para parada, omissão e temporização cobre a maior parte dos incidentes. O valor arbitrário aparece na fronteira de confiança, e a defesa é validar o contrato do evento na entrada.</div>
+      </div>
+    </div>
+
+    <!-- 0.6 Bloco 0: detector de falha -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Detector de falha</span>
+          <h2 class="deck-title">Lento ou parado: o detector decide</h2>
+          <p class="deck-summary">De fora, um nó lento e um nó parado parecem iguais. O detector de falha decide a partir de quando tratar o outro lado como fora do ar, e qualquer prazo escolhido erra em algum caso.</p>
+        </div>
+        <div class="deck-columns">
+          <div class="deck-panel">
+            <strong>Falso positivo</strong>
+            <ul>
+              <li>declara parada uma catraca que só perdeu pacotes</li>
+              <li>o gestor regional recebe alerta à toa</li>
+              <li>cresce quando o prazo é curto</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Detecção tardia</strong>
+            <ul>
+              <li>a catraca travou e o painel continua verde</li>
+              <li>o aluno fica parado na porta</li>
+              <li>cresce quando o prazo é longo</li>
+            </ul>
+          </div>
+        </div>
+        <div class="deck-note">O heartbeat de 30 s da catraca existe para alimentar esse detector. A regra de CEP <code>academia_silenciosa</code>, do bloco 3, é um detector de falha.</div>
+      </div>
+    </div>
+
+    <!-- 0.7 Bloco 0: exemplo numérico 1 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Exemplo numérico</span>
+          <h2 class="deck-title">Quantos heartbeats perdidos bastam</h2>
+          <p class="deck-summary">Hipótese: cada heartbeat se perde com probabilidade de 0,1%, de forma independente. A rede emite 1.382.400 heartbeats por dia (240 academias &times; 2 dispositivos &times; 2.880).</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Perdidos seguidos</th><th>Probabilidade</th><th>Alarmes falsos por dia</th><th>Demora mínima</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>0,001</td><td>1.382.400 &times; 0,001 = 1.382</td><td>30 s</td></tr>
+            <tr><td>2</td><td>0,001&sup2; = 0,000001</td><td>1,4</td><td>60 s</td></tr>
+            <tr><td>3</td><td>0,001&sup3; = 0,000000001</td><td>0,0014, um a cada dois anos</td><td>90 s</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">A independência é otimista: quando o link da academia cai, os heartbeats somem em sequência, de todos os dispositivos ao mesmo tempo. A conta mostra a ordem de grandeza da troca entre ruído e demora. A regra <code>academia_silenciosa</code> espera 5 minutos, o equivalente a 10 heartbeats de cada dispositivo.</div>
+      </div>
+    </div>
+
+    <!-- 0.8 Bloco 0: pausa 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Quando dar a catraca como parada?</h2>
+          <p class="deck-summary">Três minutos em grupo, com o caso da Rede Tatame.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>A catraca da porta principal trava às 18h50, antes da turma das 19h. Cinco minutos de espera são aceitáveis nesse horário?</li>
+          <li>Se o link da academia cai, catraca e leitor facial somem juntos. Como distinguir dispositivo parado de academia sem rede?</li>
+          <li>A catraca não recebeu a confirmação de um check-in. Ela deve liberar o aluno?</li>
+          <li>O consumidor CEP fica parado 10 minutos e dispara alerta para as 240 academias. O falso positivo é de quem?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 0.9 Bloco 0: relógios -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Relógios físicos</span>
+          <h2 class="deck-title">Quanto dois relógios divergem em uma hora</h2>
+          <p class="deck-summary">O relógio de cada máquina adianta ou atrasa por variação do oscilador. O NTP corrige a diferença de tempos em tempos, e ela volta a crescer até a sincronização seguinte: &delta; &le; &epsilon; + 2&rho;T.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Taxa de desvio (&rho;)</td><td>50 ppm, ou 0,00005 s a cada segundo</td></tr>
+            <tr><td>Intervalo entre sincronizações (T)</td><td>3.600 s</td></tr>
+            <tr><td>Erro logo após sincronizar (&epsilon;)</td><td>0, para simplificar</td></tr>
+            <tr><td>Divergência máxima entre dois relógios</td><td>2 &times; 0,00005 &times; 3.600 = 0,36 s</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O aluno reserva a aula pelo aplicativo e faz check-in na catraca 200 ms depois. Se o relógio do celular estiver 360 ms adiantado, o <code>ocorrido_em</code> da reserva fica depois do check-in, e quem ordena pelo relógio vê o check-in primeiro. Celular sem sincronização erra por segundos ou minutos.</div>
+      </div>
+    </div>
+
+    <!-- 0.10 Bloco 0: Lamport -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Relógios lógicos</span>
+          <h2 class="deck-title">Aconteceu-antes e o relógio de Lamport</h2>
+          <p class="deck-summary">Lamport (1978) trocou a pergunta "que horas eram?" por "um evento pode ter influenciado o outro?". Vale a &rarr; b quando os dois ocorrem em sequência no mesmo processo, ou quando a é o envio de uma mensagem e b o recebimento dela.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Evento local ou envio: o contador soma 1, e o novo valor carimba o evento.</li>
+          <li>No envio, a mensagem leva o carimbo junto.</li>
+          <li>No recebimento, o contador passa a máx(local, mensagem) + 1.</li>
+          <li>Garantia: se a &rarr; b, então C(a) &lt; C(b).</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 0.11 Bloco 0: Lamport aplicado -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Lamport aplicado</span>
+          <h2 class="deck-title">Lamport no caminho de um check-in</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>#</th><th>Processo</th><th>Ação</th><th>Antes</th><th>Depois</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Catraca SE-STO-014</td><td>reconhece o aluno e registra o check-in</td><td>0</td><td>1</td></tr>
+            <tr><td>2</td><td>Catraca SE-STO-014</td><td>envia o evento ao broker, com carimbo 2</td><td>1</td><td>2</td></tr>
+            <tr><td>3</td><td>Broker <code>eu-estocolmo</code></td><td>recebe e grava (mensagem com 2)</td><td>0</td><td>máx(0, 2) + 1 = 3</td></tr>
+            <tr><td>4</td><td>Broker <code>eu-estocolmo</code></td><td>entrega ao consumidor CEP, com carimbo 4</td><td>3</td><td>4</td></tr>
+            <tr><td>5</td><td>Consumidor CEP</td><td>recebe o evento (mensagem com 4)</td><td>0</td><td>máx(0, 4) + 1 = 5</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">A catraca da SE-STO-020 não trocou mensagem com nenhum desses processos e também carimba o próprio check-in com 1. Lamport garante só um sentido: a &rarr; b implica C(a) &lt; C(b), e carimbos comparados não provam causa. Para detectar eventos concorrentes, o relógio vetorial guarda uma posição por processo.</div>
+      </div>
+    </div>
+
+    <!-- 0.12 Bloco 0: onde existe ordem -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Ordem</span>
+          <h2 class="deck-title">Onde existe ordem na Rede Tatame</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Escopo</th><th>Ordem garantida?</th><th>Por quê</th></tr></thead>
+          <tbody>
+            <tr><td>Uma partição do Kafka</td><td>sim, pelo offset</td><td>só o líder da partição grava, um registro depois do outro</td></tr>
+            <tr><td>Uma academia</td><td>sim, de chegada</td><td>a chave é a academia, e todos caem na mesma partição</td></tr>
+            <tr><td>Aplicativo e catraca do mesmo aluno</td><td>de chegada, sim; do fato, não</td><td>o offset registra a chegada, e os relógios das fontes divergem</td></tr>
+            <tr><td>Academias diferentes</td><td>não</td><td>partições diferentes e relógios diferentes</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O CEP do bloco 3 trata essa falta de ordem com janelas sobre o tempo do evento, marca d'água e atraso permitido.</div>
+      </div>
+    </div>
+
+    <!-- 0.13 Bloco 0: maioria -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Replicação e consenso</span>
+          <h2 class="deck-title">Maioria: quantas falhas o cluster tolera</h2>
+          <p class="deck-summary">Replicar dá durabilidade e disponibilidade, mas as cópias precisam concordar. Protocolos de consenso como o Raft só confirmam o que a maioria aceitou, e por isso toleram f = &lfloor;(N &minus; 1) &divide; 2&rfloor; falhas.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Nós (N)</th><th>Maioria</th><th>Falhas toleradas (f)</th></tr></thead>
+          <tbody>
+            <tr><td>3</td><td>2</td><td>1</td></tr>
+            <tr><td>4</td><td>3</td><td>1</td></tr>
+            <tr><td>5</td><td>3</td><td>2</td></tr>
+            <tr><td>6</td><td>4</td><td>2</td></tr>
+            <tr><td>7</td><td>4</td><td>3</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Um nó par a mais não aumenta a tolerância. No modo KRaft, os controladores do Kafka formam um quórum baseado no Raft, e três controladores toleram a perda de um. A replicação das partições segue outra regra, o ISR com <code>min.insync.replicas</code>, vista no bloco 2.</div>
+      </div>
+    </div>
+
+    <!-- 0.14 Bloco 0: CAP -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; CAP e PACELC</span>
+          <h2 class="deck-title">O que fazer durante a partição de rede</h2>
+          <p class="deck-summary">Quando a rede separa dois lados, cada lado escolhe entre continuar respondendo, com risco de divergir, e recusar até ter a versão mais recente. O teorema CAP (Brewer, 2000; Gilbert e Lynch, 2002) mostra que não há as duas coisas durante a partição.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th></th><th>Disponível (AP)</th><th>Consistente (CP)</th></tr></thead>
+          <tbody>
+            <tr><td>Na Rede Tatame</td><td>a academia aceita o check-in e guarda no outbox</td><td>a gestão não refaz a cobrança sem saber o resultado da anterior</td></tr>
+            <tr><td>Preserva</td><td>o aluno entra para treinar</td><td>nenhuma cobrança em dobro</td></tr>
+            <tr><td>Arrisca</td><td>painel regional desatualizado enquanto durar a partição</td><td>cobrança atrasada enquanto durar a partição</td></tr>
+            <tr><td>Depois</td><td>reenviar e deduplicar pelo <code>event_id</code></td><td>nada a reconciliar</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O PACELC (Abadi, 2012) cobre o resto do tempo: sem partição, a escolha é entre latência e consistência. Com <code>acks=all</code> o produtor espera as réplicas; com <code>acks=1</code> confirma antes e perde o evento se o líder cair logo depois.</div>
+      </div>
+    </div>
+
+    <!-- 0.15 Bloco 0: semânticas de entrega -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Entrega</span>
+          <h2 class="deck-title">Três semânticas de entrega</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Semântica</th><th>O que acontece</th><th>Quando ocorre</th></tr></thead>
+          <tbody>
+            <tr><td>No máximo uma vez</td><td>nunca duplica e pode perder</td><td>o consumidor confirma o offset antes de processar</td></tr>
+            <tr><td>Pelo menos uma vez</td><td>não perde o que foi gravado e pode duplicar</td><td>processa e só depois confirma; o produtor reenvia após timeout</td></tr>
+            <tr><td>Exatamente uma vez</td><td>um efeito por evento, dentro de uma fronteira declarada</td><td>pelo menos uma vez, com deduplicação ou transação no destino</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">As transações do Kafka garantem exatamente uma vez entre tópicos do próprio Kafka. O e-mail enviado ao aluno e a cobrança no cartão ficam fora dessa fronteira e precisam de idempotência própria.</div>
+      </div>
+    </div>
+
+    <!-- 0.16 Bloco 0: exemplo numérico 2 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Exemplo numérico</span>
+          <h2 class="deck-title">O custo de uma duplicata no CEP</h2>
+          <p class="deck-summary">Hipótese: 0,5% dos 360.000 eventos diários de aluno são reenviados depois de um timeout em que o evento já tinha sido gravado.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida</th><th>Conta</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Duplicatas por dia</td><td>360.000 &times; 0,005</td><td>1.800</td></tr>
+            <tr><td>Erro numa contagem diária</td><td>1.800 &divide; 360.000</td><td>0,5% a mais</td></tr>
+            <tr><td>Erro em <code>cobranca_reincidente</code></td><td>uma <code>cobranca_falhou</code> chega duas vezes</td><td>um alerta de reincidência para um aluno que falhou uma vez</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Na contagem, a duplicata custa meio ponto percentual. Na regra de padrão, uma única cópia cria um fato que não aconteceu. A defesa é o inbox: gravar o <code>event_id</code> com restrição de unicidade na mesma transação que aplica o efeito, e descartar o que já existe.</div>
+      </div>
+    </div>
+
+    <!-- 0.17 Bloco 0: pausa 2 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Que garantia cada dado da rede pede?</h2>
+          <p class="deck-summary">Cinco minutos em grupo, antes de entrar no evento e no Kafka.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Check-in, heartbeat e cobrança: qual semântica de entrega serve a cada um?</li>
+          <li>O cluster <code>eu-estocolmo</code> fica isolado por duas horas. O que a academia aceita localmente e que decisão precisa esperar?</li>
+          <li>Com quatro controladores KRaft, quantos podem cair? Vale a pena o quarto?</li>
+          <li>A regra <code>experimental_sem_matricula</code> compara dois eventos do mesmo aluno vindos de fontes diferentes. Que relógio ela deve usar?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 0.18 Bloco 0: pontos-chave -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 0 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 0</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Um timeout tem cinco leituras possíveis, e por isso o reenvio anda junto com a deduplicação pelo <code>event_id</code>.</li>
+          <li>O detector de falha estima: com 0,1% de perda, três heartbeats seguidos trocam 1.382 alarmes falsos por dia por um a cada dois anos, ao custo de 90 s.</li>
+          <li>Dois relógios a 50 ppm divergem até 360 ms em uma hora; a ordem confiável só existe dentro da partição.</li>
+          <li>N nós de consenso toleram &lfloor;(N &minus; 1) &divide; 2&rfloor; falhas; o quarto nó não acrescenta tolerância.</li>
+          <li>Durante a partição, cada dado escolhe entre disponível e consistente; com pelo menos uma vez, a duplicata é esperada e o inbox a descarta.</li>
+        </ol>
       </div>
     </div>
 
@@ -286,7 +648,7 @@
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Estação 1 &middot; 9h00</span>
+          <span class="deck-kicker">Estação 1 &middot; 9h55</span>
           <h2 class="deck-title">Evento e anonimização na borda</h2>
         </div>
         <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
@@ -472,7 +834,7 @@
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Estação 2 &middot; 9h35</span>
+          <span class="deck-kicker">Estação 2 &middot; 10h20</span>
           <h2 class="deck-title">Kafka: partições, grupos e lag</h2>
         </div>
         <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
@@ -645,7 +1007,7 @@
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Estação 3 &middot; 10h35</span>
+          <span class="deck-kicker">Estação 3 &middot; 11h05</span>
           <h2 class="deck-title">CEP: quatro regras sobre o fluxo</h2>
         </div>
         <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
@@ -690,7 +1052,7 @@
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Estação 4 &middot; 10h50 &middot; Conceito</span>
+          <span class="deck-kicker">Estação 4 &middot; 11h15 &middot; Conceito</span>
           <h2 class="deck-title">Séries temporais: measurement, tags e fields</h2>
           <p class="deck-summary">No InfluxDB, cada ponto tem um measurement, tags indexadas, fields com os valores e um timestamp. Cada combinação distinta de measurement e tags é uma série.</p>
         </div>
@@ -751,7 +1113,7 @@ measurement</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Estação 5 &middot; 11h15 &middot; Conceito</span>
+          <span class="deck-kicker">Estação 5 &middot; 11h30 &middot; Conceito</span>
           <h2 class="deck-title">Camada bruta particionada no bucket</h2>
         </div>
         <pre class="is-compact" style="flex-shrink:0"><code>tatame-bruto/regiao=eu-estocolmo/data=2026-11-14/hora=11/lote-000123.jsonl.gz</code></pre>
