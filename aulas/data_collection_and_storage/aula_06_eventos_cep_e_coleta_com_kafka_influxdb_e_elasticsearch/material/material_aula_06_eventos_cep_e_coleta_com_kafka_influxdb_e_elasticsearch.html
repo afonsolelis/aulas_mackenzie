@@ -88,7 +88,31 @@
       <!-- Bloco 0 -->
       <section class="content-block" id="s0">
         <h2>Bloco 0: sistemas distribuídos por baixo da coleta</h2>
-        <p>Antes do evento, do Kafka e do CEP, a aula dedica a primeira hora ao que acontece por baixo deles. A Rede Tatame tem 240 academias, quatro clusters Kafka regionais e três grupos de consumidores, que só cooperam trocando mensagens pela rede. Cada decisão dos blocos seguintes (o <code>event_id</code>, a chave por academia, o outbox local, <code>acks=all</code>, a marca d'água do CEP) responde a um problema que este bloco apresenta: a rede perde e atrasa mensagens, as máquinas falham sozinhas, os relógios discordam e as cópias precisam concordar. O cenário da Rede Tatame é detalhado na <a href="#s2">seção 2.1</a>; aqui bastam as regiões e os números de volume.</p>
+        <p>Antes do evento, do Kafka e do CEP, a aula dedica a primeira hora ao que acontece por baixo deles. A Rede Tatame tem 240 academias, quatro clusters Kafka regionais e três grupos de consumidores, que só cooperam trocando mensagens pela rede. Cada decisão dos blocos seguintes (o <code>event_id</code>, a chave por academia, o outbox local, <code>acks=all</code>, a marca d'água do CEP) responde a um problema que este bloco apresenta: a rede perde e atrasa mensagens, as máquinas falham sozinhas, os relógios discordam e as cópias precisam concordar. O cenário da Rede Tatame é detalhado na <a href="#s2">seção 2.1</a>; aqui bastam as regiões e os números de volume. Nos slides, cada tópico do bloco tem uma animação que mostra o mecanismo em movimento.</p>
+
+        <div class="note">
+          <strong>Siglas e termos deste bloco</strong>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Sigla ou termo</th><th>Por extenso</th><th>O que é</th></tr></thead>
+            <tbody>
+              <tr><td>NTP</td><td>Network Time Protocol</td><td>protocolo em que a máquina consulta servidores de hora pela rede e corrige o próprio relógio</td></tr>
+              <tr><td>ppm</td><td>partes por milhão</td><td>taxa de erro do relógio: 50 ppm são 50 µs a cada segundo, ou 180 ms por hora</td></tr>
+              <tr><td>CAP</td><td>Consistency, Availability, Partition tolerance</td><td>teorema sobre o que um sistema pode garantir durante uma partição de rede</td></tr>
+              <tr><td>AP e CP</td><td>Available e Consistent sob partição</td><td>as duas escolhas possíveis durante a partição: continuar respondendo ou manter a consistência</td></tr>
+              <tr><td>PACELC</td><td>if Partition, Availability or Consistency; Else, Latency or Consistency</td><td>extensão do CAP que inclui a troca entre latência e consistência fora da partição</td></tr>
+              <tr><td>KRaft</td><td>Kafka Raft</td><td>modo em que o Kafka coordena o próprio cluster com controladores que usam um protocolo derivado do Raft, sem ZooKeeper</td></tr>
+              <tr><td>Raft</td><td>nome próprio, não é sigla</td><td>algoritmo de consenso por maioria, publicado em 2014</td></tr>
+              <tr><td>ISR</td><td>In-Sync Replicas</td><td>réplicas de uma partição que estão em dia com o líder</td></tr>
+              <tr><td>acks</td><td>acknowledgements</td><td>configuração do produtor que define quantas confirmações ele espera antes de considerar o envio feito</td></tr>
+              <tr><td>TLS</td><td>Transport Layer Security</td><td>protocolo que cifra a conexão entre a academia e o cluster</td></tr>
+              <tr><td>CEP</td><td>Complex Event Processing</td><td>processamento de eventos complexos, assunto do <a href="#s4">bloco 3</a></td></tr>
+              <tr><td>timeout</td><td>prazo de espera</td><td>tempo máximo que quem envia espera pela resposta antes de agir</td></tr>
+              <tr><td>heartbeat</td><td>sinal de vida</td><td>mensagem que o dispositivo envia em intervalo fixo, aqui a cada 30 s, para avisar que está funcionando</td></tr>
+              <tr><td>broker</td><td>servidor do Kafka</td><td>processo que recebe, grava e entrega os eventos</td></tr>
+              <tr><td>outbox e inbox</td><td>caixa de saída e caixa de entrada</td><td>tabelas locais: o outbox guarda o que ainda não foi enviado; o inbox guarda os <code>event_id</code> já processados</td></tr>
+            </tbody>
+          </table></div>
+        </div>
 
         <h3>0.1 O que é um sistema distribuído</h3>
         <p>Um sistema distribuído é um conjunto de componentes autônomos que se comunicam por mensagens e coordenam ações para um objetivo comum. A distância física não é o critério. Dois processos no mesmo datacenter, que só conversam pela rede e podem falhar de forma independente, já formam um sistema distribuído. Em contrapartida, várias funções dentro de um mesmo processo não formam.</p>
@@ -138,7 +162,7 @@
         </div>
 
         <h3>0.4 Relógios físicos e relógios lógicos</h3>
-        <p>O relógio de cada máquina adianta ou atrasa por variação do oscilador. A sincronização por NTP corrige a diferença de tempos em tempos, e ela volta a crescer até a sincronização seguinte. Dois relógios com taxa de desvio &rho; sincronizados a cada T segundos, com erro &epsilon; logo após a sincronização, podem divergir até &delta; &le; &epsilon; + 2&rho;T, já que um pode adiantar enquanto o outro atrasa.</p>
+        <p>O relógio de cada máquina adianta ou atrasa por variação do oscilador. A sincronização por NTP (Network Time Protocol) corrige a diferença de tempos em tempos: a máquina pergunta a hora a servidores de referência pela rede, desconta o tempo que a resposta levou para chegar e ajusta o próprio relógio. Entre uma consulta e a seguinte, porém, o relógio volta a andar por conta própria, e a diferença cresce até a sincronização seguinte. Dois relógios com taxa de desvio &rho; sincronizados a cada T segundos, com erro &epsilon; logo após a sincronização, podem divergir até &delta; &le; &epsilon; + 2&rho;T, já que um pode adiantar enquanto o outro atrasa.</p>
         <div class="note">
           <strong>Exemplo numérico 0.2. Quanto dois relógios divergem em uma hora</strong>
           <p>Com &rho; = 50 ppm (0,00005 s a cada segundo), T = 3.600 s e &epsilon; = 0 para simplificar: &delta; &le; 2 &times; 0,00005 &times; 3.600 = 0,36 s.</p>
