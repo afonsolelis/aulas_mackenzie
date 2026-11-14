@@ -836,6 +836,8 @@
   }
 
   pintores.kafka = () => {
+    // A aba pode ter sido aberta antes de existir evento: preenche os exemplos assim que houver algum.
+    if (!$('kf-exemplos').querySelector('button') && (S.total.kafka || S.manuais.length)) montarExemplos();
     $('kf-particoes').innerHTML = '<thead><tr><th class="num">Partição</th><th class="num">Primeiro offset retido</th><th class="num">Próximo offset</th><th class="num">Registros retidos</th><th>Última chave</th></tr></thead><tbody>' +
       S.kafka.part.map((p, i) => `<tr><td class="num">${i}</td><td class="num">${fmt(p.base)}</td><td class="num">${fmt(p.base + p.recs.length)}</td><td class="num">${fmt(p.recs.length)}</td><td><code>${p.recs.length ? p.recs[p.recs.length - 1].e.academia : ''}</code></td></tr>`).join('') + '</tbody>';
     for (const [n, g] of Object.entries(S.kafka.grupos)) {
