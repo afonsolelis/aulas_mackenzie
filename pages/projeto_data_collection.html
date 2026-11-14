@@ -92,7 +92,24 @@
 
       <section class="content-block">
         <h2>Data lake da turma</h2>
-        <p>Todos os alunos gravam no mesmo object storage, o RustFS da turma (compatível com S3), publicado pelo professor em <code>https://s3.afonsolelis.tech</code>, bucket <code>tcg</code>. O endpoint S3 e a chave de acesso de cada aluno são enviados no canal da turma e ficam fora do repositório, nas variáveis do job e no <code>.env</code>. Cada aluno escreve somente nos prefixos da própria coleção e lê todos os demais.</p>
+        <p>Todos os alunos gravam no mesmo object storage, o RustFS da turma (compatível com S3), publicado pelo professor em <code>https://lake-aulas-mackenzie.afonsolelis.tech</code>, bucket <code>tcg</code>. A turma usa um único usuário, que lista, lê e grava no bucket <code>tcg</code> e não consegue apagar objetos nem criar buckets. Cada aluno escreve somente nos prefixos da própria coleção e lê todos os demais. Um arquivo gravado com erro é corrigido gravando de novo na mesma chave.</p>
+        <table>
+          <thead><tr><th>Item</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>Console web</td><td><a href="https://lake-console-aulas-mackenzie.afonsolelis.tech/rustfs/console/" target="_blank" rel="noopener noreferrer"><code>https://lake-console-aulas-mackenzie.afonsolelis.tech/rustfs/console/</code></a></td></tr>
+            <tr><td>Endpoint da API S3</td><td><code>https://lake-aulas-mackenzie.afonsolelis.tech</code></td></tr>
+            <tr><td>Usuário (access key)</td><td><code>turma-mackenzie</code></td></tr>
+            <tr><td>Senha (secret key)</td><td><code>Mack5fb631Dados2026</code></td></tr>
+            <tr><td>Região</td><td><code>us-east-1</code></td></tr>
+            <tr><td>Estilo de endereço</td><td>path-style</td></tr>
+          </tbody>
+        </table>
+        <p>No repositório, as credenciais ficam no <code>.env</code>, que precisa estar no <code>.gitignore</code>, e nas variáveis do job de coleta:</p>
+        <div class="copiavel"><pre><code>S3_ENDPOINT=https://lake-aulas-mackenzie.afonsolelis.tech
+S3_ACCESS_KEY=turma-mackenzie
+S3_SECRET_KEY=Mack5fb631Dados2026
+S3_REGION=us-east-1
+S3_BUCKET=tcg</code></pre></div>
         <pre><code>tcg/
 ├── raw/tcgplayer/group_id=24269/data=2026-10-24/products.json   resposta original, imutável
 ├── raw/tcgplayer/group_id=24269/data=2026-10-24/prices.json
@@ -226,11 +243,12 @@ ASOF JOIN cambio_diario c ON p.data &gt;= c.data;</code></pre>
 
         <div class="actions">
           <a class="button" href="home_data_collection.html">&larr; Voltar para a disciplina</a>
-          <a class="button" href="https://s3-console.afonsolelis.tech/rustfs/console/" target="_blank" rel="noopener noreferrer">Console do RustFS da turma</a>
+          <a class="button" href="https://lake-console-aulas-mackenzie.afonsolelis.tech/rustfs/console/" target="_blank" rel="noopener noreferrer">Console do RustFS da turma</a>
           <a class="button" href="https://tcgcsv.com/docs" target="_blank" rel="noopener noreferrer">Documentação do TCGCSV</a>
           <a class="button" href="../aulas/data_collection_and_storage/aula_08_mentoria_e_entrega_do_projeto_final/entrega/entrega_projeto_final.html">Formulário de entrega</a>
         </div>
       </section>
     </main>
+    <script src="../assets/copiar.js"></script>
   </body>
 </html>

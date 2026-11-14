@@ -60,9 +60,9 @@ CLICKHOUSE_PASSWORD=sRwz6u2W6OQKkQgHlDwP
 CLICKHOUSE_DATABASE=mackenzie
 GRUPO=g00
 
-S3_ENDPOINT=https://s3.afonsolelis.tech
-S3_ACCESS_KEY=turma
-S3_SECRET_KEY=turma-d6102587
+S3_ENDPOINT=https://lake-aulas-mackenzie.afonsolelis.tech
+S3_ACCESS_KEY=turma-mackenzie
+S3_SECRET_KEY=Mack5fb631Dados2026
 S3_REGION=us-east-1</code></pre></div>
 
         <h3>Teste com o rodar_sql.py</h3>
@@ -113,16 +113,16 @@ print(df)</code></pre></div>
         <table>
           <thead><tr><th>Item</th><th>Valor</th></tr></thead>
           <tbody>
-            <tr><td>Console web</td><td><a href="https://s3-console.afonsolelis.tech/rustfs/console/" target="_blank" rel="noopener noreferrer"><code>https://s3-console.afonsolelis.tech/rustfs/console/</code></a></td></tr>
-            <tr><td>Endpoint da API S3</td><td><code>https://s3.afonsolelis.tech</code></td></tr>
-            <tr><td>Access key (usuário)</td><td><code>turma</code></td></tr>
-            <tr><td>Secret key (senha)</td><td><code>turma-d6102587</code></td></tr>
+            <tr><td>Console web</td><td><a href="https://lake-console-aulas-mackenzie.afonsolelis.tech/rustfs/console/" target="_blank" rel="noopener noreferrer"><code>https://lake-console-aulas-mackenzie.afonsolelis.tech/rustfs/console/</code></a></td></tr>
+            <tr><td>Endpoint da API S3</td><td><code>https://lake-aulas-mackenzie.afonsolelis.tech</code></td></tr>
+            <tr><td>Access key (usuário)</td><td><code>turma-mackenzie</code></td></tr>
+            <tr><td>Secret key (senha)</td><td><code>Mack5fb631Dados2026</code></td></tr>
             <tr><td>Região</td><td><code>us-east-1</code></td></tr>
-            <tr><td>Estilo de endereço</td><td>path-style (<code>https://s3.afonsolelis.tech/bucket/chave</code>)</td></tr>
-            <tr><td>Buckets</td><td><code>pouso</code> (80 lotes da Aula 02), <code>tcg</code> (data lake do projeto), <code>raw</code></td></tr>
+            <tr><td>Estilo de endereço</td><td>path-style (<code>https://lake-aulas-mackenzie.afonsolelis.tech/bucket/chave</code>)</td></tr>
+            <tr><td>Buckets</td><td><code>pouso</code> (80 lotes da Aula 02, só leitura), <code>tcg</code> (data lake do projeto)</td></tr>
           </tbody>
         </table>
-        <p>O usuário <code>turma</code> é admin porque o ambiente é de teste: pode criar buckets e gravar objetos. Não apague nem sobrescreva o <code>pouso</code> e o <code>tcg</code>, que são de todos. Para testes do grupo, crie um bucket com o prefixo do grupo, como <code>g01-teste</code> (nome de bucket aceita só minúsculas, números e hífen).</p>
+        <p>O usuário <code>turma-mackenzie</code> lê o <code>pouso</code> e lê e grava no <code>tcg</code>. Ele não apaga objetos nem cria buckets, para que nenhum grupo perca o trabalho de outro por engano. Testes do grupo ficam no próprio computador, no MinIO local do <code>docker compose</code>.</p>
 
         <h3>Python com boto3</h3>
         <p>Instale com <code>pip install boto3</code>.</p>
@@ -131,9 +131,9 @@ from botocore.config import Config
 
 s3 = boto3.client(
     "s3",
-    endpoint_url="https://s3.afonsolelis.tech",
-    aws_access_key_id="turma",
-    aws_secret_access_key="turma-d6102587",
+    endpoint_url="https://lake-aulas-mackenzie.afonsolelis.tech",
+    aws_access_key_id="turma-mackenzie",
+    aws_secret_access_key="Mack5fb631Dados2026",
     region_name="us-east-1",
     config=Config(s3={"addressing_style": "path"}),
 )
@@ -141,19 +141,19 @@ print([b["Name"] for b in s3.list_buckets()["Buckets"]])
 print(s3.list_objects_v2(Bucket="pouso", MaxKeys=5)["Contents"][0]["Key"])</code></pre></div>
 
         <h3>MinIO Client (mc)</h3>
-        <div class="copiavel"><pre><code>mc alias set turma https://s3.afonsolelis.tech turma turma-d6102587
+        <div class="copiavel"><pre><code>mc alias set turma https://lake-aulas-mackenzie.afonsolelis.tech turma-mackenzie Mack5fb631Dados2026
 mc ls turma
 mc ls turma/pouso | wc -l        # 80</code></pre></div>
 
         <h3>curl, sem instalar nada</h3>
-        <div class="copiavel"><pre><code>curl -s --aws-sigv4 "aws:amz:us-east-1:s3" --user "turma:turma-d6102587" https://s3.afonsolelis.tech/
-curl -s --aws-sigv4 "aws:amz:us-east-1:s3" --user "turma:turma-d6102587" "https://s3.afonsolelis.tech/pouso?list-type=2&amp;max-keys=5"</code></pre></div>
+        <div class="copiavel"><pre><code>curl -s --aws-sigv4 "aws:amz:us-east-1:s3" --user "turma-mackenzie:Mack5fb631Dados2026" https://lake-aulas-mackenzie.afonsolelis.tech/
+curl -s --aws-sigv4 "aws:amz:us-east-1:s3" --user "turma-mackenzie:Mack5fb631Dados2026" "https://lake-aulas-mackenzie.afonsolelis.tech/pouso?list-type=2&amp;max-keys=5"</code></pre></div>
 
         <h3>DuckDB lendo do RustFS</h3>
         <div class="copiavel"><pre><code>INSTALL httpfs; LOAD httpfs;
 CREATE SECRET rustfs (
-    TYPE s3, KEY_ID 'turma', SECRET 'turma-d6102587',
-    ENDPOINT 's3.afonsolelis.tech', URL_STYLE 'path', USE_SSL true, REGION 'us-east-1'
+    TYPE s3, KEY_ID 'turma-mackenzie', SECRET 'Mack5fb631Dados2026',
+    ENDPOINT 'lake-aulas-mackenzie.afonsolelis.tech', URL_STYLE 'path', USE_SSL true, REGION 'us-east-1'
 );
 SELECT count(*) FROM glob('s3://pouso/*.txt');                 -- 80 lotes
 SELECT filename, content FROM read_text('s3://pouso/CAM-0451_20261017T0900.txt');</code></pre></div>

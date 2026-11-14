@@ -880,3 +880,29 @@ button.button:disabled { opacity: .5; cursor: progress; }
   .entrega-grupo dl { grid-template-columns: 1fr; }
   .entrega-grupo dt { margin-top: 6px; }
 }
+
+/* --------------------------------------------------------------------------
+   Bloco copiável (credenciais e comandos com botão "Copiar")
+   O botão é criado por assets/copiar.js em todo elemento .copiavel.
+   -------------------------------------------------------------------------- */
+
+.copiavel { position: relative; }
+
+.copiavel .copiar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.copiavel .copiar:hover,
+.copiavel .copiar:focus { background: #111; color: #fff; }
+
+.copiavel pre { padding-right: 84px; }

@@ -1652,17 +1652,17 @@ echo "@AGENTS.md" &gt; CLAUDE.md &amp;&amp; claude    # ou o agente que você us
         <table class="deck-table">
           <thead><tr><th style="width:26%;">Item</th><th>Valor</th></tr></thead>
           <tbody>
-            <tr><td>Console web</td><td><code>https://s3-console.afonsolelis.tech/rustfs/console/</code></td></tr>
-            <tr><td>API S3 (endpoint)</td><td><code>https://s3.afonsolelis.tech</code></td></tr>
-            <tr><td>Usuário</td><td><code>turma</code> (admin, ambiente de teste)</td></tr>
-            <tr><td>Senha</td><td><code>turma-d6102587</code></td></tr>
+            <tr><td>Console web</td><td><code>https://lake-console-aulas-mackenzie.afonsolelis.tech/rustfs/console/</code></td></tr>
+            <tr><td>API S3 (endpoint)</td><td><code>https://lake-aulas-mackenzie.afonsolelis.tech</code></td></tr>
+            <tr><td>Usuário</td><td><code>turma-mackenzie</code> (lê o <code>pouso</code>, sem apagar)</td></tr>
+            <tr><td>Senha</td><td><code>Mack5fb631Dados2026</code></td></tr>
             <tr><td>Bucket</td><td><code>pouso</code>, 80 objetos <code>CAM-XXXX_AAAAMMDDTHHMM.txt</code></td></tr>
           </tbody>
         </table>
-        <pre class="is-compact" style="flex-shrink:0;"><code>docker compose exec minio sh -c 'mc alias set turma https://s3.afonsolelis.tech turma turma-d6102587'
+        <pre class="is-compact" style="flex-shrink:0;"><code>docker compose exec minio sh -c 'mc alias set turma https://lake-aulas-mackenzie.afonsolelis.tech turma-mackenzie Mack5fb631Dados2026'
 docker compose exec minio mc ls turma/pouso | wc -l                  # 80
 # baixa os lotes para a pasta pouso/ do Codespace, onde o coletor lê
-python -c "import boto3,os;s3=boto3.client('s3',endpoint_url='https://s3.afonsolelis.tech',aws_access_key_id='turma',aws_secret_access_key='turma-d6102587',region_name='us-east-1');os.makedirs('pouso',exist_ok=True);[s3.download_file('pouso',o['Key'],'pouso/'+o['Key']) for o in s3.list_objects_v2(Bucket='pouso')['Contents']]"
+python -c "import boto3,os;s3=boto3.client('s3',endpoint_url='https://lake-aulas-mackenzie.afonsolelis.tech',aws_access_key_id='turma-mackenzie',aws_secret_access_key='Mack5fb631Dados2026',region_name='us-east-1');os.makedirs('pouso',exist_ok=True);[s3.download_file('pouso',o['Key'],'pouso/'+o['Key']) for o in s3.list_objects_v2(Bucket='pouso')['Contents']]"
 sha256sum pouso/CAM-0451_20261017T0900.txt                           # 6789b712602d1985...</code></pre>
         <p class="deck-note" style="max-width:none;">O bucket é compartilhado pela turma: o usuário <code>turma</code> é admin porque o ambiente é de teste, então pode criar buckets e gravar à vontade, mas não apague o <code>pouso</code>: os lotes são de todos. O <code>raw</code> de cada grupo continua no MinIO local.</p>
       </div>
@@ -1953,7 +1953,7 @@ docker compose exec minio mc du railway/raw</code></pre>
       <a href="../material/material_aula_02_tipos_de_storage_e_coleta_em_object_storage_com_minio.html" class="material-link">Material</a>
       <a href="../tbl/tbl_aula_02.html" class="material-link">TBL</a>
       <a href="../tbl/painel_aula_02.html" class="material-link">Área do professor</a>
-      <a href="https://s3-console.afonsolelis.tech/rustfs/console/" class="material-link" target="_blank" rel="noopener noreferrer" title="Console do RustFS da turma">RustFS</a>
+      <a href="https://lake-console-aulas-mackenzie.afonsolelis.tech/rustfs/console/" class="material-link" target="_blank" rel="noopener noreferrer" title="Console do RustFS da turma">RustFS</a>
     </div>
     <div class="nav-wrapper">
       <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
