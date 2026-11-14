@@ -9,6 +9,9 @@
   <style>
     /* Bloco 0 da Aula 06: animações em SVG e notas de siglas (escopo desta aula) */
     .anim-shell { gap: 12px; }
+    .anim-box { position: relative; }
+    .anim-reiniciar { position: absolute; top: 0; right: 0; z-index: 2; padding: 6px 12px; border: 1px solid var(--deck-text); border-radius: 2px; background: var(--deck-panel); color: var(--deck-text); font-family: var(--font-mono); font-size: 0.62em; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; }
+    .anim-reiniciar:hover, .anim-reiniciar:focus-visible { background: var(--deck-text); color: var(--deck-panel); }
     .anim { display: block; width: 100%; height: clamp(220px, 42vh, 400px); overflow: visible; }
     .anim text { font-family: var(--font-mono); font-size: 15px; fill: var(--deck-text); }
     .anim .t-sm { font-size: 13px; fill: var(--deck-muted); }
@@ -134,7 +137,9 @@
           <h2 class="deck-title">Uma região cai, as outras seguem</h2>
           <p class="deck-summary">Os eventos saem das academias, passam pelo cluster da região e chegam aos três grupos de consumidores. No meio do ciclo, o cluster <code>eu-estocolmo</code> sai do ar.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 320" data-ciclo="12000" role="img" aria-label="Eventos saem das academias, passam pelos quatro clusters regionais e chegam aos consumidores; o cluster de Estocolmo cai, a academia guarda no outbox e reenvia na volta">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 320" role="img" aria-label="Eventos saem das academias, passam pelos quatro clusters regionais e chegam aos consumidores; o cluster de Estocolmo cai, a academia guarda no outbox e reenvia na volta">
           <text x="95" y="22" text-anchor="middle" class="t-sm">academias</text>
           <text x="490" y="22" text-anchor="middle" class="t-sm">clusters Kafka</text>
           <text x="890" y="22" text-anchor="middle" class="t-sm">consumidores</text>
@@ -236,6 +241,7 @@
           <g transform="translate(170,295)"><circle class="mv ponto" r="8" data-t="11400" data-off="12400" style="--x:230px;--y:0px;--dur:1000ms"/></g>
           <g transform="translate(580,295)"><circle class="mv ponto" r="8" data-t="12400" data-off="13400" style="--x:220px;--y:0px;--dur:1000ms"/></g>
         </svg>
+        </div>
         <div class="deck-note">São Paulo, Virgínia e Sydney não percebem a queda. As academias de Estocolmo guardam os eventos no outbox e reenviam quando o cluster volta.</div>
         <p class="deck-siglas"><span>Siglas e termos</span><abbr>outbox</abbr> tabela local em que a academia guarda o evento até conseguir enviá-lo. <abbr>cluster</abbr> conjunto de servidores Kafka de uma região.</p>
       </div>
@@ -294,7 +300,9 @@
           <h2 class="deck-title">Timeout, reenvio e duplicata</h2>
           <p class="deck-summary">A animação percorre a leitura 3: o broker grava, a confirmação se perde no caminho, a catraca esgota o prazo e reenvia.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 335" data-ciclo="11000" role="img" aria-label="A catraca envia o check-in, o broker grava, a confirmação se perde, o prazo esgota e o reenvio grava a segunda cópia">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 335" role="img" aria-label="A catraca envia o check-in, o broker grava, a confirmação se perde, o prazo esgota e o reenvio grava a segunda cópia">
           <rect x="170" y="8" width="180" height="40" rx="2" class="cx"/>
           <text x="260" y="34" text-anchor="middle" class="t-b">catraca SE-STO-014</text>
           <rect x="710" y="8" width="180" height="40" rx="2" class="cx"/>
@@ -322,6 +330,7 @@
           <line x1="800" y1="290" x2="260" y2="320" class="seta" data-t="7200"/>
           <text x="20" y="322" text-anchor="start" class="t-b" data-t="7200">confirmado</text>
         </svg>
+        </div>
         <div class="deck-note">No fim, o broker tem duas cópias de e1, nos offsets 41 e 42. As duas têm o mesmo <code>event_id</code>, e o destino descarta a segunda.</div>
         <p class="deck-siglas"><span>Siglas e termos</span><abbr>timeout</abbr> prazo máximo de espera por uma resposta. <abbr>broker</abbr> servidor do Kafka que recebe e guarda os eventos. <abbr>offset</abbr> posição do registro na partição.</p>
       </div>
@@ -355,7 +364,9 @@
           <h2 class="deck-title">Os quatro modelos em movimento</h2>
           <p class="deck-summary">Cada faixa mostra uma origem enviando mensagens a um destino, e cada uma falha de um jeito.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 315" data-ciclo="9000" role="img" aria-label="Quatro faixas: o destino para, mensagens somem, uma resposta chega depois do prazo e um valor chega errado">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 315" role="img" aria-label="Quatro faixas: o destino para, mensagens somem, uma resposta chega depois do prazo e um valor chega errado">
           <text x="20" y="53" text-anchor="start" class="t-b">Parada</text>
           <rect x="170" y="28" width="110" height="40" rx="2" class="cx"/>
           <text x="225" y="53" text-anchor="middle">origem</text>
@@ -415,6 +426,7 @@
           <g transform="translate(550,282)"><g class="mv" data-t="5650" data-off="6300" style="--x:270px;--y:0px;--dur:650ms"><circle class="ponto" r="8"/><text class="t-sm" x="0" y="-14" text-anchor="middle">2019</text></g></g>
           <text x="550" y="312" text-anchor="middle" class="t-sm" data-t="6300">valor errado no caminho: ocorrido_em em 2019</text>
         </svg>
+        </div>
         <div class="deck-note">Parada: o destino deixa de responder. Omissão: algumas mensagens somem. Temporização: a resposta certa chega depois do prazo. Arbitrária: a mensagem chega com valor errado.</div>
       </div>
     </div>
@@ -458,7 +470,9 @@
           <h2 class="deck-title">Heartbeats perdidos até o alarme</h2>
           <p class="deck-summary">A régua mostra quatro minutos e meio de uma catraca, com um heartbeat a cada 30 s e a regra de três perdidos seguidos.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 305" data-ciclo="10800" role="img" aria-label="Linha do tempo de heartbeats a cada 30 segundos; um se perde e o contador zera; três seguidos se perdem e o alarme dispara">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 305" role="img" aria-label="Linha do tempo de heartbeats a cada 30 segundos; um se perde e o contador zera; três seguidos se perdem e o alarme dispara">
           <line x1="60" y1="160" x2="960" y2="160" class="fio"/>
           <text x="20" y="40" text-anchor="start" class="t-b">catraca SE-STO-014: um heartbeat a cada 30 s</text>
           <text x="90" y="200" text-anchor="middle" class="t-sm">0 s</text>
@@ -501,6 +515,7 @@
           <text x="770" y="260" text-anchor="middle" class="t-b" data-t="7000">três perdidos seguidos: catraca parada</text>
           <text x="770" y="282" text-anchor="middle" class="t-sm" data-t="7000">alarme 90 s depois do último sinal</text>
         </svg>
+        </div>
         <div class="deck-note">Um heartbeat perdido isolado não dispara nada, porque o seguinte zera o contador. Três seguidos disparam o alarme, 90 s depois do último sinal.</div>
         <p class="deck-siglas"><span>Siglas e termos</span><abbr>heartbeat</abbr> sinal de vida que o dispositivo envia em intervalo fixo.</p>
       </div>
@@ -573,7 +588,9 @@
           <h2 class="deck-title">Dois relógios, três horas e o NTP</h2>
           <p class="deck-summary">A animação acelera três horas, e cada segundo da tela vale 15 minutos. O relógio A adianta 50 ppm, o B atrasa 50 ppm, e o NTP acerta os dois a cada hora.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 330" data-ciclo="0" data-anim="ntp" role="img" aria-label="Três relógios: a referência e dois relógios que se afastam 180 ms cada um em uma hora; o servidor NTP sincroniza a cada hora e a diferença volta a zero, desenhando um dente de serra até 360 ms">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 330" data-anim="ntp" role="img" aria-label="Três relógios: a referência e dois relógios que se afastam 180 ms cada um em uma hora; o servidor NTP sincroniza a cada hora e a diferença volta a zero, desenhando um dente de serra até 360 ms">
           <rect x="20" y="10" width="300" height="92" rx="2" class="cx"/>
           <text x="170" y="34" text-anchor="middle" class="t-sm">hora de referência</text>
           <text x="170" y="70" text-anchor="middle" class="t-xl" data-r="real">19:00:00.000</text>
@@ -602,6 +619,7 @@
           <text x="900" y="236" text-anchor="middle" class="t-b">servidor NTP</text>
           <g class="ntp-pulso"><line x1="860" y1="200" x2="560" y2="102"/><line x1="930" y1="200" x2="830" y2="102"/><text x="900" y="190" text-anchor="middle" class="t-sm">sincroniza</text></g>
         </svg>
+        </div>
         <div class="deck-note">Entre duas sincronizações, cada relógio se afasta até 180 ms da referência, e os dois ficam até 360 ms um do outro. O NTP zera a diferença, que volta a crescer: o gráfico vira um dente de serra.</div>
         <p class="deck-siglas"><span>Siglas e termos</span><abbr>NTP</abbr> Network Time Protocol: protocolo em que a máquina consulta servidores de hora pela rede e corrige o próprio relógio. <abbr>ppm</abbr> partes por milhão: 50 ppm é um erro de 50 µs a cada segundo, ou 180 ms por hora.</p>
       </div>
@@ -653,7 +671,9 @@
           <h2 class="deck-title">Carimbos de Lamport em movimento</h2>
           <p class="deck-summary">O check-in da SE-STO-014 vai ao broker e dele ao consumidor CEP. Cada recebimento leva o contador ao máximo entre o local e o da mensagem, mais 1.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 340" data-ciclo="10500" role="img" aria-label="Quatro processos em faixas; os carimbos de Lamport sobem de 1 a 5 seguindo as mensagens; outra catraca, sem mensagem trocada, também carimba 1">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 340" role="img" aria-label="Quatro processos em faixas; os carimbos de Lamport sobem de 1 a 5 seguindo as mensagens; outra catraca, sem mensagem trocada, também carimba 1">
           <text x="20" y="65" text-anchor="start" class="t-sm">catraca SE-STO-014</text>
           <line x1="200" y1="60" x2="980" y2="60" class="fio"/>
           <text x="20" y="155" text-anchor="start" class="t-sm">broker</text>
@@ -682,6 +702,7 @@
           <text x="470" y="325" text-anchor="start" class="t-sm" data-t="6200">outro check-in, sem mensagem trocada: também 1</text>
           <text x="600" y="290" text-anchor="middle" class="t-b" data-t="7200">carimbo igual não diz quem veio antes</text>
         </svg>
+        </div>
         <div class="deck-note">A catraca da SE-STO-020 não troca mensagem com ninguém e também carimba 1. Lamport garante que a causa tem carimbo menor e não diz nada sobre eventos sem relação.</div>
         <p class="deck-siglas"><span>Siglas e termos</span><abbr>CEP</abbr> Complex Event Processing: processamento de eventos complexos, o assunto do bloco 3.</p>
       </div>
@@ -715,7 +736,9 @@
           <h2 class="deck-title">Ordem de chegada e ordem do fato</h2>
           <p class="deck-summary">Três eventos da mesma academia entram na mesma partição, e o offset registra a ordem em que chegaram.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 315" data-ciclo="11000" role="img" aria-label="Três eventos entram na partição na ordem de chegada; abaixo, os mesmos eventos na ordem em que aconteceram">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 315" role="img" aria-label="Três eventos entram na partição na ordem de chegada; abaixo, os mesmos eventos na ordem em que aconteceram">
           <text x="20" y="26" text-anchor="start" class="t-b">partição da academia SE-STO-014, em ordem de chegada (offset)</text>
           <text x="48" y="52" text-anchor="start" class="t-sm">offset 0</text>
           <rect x="40" y="58" width="290" height="82" rx="2" class="cx-soft"/>
@@ -738,6 +761,7 @@
           <text x="692" y="256" text-anchor="start" data-t="7000">19:00:00.000</text>
           <text x="500" y="300" text-anchor="middle" class="t-sm" data-t="7600">o offset ordena a chegada; o fato pede janela, marca d'água e atraso permitido</text>
         </svg>
+        </div>
         <div class="deck-note">Na chegada, o check-in atrasado fica por último e a reserva aparece depois do check-in. Na ordem real, o atrasado é o primeiro e a reserva vem antes do check-in.</div>
         <p class="deck-siglas"><span>Siglas e termos</span><abbr>offset</abbr> posição do registro na partição. <abbr>marca d'água</abbr> estimativa de até que instante do tempo do evento o fluxo já chegou.</p>
       </div>
@@ -774,7 +798,9 @@
           <h2 class="deck-title">Cinco nós, duas falhas e depois três</h2>
           <p class="deck-summary">O líder envia cada gravação aos outros quatro nós e só confirma quando a maioria, três de cinco, respondeu.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 330" data-ciclo="13000" role="img" aria-label="Um líder e quatro nós: com cinco nós a gravação é confirmada; com dois fora ainda há maioria de três; com três fora a gravação é recusada">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 330" role="img" aria-label="Um líder e quatro nós: com cinco nós a gravação é confirmada; com dois fora ainda há maioria de três; com três fora a gravação é recusada">
           <circle cx="500" cy="70" r="34" class="cx"/>
           <text x="500" y="75" text-anchor="middle" class="t-b">líder</text>
           <line x1="500" y1="70" x2="190" y2="230" class="fio"/>
@@ -816,6 +842,7 @@
           <circle cx="380" cy="285" r="30" class="falha" data-t="8600" data-off="13000"/>
           <g class="xis" data-t="8600" data-off="13000"><line x1="369" y1="274" x2="391" y2="296"/><line x1="369" y1="296" x2="391" y2="274"/></g>
         </svg>
+        </div>
         <div class="deck-note">Com dois nós fora, o líder e mais dois ainda somam três, e a gravação segue. Com três fora, sobram dois, e o cluster recusa a gravação para não criar duas versões.</div>
       </div>
     </div>
@@ -850,7 +877,9 @@
           <h2 class="deck-title">Partição de rede: check-in e cobrança</h2>
           <p class="deck-summary">A rede entre a academia e o cluster é cortada. O check-in segue a escolha AP, e a cobrança segue a escolha CP.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 320" data-ciclo="13500" role="img" aria-label="A rede entre a academia e o cluster é cortada; os check-ins continuam e se acumulam no outbox; a cobrança espera; quando a rede volta o outbox é reenviado e a cobrança é feita uma vez">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 320" role="img" aria-label="A rede entre a academia e o cluster é cortada; os check-ins continuam e se acumulam no outbox; a cobrança espera; quando a rede volta o outbox é reenviado e a cobrança é feita uma vez">
           <rect x="20" y="20" width="320" height="290" rx="2" class="cx-soft"/>
           <text x="180" y="44" text-anchor="middle" class="t-b">academia SE-STO-014</text>
           <rect x="660" y="20" width="320" height="290" rx="2" class="cx-soft"/>
@@ -895,6 +924,7 @@
           <text x="820" y="256" text-anchor="middle" class="t-b" data-t="11200">cobrança feita uma vez</text>
           <text x="820" y="170" text-anchor="middle" class="t-sm" data-t="10200">6 eventos entregues, deduplicados</text>
         </svg>
+        </div>
         <div class="deck-note">Durante a partição, o aluno entra e o evento espera no outbox, enquanto a cobrança espera o resultado da anterior. Quando a rede volta, o outbox é reenviado, a duplicata sai pelo <code>event_id</code> e a cobrança acontece uma vez.</div>
         <p class="deck-siglas"><span>Siglas e termos</span><abbr>AP</abbr> disponível durante a partição. <abbr>CP</abbr> consistente durante a partição. <abbr>outbox</abbr> tabela local com os eventos ainda não enviados.</p>
       </div>
@@ -949,7 +979,9 @@
           <h2 class="deck-title">Duplicata com e sem inbox</h2>
           <p class="deck-summary">O consumidor processa a <code>cobranca_falhou</code> e7, cai antes de confirmar o offset e recebe e7 de novo.</p>
         </div>
-        <svg class="anim" viewBox="0 0 1000 320" data-ciclo="9500" role="img" aria-label="O mesmo evento e7 é entregue duas vezes; sem inbox a contagem chega a 2 e gera alerta falso; com inbox a segunda entrega é descartada">
+        <div class="anim-box">
+        <button type="button" class="anim-reiniciar" title="Roda a animação de novo desde o início">&#8635; Reiniciar animação</button>
+        <svg class="anim" viewBox="0 0 1000 320" role="img" aria-label="O mesmo evento e7 é entregue duas vezes; sem inbox a contagem chega a 2 e gera alerta falso; com inbox a segunda entrega é descartada">
           <rect x="20" y="120" width="200" height="90" rx="2" class="cx"/>
           <text x="120" y="146" text-anchor="middle" class="t-b">tatame.eventos</text>
           <text x="120" y="176" text-anchor="middle" class="t-sm">e7: cobranca_falhou</text>
@@ -976,6 +1008,7 @@
           <text x="700" y="272" text-anchor="start" class="t-b" data-t="5100">já existe: descartado</text>
           <text x="300" y="136" text-anchor="start" class="t-sm" data-t="2600">reinício antes de confirmar o offset: e7 é entregue de novo</text>
         </svg>
+        </div>
         <div class="deck-note">Sem inbox, a regra conta duas falhas e emite uma <code>cobranca_reincidente</code> falsa. Com inbox, o <code>event_id</code> e7 já está gravado, e a segunda entrega é descartada.</div>
         <p class="deck-siglas"><span>Siglas e termos</span><abbr>inbox</abbr> tabela do consumidor com os <code>event_id</code> já processados, gravada na mesma transação que o efeito. <abbr>offset</abbr> posição do registro na partição; confirmar o offset diz ao Kafka até onde o grupo processou.</p>
       </div>
@@ -2223,7 +2256,7 @@ measurement</code></pre>
   </script>
   <script>
     // Animações do Bloco 0: cada elemento com data-t aparece em t ms e some em data-off ms; o ciclo se repete
-    // enquanto o slide estiver ativo. data-anim="ntp" usa um quadro a quadro próprio (relógios e dente de serra).
+    // uma vez quando o slide abre; o botão Reiniciar animação roda de novo desde o início. data-anim="ntp" usa um quadro a quadro próprio (relógios e dente de serra).
     (() => {
       const reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const pad = (n, k) => String(n).padStart(k, "0");
@@ -2233,7 +2266,7 @@ measurement</code></pre>
         return pad(h, 2) + ":" + pad(m, 2) + ":" + pad(s, 2) + "." + pad(ms % 1000, 3);
       }
       function animNtp(svg) {
-        const H = 4000, TOTAL = 3 * H, PAUSA = 1500, RHO = 50e-6, BASE = 19 * 3600;
+        const H = 4000, TOTAL = 3 * H, RHO = 50e-6, BASE = 19 * 3600;
         const q = sel => svg.querySelector(sel);
         const real = q('[data-r="real"]'), a = q('[data-r="a"]'), b = q('[data-r="b"]');
         const aOff = q('[data-r="a-off"]'), bOff = q('[data-r="b-off"]'), dif = q('[data-r="dif"]');
@@ -2257,13 +2290,12 @@ measurement</code></pre>
           pulso.classList.toggle("on", hAtual > 0 && desde < 300);
         }
         if (reduz) { desenhar(TOTAL); return () => {}; }
-        const quadro = agora => { desenhar(Math.min((agora - ini) % (TOTAL + PAUSA), TOTAL)); raf = requestAnimationFrame(quadro); };
+        const quadro = agora => { const el = Math.min(agora - ini, TOTAL); desenhar(el); if (el < TOTAL) raf = requestAnimationFrame(quadro); };
         raf = requestAnimationFrame(quadro);
         return () => cancelAnimationFrame(raf);
       }
       function animTempo(svg) {
         const els = [...svg.querySelectorAll("[data-t]")];
-        const ciclo = +svg.dataset.ciclo || 10000;
         let timers = [];
         if (reduz) { els.forEach(e => { if (!e.dataset.off) e.classList.add("on"); }); return () => {}; }
         function volta() {
@@ -2277,21 +2309,23 @@ measurement</code></pre>
             timers.push(setTimeout(() => e.classList.add("on"), +e.dataset.t));
             if (e.dataset.off) timers.push(setTimeout(() => e.classList.remove("on"), +e.dataset.off));
           });
-          timers.push(setTimeout(volta, ciclo));
         }
         volta();
         return () => timers.forEach(clearTimeout);
       }
+      const iniciar = svg => {
+        if (svg._parar) svg._parar();
+        svg._parar = svg.dataset.anim === "ntp" ? animNtp(svg) : animTempo(svg);
+      };
+      const parar = svg => { if (svg._parar) svg._parar(); svg._parar = null; };
       document.querySelectorAll(".slide").forEach(slide => {
         const svgs = slide.querySelectorAll("svg.anim");
         if (!svgs.length) return;
-        let paradas = [];
-        const atualizar = () => {
-          paradas.forEach(f => f());
-          paradas = [];
-          if (!slide.classList.contains("active")) return;
-          svgs.forEach(svg => paradas.push(svg.dataset.anim === "ntp" ? animNtp(svg) : animTempo(svg)));
-        };
+        svgs.forEach(svg => {
+          const botao = svg.parentElement.querySelector(".anim-reiniciar");
+          if (botao) botao.addEventListener("click", () => { iniciar(svg); botao.blur(); });
+        });
+        const atualizar = () => svgs.forEach(svg => slide.classList.contains("active") ? iniciar(svg) : parar(svg));
         let ativo = slide.classList.contains("active");
         new MutationObserver(() => {
           const agora = slide.classList.contains("active");
