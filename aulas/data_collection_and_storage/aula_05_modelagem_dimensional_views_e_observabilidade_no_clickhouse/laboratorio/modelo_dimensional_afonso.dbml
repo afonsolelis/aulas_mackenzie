@@ -1,0 +1,184 @@
+// Modelo dimensional do banco `afonso` no ClickHouse da turma (dataset Olist).
+// Gerado a partir de system.tables e system.columns em 07/11/2026.
+// Cole em https://dbdiagram.io para ver o diagrama.
+//
+// O ClickHouse não tem chave estrangeira: as Refs abaixo documentam as junções
+// usadas nas views (v_fato_*), não restrições do banco. As tabelas são
+// ReplacingMergeTree (versão em `versao`), então leia com FINAL.
+// Chaves de data são UInt32 no formato AAAAMMDD; 0 aponta para o membro
+// "sem data" de dim_data (data ausente, como pedido ainda não entregue).
+
+Project olist_afonso {
+  database_type: 'ClickHouse'
+  Note: 'Estrela com 4 fatos (pedido, item, pagamento, avaliação) e 6 dimensões. Origem: afonso.db_ingestion, via materialized views mv_*.'
+}
+
+// ---------------------------------------------------------------- dimensões
+
+Table dim_data {
+  data_key uint32 [pk, note: 'AAAAMMDD; 0 = sem data']
+  data date
+  ano uint16
+  trimestre uint8
+  mes uint8
+  nome_mes varchar
+  ano_mes varchar [note: 'AAAA-MM']
+  dia uint8
+  dia_semana uint8
+  nome_dia varchar
+  fim_de_semana uint8
+  Note: 'ReplacingMergeTree. 1462 linhas, de 2016 a 2019, mais o membro 0.'
+}
+
+Table dim_cliente {
+  customer_id varchar [pk, note: 'id do cliente no pedido']
+  customer_unique_id varchar [note: 'pessoa; repete entre pedidos']
+  cep_prefixo varchar
+  cidade varchar
+  uf varchar
+  versao uint64
+  Note: 'ReplacingMergeTree. 99441 linhas.'
+}
+
+Table dim_vendedor {
+  seller_id varchar [pk]
+  cep_prefixo varchar
+  cidade varchar
+  uf varchar
+  versao uint64
+  Note: 'ReplacingMergeTree. 3095 linhas.'
+}
+
+Table dim_produto {
+  product_id varchar [pk]
+  categoria varchar [note: 'sem_categoria quando vazio na origem']
+  tamanho_nome uint16 [null]
+  tamanho_descricao uint32 [null]
+  qtd_fotos uint8 [null]
+  peso_g uint32 [null]
+  comprimento_cm uint16 [null]
+  altura_cm uint16 [null]
+  largura_cm uint16 [null]
+  volume_cm3 uint32 [null]
+  versao uint64
+  Note: 'ReplacingMergeTree. 32951 linhas. v_dim_produto junta a tradução de dim_categoria.'
+}
+
+Table dim_categoria {
+  categoria varchar [pk]
+  categoria_en varchar
+  versao uint64
+  Note: 'ReplacingMergeTree. 71 linhas. 3 categorias de dim_produto (sem_categoria, pc_gamer, portateis_cozinha_e_preparadores_de_alimentos) não têm tradução; a view usa o nome em português.'
+}
+
+Table dim_cep {
+  cep_prefixo varchar [pk, note: '5 primeiros dígitos do CEP']
+  cidade varchar [note: 'SimpleAggregateFunction(any)']
+  uf varchar [note: 'SimpleAggregateFunction(any)']
+  soma_lat float64 [note: 'SimpleAggregateFunction(sum)']
+  soma_lng float64 [note: 'SimpleAggregateFunction(sum)']
+  qtd_pontos uint64 [note: 'SimpleAggregateFunction(sum)']
+  Note: 'AggregatingMergeTree. 19038 linhas. v_dim_cep entrega latitude e longitude médias.'
+}
+
+// ---------------------------------------------------------------- fatos
+
+Table fato_pedido {
+  order_id varchar [pk]
+  customer_id varchar
+  status varchar
+  dt_compra datetime
+  dt_aprovacao datetime [null]
+  dt_envio datetime [null]
+  dt_entrega datetime [null]
+  dt_prevista datetime [null]
+  data_compra_key uint32
+  data_aprovacao_key uint32
+  data_envio_key uint32
+  data_entrega_key uint32
+  data_prevista_key uint32
+  lt_aprovacao_dias float64 [null, note: 'compra -> aprovação']
+  lt_separacao_dias float64 [null, note: 'aprovação -> entrega à transportadora']
+  lt_transporte_dias float64 [null, note: 'transportadora -> cliente']
+  lt_total_dias float64 [null, note: 'compra -> cliente (lead time do pedido)']
+  prazo_prometido_dias int32 [null, note: 'compra -> data prevista, em dias corridos']
+  atraso_dias int32 [null, note: 'entrega - prevista (positivo = atrasado)']
+  entregue uint8
+  no_prazo uint8 [null]
+  versao uint64
+  Note: 'Grão: um pedido. ReplacingMergeTree. 99441 linhas.'
+}
+
+Table fato_item_pedido {
+  order_id varchar
+  order_item_id uint16
+  product_id varchar
+  seller_id varchar
+  dt_limite_envio datetime [null]
+  data_limite_envio_key uint32
+  preco decimal(12,2)
+  frete decimal(12,2)
+  valor_total decimal(12,2)
+  versao uint64
+  indexes {
+    (order_id, order_item_id) [pk]
+  }
+  Note: 'Grão: um item de um pedido. ReplacingMergeTree. 112650 linhas.'
+}
+
+Table fato_pagamento {
+  order_id varchar
+  sequencial uint16
+  tipo_pagamento varchar
+  parcelas uint16
+  valor decimal(12,2)
+  versao uint64
+  indexes {
+    (order_id, sequencial) [pk]
+  }
+  Note: 'Grão: uma forma de pagamento de um pedido. ReplacingMergeTree. 103886 linhas.'
+}
+
+Table fato_avaliacao {
+  review_id varchar
+  order_id varchar
+  nota uint8
+  titulo varchar
+  comentario varchar
+  tem_comentario uint8
+  dt_criacao datetime [null]
+  dt_resposta datetime [null]
+  data_criacao_key uint32
+  horas_resposta float64 [null]
+  versao uint64
+  indexes {
+    (order_id, review_id) [pk]
+  }
+  Note: 'Grão: uma avaliação de um pedido. ReplacingMergeTree. 99224 linhas.'
+}
+
+// ---------------------------------------------------------------- junções
+
+// fato_pedido
+Ref: fato_pedido.customer_id > dim_cliente.customer_id
+Ref: fato_pedido.data_compra_key > dim_data.data_key
+Ref: fato_pedido.data_aprovacao_key > dim_data.data_key
+Ref: fato_pedido.data_envio_key > dim_data.data_key
+Ref: fato_pedido.data_entrega_key > dim_data.data_key
+Ref: fato_pedido.data_prevista_key > dim_data.data_key
+
+// fato_item_pedido
+Ref: fato_item_pedido.order_id > fato_pedido.order_id
+Ref: fato_item_pedido.product_id > dim_produto.product_id
+Ref: fato_item_pedido.seller_id > dim_vendedor.seller_id
+Ref: fato_item_pedido.data_limite_envio_key > dim_data.data_key
+
+// fato_pagamento e fato_avaliacao
+Ref: fato_pagamento.order_id > fato_pedido.order_id
+Ref: fato_avaliacao.order_id > fato_pedido.order_id
+Ref: fato_avaliacao.data_criacao_key > dim_data.data_key
+
+// dimensões em floco (snowflake)
+Ref: dim_produto.categoria > dim_categoria.categoria
+Ref: dim_cliente.cep_prefixo > dim_cep.cep_prefixo
+Ref: dim_vendedor.cep_prefixo > dim_cep.cep_prefixo
