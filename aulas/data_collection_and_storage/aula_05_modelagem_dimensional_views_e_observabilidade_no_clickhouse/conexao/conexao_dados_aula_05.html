@@ -109,7 +109,69 @@ print(df)</code></pre></div>
       </section>
 
       <section class="content-block">
-        <h2>2. RustFS da turma (object storage S3)</h2>
+        <h2>2. Primeiros comandos no ClickHouse</h2>
+        <p>No ClickHouse, schema e banco são a mesma coisa: o que outros bancos chamam de schema aqui se chama database. O usuário <code>turma</code> enxerga dois bancos, <code>mackenzie</code> (o da aula) e <code>system</code> (o catálogo do servidor). O <code>information_schema</code> não está liberado para a turma; para listar tabelas e colunas, use <code>system.tables</code> e <code>system.columns</code>.</p>
+
+        <h3>Bancos (schemas)</h3>
+        <div class="copiavel"><pre><code>SHOW DATABASES;
+
+SELECT name, engine
+FROM system.databases;</code></pre></div>
+
+        <h3>Entrar no banco da aula</h3>
+        <div class="copiavel"><pre><code>USE mackenzie;
+SELECT currentDatabase();      -- mackenzie</code></pre></div>
+        <p>O <code>USE</code> vale para a sessão. No <code>rodar_sql.py</code>, que manda todos os comandos na mesma sessão, ele funciona dentro do mesmo arquivo ou do mesmo <code>-q</code> (<code>python rodar_sql.py -q "USE mackenzie; SHOW TABLES"</code>), e também funciona no DBeaver e no clickhouse-connect. No console <code>/play</code> e no curl, cada consulta é independente e começa no banco <code>default</code>; escreva o nome completo, <code>mackenzie.tabela</code>, ou escolha o banco na lista lateral do <code>/play</code>.</p>
+
+        <h3>Tabelas e views do banco</h3>
+        <div class="copiavel"><pre><code>SHOW TABLES FROM mackenzie;
+SHOW TABLES FROM mackenzie LIKE 'g01_%';     -- só os objetos do grupo 01
+
+SELECT name, engine, total_rows
+FROM system.tables
+WHERE database = 'mackenzie'
+ORDER BY name;</code></pre></div>
+        <p>A coluna <code>engine</code> diz o que cada objeto é: <code>MergeTree</code> e <code>ReplacingMergeTree</code> são tabelas, <code>MaterializedView</code> é view materializada e <code>View</code> é view comum.</p>
+
+        <h3>Colunas e tipos (o esquema das tabelas)</h3>
+        <div class="copiavel"><pre><code>DESCRIBE TABLE mackenzie.db_ingestion;
+
+SHOW CREATE TABLE mackenzie.db_ingestion;    -- o DDL completo, com ENGINE, PARTITION BY e ORDER BY
+
+SELECT table, name AS coluna, type AS tipo
+FROM system.columns
+WHERE database = 'mackenzie'
+ORDER BY table, position;</code></pre></div>
+
+        <h3>O esquema de dentro da coluna JSON</h3>
+        <p>A <code>db_ingestion</code> tem só três colunas, porque o conteúdo de cada domínio está dentro de <code>data_json</code>. Esta consulta mostra os campos e os tipos que o ClickHouse encontrou no JSON de cada <code>data_tag</code>:</p>
+        <div class="copiavel"><pre><code>SELECT
+    data_tag,
+    arrayJoin(JSONAllPathsWithTypes(data_json)) AS campo_e_tipo,
+    count() AS linhas
+FROM mackenzie.db_ingestion
+GROUP BY data_tag, campo_e_tipo
+ORDER BY data_tag, campo_e_tipo;</code></pre></div>
+        <p>Resultado esperado: livros com 9 campos (<code>upc</code>, <code>titulo</code>, <code>preco_gbp</code>, <code>qtd_estoque</code> ...), ptax com 7 (<code>moeda</code>, <code>cotacaoCompra</code>, <code>cotacaoVenda</code> ...) e telemetria com 3 (<code>arquivo</code>, <code>linha</code>, <code>numero_linha</code>).</p>
+
+        <h3>Olhar os dados</h3>
+        <div class="copiavel"><pre><code>SELECT data_tag, count() AS linhas
+FROM mackenzie.db_ingestion
+GROUP BY data_tag
+ORDER BY data_tag;                                -- livros 1000, ptax 40, telemetria 31265
+
+SELECT data_tag, toJSONString(data_json) AS exemplo
+FROM mackenzie.db_ingestion
+LIMIT 1 BY data_tag;                              -- uma linha de cada domínio
+
+SELECT data_json.titulo, data_json.preco_gbp
+FROM mackenzie.db_ingestion
+WHERE data_tag = 'livros'
+LIMIT 5;                                          -- campo do JSON com ponto</code></pre></div>
+      </section>
+
+      <section class="content-block">
+        <h2>3. RustFS da turma (object storage S3)</h2>
         <table>
           <thead><tr><th>Item</th><th>Valor</th></tr></thead>
           <tbody>
@@ -161,7 +223,7 @@ SELECT filename, content FROM read_text('s3://pouso/CAM-0451_20261017T0900.txt')
       </section>
 
       <section class="content-block">
-        <h2>3. Se não conectar</h2>
+        <h2>4. Se não conectar</h2>
         <table>
           <thead><tr><th>Sintoma</th><th>Causa provável</th></tr></thead>
           <tbody>
