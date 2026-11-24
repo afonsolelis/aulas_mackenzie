@@ -6,6 +6,18 @@
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
   <title>Aula 07 · Qualidade e Testes de Dados com pytest</title>
   <link href="../../../../assets/slides.css" rel="stylesheet">
+  <style>
+    /* Café: cronômetro */
+    .cafe { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .cafe-relogio { width: 100%; max-width: 760px; padding: 18px 0; border: 2px solid var(--deck-text); border-radius: 2px; background: var(--deck-panel); color: var(--deck-text); font-family: var(--font-mono); font-size: clamp(4.5em, 13vw, 9.5em); font-weight: 700; line-height: 1; text-align: center; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+    .cafe-relogio.is-fim { background: var(--deck-text); color: var(--deck-panel); }
+    .cafe-estado { margin: 0; font-family: var(--font-mono); font-size: 0.9em; color: var(--deck-muted); min-height: 1.4em; }
+    .cafe-relogio.is-fim + .cafe-estado { color: var(--deck-text); font-weight: 700; }
+    .cafe-botoes { display: flex; gap: 12px; justify-content: center; }
+    .cafe-botao { min-width: 150px; padding: 10px 22px; border: 2px solid var(--deck-text); border-radius: 2px; background: var(--deck-text); color: var(--deck-panel); font: 600 0.82em/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+    .cafe-botao.is-sec { background: var(--deck-panel); color: var(--deck-text); }
+    .cafe-botao:disabled { opacity: 0.35; cursor: default; }
+  </style>
 </head>
 <body>
   <div class="slide-container">
@@ -33,8 +45,8 @@
           <p class="deck-summary">Cada bloco de teoria termina numa estação da bancada. As duas metades somam 3h40 de aula, ou quatro horas-aula de 55 minutos.</p>
         </div>
         <div class="deck-grid">
-          <article class="deck-card"><h3>8h30 &ndash; 10h00</h3><ul><li>8h30 &middot; Abertura e estação 0 (aquecimento)</li><li>8h45 &middot; Bloco 1: qualidade de dados</li><li>9h15 &middot; Bloco 2: caixa preta no contrato</li><li>9h35 &middot; Estação 1: contrato do sensor</li><li>10h00 &middot; Intervalo</li></ul></article>
-          <article class="deck-card"><h3>10h15 &ndash; 12h10</h3><ul><li>10h15 &middot; Bloco 3: TDD e relógio injetado</li><li>10h35 &middot; Estações 2 e 3: limpeza e relógio</li><li>11h00 &middot; Bloco 4: dublês e integração</li><li>11h15 &middot; Estação 4: coletor da PTAX</li><li>11h35 &middot; Bloco 5 e estação 5: testes sobre o lote</li><li>12h00 &middot; Fechamento</li></ul></article>
+          <article class="deck-card"><h3>8h30 &ndash; 10h00</h3><ul><li>8h30 &middot; Abertura e estação 0 (aquecimento)</li><li>8h45 &middot; Bloco 1: qualidade de dados</li><li>9h15 &middot; Bloco 2: caixa preta no contrato</li><li>9h35 &middot; Estação 1: contrato do sensor</li><li>10h00 &middot; Intervalo de 20 minutos</li></ul></article>
+          <article class="deck-card"><h3>10h20 &ndash; 12h10</h3><ul><li>10h20 &middot; Bloco 3: TDD e relógio injetado</li><li>10h40 &middot; Estações 2 e 3: limpeza e relógio</li><li>11h05 &middot; Bloco 4: dublês e integração</li><li>11h20 &middot; Estação 4: coletor da PTAX</li><li>11h35 &middot; Bloco 5 e estação 5: testes sobre o lote</li><li>12h00 &middot; Fechamento</li></ul></article>
         </div>
       </div>
     </div>
@@ -392,11 +404,19 @@ def test_particoes_e_limites(alteracoes, esperado):
 
     <!-- 23. Intervalo -->
     <div class="slide">
-      <div class="deck-shell">
+      <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">10h00 &ndash; 10h15</span>
-          <h2 class="deck-title">Intervalo</h2>
-          <p class="deck-summary">Na volta: TDD na limpeza dos livros e o teste que quebra no sábado. Deixe a bancada aberta.</p>
+          <span class="deck-kicker">10h00 &middot; Intervalo</span>
+          <h2 class="deck-title">Intervalo, 20 minutos</h2>
+          <p class="deck-summary">Voltamos às 10h20 com TDD na limpeza dos livros e o teste que quebra no sábado. Deixe a bancada aberta: o que você escreveu fica salvo no navegador.</p>
+        </div>
+        <div class="cafe">
+          <div class="cafe-relogio" id="cafe-relogio" role="timer">20:00</div>
+          <p class="cafe-estado" id="cafe-estado" aria-live="polite">Pronto para começar.</p>
+          <div class="cafe-botoes">
+            <button type="button" class="cafe-botao" id="cafe-iniciar" tabindex="-1">Iniciar</button>
+            <button type="button" class="cafe-botao is-sec" id="cafe-reiniciar" tabindex="-1">Reiniciar</button>
+          </div>
         </div>
       </div>
     </div>
@@ -536,7 +556,7 @@ def test_particoes_e_limites(alteracoes, esperado):
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Estações 2 e 3 &middot; 10h35 &ndash; 11h00</span>
+          <span class="deck-kicker">Estações 2 e 3 &middot; 10h40 &ndash; 11h05</span>
           <h2 class="deck-title">Limpeza em TDD e relógio injetado</h2>
         </div>
         <div class="deck-grid">
@@ -655,7 +675,7 @@ pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
     <div class="slide">
       <div class="deck-shell is-dense">
         <div>
-          <span class="deck-kicker">Estação 4 &middot; 11h15 &ndash; 11h35</span>
+          <span class="deck-kicker">Estação 4 &middot; 11h20 &ndash; 11h35</span>
           <h2 class="deck-title">Coletor da PTAX: a missão</h2>
         </div>
         <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
@@ -874,6 +894,98 @@ pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
     // Carrega a bancada escondida já na abertura, para o Python estar pronto na estação 0.
     simFrame.src = SIM_URL + "#ex0_aquecimento";
     showSlide(0);
+  </script>
+  <script>
+    /* Café: cronômetro de 20 minutos calculado pelo relógio (Date.now), não por contagem de ticks.
+       Os botões não recebem foco (tabindex -1 e mousedown sem foco), então espaço e setas seguem
+       com a navegação dos slides. */
+    (function () {
+      const DURACAO_MS = 20 * 60 * 1000;
+      const relogio = document.getElementById("cafe-relogio");
+      const estado = document.getElementById("cafe-estado");
+      const iniciar = document.getElementById("cafe-iniciar");
+      const reiniciar = document.getElementById("cafe-reiniciar");
+      if (!relogio || !estado || !iniciar || !reiniciar) return;
+
+      let restanteMs = DURACAO_MS;   // tempo que falta quando parado
+      let fimEm = null;              // instante (Date.now) em que acaba, quando rodando
+      let intervalo = null;
+
+      function formatar(ms) {
+        const s = Math.ceil(ms / 1000);
+        return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+      }
+
+      function pararIntervalo() {
+        if (intervalo !== null) { clearInterval(intervalo); intervalo = null; }
+      }
+
+      function terminar() {
+        pararIntervalo();
+        fimEm = null;
+        restanteMs = 0;
+        relogio.textContent = "00:00";
+        relogio.classList.add("is-fim");
+        estado.textContent = "Fim do intervalo. Hora do bloco 3.";
+        iniciar.textContent = "Iniciar";
+        iniciar.disabled = true;
+      }
+
+      function desenhar() {
+        if (fimEm === null) { relogio.textContent = formatar(restanteMs); return; }
+        const ms = Math.max(0, fimEm - Date.now());
+        if (ms === 0) { terminar(); return; }
+        relogio.textContent = formatar(ms);
+      }
+
+      function comecar() {
+        if (restanteMs <= 0) return;
+        fimEm = Date.now() + restanteMs;
+        pararIntervalo();
+        intervalo = setInterval(desenhar, 250);
+        iniciar.textContent = "Pausar";
+        estado.textContent = "Em andamento.";
+        desenhar();
+      }
+
+      function pausar() {
+        restanteMs = Math.max(0, fimEm - Date.now());
+        fimEm = null;
+        pararIntervalo();
+        if (restanteMs === 0) { terminar(); return; }
+        iniciar.textContent = "Continuar";
+        estado.textContent = "Pausado.";
+        desenhar();
+      }
+
+      function zerar() {
+        pararIntervalo();
+        fimEm = null;
+        restanteMs = DURACAO_MS;
+        relogio.classList.remove("is-fim");
+        iniciar.disabled = false;
+        iniciar.textContent = "Iniciar";
+        estado.textContent = "Pronto para começar.";
+        desenhar();
+      }
+
+      [iniciar, reiniciar].forEach(botao => {
+        botao.addEventListener("mousedown", event => event.preventDefault());
+      });
+      iniciar.addEventListener("click", event => {
+        event.stopPropagation();
+        if (fimEm === null) comecar(); else pausar();
+        iniciar.blur();
+      });
+      reiniciar.addEventListener("click", event => {
+        event.stopPropagation();
+        zerar();
+        reiniciar.blur();
+      });
+      document.addEventListener("visibilitychange", () => { if (!document.hidden) desenhar(); });
+
+      desenhar();
+    })();
   </script>
 </body>
 </html>
