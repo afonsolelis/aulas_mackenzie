@@ -159,7 +159,7 @@
         <div>
           <span class="deck-kicker">Bloco 1 &middot; Exemplo numérico 1</span>
           <h2 class="deck-title">O mesmo lote com e sem testes</h2>
-          <p class="deck-summary">Lote de 22 linhas da bronze: os 20 livros da primeira página de books.toscrape.com, coletados em 24/11/2026, mais quatro defeitos plantados.</p>
+          <p class="deck-summary">Lote de 22 linhas da bronze: os 20 livros da primeira página de books.toscrape.com, coletados em 24/11/2026, com defeitos plantados: duas linhas repetidas, um preço vazio, uma nota vazia e uma categoria com espaço.</p>
         </div>
         <table class="deck-table">
           <thead><tr><th>Medida</th><th>Painel sem testes</th><th>Pipeline testado</th></tr></thead>
@@ -220,7 +220,7 @@
         <ol class="deck-steps">
           <li>A ISO/IEC 25010 avalia o software; a ISO/IEC 25012 avalia o dado. O projeto precisa das duas.</li>
           <li>Defeito de dado raramente gera exceção: ele atravessa as camadas e aparece na agregação.</li>
-          <li>No lote da aula, quatro defeitos plantados mudaram o preço médio de Poetry em 6,1 % sem nenhum erro de execução.</li>
+          <li>No lote da aula, os defeitos plantados mudaram o preço médio de Poetry em 6,1 % sem nenhum erro de execução.</li>
           <li>Teste de unidade, contrato e integração protegem o código; teste sobre o dado protege cada lote.</li>
         </ol>
       </div>
@@ -330,7 +330,7 @@
         <div>
           <span class="deck-kicker">Bloco 2 &middot; Exemplo numérico 2</span>
           <h2 class="deck-title">Três suítes contra nove mutantes</h2>
-          <p class="deck-summary">Medição do professor em 24/11/2026 com o motor da bancada (pytest 9.2, Pydantic 2.14) sobre o contrato do sensor.</p>
+          <p class="deck-summary">Medição do professor em 24/11/2026 com o motor da bancada no terminal (pytest 9.2, Pydantic 2.14) sobre o contrato do sensor.</p>
         </div>
         <table class="deck-table">
           <thead><tr><th>Suíte</th><th>Testes</th><th>Cobertura de linhas e desvios</th><th>Mutantes mortos</th></tr></thead>
@@ -635,7 +635,7 @@ grep -RniE "authorization|token|api[_-]?key" tests/cassettes   # antes do commit
             <tr><td>os 9 testes de unidade, juntos</td><td>0,11 s</td></tr>
           </tbody>
         </table>
-        <div class="deck-note">A integração custa dezenas de vezes mais tempo por teste. Por isso ela fica com poucos testes, marcados com <code>@pytest.mark.integracao</code>, num job separado do CI. Sem Docker, o teste aparece como <code>SKIPPED</code> com o motivo.</div>
+        <div class="deck-note">Só a subida do MinIO custa cerca de 130 vezes o tempo de um teste de unidade (1,59 s contra 0,11 s &divide; 9 = 0,012 s). Por isso ela fica com poucos testes, marcados com <code>@pytest.mark.integracao</code>, num job separado do CI. Sem Docker, o teste aparece como <code>SKIPPED</code> com o motivo.</div>
       </div>
     </div>
 
@@ -647,8 +647,8 @@ grep -RniE "authorization|token|api[_-]?key" tests/cassettes   # antes do commit
           <h2 class="deck-title">MinIO de verdade dentro do teste</h2>
           <p class="deck-summary">O professor roda no Codespace o exemplo do <a href="../laboratorio/README.md">laboratório da semana</a>. A bancada não sobe contêiner porque o navegador não tem Docker.</p>
         </div>
-<pre><code>cp -r laboratorio/exemplo /tmp/exemplo_aula07 && cd /tmp/exemplo_aula07
-python -m pip install -r ../requirements-dev.txt
+<pre><code>python -m pip install -r laboratorio/requirements-dev.txt
+cp -r laboratorio/exemplo /tmp/exemplo_aula07 && cd /tmp/exemplo_aula07
 pytest -m "not integracao" -q     # unidade: sem Docker, sem rede
 pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
         <div class="deck-note">Observe três coisas na saída: o tempo de subida do contêiner em <code>--durations</code>, a porta aleatória que o Testcontainers escolheu e o contêiner sendo removido no fim.</div>
@@ -828,7 +828,7 @@ pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
     // Um só iframe para todas as estações: o Python carrega uma vez e o que
     // a turma escreve fica no localStorage da bancada.
     const simFrame = document.getElementById("sim-frame");
-    const SIM_URL = "../bancada/bancada_aula_07.html?embed=1&v=1";
+    const SIM_URL = "../bancada/bancada_aula_07.html?embed=1&v=2";
 
     function posicionarBancada(slide) {
       const topo = slide.querySelector(".slide-sim-head").getBoundingClientRect().bottom;

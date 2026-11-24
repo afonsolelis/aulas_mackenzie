@@ -6,7 +6,7 @@
   'use strict';
 
   const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.27.7/full/';
-  const VERSAO = '1';
+  const VERSAO = '2';
   const CHAVE = 'bancada_aula07_v1';
   const EMBED = new URLSearchParams(location.search).has('embed');
 
@@ -74,7 +74,7 @@
     {
       id: 'ex5_lote', n: 5, aba: 'Lote',
       titulo: 'Testes sobre o dado antes de publicar a gold',
-      resumo: 'O lote tem 22 linhas reais da bronze de livros com quatro defeitos plantados: dois livros coletados duas vezes, um preço vazio, uma nota vazia e a categoria "Poetry " com espaço no fim. O pipeline é somente leitura. Os testes rodam sobre a saída dele e decidem se o lote publica.',
+      resumo: 'O lote tem 22 linhas reais da bronze de livros com defeitos plantados: dois livros coletados duas vezes, um preço vazio, uma nota vazia e a categoria "Poetry " com espaço no fim. O pipeline é somente leitura. Os testes rodam sobre a saída dele e decidem se o lote publica.',
       passos: [
         'Rode o pipeline pelos testes e examine o que sai na silver, na quarentena, nas duplicadas e na gold.',
         'Escreva um teste por dimensão de qualidade: unicidade do UPC, reconciliação de contagens, motivo na quarentena, categoria sem espaço e gold recalculada a partir da silver.',
