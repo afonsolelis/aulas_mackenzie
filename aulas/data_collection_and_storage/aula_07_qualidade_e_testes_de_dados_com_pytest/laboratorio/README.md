@@ -2,7 +2,7 @@
 
 Data Collection and Storage · MBA Engenharia de Dados · 28/11/2026 · 8h30 – 12h10
 
-Laboratório opcional para a semana depois da aula de 28/11/2026. Em sala, a Aula 07 usa o simulador de `../simulador/simulador_aula_07.html`.
+Laboratório opcional para a semana depois da aula de 28/11/2026. Em sala, a Aula 07 usa a bancada de `../bancada/bancada_aula_07.html`, que roda pytest no navegador; este laboratório leva as mesmas técnicas para o código real do projeto, com Docker.
 
 Roteiro completo: `roteiro_pydantic_e_testes.html`
 
@@ -41,7 +41,7 @@ Se o segundo comando falhar, os testes de integração serão pulados. Resolva a
 ```bash
 cd /workspaces/<repositorio-do-grupo>
 mkdir -p aula_07_validacao_testes/{docs/adr,docs/contratos,specs,src,tests/unit,tests/contract,tests/integration}
-LAB=<caminho>/aulas_mackenzie/aulas/data_collection_and_storage/aula_07_streaming_com_clickhouse_para_ia_e_testes_integrados/laboratorio
+LAB=<caminho>/aulas_mackenzie/aulas/data_collection_and_storage/aula_07_qualidade_e_testes_de_dados_com_pytest/laboratorio
 cp $LAB/requirements-dev.txt $LAB/AGENTS.md aula_07_validacao_testes/
 cd aula_07_validacao_testes
 python3 -m venv .venv

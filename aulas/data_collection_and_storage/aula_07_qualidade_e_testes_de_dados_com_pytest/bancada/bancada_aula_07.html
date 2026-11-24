@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Bancada de testes da Aula 07</title>
+  <link rel="stylesheet" href="../../../../assets/simulador.css">
+  <style>
+    .bc-status { font-family: var(--sim-mono); font-size: .76em; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .bc-status i { width: 9px; height: 9px; border: 1px solid var(--sim-text); display: inline-block; }
+    .bc-status.is-pronto i { background: var(--sim-text); }
+    .bc-status.is-erro { font-weight: 700; }
+    .bc-arquivos { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 1px solid var(--sim-text); margin: 0 0 8px; }
+    .sim .bc-arquivos button { border: 1px solid var(--sim-line); border-bottom: 0; border-radius: 3px 3px 0 0; font-weight: 500; padding: 5px 10px; font-size: .74em; }
+    .sim .bc-arquivos button.is-active { background: var(--sim-text); color: #fff; border-color: var(--sim-text); }
+    .bc-arquivos button small { margin-left: 6px; opacity: .7; font-size: .9em; }
+    .sim textarea.bc-editor {
+      min-height: 420px; font-size: .8em; line-height: 1.55; tab-size: 4; white-space: pre; overflow: auto;
+      background: #fff; border: 1px solid var(--sim-line); resize: vertical;
+    }
+    .sim textarea.bc-editor[readonly] { background: var(--sim-surface); color: #2a2a2a; }
+    .bc-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; align-items: center; }
+    .bc-acoes .sim-hint { margin: 0 0 0 auto; font-family: var(--sim-mono); font-size: .72em; }
+    .bc-saida { min-height: 200px; max-height: 360px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
+    .bc-placar { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0 0 10px; }
+    .bc-placar div b { display: block; font-family: var(--sim-mono); font-size: 1.3em; }
+    .bc-placar div span { font-family: var(--sim-mono); font-size: .66em; text-transform: uppercase; letter-spacing: .08em; color: var(--sim-muted); }
+    .sim-code.bc-falhou { outline: 3px solid var(--sim-text); outline-offset: 3px; border-left: 10px solid #8a8a85; }
+    .sim-embed .bc-status { display: none; }
+    .sim-embed .sim-top-row { padding: 4px 16px; }
+    .sim-embed .sim-controls button { padding: 4px 9px; }
+    .bc-mutantes { list-style: none; margin: 0; padding: 0; }
+    .bc-mutantes li { display: grid; grid-template-columns: 34px 78px 1fr; gap: 8px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--sim-line-soft); font-size: .86em; }
+    .bc-mutantes li:last-child { border-bottom: 0; }
+    .bc-mutantes code { font-family: var(--sim-mono); font-weight: 700; }
+    .bc-passos { margin: 0; padding-left: 20px; font-size: .9em; }
+    .bc-passos li { margin-bottom: 6px; }
+    .bc-carregando { font-family: var(--sim-mono); font-size: .8em; color: var(--sim-muted); }
+    .sim-embed .bc-guia { display: none; }
+    .sim-embed .bc-col-editor { grid-column: span 7; }
+    .sim-embed .bc-col-saida { grid-column: span 5; }
+    .sim-embed textarea.bc-editor { min-height: 300px; }
+    @media (max-width: 980px) { .sim-embed .bc-col-editor, .sim-embed .bc-col-saida { grid-column: span 12; } }
+  </style>
+</head>
+<body class="sim">
+
+  <header class="sim-top">
+    <div class="sim-top-row">
+      <div class="sim-brand">
+        <span>Data Collection and Storage &middot; Aula 07 &middot; Bancada</span>
+        <strong>Testes de dados com pytest, no navegador</strong>
+      </div>
+      <div class="bc-status" id="status" role="status"><i></i><span id="status-texto">Python ainda não carregado</span></div>
+      <div class="sim-controls">
+        <button id="btn-exportar" title="Baixa um Markdown com os testes e os placares de cada estação">Exportar evidência</button>
+      </div>
+    </div>
+    <nav class="sim-tabs" id="abas"></nav>
+  </header>
+
+  <main class="sim-main" id="vistas">
+    <section class="sim-view" id="v-inicio">
+      <div class="sim-head">
+        <span class="sim-kicker">Como usar</span>
+        <h1>Seis estações de teste sobre o pipeline do projeto</h1>
+        <p>Cada estação traz um pedaço do pipeline que o grupo construiu nas Aulas 03 a 06 (scraper de livros, coletor da PTAX, contrato do sensor e a passagem da bronze para a gold) e um defeito de dado que aparece na prática. O código Python roda aqui mesmo, no navegador, com o pytest 8.1.1 e o Pydantic 2.10.5 do Pyodide 0.27.7. Nada é enviado a servidor algum.</p>
+        <p>O botão Rodar pytest executa os seus testes sobre o código da estação. O botão Avaliar roda os mesmos testes contra a versão correta e contra versões com defeitos plantados, os mutantes. Um mutante morto é um defeito que os seus testes pegaram.</p>
+        <p class="sim-links"><a href="../../../../index.html">Hub</a> &middot; <a href="../../../../pages/home_data_collection.html">Data Collection</a> &middot; <a href="../slides/slide_aula_07_qualidade_e_testes_de_dados_com_pytest.html">Slide</a> &middot; <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html">Material</a></p>
+      </div>
+      <div class="sim-grid">
+        <div class="sim-panel sim-col-6">
+          <h2>Antes de começar</h2>
+          <ol class="bc-passos">
+            <li>Abra esta página no início da aula. O primeiro carregamento baixa cerca de 17 MB do CDN do Pyodide; depois o navegador guarda em cache.</li>
+            <li>Espere o indicador no topo mostrar "Python pronto".</li>
+            <li>O que você escreve fica salvo neste navegador. O botão Restaurar devolve o arquivo original da estação.</li>
+            <li>Atalhos no editor: Ctrl+Enter roda o pytest; Tab insere quatro espaços.</li>
+          </ol>
+        </div>
+        <div class="sim-panel sim-col-6">
+          <h2>Placar das estações</h2>
+          <table class="sim-table"><thead><tr><th>Estação</th><th class="num">Mutantes mortos</th><th>Situação</th></tr></thead><tbody id="placar-geral"></tbody></table>
+          <p class="sim-hint" style="margin-top:10px;">O placar guarda o melhor resultado de cada estação. O botão Exportar evidência gera o arquivo para <code class="sim-mono">aula_07_testes/evidencia_bancada.md</code> no repositório.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <p class="sim-foot">Bancada da Aula 07 &middot; Data Collection and Storage &middot; MBA Engenharia de Dados &middot; Mackenzie 2026. Dados reais: amostra de books.toscrape.com e boletins PTAX do Banco Central coletados em 24/11/2026, com defeitos plantados descritos em cada estação.</p>
+
+  <script src="bancada_aula_07.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 07 · Qualidade e Testes de Dados com pytest</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- 1. Capa -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="07" data-year="2026">
+        <div>
+          <img class="deck-logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie">
+          <span class="deck-kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
+          <h1 class="deck-title">Qualidade e Testes de Dados com pytest</h1>
+          <p class="deck-meta">Aula 07 &nbsp;&bull;&nbsp; 28/11/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
+          <p class="deck-year">2026</p>
+          <p class="deck-subtitle">Qualidade de dados pela ISO/IEC 25012, caixa preta no contrato, TDD na limpeza, relógio injetado, dublês de teste e testes sobre o lote. Cinco blocos curtos, cada um seguido de uma estação da bancada, que roda pytest de verdade no navegador sobre o código e os dados do projeto.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Agenda -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Cinco blocos e seis estações</h2>
+          <p class="deck-summary">Cada bloco de teoria termina numa estação da bancada. As duas metades somam 3h40 de aula, ou quatro horas-aula de 55 minutos.</p>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>8h30 &ndash; 10h00</h3><ul><li>8h30 &middot; Abertura e estação 0 (aquecimento)</li><li>8h45 &middot; Bloco 1: qualidade de dados</li><li>9h15 &middot; Bloco 2: caixa preta no contrato</li><li>9h35 &middot; Estação 1: contrato do sensor</li><li>10h00 &middot; Intervalo</li></ul></article>
+          <article class="deck-card"><h3>10h15 &ndash; 12h10</h3><ul><li>10h15 &middot; Bloco 3: TDD e relógio injetado</li><li>10h35 &middot; Estações 2 e 3: limpeza e relógio</li><li>11h00 &middot; Bloco 4: dublês e integração</li><li>11h15 &middot; Estação 4: coletor da PTAX</li><li>11h35 &middot; Bloco 5 e estação 5: testes sobre o lote</li><li>12h00 &middot; Fechamento</li></ul></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Problema -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Abertura &middot; Problema</span>
+          <h2 class="deck-title">O painel de Poetry na véspera da entrega</h2>
+          <p class="deck-summary">A gold de livros diz que Poetry tem 5 livros com preço médio de £39,40, e mostra uma categoria a mais, "Poetry ", com £23,88. O pipeline rodou sem erro. Nenhum teste reprovou porque nenhum teste olhava para o dado.</p>
+        </div>
+        <div class="deck-callout">
+          <strong>Resultado observável ao fim da aula</strong>
+          <p style="margin:8px 0 0;">Seis estações feitas na bancada, com o placar de mutantes de cada uma exportado para <code>aula_07_testes/evidencia_bancada.md</code>, e a lista do que falta de teste no repositório do projeto final.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Abrir a bancada -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Abertura &middot; Bancada</span>
+          <h2 class="deck-title">Abra a bancada agora</h2>
+          <p class="deck-summary">A <a href="../bancada/bancada_aula_07.html">bancada da Aula 07</a> roda Python no navegador com o Pyodide 0.27.7, que traz pytest 8.1.1 e Pydantic 2.10.5. Nada é instalado e nenhum código sai da máquina.</p>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Carregar</h3><p>A primeira abertura baixa cerca de 17 MB. Na medição do professor, o Python ficou pronto em 10,8 s.</p></article>
+          <article class="deck-card"><h3>Rodar</h3><p>Executa os seus testes sobre o código da estação, em 30 a 60 ms.</p></article>
+          <article class="deck-card"><h3>Avaliar</h3><p>Roda os mesmos testes na versão correta e em versões com defeito plantado, os mutantes.</p></article>
+        </div>
+        <div class="deck-note">O que você escreve fica no <code>localStorage</code> do navegador. O botão Exportar evidência gera o Markdown do entregável.</div>
+      </div>
+    </div>
+
+    <!-- 5. Estação 0 -->
+    <div class="slide slide-sim" data-sim="ex0_aquecimento">
+      <div class="slide-sim-head">
+        <span class="deck-kicker">Estação 0 &middot; 8h35</span>
+        <h2>Primeiro pytest e o relatório de falha</h2>
+      </div>
+    </div>
+
+    <!-- 6. Bloco 1: duas normas -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Referencial</span>
+          <h2 class="deck-title">Qualidade do produto e qualidade do dado</h2>
+          <p class="deck-summary">A família ISO/IEC 25000 (SQuaRE) tem dois modelos. O primeiro avalia o software; o segundo avalia o dado que o software guarda e entrega.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Norma</th><th>Objeto avaliado</th><th>Pergunta típica no projeto</th></tr></thead>
+          <tbody>
+            <tr><td>ISO/IEC 25010:2023</td><td>o produto de software: adequação funcional, confiabilidade, manutenibilidade e outras características</td><td>o coletor volta a funcionar depois de um 503 da API?</td></tr>
+            <tr><td>ISO/IEC 25012:2008</td><td>o dado: 15 características, divididas entre inerentes ao dado e dependentes do sistema</td><td>a cotação usada na gold é a do dia certo, com as casas decimais certas?</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Um pipeline pode passar em todos os testes de software e ainda entregar dado errado. A Aula 07 testa as duas coisas, e a segunda é a que o projeto final costuma esquecer.</div>
+      </div>
+    </div>
+
+    <!-- 7. Dimensões -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Dimensões</span>
+          <h2 class="deck-title">Seis características da 25012 no projeto</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Característica</th><th>Pergunta</th><th>Onde aparece no projeto</th></tr></thead>
+          <tbody>
+            <tr><td>Exatidão</td><td>o valor corresponde ao real?</td><td>£51.77 lido como 51.77, e não como erro</td></tr>
+            <tr><td>Completude</td><td>falta algum valor ou registro?</td><td>preço vazio numa linha do scraper</td></tr>
+            <tr><td>Consistência</td><td>o mesmo fato aparece igual em todo lugar?</td><td>"Poetry" e "Poetry " como duas categorias</td></tr>
+            <tr><td>Atualidade</td><td>o dado é do período certo?</td><td>cotação de 19/11 usada no feriado de 20/11</td></tr>
+            <tr><td>Precisão</td><td>tem o detalhe necessário?</td><td>5,6518 guardado como 5,65179999...</td></tr>
+            <tr><td>Rastreabilidade</td><td>dá para saber de onde veio e por que saiu?</td><td>linha na quarentena com motivo e posição</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">A norma tem 15 características; estas seis são as que o projeto final mais exercita. Unicidade não aparece entre as 15, mas em engenharia de dados costuma virar um teste próprio, como na estação 5.</div>
+      </div>
+    </div>
+
+    <!-- 8. Onde nasce -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Mecanismo</span>
+          <h2 class="deck-title">Onde o defeito nasce e onde aparece</h2>
+          <p class="deck-summary">O defeito quase nunca aparece na camada em que nasceu. Ele atravessa as camadas sem erro de execução e só fica visível na agregação.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Defeito</th><th>Nasce em</th><th>Aparece em</th><th>Teste que pega mais cedo</th></tr></thead>
+          <tbody>
+            <tr><td>"Â£51.77" no preço</td><td>coleta, decodificação ISO-8859-1</td><td>silver, linha recusada ou preço nulo</td><td>unidade da limpeza</td></tr>
+            <tr><td>livro coletado duas vezes</td><td>coleta repetida após timeout</td><td>gold, média e contagem infladas</td><td>sobre o dado: unicidade</td></tr>
+            <tr><td>"Poetry " com espaço</td><td>fonte</td><td>gold, categoria fantasma</td><td>sobre o dado: consistência</td></tr>
+            <tr><td>sem cotação em 20/11</td><td>calendário da fonte</td><td>conversão para real, KeyError</td><td>unidade com relógio injetado</td></tr>
+            <tr><td>datas em DD-MM na URL</td><td>coletor</td><td>resposta vazia ou período errado</td><td>dublê do tipo spy</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 9. Exemplo numérico 1 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Exemplo numérico 1</span>
+          <h2 class="deck-title">O mesmo lote com e sem testes</h2>
+          <p class="deck-summary">Lote de 22 linhas da bronze: os 20 livros da primeira página de books.toscrape.com, coletados em 24/11/2026, mais quatro defeitos plantados.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida</th><th>Painel sem testes</th><th>Pipeline testado</th></tr></thead>
+          <tbody>
+            <tr><td>livros considerados</td><td>21 (só a linha sem preço caiu)</td><td>18 na silver, 2 na quarentena, 2 duplicadas</td></tr>
+            <tr><td>livros em Poetry</td><td>5, com duas duplicatas</td><td>4</td></tr>
+            <tr><td>preço médio de Poetry</td><td>£39,40</td><td>£37,12 = (51,77 + 52,15 + 20,66 + 23,88) &divide; 4</td></tr>
+            <tr><td>categoria "Poetry "</td><td>existe, com 1 livro a £23,88</td><td>não existe</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">A diferença em Poetry é de £2,28 por livro, 6,1 % acima do valor correto. Em reais, com a PTAX da libra de 19/11/2026 (venda R$ 7,7262), são R$ 17,62 de erro no preço médio, e o painel não mostra sinal algum de falha.</div>
+      </div>
+    </div>
+
+    <!-- 10. Camadas de teste -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Estrutura</span>
+          <h2 class="deck-title">Quatro camadas de teste num pipeline</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Camada</th><th>O que exercita</th><th>Precisa de</th><th>Tempo medido</th><th>Estação</th></tr></thead>
+          <tbody>
+            <tr><td>Unidade</td><td>uma função de limpeza ou regra</td><td>nada</td><td>milissegundos por teste</td><td>0, 2, 3</td></tr>
+            <tr><td>Contrato</td><td>o formato que entra ou sai (Pydantic)</td><td>nada</td><td>milissegundos</td><td>1</td></tr>
+            <tr><td>Integração</td><td>o código contra MinIO, Postgres ou ClickHouse reais</td><td>Docker</td><td>segundos por contêiner</td><td>demonstração</td></tr>
+            <tr><td>Sobre o dado</td><td>a saída do lote: contagens, chaves, agregados</td><td>o lote processado</td><td>depende do volume</td><td>5</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">As três primeiras camadas testam o código antes de ele rodar em produção. A quarta testa cada lote depois de rodar e antes de publicar. Medição de 03/10/2026 no laboratório da aula: 9 testes de unidade em 0,11 s; um teste com MinIO em contêiner levou 1,59 s só para subir o serviço.</div>
+      </div>
+    </div>
+
+    <!-- 11. Pausa bloco 1 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">Qual número do seu painel você não confere?</h2>
+          <p class="deck-summary">Escolha um número da gold do seu projeto final. Responda em dupla, em dois minutos.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Qual das seis características da 25012 mais ameaça esse número?</li>
+          <li>Em que camada o defeito nasceria, e em que camada ele apareceria?</li>
+          <li>Que teste, de qual das quatro camadas, pegaria o defeito antes do painel?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 12. Pontos-chave bloco 1 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 1 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 1</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>A ISO/IEC 25010 avalia o software; a ISO/IEC 25012 avalia o dado. O projeto precisa das duas.</li>
+          <li>Defeito de dado raramente gera exceção: ele atravessa as camadas e aparece na agregação.</li>
+          <li>No lote da aula, quatro defeitos plantados mudaram o preço médio de Poetry em 6,1 % sem nenhum erro de execução.</li>
+          <li>Teste de unidade, contrato e integração protegem o código; teste sobre o dado protege cada lote.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 13. Bloco 2: caixa preta -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Referencial</span>
+          <h2 class="deck-title">Caixa preta e caixa branca</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Caixa preta</h3><p>Os casos saem da especificação: o que entra, o que sai, que regras valem. Quem testa não precisa ler o código. Técnicas: partição de equivalência, valor-limite, tabela de decisão.</p></article>
+          <article class="deck-card"><h3>Caixa branca</h3><p>Os casos saem da estrutura do código: comandos, desvios e caminhos. A cobertura mede quanto da estrutura os testes exercitaram, e não diz se as respostas estão certas.</p></article>
+        </div>
+        <div class="deck-note">Um contrato de dados é uma especificação pronta: tipos, faixas, formatos e regras entre campos. Isso faz da caixa preta a técnica natural para testar contratos.</div>
+      </div>
+    </div>
+
+    <!-- 14. Partições -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Partição de equivalência</span>
+          <h2 class="deck-title">Partições da leitura do sensor</h2>
+          <p class="deck-summary">Uma partição reúne valores que o contrato trata do mesmo jeito. Um representante por partição basta para o comportamento típico.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Campo</th><th>Partições válidas</th><th>Partições inválidas</th></tr></thead>
+          <tbody>
+            <tr><td><code>temperatura</code> em °C</td><td>[-10, 60]</td><td>abaixo de -10; acima de 60; NaN; texto</td></tr>
+            <tr><td><code>unidade</code></td><td>"C"; "F" (convertida antes da faixa)</td><td>qualquer outro texto, como "K"</td></tr>
+            <tr><td><code>umidade</code></td><td>[0, 100]</td><td>abaixo de 0; acima de 100</td></tr>
+            <tr><td><code>device_id</code></td><td><code>estufa-[a-c]-NN</code>; <code>germinacao-NN</code></td><td>estufa d; três dígitos; vazio</td></tr>
+            <tr><td>campos</td><td>exatamente os quatro</td><td>campo a mais; campo faltando</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">As faixas de temperatura e umidade vêm da spec da Aula 06 e ainda são hipótese do grupo, a confirmar com o agrônomo da estufa.</div>
+      </div>
+    </div>
+
+    <!-- 15. Valor-limite -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Valor-limite</span>
+          <h2 class="deck-title">O limite e o vizinho de fora</h2>
+          <p class="deck-summary">Os defeitos se concentram na fronteira entre partições: um <code>&lt;</code> no lugar de <code>&lt;=</code>, um 65 digitado no lugar de 60. Para cada fronteira, testa-se o valor no limite e o primeiro valor do outro lado.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Fronteira</th><th>No limite (entra)</th><th>Vizinho de fora (quarentena)</th></tr></thead>
+          <tbody>
+            <tr><td>temperatura mínima</td><td>-10,0 °C</td><td>-10,1 °C</td></tr>
+            <tr><td>temperatura máxima</td><td>60,0 °C</td><td>60,1 °C</td></tr>
+            <tr><td>máxima em Fahrenheit</td><td>140 °F = 60,0 °C</td><td>141 °F = 60,56 °C</td></tr>
+            <tr><td>umidade</td><td>0,0 % e 100,0 %</td><td>-0,1 % e 100,1 %</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O passo do vizinho depende da precisão do campo. O sensor da Aula 06 publica uma casa decimal, então o vizinho fica a 0,1 do limite.</div>
+      </div>
+    </div>
+
+    <!-- 16. Tabela de decisão -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Tabela de decisão</span>
+          <h2 class="deck-title">Que motivo vai para a quarentena</h2>
+          <p class="deck-summary">Quando várias condições combinam, a tabela de decisão lista cada combinação e a ação esperada. Cada coluna vira um caso de teste.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Condição</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th></tr></thead>
+          <tbody>
+            <tr><td>campos exatamente os quatro</td><td>S</td><td>N</td><td>S</td><td>S</td><td>S</td></tr>
+            <tr><td>unidade em {C, F}</td><td>S</td><td>&ndash;</td><td>N</td><td>S</td><td>S</td></tr>
+            <tr><td>umidade em [0, 100]</td><td>S</td><td>&ndash;</td><td>&ndash;</td><td>N</td><td>S</td></tr>
+            <tr><td>temperatura em °C em [-10, 60]</td><td>S</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>N</td></tr>
+            <tr><td>Ação</td><td>entra</td><td>campo_desconhecido</td><td>unidade_desconhecida</td><td>umidade_fora_da_faixa</td><td>temperatura_fora_da_faixa</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O traço indica que a condição não importa naquela regra. A ordem das condições segue a ordem em que o Pydantic valida: campos primeiro, a regra entre campos por último.</div>
+      </div>
+    </div>
+
+    <!-- 17. Mutação -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Mecanismo</span>
+          <h2 class="deck-title">Quem testa o teste: mutação</h2>
+          <p class="deck-summary">Um teste de mutação planta um defeito pequeno no código, roda a suíte e verifica se algum teste reprova. Se a suíte continua verde, o defeito passaria despercebido em produção.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>A suíte precisa aprovar a versão correta. Teste que reprova código correto testa a coisa errada.</li>
+          <li>Cada mutante troca um operador, um número ou uma condição: <code>&lt;=</code> vira <code>&lt;</code>, 60 vira 65, <code>forbid</code> vira <code>ignore</code>.</li>
+          <li>Mutante morto: algum teste reprovou. Mutante vivo: a suíte não percebeu a mudança.</li>
+          <li>Cada mutante vivo aponta para a partição ou o limite que ainda não tem teste.</li>
+        </ol>
+        <div class="deck-note">Em Python, a ferramenta usual é o <code>mutmut</code>, que gera os mutantes sozinho. A bancada usa mutantes escritos à mão, um por defeito que já apareceu em projeto, para que cada um tenha uma explicação.</div>
+      </div>
+    </div>
+
+    <!-- 18. Exemplo numérico 2 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Exemplo numérico 2</span>
+          <h2 class="deck-title">Três suítes contra nove mutantes</h2>
+          <p class="deck-summary">Medição do professor em 24/11/2026 com o motor da bancada (pytest 9.2, Pydantic 2.14) sobre o contrato do sensor.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Suíte</th><th>Testes</th><th>Cobertura de linhas e desvios</th><th>Mutantes mortos</th></tr></thead>
+          <tbody>
+            <tr><td>só valores típicos (24,6 °C e umidade de 150 %)</td><td>2</td><td>64 %</td><td>0 de 9</td></tr>
+            <tr><td>um caso por motivo de rejeição, com valores longe dos limites</td><td>9</td><td>100 %</td><td>3 de 9</td></tr>
+            <tr><td>partições e valores-limite completos</td><td>15</td><td>100 %</td><td>9 de 9</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">As três suítes aprovam o contrato correto. A de nove testes executa todas as linhas e todos os desvios e ainda deixa passar seis defeitos, todos de limite. Cobertura mede o que rodou; mutação mede o que a suíte percebe. A suíte completa rodou em 102 ms.</div>
+      </div>
+    </div>
+
+    <!-- 19. parametrize -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; pytest</span>
+          <h2 class="deck-title">Uma tabela de casos com parametrize</h2>
+          <p class="deck-summary">Cada linha da tabela vira um teste com nome próprio no relatório. Partição e valor-limite cabem nesse formato.</p>
+        </div>
+<pre><code>@pytest.mark.parametrize("alteracoes, esperado", [
+    ({"temperatura": 60.0}, None),
+    ({"temperatura": 60.1}, "temperatura_fora_da_faixa"),
+    ({"temperatura": 140.0, "unidade": "F"}, None),     # 60,0 °C
+    ({"device_id": "estufa-a-031"}, "sensor_invalido"),
+])
+def test_particoes_e_limites(alteracoes, esperado):
+    assert motivo_de_rejeicao(leitura(**alteracoes)) == esperado</code></pre>
+      </div>
+    </div>
+
+    <!-- 20. Pontos-chave bloco 2 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 2 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 2</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>O contrato é a especificação; a caixa preta deriva os casos dele sem ler o código.</li>
+          <li>Partição cobre o comportamento típico; valor-limite cobre a fronteira, onde os defeitos ficam.</li>
+          <li>A tabela de decisão transforma combinações de condições em casos de teste, um por coluna.</li>
+          <li>Mutação mede a suíte: nove testes com 100 % de cobertura pegaram 3 de 9 defeitos; quinze, com os limites, pegaram 9 de 9.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 21. Estação 1 intro -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 1 &middot; 9h35 &ndash; 10h00</span>
+          <h2 class="deck-title">Contrato do sensor: a missão</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Ponto de partida</h3><p>Dois testes com valores típicos e uma linha de valor-limite. Avalie antes de escrever qualquer coisa e anote o placar.</p></article>
+          <article class="deck-card"><h3>Tarefa</h3><p>Completar a tabela parametrizada com partições, limites, conversão de Fahrenheit, formato do <code>device_id</code> e campo extra.</p></article>
+          <article class="deck-card"><h3>Meta</h3><p>9 de 9 mutantes mortos, com a suíte aprovando o contrato correto. Quem terminar antes escreve o caso de campo ausente.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 22. Estação 1 bancada -->
+    <div class="slide slide-sim" data-sim="ex1_contrato">
+      <div class="slide-sim-head">
+        <span class="deck-kicker">Estação 1 &middot; Bancada</span>
+        <h2>Partições e valores-limite do contrato do sensor</h2>
+      </div>
+    </div>
+
+    <!-- 23. Intervalo -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">10h00 &ndash; 10h15</span>
+          <h2 class="deck-title">Intervalo</h2>
+          <p class="deck-summary">Na volta: TDD na limpeza dos livros e o teste que quebra no sábado. Deixe a bancada aberta.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 24. Bloco 3: unidade e AAA -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Referencial</span>
+          <h2 class="deck-title">Teste de unidade e o padrão AAA</h2>
+          <p class="deck-summary">Um teste de unidade exercita uma função isolada, sem rede, disco ou relógio do sistema. Roda em milissegundos e falha por um motivo só.</p>
+        </div>
+<pre><code>def test_preco_da_bronze_com_mojibake():
+    # Arrange: o texto exatamente como está na bronze
+    texto = "Â£51.77"
+    # Act
+    preco = preco_em_libras(texto)
+    # Assert: tipo e valor exatos
+    assert preco == Decimal("51.77")</code></pre>
+        <div class="deck-note">O nome do teste descreve o comportamento. Quando ele reprovar no CI, o nome já diz o que quebrou antes de alguém abrir o relatório.</div>
+      </div>
+    </div>
+
+    <!-- 25. TDD -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Procedimento</span>
+          <h2 class="deck-title">Vermelho, verde e refatorar</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Vermelho: escreva um teste para um comportamento que ainda não existe. Rode e veja reprovar pelo motivo esperado.</li>
+          <li>Verde: escreva o menor código que faz esse teste passar, sem antecipar os próximos.</li>
+          <li>Refatorar: melhore nomes e estrutura com a suíte verde como rede de segurança.</li>
+          <li>Repita com o próximo comportamento. Cada ciclo leva poucos minutos.</li>
+        </ol>
+        <div class="deck-note">Com agente de código, o ciclo continua valendo: peça o teste primeiro, rode, confira que reprova, e só então peça a implementação. Teste escrito depois do código tende a confirmar o que o código já faz, inclusive o defeito.</div>
+      </div>
+    </div>
+
+    <!-- 26. Mojibake -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Mecanismo</span>
+          <h2 class="deck-title">Por que o preço chega como Â£51.77</h2>
+          <p class="deck-summary">Medição de 24/11/2026 na primeira página de books.toscrape.com com <code>requests</code>.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Passo</th><th>O que acontece</th></tr></thead>
+          <tbody>
+            <tr><td>servidor</td><td>responde <code>Content-Type: text/html</code>, sem <code>charset</code></td></tr>
+            <tr><td>requests</td><td>sem charset em <code>text/*</code>, assume ISO-8859-1 (<code>r.encoding</code> = <code>'ISO-8859-1'</code>)</td></tr>
+            <tr><td>bytes da libra</td><td>em UTF-8, £ ocupa dois bytes: <code>C2 A3</code></td></tr>
+            <tr><td>decodificação</td><td>em ISO-8859-1, <code>C2</code> vira Â e <code>A3</code> vira £</td></tr>
+            <tr><td>bronze</td><td>"Â£51.77", "Â£53.74", "Â£50.10" nos três primeiros livros</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Duas correções possíveis: definir <code>r.encoding = "utf-8"</code> no coletor, ou aceitar o Â na limpeza. A bronze guarda o que chegou; a silver decide. Um teste com o valor real da bronze pega o problema nas duas hipóteses.</div>
+      </div>
+    </div>
+
+    <!-- 27. Decimal -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Exemplo numérico 3</span>
+          <h2 class="deck-title">Dinheiro em float e em Decimal</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Expressão em Python</th><th>Resultado</th></tr></thead>
+          <tbody>
+            <tr><td><code>0.1 + 0.2 == 0.3</code></td><td><code>False</code></td></tr>
+            <tr><td><code>Decimal(5.6518)</code></td><td><code>5.6517999999999997129407347529195249080657958984375</code></td></tr>
+            <tr><td><code>Decimal(str(5.6518))</code></td><td><code>5.6518</code></td></tr>
+            <tr><td><code>Decimal("51.77") == 51.77</code></td><td><code>False</code></td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">A API da PTAX entrega a cotação como número JSON, que o Python lê como float. Construir o Decimal direto do float carrega o erro binário para a silver. O teste que compara com <code>Decimal("5.6518")</code> pega isso; o que compara com 5.6518 não pega.</div>
+      </div>
+    </div>
+
+    <!-- 28. Relógio -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Mecanismo</span>
+          <h2 class="deck-title">O relógio escondido dentro da função</h2>
+          <p class="deck-summary">Boletins PTAX do dólar publicados pelo Banco Central entre 13 e 24/11/2026, consultados na API Olinda.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Dia</th><th>13 sex</th><th>14&ndash;15</th><th>16&ndash;19</th><th>20 sex</th><th>21&ndash;22</th><th>23 seg</th><th>24 ter</th></tr></thead>
+          <tbody>
+            <tr><td>boletim</td><td>5,6518</td><td>fim de semana</td><td>4 boletins</td><td>feriado</td><td>fim de semana</td><td>5,9708</td><td>5,8573</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Escondido</h3><p><code>hoje = date.today()</code> dentro da função. O teste depende do dia em que roda: passou na terça 24/11 e quebra hoje, sábado 28/11.</p></article>
+          <article class="deck-card"><h3>Injetado</h3><p><code>cotacao_vigente(boletins, hoje)</code>. O teste escolhe o dia: útil, feriado, domingo, limite da janela. O código de produção passa <code>date.today()</code>.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 29. Pausa bloco 3 -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Pausa para reflexão</span>
+          <h2 class="deck-title">O que mais está escondido no seu código?</h2>
+          <p class="deck-summary">O relógio é a dependência escondida mais comum, mas não a única. Procure no seu repositório, em dupla, por dois minutos.</p>
+        </div>
+        <ol class="deck-steps">
+          <li>Onde o código chama <code>datetime.now()</code>, <code>date.today()</code> ou <code>time.time()</code>?</li>
+          <li>Onde ele gera <code>uuid4()</code> ou número aleatório que entra no dado?</li>
+          <li>Onde ele lê variável de ambiente ou arquivo fora dos parâmetros da função?</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 30. Pontos-chave bloco 3 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 3 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 3</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>TDD inverte a ordem: o teste reprova primeiro, e só depois o código existe.</li>
+          <li>Teste de limpeza usa o valor real da bronze, como "Â£51.77", e não o valor que se imagina.</li>
+          <li>Dinheiro e cotação são Decimal construído a partir de texto; o teste compara com Decimal.</li>
+          <li>Relógio, aleatoriedade e ambiente entram como parâmetro. Teste que depende do calendário falha no sábado.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 31. Estações 2 e 3 intro -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estações 2 e 3 &middot; 10h35 &ndash; 11h00</span>
+          <h2 class="deck-title">Limpeza em TDD e relógio injetado</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>Estação 2 &middot; 15 min</h3><p>Ciclos de TDD para preço com mojibake, estoque e nota. Você edita o código e os testes. Meta: verificação do professor aprovada e 7 de 7 mutantes.</p></article>
+          <article class="deck-card"><h3>Estação 3 &middot; 10 min</h3><p>Rodar o teste que quebra hoje, injetar o dia, implementar a janela de 5 dias e a exceção <code>SemCotacao</code>. Meta: verificação aprovada e 5 de 5 mutantes.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 32. Estação 2 bancada -->
+    <div class="slide slide-sim" data-sim="ex2_limpeza">
+      <div class="slide-sim-head">
+        <span class="deck-kicker">Estação 2 &middot; Bancada</span>
+        <h2>TDD na limpeza dos campos de livros</h2>
+      </div>
+    </div>
+
+    <!-- 33. Estação 3 bancada -->
+    <div class="slide slide-sim" data-sim="ex3_relogio">
+      <div class="slide-sim-head">
+        <span class="deck-kicker">Estação 3 &middot; Bancada</span>
+        <h2>O teste que quebra no sábado</h2>
+      </div>
+    </div>
+
+    <!-- 34. Bloco 4: dublês -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Referencial</span>
+          <h2 class="deck-title">Cinco dublês de teste no coletor</h2>
+          <p class="deck-summary">Um dublê substitui uma dependência real durante o teste. A taxonomia é de Gerard Meszaros (xUnit Test Patterns, 2007).</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Dublê</th><th>O que faz</th><th>No coletor da PTAX</th></tr></thead>
+          <tbody>
+            <tr><td>Dummy</td><td>ocupa um parâmetro que o teste não usa</td><td><code>esperar=lambda s: None</code> num teste que só tem sucesso</td></tr>
+            <tr><td>Stub</td><td>devolve uma resposta pronta</td><td><code>http_get</code> que devolve o boletim gravado</td></tr>
+            <tr><td>Spy</td><td>responde e registra como foi chamado</td><td><code>Espiao</code> guarda as URLs; <code>esperas.append</code> guarda os segundos</td></tr>
+            <tr><td>Mock</td><td>já nasce com a expectativa e falha sozinho</td><td><code>unittest.mock</code> com <code>assert_called_once_with</code></td></tr>
+            <tr><td>Fake</td><td>implementação simples que funciona de verdade</td><td>um bucket em memória no lugar do MinIO</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">O coletor só aceita dublê porque recebe <code>http_get</code> e <code>esperar</code> como parâmetros. É a mesma injeção do relógio do bloco 3.</div>
+      </div>
+    </div>
+
+    <!-- 35. Cassete -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Resposta gravada</span>
+          <h2 class="deck-title">Cassete do VCR e rede bloqueada</h2>
+          <p class="deck-summary">Escrever o stub à mão exige copiar a resposta da API. O <code>vcrpy</code> grava a resposta real na primeira execução e a reproduz nas seguintes.</p>
+        </div>
+<pre><code>pytest tests/contract --record-mode=once -q      # 1ª vez: chama a API e grava o cassete
+pytest tests/contract --block-network -q         # depois: reproduz; qualquer chamada real reprova
+grep -RniE "authorization|token|api[_-]?key" tests/cassettes   # antes do commit</code></pre>
+        <div class="deck-note">O <code>boletim_ptax.json</code> da estação 4 faz o papel do cassete: é a resposta real da API Olinda gravada em 24/11/2026. O <code>pytest-recording</code> usa o modo <code>none</code> por padrão, e sem cassete o teste reprova em vez de chamar a rede.</div>
+      </div>
+    </div>
+
+    <!-- 36. Testcontainers -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Integração</span>
+          <h2 class="deck-title">Quando o dublê não basta</h2>
+          <p class="deck-summary">O dublê só sabe o que o autor do teste supôs. Permissão de bucket, tipo de coluna do ClickHouse e restrição do Postgres só aparecem no serviço real.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Medida do professor, 03/10/2026</th><th>Valor</th></tr></thead>
+          <tbody>
+            <tr><td>suíte de exemplo do laboratório (10 testes)</td><td>1,86 s</td></tr>
+            <tr><td>subir o MinIO com Testcontainers, imagem já baixada</td><td>1,59 s</td></tr>
+            <tr><td>os 9 testes de unidade, juntos</td><td>0,11 s</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">A integração custa dezenas de vezes mais tempo por teste. Por isso ela fica com poucos testes, marcados com <code>@pytest.mark.integracao</code>, num job separado do CI. Sem Docker, o teste aparece como <code>SKIPPED</code> com o motivo.</div>
+      </div>
+    </div>
+
+    <!-- 37. Demonstração -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Demonstração ao vivo</span>
+          <h2 class="deck-title">MinIO de verdade dentro do teste</h2>
+          <p class="deck-summary">O professor roda no Codespace o exemplo do <a href="../laboratorio/README.md">laboratório da semana</a>. A bancada não sobe contêiner porque o navegador não tem Docker.</p>
+        </div>
+<pre><code>cp -r laboratorio/exemplo /tmp/exemplo_aula07 && cd /tmp/exemplo_aula07
+python -m pip install -r ../requirements-dev.txt
+pytest -m "not integracao" -q     # unidade: sem Docker, sem rede
+pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
+        <div class="deck-note">Observe três coisas na saída: o tempo de subida do contêiner em <code>--durations</code>, a porta aleatória que o Testcontainers escolheu e o contêiner sendo removido no fim.</div>
+      </div>
+    </div>
+
+    <!-- 38. Pontos-chave bloco 4 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 4 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 4</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Dependência injetada aceita dublê; dependência criada dentro da função, não.</li>
+          <li>Stub controla a resposta; spy confere como a dependência foi chamada.</li>
+          <li>Cassete grava a resposta real uma vez e bloqueia a rede nas execuções seguintes.</li>
+          <li>Integração com contêiner pega o que o dublê não sabe, a um custo de segundos por teste.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 39. Estação 4 intro -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Estação 4 &middot; 11h15 &ndash; 11h35</span>
+          <h2 class="deck-title">Coletor da PTAX: a missão</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Valores</h3><p>Com o stub, confira a venda de 19/11/2026 como <code>Decimal("5.8889")</code> e a compra correspondente.</p></article>
+          <article class="deck-card"><h3>Chamadas</h3><p>Com o <code>Espiao</code>, confira as datas em MM-DD-AAAA na URL e quantas chamadas cada cenário fez.</p></article>
+          <article class="deck-card"><h3>Falhas</h3><p>Feriado com lista vazia; 503 e 200; três 503; um 404. Meta: 7 de 7 mutantes mortos.</p></article>
+        </div>
+      </div>
+    </div>
+
+    <!-- 40. Estação 4 bancada -->
+    <div class="slide slide-sim" data-sim="ex4_dubles">
+      <div class="slide-sim-head">
+        <span class="deck-kicker">Estação 4 &middot; Bancada</span>
+        <h2>Stub e spy no coletor da PTAX</h2>
+      </div>
+    </div>
+
+    <!-- 41. Bloco 5: testes sobre o dado -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 5 &middot; Testes sobre o dado</span>
+          <h2 class="deck-title">Asserções sobre o lote processado</h2>
+          <p class="deck-summary">Os testes da estação 5 não chamam uma função isolada. Eles rodam sobre a saída do lote e respondem se ele pode ser publicado.</p>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Característica</th><th>Asserção</th></tr></thead>
+          <tbody>
+            <tr><td>unicidade</td><td>nenhum UPC aparece duas vezes na silver</td></tr>
+            <tr><td>completude</td><td>linhas da bronze = silver + quarentena + duplicadas</td></tr>
+            <tr><td>rastreabilidade</td><td>toda linha da quarentena tem motivo e posição</td></tr>
+            <tr><td>consistência</td><td>nenhuma categoria da gold tem espaço sobrando</td></tr>
+            <tr><td>exatidão</td><td>contagem e média da gold recalculadas a partir da silver</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Com o volume do projeto final, essas asserções viram consultas SQL no ClickHouse ou no DuckDB. Ferramentas como Great Expectations e os testes do dbt seguem a mesma ideia com mais recursos.</div>
+      </div>
+    </div>
+
+    <!-- 42. Gate -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 5 &middot; Gate</span>
+          <h2 class="deck-title">Dois portões: no merge e no lote</h2>
+        </div>
+        <div class="deck-grid">
+          <article class="deck-card"><h3>No merge (CI)</h3><p>A cada push, o GitHub Actions roda unidade e contrato, depois a integração num job separado. Vermelho bloqueia o merge no <code>main</code>. A cobertura entra com <code>pytest --cov=src --cov-fail-under=80</code>.</p></article>
+          <article class="deck-card"><h3>No lote (pipeline)</h3><p>Depois de processar e antes de publicar a gold, o pipeline roda os testes sobre o dado. Reprovou: a gold anterior continua no ar e o lote fica retido com o relatório.</p></article>
+        </div>
+        <div class="deck-note">Cobertura de 100 % mostra que cada linha rodou. No bloco 2, uma suíte com 100 % de cobertura do contrato pegou 3 de 9 mutantes. A meta de cobertura entra no gate como piso, ao lado dos testes de limite.</div>
+      </div>
+    </div>
+
+    <!-- 43. Pontos-chave bloco 5 -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Bloco 5 &middot; Síntese</span>
+          <h2 class="deck-title">Pontos-chave do bloco 5</h2>
+        </div>
+        <ol class="deck-steps">
+          <li>Teste sobre o dado roda a cada lote e decide a publicação, e não só a cada mudança de código.</li>
+          <li>A reconciliação de contagens pega a linha que some sem passar pela quarentena.</li>
+          <li>Recalcular a gold a partir da silver pega erro de agregação que nenhum tipo de dado acusa.</li>
+          <li>O CI protege o código no merge; o teste sobre o dado protege o painel no lote.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 44. Estação 5 bancada -->
+    <div class="slide slide-sim" data-sim="ex5_lote">
+      <div class="slide-sim-head">
+        <span class="deck-kicker">Estação 5 &middot; 11h45 &ndash; 12h00</span>
+        <h2>Testes sobre o lote antes de publicar a gold</h2>
+      </div>
+    </div>
+
+    <!-- 45. Checklist da entrega -->
+    <div class="slide">
+      <div class="deck-shell is-dense">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; 12h00</span>
+          <h2 class="deck-title">Testes que a entrega final precisa ter</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Camada</th><th>No seu repositório</th><th>Estação</th></tr></thead>
+          <tbody>
+            <tr><td>Unidade</td><td>limpeza de cada campo do coletor, com valores reais da bronze</td><td>2</td></tr>
+            <tr><td>Unidade</td><td>regras de data com o dia como parâmetro</td><td>3</td></tr>
+            <tr><td>Contrato</td><td>Pydantic na entrada, com partições e limites em <code>parametrize</code></td><td>1</td></tr>
+            <tr><td>Dublês</td><td>coletor com HTTP injetado; cassete sem segredo</td><td>4</td></tr>
+            <tr><td>Integração</td><td>ao menos um teste com MinIO ou ClickHouse em contêiner</td><td>demonstração</td></tr>
+            <tr><td>Sobre o dado</td><td>unicidade, reconciliação e gold recalculada antes de publicar</td><td>5</td></tr>
+          </tbody>
+        </table>
+        <div class="deck-note">Cada teste aparece na matriz de rastreabilidade ligado a um requisito da spec. O README diz como rodar <code>pytest -q</code> do zero.</div>
+      </div>
+    </div>
+
+    <!-- 46. Semana -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Fechamento &middot; 12h10</span>
+          <h2 class="deck-title">Entregável e o que fica para a semana</h2>
+        </div>
+        <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
+          <article class="deck-card"><h3>Em sala</h3><p>Exportar a evidência da bancada para <code>aula_07_testes/evidencia_bancada.md</code> no repositório do projeto.</p></article>
+          <article class="deck-card"><h3>Na semana</h3><p>Rodar os seis prompts CREATE do <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html#prompts">material</a> com o agente de código de sua preferência, sobre o código real do projeto.</p></article>
+          <article class="deck-card"><h3>Integração</h3><p>Seguir o <a href="../laboratorio/roteiro_pydantic_e_testes.html">laboratório de Pydantic, VCR e Testcontainers</a> para o teste com contêiner.</p></article>
+        </div>
+        <div class="deck-note">Aula 08, em 05/12/2026: mentoria e entrega do projeto final.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Iframe único da bancada, compartilhado pelos slides .slide-sim -->
+  <iframe id="sim-frame" class="deck-sim-frame" title="Bancada de testes da Aula 07" tabindex="-1"></iframe>
+  <div id="sim-status" class="deck-sim-status" role="status" aria-live="off" hidden>
+    <span class="deck-sim-dot"></span>
+    <span id="sim-status-texto">Bancada</span>
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_data_collection.html" class="back-home">Data Collection</a>
+      <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html" class="material-link">Material</a>
+      <a href="../bancada/bancada_aula_07.html" class="material-link">Bancada</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+
+    // Um só iframe para todas as estações: o Python carrega uma vez e o que
+    // a turma escreve fica no localStorage da bancada.
+    const simFrame = document.getElementById("sim-frame");
+    const SIM_URL = "../bancada/bancada_aula_07.html?embed=1&v=1";
+
+    function posicionarBancada(slide) {
+      const topo = slide.querySelector(".slide-sim-head").getBoundingClientRect().bottom;
+      const rodape = document.querySelector(".slide-footer").offsetHeight;
+      simFrame.style.top = topo + "px";
+      simFrame.style.height = Math.max(0, window.innerHeight - topo - rodape) + "px";
+    }
+
+    function mostrarBancada(slide) {
+      const aba = slide.dataset.sim;
+      if (!aba) { simFrame.classList.remove("is-visible"); return; }
+      if (!simFrame.src) simFrame.src = SIM_URL + "#" + aba;
+      else simFrame.contentWindow.postMessage({ bancadaAba: aba }, "*");
+      posicionarBancada(slide);
+      simFrame.classList.add("is-visible");
+    }
+
+    // A bancada avisa o estado do Python; o indicador fica visível em todos os slides.
+    window.addEventListener("message", event => {
+      if (!event.data || event.data.bancadaStatus === undefined) return;
+      const st = document.getElementById("sim-status");
+      st.hidden = false;
+      st.classList.toggle("is-running", !!event.data.pronto);
+      document.getElementById("sim-status-texto").textContent = "Bancada · " + event.data.bancadaStatus;
+    });
+
+    function showSlide(index) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[index].classList.add("active");
+      currentSlide = index;
+      document.getElementById("current-slide").textContent = currentSlide + 1;
+      document.getElementById("prev-btn").disabled = currentSlide === 0;
+      document.getElementById("next-btn").disabled = currentSlide === totalSlides - 1;
+      mostrarBancada(slides[index]);
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+    }
+
+    function previousSlide() {
+      if (currentSlide > 0) showSlide(currentSlide - 1);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      }
+      if (event.key === "ArrowLeft") previousSlide();
+      if (event.key.toLowerCase() === "f") toggleFullScreen();
+    });
+
+    window.addEventListener("resize", () => {
+      if (slides[currentSlide].dataset.sim) posicionarBancada(slides[currentSlide]);
+    });
+
+    // Carrega a bancada escondida já na abertura, para o Python estar pronto na estação 0.
+    simFrame.src = SIM_URL + "#ex0_aquecimento";
+    showSlide(0);
+  </script>
+</body>
+</html>
