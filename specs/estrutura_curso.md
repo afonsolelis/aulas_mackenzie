@@ -6,6 +6,7 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 1. **Cloud Computing e SRE — Visão Prática com AWS**
 2. **Data Collection and Storage**
 3. **Data Visualization**
+4. **Big Data Processing**
 
 ## Referências obrigatórias
 
@@ -25,7 +26,8 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
 ├── pages/
 │   ├── home_cloud_sre.html              # Home da disciplina Cloud Computing e SRE
 │   ├── home_data_collection.html        # Home da disciplina Data Collection and Storage
-│   └── home_data_visualization.html     # Home da disciplina Data Visualization
+│   ├── home_data_visualization.html     # Home da disciplina Data Visualization
+│   └── home_big_data_processing.html    # Home da disciplina Big Data Processing
 ├── specs/
 │   ├── estrutura_curso.md
 │   ├── repositorio_de_aulas.md
@@ -42,7 +44,11 @@ Este documento define a estrutura canônica de pastas e convenções de nomencla
     │       ├── material/material_aula_xx_nome_da_aula.html
     │       ├── laboratorio/README.md     # opcional: roteiro e arquivos de apoio
     │       └── simulador/                # opcional: laboratório simulado no navegador (Aulas 06 e 07)
-    └── data_visualization/
+    ├── data_visualization/
+    │   └── aula_xx_nome_da_aula/
+    │       ├── slides/slide_aula_xx_nome_da_aula.html
+    │       └── material/material_aula_xx_nome_da_aula.html
+    └── big_data_processing/
         └── aula_xx_nome_da_aula/
             ├── slides/slide_aula_xx_nome_da_aula.html
             └── material/material_aula_xx_nome_da_aula.html
@@ -132,3 +138,24 @@ Não há aula em 21/11/2026; a Aula 07 acontece em 28/11/2026.
 | 06 | 19/09/2026 | Heurísticas e Vieses |
 | 07 | 26/09/2026 | Do Protótipo ao Painel com Supabase |
 | 08 | 03/10/2026 | Acompanhamento do Projeto Final |
+
+### 4. Big Data Processing (Código: ENLS54628 · Turma 0931.01J · Carga Horária: 32h)
+
+**Horário:** Quartas-feiras &middot; 19h00 às 22h40 &middot; 100% online ao vivo
+
+| Aula | Data | Pasta | Tema Principal |
+|------|------|-------|----------------|
+| 01 | 24/02/2027 | `aula_01_processamento_distribuido_do_mapreduce_ao_spark` | Processamento Distribuído: do MapReduce ao Spark |
+| 02 | 03/03/2027 | `aula_02_arquitetura_do_spark_e_dataframes` | Arquitetura do Spark e DataFrames |
+| 03 | 10/03/2027 | `aula_03_spark_sql_parquet_e_particionamento` | Spark SQL, Parquet e Particionamento |
+| 04 | 17/03/2027 | `aula_04_otimizacao_de_jobs_spark` | Otimização de Jobs Spark |
+| 05 | 24/03/2027 | `aula_05_lakehouse_com_delta_lake_e_iceberg` | Lakehouse com Delta Lake e Iceberg |
+| 06 | 31/03/2027 | `aula_06_structured_streaming_com_kafka` | Structured Streaming com Kafka |
+| 07 | 07/04/2027 | `aula_07_orquestracao_e_custo_do_processamento_em_escala` | Orquestração e Custo do Processamento em Escala |
+| 08 | 14/04/2027 | `aula_08_mentoria_e_entrega_do_projeto_final` | Mentoria e Entrega do Projeto Final |
+
+**Agenda padrão:** abertura das 19h00 às 19h10, teoria das 19h10 às 20h40, intervalo das 20h40 às 21h00, prática guiada das 21h00 às 22h20 e fechamento das 22h20 às 22h40. A Aula 08 é somente mentoria e entrega do projeto final.
+
+**Ambiente prático:** tudo roda no computador do aluno (Python, Java e PySpark instalados localmente), sem AWS e sem serviço de nuvem. A capa dos slides e a home da disciplina usam o ano 2027.
+
+**Situação:** esqueleto criado em 25/11/2026 com temas propostos pelo professor; slides com capa, agenda e placeholder, e materiais com as seções de cada tópico ainda em construção.

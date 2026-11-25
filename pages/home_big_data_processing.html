@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
+    <title>Big Data Processing — MBA Engenharia de Dados</title>
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <div class="material-nav" style="margin-bottom: 2rem;">
+        <a href="../index.html">&larr; Hub de Disciplinas</a>
+        <a href="../estudos.html">Biblioteca de Estudos</a>
+        <a href="../professor.html">Professor Afonso</a>
+      </div>
+
+      <section class="hero" data-year="2027">
+        <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
+        <span class="kicker">MBA Engenharia de Dados &middot; Código ENLS54628 &middot; Turma 0931.01J &middot; 32 horas</span>
+        <h1>Big Data Processing</h1>
+        <p>
+          Repositório da disciplina (Online Ao Vivo), com slides e materiais das 8 aulas. O percurso vai do processamento distribuído ao lakehouse: arquitetura do Spark, DataFrames e Spark SQL, Parquet e particionamento, otimização de jobs, Delta Lake e Iceberg, streaming com Kafka, orquestração e custo, até o projeto final.
+        </p>
+        <p class="meta">24/02/2027 a 14/04/2027 &middot; Quartas-feiras &middot; 19h00 &ndash; 22h40</p>
+      </section>
+
+      <section class="content-block">
+        <h2>Como a disciplina funciona</h2>
+        <p>Cada aula tem um bloco de teoria e um bloco de prática guiada. O slide projeta o roteiro da aula, e o material aprofunda cada tópico e traz o passo a passo da prática. A Aula 08 é reservada à mentoria e à entrega do projeto final.</p>
+        <h2>Ambiente</h2>
+        <p>Toda a prática roda no computador do aluno, sem serviço de nuvem. A preparação do ambiente (Python, Java e PySpark) é feita na Aula 01, e cada aula seguinte informa no material o que precisa estar instalado antes do início.</p>
+      </section>
+
+      <h3 class="section-heading">Cronograma &middot; 8 aulas</h3>
+      <section class="lesson-grid">
+        <article class="card">
+          <span class="card-num">01</span>
+          <h2>Aula 01</h2>
+          <p><strong>24/02/2027</strong></p>
+          <p>Processamento Distribuído: do MapReduce ao Spark. Por que uma máquina só deixa de dar conta, o que HDFS e MapReduce resolveram e o que o Spark mudou. Instalação local de Python, Java e PySpark e o primeiro job.</p>
+          <div class="actions">
+            <a class="button" href="../aulas/big_data_processing/aula_01_processamento_distribuido_do_mapreduce_ao_spark/slides/slide_aula_01_processamento_distribuido_do_mapreduce_ao_spark.html">Slide</a>
+            <a class="button" href="../aulas/big_data_processing/aula_01_processamento_distribuido_do_mapreduce_ao_spark/material/material_aula_01_processamento_distribuido_do_mapreduce_ao_spark.html">Material</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-num">02</span>
+          <h2>Aula 02</h2>
+          <p><strong>03/03/2027</strong></p>
+          <p>Arquitetura do Spark e DataFrames. SparkSession, transformações e ações, avaliação preguiçosa, partições e a API de DataFrames do PySpark.</p>
+          <div class="actions">
+            <a class="button" href="../aulas/big_data_processing/aula_02_arquitetura_do_spark_e_dataframes/slides/slide_aula_02_arquitetura_do_spark_e_dataframes.html">Slide</a>
+            <a class="button" href="../aulas/big_data_processing/aula_02_arquitetura_do_spark_e_dataframes/material/material_aula_02_arquitetura_do_spark_e_dataframes.html">Material</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-num">03</span>
+          <h2>Aula 03</h2>
+          <p><strong>10/03/2027</strong></p>
+          <p>Spark SQL, Parquet e Particionamento. Consultas em Spark SQL, comparação entre CSV, JSON e Parquet, particionamento em disco e leitura seletiva com predicate pushdown.</p>
+          <div class="actions">
+            <a class="button" href="../aulas/big_data_processing/aula_03_spark_sql_parquet_e_particionamento/slides/slide_aula_03_spark_sql_parquet_e_particionamento.html">Slide</a>
+            <a class="button" href="../aulas/big_data_processing/aula_03_spark_sql_parquet_e_particionamento/material/material_aula_03_spark_sql_parquet_e_particionamento.html">Material</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-num">04</span>
+          <h2>Aula 04</h2>
+          <p><strong>17/03/2027</strong></p>
+          <p>Otimização de Jobs Spark. Shuffle, estratégias de join, dados desbalanceados, Adaptive Query Execution, cache e leitura da Spark UI.</p>
+          <div class="actions">
+            <a class="button" href="../aulas/big_data_processing/aula_04_otimizacao_de_jobs_spark/slides/slide_aula_04_otimizacao_de_jobs_spark.html">Slide</a>
+            <a class="button" href="../aulas/big_data_processing/aula_04_otimizacao_de_jobs_spark/material/material_aula_04_otimizacao_de_jobs_spark.html">Material</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-num">05</span>
+          <h2>Aula 05</h2>
+          <p><strong>24/03/2027</strong></p>
+          <p>Lakehouse com Delta Lake e Iceberg. Tabelas transacionais sobre arquivos: ACID, time travel, MERGE, evolução de schema e compactação, comparando Delta Lake e Iceberg.</p>
+          <div class="actions">
+            <a class="button" href="../aulas/big_data_processing/aula_05_lakehouse_com_delta_lake_e_iceberg/slides/slide_aula_05_lakehouse_com_delta_lake_e_iceberg.html">Slide</a>
+            <a class="button" href="../aulas/big_data_processing/aula_05_lakehouse_com_delta_lake_e_iceberg/material/material_aula_05_lakehouse_com_delta_lake_e_iceberg.html">Material</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-num">06</span>
+          <h2>Aula 06</h2>
+          <p><strong>31/03/2027</strong></p>
+          <p>Structured Streaming com Kafka. Processamento contínuo com micro-batch, janelas de tempo, watermark, checkpoint e Kafka rodando no computador do aluno.</p>
+          <div class="actions">
+            <a class="button" href="../aulas/big_data_processing/aula_06_structured_streaming_com_kafka/slides/slide_aula_06_structured_streaming_com_kafka.html">Slide</a>
+            <a class="button" href="../aulas/big_data_processing/aula_06_structured_streaming_com_kafka/material/material_aula_06_structured_streaming_com_kafka.html">Material</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-num">07</span>
+          <h2>Aula 07</h2>
+          <p><strong>07/04/2027</strong></p>
+          <p>Orquestração e Custo do Processamento em Escala. Agendamento e dependências entre jobs, quando Spark compensa frente a DuckDB e Polars numa máquina só, e como estimar o custo de um pipeline.</p>
+          <div class="actions">
+            <a class="button" href="../aulas/big_data_processing/aula_07_orquestracao_e_custo_do_processamento_em_escala/slides/slide_aula_07_orquestracao_e_custo_do_processamento_em_escala.html">Slide</a>
+            <a class="button" href="../aulas/big_data_processing/aula_07_orquestracao_e_custo_do_processamento_em_escala/material/material_aula_07_orquestracao_e_custo_do_processamento_em_escala.html">Material</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="card-num">08</span>
+          <h2>Aula 08</h2>
+          <p><strong>14/04/2027</strong></p>
+          <p>Mentoria e Entrega do Projeto Final. Sem conteúdo novo: atendimento individual e entrega do projeto final da disciplina.</p>
+          <div class="actions">
+            <a class="button" href="../aulas/big_data_processing/aula_08_mentoria_e_entrega_do_projeto_final/slides/slide_aula_08_mentoria_e_entrega_do_projeto_final.html">Slide</a>
+            <a class="button" href="../aulas/big_data_processing/aula_08_mentoria_e_entrega_do_projeto_final/material/material_aula_08_mentoria_e_entrega_do_projeto_final.html">Material</a>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 01 — Processamento Distribuído: do MapReduce ao Spark</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="01" data-year="2027">
+        <div>
+          <span class="deck-kicker">Big Data Processing &middot; Aula 01 &middot; 24/02/2027 &middot; 19h00 &ndash; 22h40</span>
+          <h1 class="deck-title">Processamento Distribuído: do MapReduce ao Spark</h1>
+          <p class="deck-summary">Por que uma máquina só deixa de dar conta, o que HDFS e MapReduce resolveram e o que o Spark mudou. Instalação local de Python, Java e PySpark e o primeiro job.</p>
+          <p class="deck-meta">MBA em Engenharia de Dados &middot; Mackenzie &middot; 2027</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Agenda da aula</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Horário</th><th>Bloco</th></tr></thead>
+          <tbody>
+            <tr><td>19h00 &ndash; 19h10</td><td>Abertura e retomada da aula anterior</td></tr>
+            <tr><td>19h10 &ndash; 20h40</td><td>Teoria</td></tr>
+            <tr><td>20h40 &ndash; 21h00</td><td>Intervalo</td></tr>
+            <tr><td>21h00 &ndash; 22h20</td><td>Prática guiada no computador do aluno</td></tr>
+            <tr><td>22h20 &ndash; 22h40</td><td>Fechamento e tarefa da semana</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - PLACEHOLDER -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Em construção</span>
+          <h2 class="deck-title">Tópicos da aula</h2>
+          <p class="deck-summary">Esqueleto inicial. Os slides de cada tópico entram a partir daqui.</p>
+        </div>
+        <div class="deck-placeholder">
+          <div class="deck-panel">
+            <strong>Tópicos</strong>
+            <ul>
+              <li>Quando uma máquina não basta</li>
+              <li>HDFS e MapReduce</li>
+              <li>O modelo do Spark: driver, executores e DAG</li>
+              <li>Ambiente local: Python, Java e PySpark</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Ambiente</strong>
+            <ul>
+              <li>Tudo roda no computador do aluno.</li>
+              <li>Detalhes no <a href="../material/material_aula_01_processamento_distribuido_do_mapreduce_ao_spark.html">material da aula</a>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_big_data_processing.html" class="back-home">Big Data Processing</a>
+      <a href="../material/material_aula_01_processamento_distribuido_do_mapreduce_ao_spark.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>

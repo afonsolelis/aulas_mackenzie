@@ -22,7 +22,8 @@ Organizar o conteúdo do curso em um repositório estático Hub com a página in
 ├── pages/
 │   ├── home_cloud_sre.html              # Home da disciplina Cloud Computing e SRE
 │   ├── home_data_collection.html        # Home da disciplina Data Collection and Storage
-│   └── home_data_visualization.html     # Home da disciplina Data Visualization
+│   ├── home_data_visualization.html     # Home da disciplina Data Visualization
+│   └── home_big_data_processing.html    # Home da disciplina Big Data Processing
 ├── specs/
 │   └── repositorio_de_aulas.md
 └── aulas/
@@ -96,7 +97,7 @@ Organizar o conteúdo do curso em um repositório estático Hub com a página in
 - O JavaScript de navegação dos slides deve estar embutido no próprio HTML ou em arquivo compartilhado, sem dependências externas.
 - Novas aulas, revisões e migrações de slides existentes devem adotar o sistema HTML nativo como padrão canônico.
 - Todo slide deve começar com uma capa.
-- A capa deve exibir o título da aula e o ano `2026`.
+- A capa deve exibir o título da aula e o ano `2026` (em Big Data Processing, que acontece em 2027, o ano `2027`).
 - O segundo slide deve apresentar a agenda da aula.
 - O terceiro slide deve existir como placeholder inicial para a construção do conteúdo.
 - Todo slide deve conter link explícito para o material escrito da mesma aula.
