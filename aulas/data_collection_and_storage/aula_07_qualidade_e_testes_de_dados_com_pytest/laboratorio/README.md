@@ -2,30 +2,27 @@
 
 Data Collection and Storage · MBA Engenharia de Dados · semana de 28/11 a 05/12/2026
 
-Laboratório opcional para a semana depois da aula de 28/11/2026. Em sala, a Aula 07 usa a bancada de `../bancada/bancada_aula_07.html`, que roda pytest no navegador; este laboratório leva as mesmas técnicas para o código real do projeto, com Docker.
+Laboratório opcional para a semana depois da aula de 28/11/2026. Em sala, a Aula 07 usa a bancada de `../bancada/bancada_aula_07.html`, que roda pytest no navegador. Na semana, os testes vão para o código real do projeto pelos seis prompts CREATE do material da Aula 07 (`../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html`, seção 15). Este laboratório não tem prompts próprios: ele explica o mecanismo de Pydantic, VCR e Testcontainers e traz um exemplo de referência que roda.
 
 Roteiro completo: `roteiro_pydantic_e_testes.html`
-
-Este roteiro resume a prática. Os prompts CREATE completos, os quadros "Revise antes de seguir" e as explicações estão no roteiro (seções 11 a 15).
 
 ## O que fica nesta pasta
 
 | Arquivo | Para que serve |
 |---|---|
-| `README.md` | este roteiro |
-| `AGENTS.md` | modelo de regras para o agente de código na pasta `aula_07_validacao_testes/` |
+| `README.md` | este resumo |
+| `roteiro_pydantic_e_testes.html` | roteiro com o mecanismo de cada ferramenta, a preparação do ambiente e a conferência antes do commit |
 | `requirements-dev.txt` | dependências de validação e teste, com versões testadas em 03/10/2026 |
 | `exemplo/` | referência mínima: contrato da leitura IoT da Aula 06 (`LeituraBruta` e `LeituraNormalizada`), testes de unidade e um teste com Testcontainers subindo o MinIO |
 
-O `exemplo/` mostra o mecanismo. Ele não é a solução do projeto: os contratos de livro, PTAX e sensor do grupo nascem ao vivo pelos prompts, a partir do código que o grupo escreveu nas Aulas 03 e 06.
+O `exemplo/` mostra o mecanismo e serve de régua para conferir o que o agente produz. Ele não é a solução do projeto.
 
 ## Pré-requisitos
 
 - Codespace aberto no repositório do grupo (a imagem universal traz Docker e Python 3).
-- Pastas das Aulas 03 (scraping de books.toscrape.com + PTAX, com `bronze/books_toscrape/` e `bronze/ptax/` no MinIO) e 06 (sensores, RabbitMQ, transformador e ClickHouse) no repositório.
+- Pastas das Aulas 03 (scraping de books.toscrape.com e PTAX, com `bronze/books_toscrape/` e `bronze/ptax/` no MinIO) e 06 (sensores, RabbitMQ, transformador e ClickHouse) no repositório.
 - `.env` com `S3_ENDPOINT_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` e `S3_REGION=us-east-1`, como nas Aulas 02 a 04.
-- Agente de código de sua preferência (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot) lendo o `AGENTS.md`. No Claude Code, crie antes um `CLAUDE.md` que importe as regras: `echo "@AGENTS.md" > CLAUDE.md`. Outros agentes leem o `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto.
-- Trabalhe um prompt por vez e revise antes do próximo.
+- Agente de código de sua preferência (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot).
 
 ## Passo 0 · Conferir o Docker
 
@@ -36,14 +33,11 @@ docker run --rm hello-world
 
 Se o segundo comando falhar, os testes de integração serão pulados. Resolva antes de seguir (seção 9.5 do roteiro).
 
-## Passo 1 · Criar a pasta da aula no repositório do grupo
+## Passo 1 · Preparar o repositório do grupo
+
+Rode o prompt 0 do material na raiz do repositório. Ele cria `tests/unit`, `tests/contract`, `tests/integration` e `tests/qualidade`, o `pytest.ini` com o marcador `integracao` e a matriz de rastreabilidade. Use `exemplo/pytest.ini` como modelo e as versões de `requirements-dev.txt` no arquivo de dependências de desenvolvimento do projeto.
 
 ```bash
-cd /workspaces/<repositorio-do-grupo>
-mkdir -p aula_07_validacao_testes/{docs/adr,docs/contratos,specs,src,tests/unit,tests/contract,tests/integration}
-LAB=<caminho>/aulas_mackenzie/aulas/data_collection_and_storage/aula_07_qualidade_e_testes_de_dados_com_pytest/laboratorio
-cp $LAB/requirements-dev.txt $LAB/AGENTS.md aula_07_validacao_testes/
-cd aula_07_validacao_testes
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -51,14 +45,13 @@ python -m pip install -r requirements-dev.txt
 python -c "import pydantic, testcontainers, vcr; print(pydantic.VERSION)"
 ```
 
-Se o repositório `aulas_mackenzie` não estiver clonado no Codespace, baixe o arquivo pela interface do GitHub ou copie o conteúdo da tabela de dependências da seção 11 do roteiro.
-
 Acrescente ao `.gitignore` do repositório: `.venv/`, `.env`, `.pytest_cache/`, `__pycache__/`.
 
 ## Passo 2 · Rodar o exemplo de referência (opcional, 5 minutos)
 
 ```bash
-cp -r $LAB/exemplo /tmp/exemplo_aula07
+LAB=<caminho>/aulas_mackenzie/aulas/data_collection_and_storage/aula_07_qualidade_e_testes_de_dados_com_pytest/laboratorio
+rm -rf /tmp/exemplo_aula07 && cp -r $LAB/exemplo /tmp/exemplo_aula07
 cd /tmp/exemplo_aula07
 pytest -m "not integracao" -q   # unidade: sem Docker, sem rede
 pytest -q --durations=5         # inclui o MinIO em contêiner
@@ -66,40 +59,26 @@ pytest -q --durations=5         # inclui o MinIO em contêiner
 
 Resultado registrado pelo professor em 03/10/2026 (Python 3.12, Docker 29, imagem já baixada): 10 testes passaram em 1,86 s; a subida do MinIO consumiu 1,59 s; os 9 testes de unidade levaram 0,11 s. Sem Docker, o teste de integração aparece como `SKIPPED` com o motivo "Docker indisponível neste ambiente". No primeiro uso, o download da imagem soma tempo.
 
-## Passo 3 · Sequência SDD (prompts no roteiro, seção 12)
+## Passo 3 · Prompts da semana
 
-| Prompt | Artefato | Gate |
-|---|---|---|
-| 1. Persona | `docs/00_persona.md` | quem sofre com dado inválido e que decisão fica errada |
-| 2. Objetivos | `docs/01_objetivos_negocio.md` | métricas de qualidade com origem ou marcadas como hipótese |
-| 3. Especificação | `specs/spec.md` | RF/RNF com Dado/Quando/Então; RNF de validade, rastreabilidade e cobertura |
-| 4. Plano | `specs/plan.md` | C4 em Mermaid; onde cada validação entra; pirâmide de testes |
-| 5. Tarefas | `specs/tasks.md` | cada tarefa ligada a RF/RNF e a um teste |
-| 6. Implementação | `src/`, `tests/` | teste vermelho, código, teste verde; uma tarefa por vez |
-| 7. ATAM | `docs/atam.md`, `docs/adr/` | seis cenários da aula, matriz com requisito, decisão, componente e evidência |
+Rode os seis prompts CREATE do material (seção 15), um por vez, com um commit por prompt. As seções 6 a 9 do roteiro dão o mecanismo que os prompts 1, 4 e 5 usam.
 
-## Passo 4 · Comandos de teste usados na prática
+## Passo 4 · Comandos de teste
 
 ```bash
 pytest tests/unit -q                                  # segundos, sem rede nem Docker
 pytest tests/contract --record-mode=once -q           # grava cassetes na primeira execução
 pytest tests/contract --block-network -q              # reproduz cassetes; rede bloqueada
 pytest tests/integration -m integracao -q --durations=10
+pytest tests/qualidade -q                             # testes sobre o dado
 pytest -q                                             # suíte inteira antes do commit
 ```
 
 O `pytest-recording` usa o modo `none` por padrão: sem cassete gravado, o teste falha com `CannotOverwriteExistingCassetteException` em vez de chamar a rede.
 
-## Passo 5 · Entregável
+## Entregável
 
-Pasta `aula_07_validacao_testes/` no repositório do grupo com:
-
-- esqueleto SDD completo (`AGENTS.md`, `docs/`, `specs/`, `src/`, `tests/`);
-- contratos Pydantic de livro, cotação PTAX e leitura de sensor, com o JSON Schema publicado em `docs/contratos/`;
-- quarentena no MinIO (prefixo `quarantine/`) e DLQ no RabbitMQ;
-- suíte verde (`pytest -q`), com cassetes sem segredos;
-- `docs/relatorio_rejeicoes.md` gerado a partir da quarentena e da DLQ;
-- `docs/atam.md` com os seis cenários da aula e ADRs.
+O entregável da semana é o do material da Aula 07 (seção 16.1): os testes de cada camada no repositório do projeto, ligados aos requisitos na matriz de rastreabilidade.
 
 ## Segredos
 

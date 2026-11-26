@@ -22,7 +22,7 @@
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
       <h1>Laboratório opcional da Aula 07: Pydantic, VCR e Testcontainers</h1>
       <p class="meta">Laboratório opcional &middot; para a semana de 28/11 a 05/12/2026</p>
-      <p>Os pipelines das Aulas 03 e 06 coletam e gravam dados, mas aceitam qualquer coisa que chegue. Neste laboratório, cada grupo escreve contratos Pydantic para o livro extraído do HTML, para a cotação PTAX e para a leitura de sensor IoT, desvia os registros inválidos para quarentena no MinIO e para uma DLQ no RabbitMQ e protege tudo com uma suíte de testes em três camadas: unidade, contrato com respostas HTTP gravadas (VCR) e integração com serviços reais em contêiner (Testcontainers). O trabalho segue a mesma sequência SDD da Aula 01, agora com uma especificação de qualidade. As seções 1 a 10 trazem a base conceitual, com a estufa da Aula 06 como cenário condutor, e medem o que cada decisão custa: o desvio que um sensor rotulado errado provoca na média, a taxa de rejeição de um lote com defeitos conhecidos, o tempo de validar uma leitura, o custo de cada camada da pirâmide de testes e o efeito do escopo das fixtures. As seções 11 a 15 são a prática em SDD.</p>
+      <p>Os pipelines das Aulas 03 e 06 coletam e gravam dados, mas aceitam qualquer coisa que chegue. Este laboratório explica o mecanismo por trás dos testes da semana: contratos Pydantic para o livro extraído do HTML, para a cotação PTAX e para a leitura de sensor IoT, quarentena no MinIO e DLQ no RabbitMQ para os registros inválidos, e uma suíte em três camadas: unidade, contrato com respostas HTTP gravadas (VCR) e integração com serviços reais em contêiner (Testcontainers). As seções 1 a 10 trazem a base conceitual, com a estufa da Aula 06 como cenário condutor, e medem o que cada decisão custa: o desvio que um sensor rotulado errado provoca na média, a taxa de rejeição de um lote com defeitos conhecidos, o tempo de validar uma leitura, o custo de cada camada da pirâmide de testes e o efeito do escopo das fixtures. As seções 11 a 15 preparam o ambiente e conferem o resultado; os prompts da semana são os seis do material da Aula 07.</p>
     </header>
 
     <article class="material">
@@ -47,10 +47,10 @@
           <li><a href="#s9">Testcontainers: serviços reais dentro do teste</a></li>
           <li><a href="#s10">Extensão: a suíte no GitHub Actions</a></li>
           <li><a href="#s11">Preparação do ambiente</a></li>
-          <li><a href="#s12">Prática em SDD: os sete prompts CREATE</a></li>
+          <li><a href="#s12">Prompts da semana</a></li>
           <li><a href="#s13">Exemplo de referência mínimo</a></li>
-          <li><a href="#s14">Cenários ATAM da aula</a></li>
-          <li><a href="#s15">Atividade em sala e entregável</a></li>
+          <li><a href="#s14">Cenários ATAM de referência</a></li>
+          <li><a href="#s15">Conferência antes do commit</a></li>
         </ol>
         <p>Referências entre aulas: <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">Aula 01</a> (SDD, formato CREATE, Codespace e agente de código), <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a> (scraping de books.toscrape.com e PTAX gravados no MinIO) e <a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/laboratorio/roteiro_streaming_iot.html">laboratório opcional da Aula 06</a> (sensores, RabbitMQ, transformador Python e ClickHouse).</p>
       </section>
@@ -71,7 +71,7 @@
         <p>O primeiro caso foi reproduzido em 03/10/2026: com <code>requests.get(...)</code> e sem definir <code>response.encoding = "utf-8"</code>, o texto do primeiro preço da página 1 sai como <code>'Â£51.77'</code>; com a codificação correta, sai <code>'£51.77'</code>. A falha não depende de erro do grupo na Aula 03; depende de um detalhe do servidor que pode mudar a qualquer momento. Por isso a correção do coletor não basta, e o pipeline precisa de um ponto que recuse o dado quando o formato fugir do esperado.</p>
         <div class="note">
           <strong>Resultado esperado do laboratório</strong>
-          <p>Ao final, a pasta <code>aula_07_validacao_testes/</code> do repositório do grupo contém o esqueleto SDD, três contratos Pydantic com JSON Schema publicado, quarentena no MinIO, DLQ no RabbitMQ, uma suíte de testes verde em três camadas, um relatório de rejeições e um <code>docs/atam.md</code> com os seis cenários da seção 14.</p>
+          <p>Este roteiro não tem uma sequência de prompts própria. A prática da semana são os seis <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html#prompts">prompts CREATE do material da Aula 07</a>, sobre a raiz do repositório do projeto. Aqui ficam o mecanismo de cada ferramenta (Pydantic, VCR e Testcontainers), um exemplo de referência que roda e os comandos para conferir a suíte antes do commit.</p>
         </div>
         <h3>1.1 Etapas e duração estimada</h3>
         <div class="table-scroll"><table>
@@ -82,11 +82,11 @@
             <tr><td>30 min</td><td>Leitura 3</td><td>Pydantic v2 aplicado aos contratos; quanto custa validar uma leitura (seção 6).</td></tr>
             <tr><td>25 min</td><td>Leitura 4</td><td>Pirâmide de testes e respostas HTTP gravadas em cassetes; quanto custa um teste em cada camada (seções 7 e 8).</td></tr>
             <tr><td>20 min</td><td>Leitura 5</td><td>Testcontainers, custo de subida, Docker indisponível e CI; escopo da fixture e tempo da suíte (seções 9 e 10).</td></tr>
-            <tr><td>1 h</td><td>Prática em SDD</td><td>Preparação, exemplo de referência e prompts 1 a 5 revisados (seções 11 a 13).</td></tr>
-            <tr><td>restante da semana</td><td>Implementação e validação</td><td>Prompt 6, uma tarefa por vez, prompt 7 e conferência antes do commit (seção 15).</td></tr>
+            <tr><td>30 min</td><td>Preparação</td><td>Ambiente e exemplo de referência rodando (seções 11 e 13).</td></tr>
+            <tr><td>restante da semana</td><td>Prompts da semana</td><td>Os seis prompts CREATE do material, um por vez, e a conferência antes do commit (seções 12 e 15).</td></tr>
           </tbody>
         </table></div>
-        <p>A parte conceitual leva cerca de duas horas porque as decisões deste laboratório (onde validar, o que fazer com o inválido, quão estrito ser com cada produtor, em que camada testar) são as que o projeto final herda na Aula 08. A primeira sessão de prática termina com os prompts 1 a 5 revisados; o prompt 6, com contratos, quarentena, DLQ e testes, e o prompt 7, com a validação ATAM, ocupam o resto da semana.</p>
+        <p>A parte conceitual leva cerca de duas horas porque as decisões deste laboratório (onde validar, o que fazer com o inválido, quão estrito ser com cada produtor, em que camada testar) são as que o projeto final herda na Aula 08. A prática da semana usa os prompts do material, e este roteiro serve de consulta enquanto eles rodam.</p>
       </section>
 
       <!-- 2 -->
@@ -393,7 +393,7 @@ ListaPtax = TypeAdapter(list[CotacaoPtax])</code></pre>
             <tr><td><code>Modelo.schema()</code></td><td><code>Modelo.model_json_schema()</code></td></tr>
           </tbody>
         </table></div>
-        <p>Modelos de linguagem gratuitos misturam as duas versões com frequência, porque a v1 domina o código público antigo. O <code>AGENTS.md</code> da aula proíbe a API v1, e a revisão do diff deve procurar esses nomes.</p>
+        <p>Modelos de linguagem gratuitos misturam as duas versões com frequência, porque a v1 domina o código público antigo. O <code>AGENTS.md</code> do repositório do grupo deve proibir a API v1, e a revisão do diff deve procurar esses nomes.</p>
         <h3>6.9 Exemplo numérico: quanto custa validar</h3>
         <div class="note">
           <strong>Exemplo numérico 3. Tempo de validação por leitura</strong>
@@ -609,18 +609,11 @@ pytestmark = [
         <p>Os runners <code>ubuntu-latest</code> do GitHub Actions têm Docker instalado, então o Testcontainers funciona no CI sem configuração extra. O workflow abaixo separa dois passos: unidade e contrato com rede bloqueada, rápidos e sem Docker, e integração com contêineres. Se o primeiro passo falhar, o segundo nem começa, o que economiza minutos de CI.</p>
         <pre><code># .github/workflows/aula_07_testes.yml
 name: aula-07-testes
-on:
-  push:
-    paths: ["aula_07_validacao_testes/**"]
-  pull_request:
-    paths: ["aula_07_validacao_testes/**"]
+on: [push, pull_request]
 
 jobs:
   testes:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: aula_07_validacao_testes
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -630,7 +623,9 @@ jobs:
       - name: Unidade e contrato (sem rede, sem Docker)
         run: pytest tests/unit tests/contract -q --block-network
       - name: Integração (Testcontainers)
-        run: pytest tests/integration -m integracao -q --durations=10</code></pre>
+        run: pytest tests/integration -m integracao -q --durations=10
+      - name: Testes sobre o dado
+        run: pytest tests/qualidade -q</code></pre>
         <p>O workflow é extensão da aula e não faz parte do entregável mínimo. Ele foi escrito a partir da documentação das actions citadas e não foi executado no repositório de um grupo; o primeiro grupo que ativá-lo deve registrar o tempo do job no <code>docs/atam.md</code>, como evidência do cenário "suíte lenta demais para o CI".</p>
         <div class="note">
           <strong>Pausa para reflexão</strong>
@@ -659,18 +654,15 @@ jobs:
         <p>O ambiente é o mesmo da Aula 01: Codespace aberto no repositório do grupo, agente de código de sua preferência, Docker disponível. Se algo disso não estiver funcionando, volte à seção de setup do <a href="../../aula_01_arquitetura_de_software_de_dados_e_spec_driven_development/material/material_aula_01_arquitetura_de_software_de_dados_e_spec_driven_development.html">material da Aula 01</a> antes de seguir.</p>
         <ol class="steps">
           <li>No terminal do Codespace, confirme o Docker: <code>docker version --format '{{.Server.Version}}'</code> e <code>docker run --rm hello-world</code>.</li>
-          <li>Na raiz do repositório do grupo, crie a pasta da aula com o esqueleto SDD:
-            <pre><code>mkdir -p aula_07_validacao_testes/{docs/adr,docs/contratos,specs,src,tests/unit,tests/contract,tests/integration}</code></pre></li>
-          <li>Copie os arquivos de apoio do <a href="../laboratorio/README.md">laboratório</a>: <code>requirements-dev.txt</code>, <code>AGENTS.md</code> e <code>exemplo/pytest.ini</code> (este último para a raiz de <code>aula_07_validacao_testes/</code>; ele define <code>pythonpath = .</code>, a pasta de testes e o marcador <code>integracao</code>). Ajuste no <code>AGENTS.md</code> o nome da pasta da Aula 06, se for diferente de <code>aula_06_streaming_iot/</code>.</li>
-          <li>Crie o ambiente virtual e instale as dependências:
-            <pre><code>cd aula_07_validacao_testes
-python3 -m venv .venv
+          <li>Na raiz do repositório do grupo, rode o <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html#prompts">prompt 0 do material</a>. Ele cria <code>tests/unit</code>, <code>tests/contract</code>, <code>tests/integration</code> e <code>tests/qualidade</code>, o <code>pytest.ini</code> com o marcador <code>integracao</code> e a matriz de rastreabilidade. O <code>exemplo/pytest.ini</code> do <a href="../laboratorio/README.md">laboratório</a> serve de modelo.</li>
+          <li>Leve as versões do <code>requirements-dev.txt</code> do laboratório para o arquivo de dependências de desenvolvimento do projeto, crie o ambiente virtual e instale:
+            <pre><code>python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt
 python -c "import pydantic; print(pydantic.VERSION)"</code></pre></li>
           <li>Confirme que <code>.venv/</code>, <code>.env</code>, <code>.pytest_cache/</code> e <code>__pycache__/</code> estão no <code>.gitignore</code> da raiz.</li>
-          <li>Abra o agente de código de sua preferência na pasta da aula (por exemplo, <code>claude</code>). No Claude Code, crie antes um <code>CLAUDE.md</code> que importe as regras: <code>echo "@AGENTS.md" &gt; CLAUDE.md</code>. Outros agentes leem o <code>AGENTS.md</code> diretamente ou aceitam o arquivo colado no contexto. Faça o teste inicial: <code>Leia AGENTS.md e resuma as regras de escopo, segredos e gates. Não edite nada.</code></li>
+          <li>Abra o agente de código de sua preferência na raiz do repositório. Se o repositório tiver <code>AGENTS.md</code>, acrescente a regra de usar só a API v2 do Pydantic e de nunca gravar cassete com credencial.</li>
         </ol>
         <div class="table-scroll"><table>
           <thead><tr><th>Pacote (versão testada)</th><th>Papel</th></tr></thead>
@@ -690,405 +682,9 @@ python -c "import pydantic; print(pydantic.VERSION)"</code></pre></li>
 
       <!-- 12 -->
       <section class="content-block" id="s12">
-        <h2>12. Prática em SDD: os sete prompts CREATE</h2>
-        <p>Os prompts seguem a sequência SDD e o formato CREATE apresentados na Aula 01: <code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code> e <code>[E] Extras</code>. Cada prompt é independente e deve ser copiado por inteiro. A diferença desta aula está no objeto da especificação: em vez de um coletor novo, a spec descreve a qualidade exigida dos coletores existentes e a suíte que prova essa qualidade.</p>
-        <p>Os prompts citam <code>aula_03_api_scraping/</code> e <code>aula_06_streaming_iot/</code>. Se o grupo usou outros nomes de pasta, substitua antes de colar. Depois de cada prompt, faça a revisão do quadro "Revise antes de seguir": o aprendizado está na revisão, e um artefato aceito sem leitura contamina todos os seguintes.</p>
-
-        <h3>Prompt 1 &middot; Persona</h3>
-        <pre class="is-wrap"><code>[C] Personagem
-Você é analista de requisitos de dados num time que mantém dois pipelines:
-(1) monitor de preços de livros, com scraping de books.toscrape.com e cotação
-GBP/BRL da API PTAX do Banco Central, gravados no MinIO em raw/ e bronze/
-(Aula 03); e (2) monitoramento de estufas e da sala de germinação de uma
-cooperativa de mudas, com simulador de sensores, RabbitMQ, transformador
-Python e ClickHouse (Aula 06).
-
-[R] Pedido
-Crie aula_07_validacao_testes/docs/00_persona.md com as personas prejudicadas
-por dado inválido nesses dois pipelines. Para cada persona registre: quem é,
-que decisão toma com o dado, com que frequência, quais campos usa, qual dado
-inválido a prejudica e como ela percebe o erro hoje (ou por que não percebe).
-Inclua obrigatoriamente a persona de quem mantém os pipelines e responde
-pelos incidentes de qualidade.
-
-[E] Exemplos
-"Analista de precificação. Decide o preço de revenda em reais (frequência:
-hipótese, validação pendente). Usa preco_gbp de bronze/books_toscrape/ e
-cotacaoVenda do boletim de fechamento em bronze/ptax/. Um preço lido como 'Â£51.77' vira nulo na
-camada seguinte e o livro some do relatório sem aviso. Hoje percebe só quando
-alguém pergunta pelo livro. Origem: aula_03_api_scraping/docs/00_persona.md."
-
-[A] Ajustes
-- Reaproveite as personas das Aulas 03 e 06; não crie persona sem ligação com
-  esses artefatos ou com o mantenedor.
-- Separe fato (está nos arquivos, cite o caminho), lacuna e suposição.
-- Não invente frequências, volumes, SLAs ou nomes de campo; quando faltar,
-  escreva "hipótese, validação pendente".
-- No máximo quatro personas. Não edite código nem outros arquivos.
-- Mostre o plano (arquivos que vai ler e estrutura do documento) antes de criar.
-
-[T] Tipo de saída
-Um arquivo Markdown: uma seção por persona; ao final, tabela
-persona | campo crítico | falha de qualidade | decisão afetada | origem;
-e uma lista de perguntas abertas. Até duas páginas.
-
-[E] Extras
-Fontes de verdade: AGENTS.md desta pasta; aula_03_api_scraping/docs/ e src/;
-aula_06_streaming_iot/docs/ e src/. Se alguma pasta não existir ou tiver outro
-nome, pergunte antes de seguir. Pare ao final desta etapa e aguarde revisão.</code></pre>
-        <div class="note">
-          <strong>Revise antes de seguir</strong>
-          <p>Cada persona aponta um campo concreto e a decisão que fica errada? Toda frequência tem origem ou está marcada como hipótese? O mantenedor do pipeline aparece como persona? A lista de perguntas abertas tem pelo menos um item (se estiver vazia, desconfie)?</p>
-        </div>
-
-        <h3>Prompt 2 &middot; Objetivos de negócio</h3>
-        <pre class="is-wrap"><code>[C] Personagem
-Você é analista de negócio com experiência em qualidade de dados. Traduz a
-dor das personas em objetivos mensuráveis, sem inventar metas.
-
-[R] Pedido
-Crie aula_07_validacao_testes/docs/01_objetivos_negocio.md com: objetivos
-desta etapa (confiar nos preços em reais e nas médias dos sensores); drivers
-de negócio; métricas de sucesso; restrições; fora de escopo. As métricas
-devem cobrir, por fonte (books_toscrape, ptax, iot): completude,
-validade, unicidade e atualidade; taxa de rejeição por execução; tempo para
-detectar mudança de formato da fonte; tempo de execução da suíte de testes.
-
-[E] Exemplos
-| ID | Objetivo | Métrica | Fórmula | Linha de base | Meta | Origem |
-| O-02 | Nenhuma leitura com temperatura implausível entra na média da estufa | Validade das leituras | aceitas / recebidas, por janela do transformador | a medir na Aula 07 | hipótese: >= 99%, validação pendente | persona "Técnica agrícola" em docs/00_persona.md |
-
-[A] Ajustes
-- Toda métrica tem numerador e denominador explícitos e fonte definida.
-- Linha de base sem medição registrada é "a medir"; meta sem origem é
-  "hipótese, validação pendente".
-- Defina a chave de unicidade de cada fonte a partir do código das Aulas 03
-  e 06 (cite arquivo e linha); se não encontrar, registre como lacuna.
-- Separe métricas de qualidade do dado de métricas da suíte de testes.
-- Restrições obrigatórias: Codespace com Docker; MinIO na imagem
-  coollabsio/minio:RELEASE.2025-10-15T17-29-55Z; nenhum serviço pago novo; nenhuma credencial em
-  arquivo versionado.
-
-[T] Tipo de saída
-Markdown com tabela de objetivos e métricas, lista de restrições, lista de
-fora de escopo e perguntas abertas. Até duas páginas.
-
-[E] Extras
-Leia docs/00_persona.md e AGENTS.md. Cada objetivo cita a persona que o
-motiva. Pergunte antes se faltar informação. Pare ao final desta etapa.</code></pre>
-        <div class="note">
-          <strong>Revise antes de seguir</strong>
-          <p>Alguma meta numérica apareceu sem a marca de hipótese? Cada métrica tem fórmula com denominador? A chave de unicidade da PTAX considera os vários boletins do mesmo dia? Há pelo menos uma métrica sobre a própria suíte de testes (tempo ou cobertura de regras)?</p>
-        </div>
-
-        <h3>Prompt 3 &middot; Especificação de qualidade</h3>
-        <pre class="is-wrap"><code>[C] Personagem
-Você é engenheiro de requisitos de dados. Escreve requisitos verificáveis,
-cada um com critério de aceite no formato Dado / Quando / Então.
-
-[R] Pedido
-Crie aula_07_validacao_testes/specs/spec.md com os requisitos da camada de
-validação e da suíte de testes. Cubra no mínimo:
-RF-01 contrato Livro: linha de bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl
-      (upc, url, titulo, categoria, avaliacao, preco_gbp, em_estoque,
-      qtd_estoque, coletado_em);
-RF-02 contrato CotacaoPtax: linha de bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl
-      (moeda, dataHoraCotacao, tipoBoletim, cotacaoCompra, cotacaoVenda);
-RF-03 contratos LeituraBruta e LeituraNormalizada: mensagem da Aula 06
-      (event_id, device_id, medido_em, temperatura, unidade_temperatura,
-      umidade) e linha de iot.leituras (temperatura_c, umidade_pct, local,
-      tipo_local);
-RF-04 quarentena no MinIO para a Aula 03: bucket raw, prefixo
-      quarantine/&lt;fonte&gt;/data=AAAA-MM-DD/; bronze/ só recebe linhas válidas;
-RF-05 leituras recusadas publicadas em iot.dlx com cabeçalho x-motivo
-      (chegam em leituras.dlq) e registradas em iot.leituras_rejeitadas;
-RF-06 falha da execução quando a taxa de rejeição passar de um limite;
-RF-07 publicação do JSON Schema de cada contrato em docs/contratos/;
-RF-08 relatório de rejeições por fonte, campo e tipo de erro;
-RNF-01 validade: nenhum registro chega à escrita sem passar no contrato;
-RNF-02 rastreabilidade: toda rejeição guarda fonte, contrato, versão do
-contrato, id da execução, posição, entrada original e lista de erros;
-RNF-03 cobertura: cada regra de cada contrato tem ao menos um caso válido e
-um inválido testados;
-RNF-04 isolamento: testes de unidade e de contrato rodam sem rede e sem Docker;
-RNF-05 reprodutibilidade: cassetes versionados e imagens com tag fixa;
-RNF-06 segredos: nenhuma credencial em cassete, log ou arquivo versionado;
-RNF-07 tempo da suíte (meta como hipótese).
-
-[E] Exemplos
-RF-03 · Contratos LeituraBruta e LeituraNormalizada
-Origem: persona "Técnica agrícola"; objetivo O-02; aula_06_streaming_iot/specs/spec.md.
-Regras: event_id UUID; device_id presente no cadastro versionado de sensores;
-unidade_temperatura em {C, F}; umidade entre 0 e 100; temperatura convertida
-para Celsius dentro da faixa física (faixa: hipótese, validação pendente);
-medido_em ISO 8601 com fuso, no máximo uma tolerância no futuro (tolerância:
-hipótese, validação pendente); campo desconhecido recusado.
-Critérios de aceite:
-  Dado uma leitura de estufa-a-03 com temperatura 76.28 e unidade "F"
-  Quando o transformador a valida e normaliza
-  Então iot.leituras recebe temperatura_c 24.6 e umidade_pct igual à umidade.
-
-  Dado uma leitura com umidade 104
-  Quando o transformador a valida
-  Então ela é publicada em iot.dlx com x-motivo = umidade_fora_da_faixa,
-  aparece em iot.leituras_rejeitadas e não é gravada em iot.leituras.
-
-RNF-02 · Rastreabilidade das rejeições
-  Dado um lote do scraping com um preço "Â£50.10"
-  Quando o lote é processado
-  Então existe uma linha em quarantine/books_toscrape/data=.../&lt;execucao&gt;.jsonl
-  com fonte, contrato, versao_contrato, execucao_id, posicao, entrada e erros,
-  e o relatório de rejeições conta 1 erro value_error em preco_gbp.
-
-[A] Ajustes
-- Confira os campos acima no código e na spec das Aulas 03 e 06 e cite arquivo
-  e linha; se o grupo tiver refinado algum nome, use o do grupo e registre a
-  diferença. Os códigos de motivo são os da spec da Aula 06 (json_invalido,
-  campo_ausente, campo_desconhecido, tipo_invalido, unidade_desconhecida,
-  umidade_fora_da_faixa, temperatura_fora_da_faixa, sensor_desconhecido,
-  medido_em_no_futuro).
-- Para cada contrato, decida e justifique o tratamento de campo desconhecido
-  (forbid para produtor do grupo; ignore com alerta para fonte externa) e
-  marque a decisão como candidata a ADR.
-- Limites (taxa de rejeição, faixas, tempo da suíte, idade máxima do
-  cassete) entram como "hipótese, validação pendente".
-- Ferramentas já decididas: Pydantic v2, pytest, vcrpy com pytest-recording,
-  testcontainers-python. Não acrescente outras.
-- Preserve os IDs listados; novos requisitos continuam a numeração.
-
-[T] Tipo de saída
-Markdown: tabela-índice (ID, título, origem, prioridade); uma seção por
-requisito com regras e critérios Dado/Quando/Então; seção "Fora de escopo";
-seção "Fatos, lacunas e suposições".
-
-[E] Extras
-Leia docs/00_persona.md, docs/01_objetivos_negocio.md, AGENTS.md e o código
-das Aulas 03 e 06. Pergunte se o nome de um campo for ambíguo. Não escreva
-código. Pare ao final desta etapa.</code></pre>
-        <div class="note">
-          <strong>Revise antes de seguir</strong>
-          <p>Todo RF e RNF tem critério Dado/Quando/Então que um teste consegue verificar? Os campos dos contratos têm arquivo e linha de origem? RNF-02 lista todos os itens do registro de rejeição? A decisão sobre campo desconhecido está justificada para cada fonte? Algum limite numérico ficou sem a marca de hipótese?</p>
-        </div>
-
-        <h3>Prompt 4 &middot; Plano e arquitetura</h3>
-        <pre class="is-wrap"><code>[C] Personagem
-Você é arquiteto de software de dados. Toda escolha técnica sua aponta para
-um requisito da spec.
-
-[R] Pedido
-Crie aula_07_validacao_testes/specs/plan.md com:
-1. Diagrama C4 de contexto e de contêineres em Mermaid, mostrando fontes,
-   coletores, extração para bronze/, simulador, RabbitMQ (iot.leituras,
-   iot.dlx, leituras.brutas, leituras.validas, leituras.dlq), transformador,
-   armazenador, MinIO, ClickHouse e onde cada contrato é aplicado (borda de
-   entrada, entre camadas, antes da escrita).
-2. Diagrama de sequência Mermaid de uma leitura recusada: consumo de
-   leituras.brutas, validação, publicação em iot.dlx com x-motivo, gravação em
-   iot.leituras_rejeitadas, ack da original.
-3. Componentes: src/contratos/ (livro.py, cotacao_ptax.py, leitura_iot.py),
-   src/qualidade/ (quarentena.py, dlq.py, metricas.py, relatorio.py),
-   src/pipelines/ (código das Aulas 03 e 06 adaptado para chamar os contratos).
-4. Estratégia de testes em pirâmide: tests/unit, tests/contract (cassetes em
-   tests/contract/cassettes), tests/integration (Testcontainers com fixtures de
-   escopo session em conftest.py), marcador "integracao", comandos de cada camada.
-5. Tabela de decisões: ID, decisão, requisitos atendidos, alternativa
-   descartada e motivo.
-
-[E] Exemplos
-| D-03 | Quarentena como JSON Lines no bucket raw, prefixo quarantine/ | RF-04, RNF-02 | tabela de rejeições no ClickHouse: mistura dado inválido com a camada de consulta |
-| D-05 | Imagens com tag fixa: coollabsio/minio:RELEASE.2025-10-15T17-29-55Z, rabbitmq:4.3.6-management e clickhouse/clickhouse-server:26.8.15.10 (as do docker-compose da Aula 06) | RNF-05 | latest: o teste muda de comportamento sem mudança de código |
-
-[A] Ajustes
-- Decida, com alternativa e motivo, se o código das Aulas 03 e 06 é copiado
-  para src/pipelines/ ou importado da pasta original; a decisão vira ADR.
-- Mantenha a decisão da Aula 06 sobre a DLQ (publicar em iot.dlx com x-motivo
-  ou basic_nack) e explique como o código de motivo sai do erro do Pydantic,
-  já que o cabeçalho x-death não traz a regra violada.
-- Filas quorum (x-queue-type=quorum), como na Aula 06; filas de teste também
-  com durable=True (o RabbitMQ 4 recusa fila transitória não exclusiva).
-- Conexão com o MinIO pelas variáveis S3_ENDPOINT_URL, S3_ACCESS_KEY,
-  S3_SECRET_KEY e S3_REGION=us-east-1 (padrão das Aulas 02 a 04).
-- Testcontainers 4.15.0 importado de testcontainers.community.&lt;modulo&gt;.
-- Nenhum serviço, biblioteca ou ferramenta sem requisito correspondente.
-- Os nomes nos diagramas são os mesmos do texto.
-
-[T] Tipo de saída
-Markdown com três diagramas Mermaid, lista de componentes com responsabilidade
-e requisito atendido, seção de testes e tabela de decisões.
-
-[E] Extras
-Leia specs/spec.md, docs/ e AGENTS.md. Mostre o plano do documento antes de
-escrever. Não escreva código. Pare ao final desta etapa.</code></pre>
-        <div class="note">
-          <strong>Revise antes de seguir</strong>
-          <p>Os três pontos de validação aparecem no diagrama de contêineres? Cada componente aponta para pelo menos um requisito? Alguma tecnologia entrou sem requisito? A decisão "copiar ou importar" tem alternativa e motivo? O registro dos erros da DLQ ficou resolvido ou marcado como pendente?</p>
-        </div>
-
-        <h3>Prompt 5 &middot; Tarefas</h3>
-        <pre class="is-wrap"><code>[C] Personagem
-Você é tech lead. Quebra o plano em tarefas pequenas, cada uma provada por
-um teste.
-
-[R] Pedido
-Crie aula_07_validacao_testes/specs/tasks.md com tarefas T-01, T-02, ... na
-ordem de execução: contratos e seus testes de unidade; validação de lote e
-registro de erros; quarentena e relatório com testes de unidade (cliente
-falso); testes de contrato com VCR para PTAX e books.toscrape.com; teste de
-integração da quarentena no MinIO; teste de integração da DLQ no RabbitMQ
-(iot.dlx, leituras.dlq, x-motivo); teste de integração no ClickHouse com a
-DDL da Aula 06 (válidas em iot.leituras, recusadas em iot.leituras_rejeitadas);
-JSON Schema publicado e teste de compatibilidade; relatório de rejeições; workflow
-de CI (opcional, última tarefa).
-
-[E] Exemplos
-- [ ] T-04 · Validar lote de leituras sem interromper no primeiro erro
-  Requisitos: RF-03, RNF-02
-  Teste: tests/unit/test_leitura_iot.py::test_lote_separa_validas_de_rejeitadas
-  Comando: pytest tests/unit/test_leitura_iot.py -q --block-network
-  Pronto quando: num lote com 1 válida em C, 1 válida em F, 1 corpo que não é
-  JSON e 1 sensor fora do cadastro, saem 2 normalizadas e 2 rejeitadas com
-  motivos json_invalido e sensor_desconhecido, posição e payload original.
-  Depende de: T-03
-
-[A] Ajustes
-- Cada tarefa cabe em cerca de 30 minutos e tem exatamente um teste que a prova.
-- Nenhuma tarefa sem requisito; nenhum requisito sem tarefa (liste os
-  descobertos no fim).
-- Tarefas de integração só depois das de unidade correspondentes.
-- Tarefas de cassete incluem a verificação de filter_headers e a busca por
-  segredos no YAML.
-- Não estime horas nem invente prazos. Não implemente nada.
-
-[T] Tipo de saída
-Markdown com checklist de tarefas no formato do exemplo e, ao final, tabela
-requisito | tarefas | teste.
-
-[E] Extras
-Leia specs/spec.md e specs/plan.md. Pare ao final desta etapa.</code></pre>
-        <div class="note">
-          <strong>Revise antes de seguir</strong>
-          <p>Todo RF e RNF aparece na tabela final? Cada tarefa tem comando de teste executável? As tarefas de integração vêm depois das de unidade? Alguma tarefa grande demais junta contrato, quarentena e integração de uma vez?</p>
-        </div>
-
-        <h3>Prompt 6 &middot; Implementação, uma tarefa por vez</h3>
-        <pre class="is-wrap"><code>[C] Personagem
-Você é desenvolvedor Python sênior, pratica TDD e conhece Pydantic v2,
-pytest, vcrpy com pytest-recording e testcontainers-python.
-
-[R] Pedido
-Implemente somente a tarefa T-XX de specs/tasks.md (troque XX pelo número):
-1. Escreva primeiro o teste indicado na tarefa e execute-o para mostrar que
-   falha pelo motivo esperado.
-2. Implemente o mínimo de código para o teste passar.
-3. Execute o teste da tarefa e a camada inteira (pytest tests/unit -q
-   --block-network, ou a camada da tarefa).
-4. Marque a tarefa em specs/tasks.md com o comando executado e o resultado.
-
-[E] Exemplos
-Saída esperada no fim da tarefa:
-  Antes:  pytest tests/unit/test_livro.py -q  -> 1 failed (preço "Â£51.77" aceito)
-  Depois: pytest tests/unit/test_livro.py -q  -> 4 passed
-  Arquivos alterados: src/contratos/livro.py, tests/unit/test_livro.py,
-  specs/tasks.md
-
-[A] Ajustes
-- Somente API v2 do Pydantic: BaseModel, Field, Annotated, field_validator,
-  model_validator, ConfigDict, TypeAdapter, model_json_schema, model_dump.
-  Proibido: validator, root_validator, parse_obj, .dict(), class Config.
-- Erros de lote registrados com errors(include_url=False, include_context=False)
-  e traduzidos para os códigos de motivo da Aula 06.
-- Regras que dependem do relógio (medido_em no futuro) recebem o instante pelo
-  contexto de validação; o teste fixa o instante.
-- Testcontainers: from testcontainers.community.&lt;modulo&gt; import ...; imagem
-  sempre explícita com tag fixa; MinIO em
-  coollabsio/minio:RELEASE.2025-10-15T17-29-55Z com MINIO_ROOT_USER e
-  MINIO_ROOT_PASSWORD; RabbitMQ rabbitmq:4.3.6-management; ClickHouse
-  clickhouse/clickhouse-server:26.8.15.10 com a DDL 001_criar_tabelas.sql da
-  Aula 06; código lê S3_ENDPOINT_URL, S3_ACCESS_KEY, S3_SECRET_KEY e
-  S3_REGION; fixtures de escopo session em
-  tests/integration/conftest.py; testes marcados com @pytest.mark.integracao e
-  pulados com motivo quando o Docker não responder.
-- RabbitMQ: topologia da Aula 06 (iot.leituras topic, iot.dlx fanout, filas
-  quorum leituras.brutas, leituras.validas e leituras.dlq); leitura recusada
-  publicada em iot.dlx com cabeçalho x-motivo.
-- VCR: @pytest.mark.vcr; vcr_config com filter_headers authorization, cookie
-  e set-cookie; nunca gravar cassete sem avisar e pedir confirmação.
-- Testes de unidade nunca acessam rede nem Docker.
-- Credenciais só por variável de ambiente. Nada fora de
-  aula_07_validacao_testes/. Mostre o diff antes de aplicar.
-
-[T] Tipo de saída
-Código e teste da tarefa, specs/tasks.md atualizado e um resumo final com os
-comandos executados e a saída resumida do pytest.
-
-[E] Extras
-Leia AGENTS.md, specs/spec.md, specs/plan.md e specs/tasks.md antes de
-começar. Se a tarefa depender de campo ou nome que não está na spec, pergunte.
-Pare ao final da tarefa e aguarde revisão antes da próxima.</code></pre>
-        <div class="note">
-          <strong>Revise antes de seguir (a cada tarefa)</strong>
-          <p>O teste falhou antes e passa depois, na sua execução e não só na do agente? O diff tem algum nome da API v1 do Pydantic? Alguma imagem sem tag ou com <code>latest</code>? O cassete novo passou na busca por segredos? O teste de integração usa nomes próprios de bucket ou fila, para não interferir nos outros?</p>
-        </div>
-
-        <h3>Prompt 7 &middot; Validação ATAM</h3>
-        <pre class="is-wrap"><code>[C] Personagem
-Você é uma equipe avaliadora ATAM independente, formada por engenheiro de
-dados, especialista em testes e operador de plantão. Não defende a solução;
-procura onde ela falha.
-
-[R] Pedido
-Crie ou atualize aula_07_validacao_testes/docs/atam.md e os ADRs em
-docs/adr/. O atam.md contém: drivers de negócio; utility tree
-(atributo, refinamento, cenário, importância, dificuldade); os seis cenários
-obrigatórios abaixo, cada um em seis partes (fonte do estímulo, estímulo,
-ambiente, artefato, resposta, medida de resposta); pontos de sensibilidade,
-trade-offs, riscos e não riscos; matriz requisito, decisão, componente,
-evidência.
-Cenários obrigatórios:
-1. A API PTAX passa a devolver um campo novo.
-2. O preço do livro chega com formato inesperado (ex.: "Â£51.77" ou "51,77").
-3. Um sensor publica temperatura com unidade errada (unidade fora de C/F, ou
-   leitura em Fahrenheit rotulada como "C").
-4. Um cassete desatualizado mascara uma mudança real da fonte.
-5. A suíte fica lenta demais para o CI.
-6. O Docker está indisponível no ambiente de teste.
-
-[E] Exemplos
-Cenário 4 · Cassete desatualizado
-Fonte: Banco Central (produtor externo). Estímulo: renomeia cotacaoVenda.
-Ambiente: produção; suíte do PR reproduzindo cassete de 02/10/2026.
-Artefato: contrato CotacaoPtax e teste de contrato.
-Resposta: o job agendado com --record-mode=all falha e abre alerta antes da
-próxima coleta; a suíte do PR continua verde e isso fica registrado como risco.
-Medida: tempo entre a mudança e o alerta (hipótese: até 24 h, validação pendente).
-Decisão relacionada: ADR-003 (cassete no PR, teste ao vivo agendado).
-
-[A] Ajustes
-- Execute a suíte (pytest -q --durations=10) e cite a saída real como
-  evidência; não invente tempos nem contagens.
-- Cada evidência é um arquivo de teste, um comando com resultado ou um objeto
-  em quarantine/. Sem evidência, escreva "evidência pendente".
-- Diferencie risco confirmado de dúvida não investigada.
-- ADRs obrigatórios: tratamento de campo desconhecido (forbid x ignore);
-  quarentena por registro x falha do lote; cassete x API real; contêiner real
-  x dublê de teste; copiar x importar o código das Aulas 03 e 06.
-  Cada ADR com status, contexto, alternativas, decisão, consequências e
-  condição de revisão.
-- Gere também docs/relatorio_rejeicoes.md a partir da quarentena e da DLQ de
-  uma execução real, com contagem por fonte, campo e tipo de erro, e as quatro
-  métricas de qualidade com numerador e denominador.
-
-[T] Tipo de saída
-docs/atam.md, docs/adr/ADR-00x-*.md e docs/relatorio_rejeicoes.md, em
-Markdown com tabelas.
-
-[E] Extras
-Leia todos os artefatos de docs/ e specs/, os testes e a saída do pytest.
-Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revisão.</code></pre>
-        <div class="note">
-          <strong>Revise para fechar</strong>
-          <p>Os seis cenários têm as seis partes e uma medida? Existe ao menos um trade-off nomeado, como "forbid detecta cedo e para a coleta; ignore mantém a coleta e atrasa a detecção"? Cada linha da matriz aponta um teste ou um objeto real como evidência? Os tempos citados vieram da execução do grupo? O relatório de rejeições tem denominadores?</p>
-        </div>
+        <h2>12. Prompts da semana</h2>
+        <p>Os prompts da semana são os seis do <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html#prompts">material da Aula 07</a>, no formato CREATE, sobre o código real do projeto: o prompt 0 prepara o ambiente de testes, o 1 escreve os testes do contrato do sensor, o 2 faz a limpeza dos livros em TDD, o 3 injeta o relógio na PTAX vigente, o 4 grava as respostas HTTP em cassetes e usa dublês no coletor, e o 5 escreve os testes sobre o dado e o portão de publicação da gold. Rode um prompt por vez, revise o diff e faça um commit por prompt.</p>
+        <p>As seções 6 a 9 deste roteiro dão o mecanismo que os prompts 1, 4 e 5 usam, e a seção 13 é a régua para conferir o que o agente produziu no teste com contêiner, que a bancada não cobre.</p>
       </section>
 
       <!-- 13 -->
@@ -1115,8 +711,8 @@ Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revi
 
       <!-- 14 -->
       <section class="content-block" id="s14">
-        <h2>14. Cenários ATAM da aula</h2>
-        <p>Os seis cenários abaixo são o mínimo do <code>docs/atam.md</code>. Eles foram escolhidos porque cada um pressiona uma decisão diferente da aula. As medidas estão marcadas como hipótese: o grupo substitui pelos valores que medir ou combinar com a persona.</p>
+        <h2>14. Cenários ATAM de referência</h2>
+        <p>Os seis cenários abaixo servem de ponto de partida para os cenários de qualidade da validação ATAM do projeto final. Eles foram escolhidos porque cada um pressiona uma decisão diferente da aula. As medidas estão marcadas como hipótese: o grupo substitui pelos valores que medir ou combinar com a persona.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Cenário</th><th>Fonte e estímulo</th><th>Ambiente e artefato</th><th>Resposta</th><th>Medida (hipótese)</th></tr></thead>
           <tbody>
@@ -1140,33 +736,14 @@ Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revi
 
       <!-- 15 -->
       <section class="content-block" id="s15">
-        <h2>15. Atividade da semana e entregável</h2>
-        <p>A prática acontece no Codespace do repositório do grupo, durante a semana de 28/11 a 05/12/2026. O grupo reproduz cada etapa com os prompts da seção 12, revisa o artefato antes de seguir e executa os testes no próprio terminal: a resposta do agente dizendo que o teste passou não conta como evidência.</p>
-        <div class="table-scroll"><table>
-          <thead><tr><th>Duração</th><th>Etapa</th><th>Saída</th></tr></thead>
-          <tbody>
-            <tr><td>15 min</td><td>Preparação (seção 11) e exemplo de referência (seção 13)</td><td>Docker respondendo, dependências instaladas, exemplo verde</td></tr>
-            <tr><td>45 min</td><td>Prompts 1 a 5</td><td>persona, objetivos, spec, plan e tasks revisados e commitados</td></tr>
-            <tr><td>restante da semana, até a Aula 08 (05/12/2026)</td><td>Prompt 6, uma tarefa por vez, e prompt 7</td><td>contratos, quarentena, DLQ, testes nas três camadas, <code>atam.md</code>, ADRs e relatório de rejeições</td></tr>
-          </tbody>
-        </table></div>
-        <h3>15.1 Entregável</h3>
-        <p>Pasta <code>aula_07_validacao_testes/</code> no repositório do grupo, até a Aula 08 (05/12/2026), com:</p>
-        <ol class="steps">
-          <li>Esqueleto SDD completo: <code>AGENTS.md</code>, <code>docs/00_persona.md</code>, <code>docs/01_objetivos_negocio.md</code>, <code>specs/spec.md</code>, <code>specs/plan.md</code>, <code>specs/tasks.md</code>.</li>
-          <li>Contratos Pydantic de livro, cotação PTAX e leitura de sensor em <code>src/contratos/</code>, com o JSON Schema de cada um em <code>docs/contratos/</code>.</li>
-          <li>Quarentena no MinIO (prefixo <code>quarantine/</code>) e DLQ no RabbitMQ implementadas e testadas.</li>
-          <li>Suíte verde: <code>pytest tests/unit tests/contract -q --block-network</code> e <code>pytest tests/integration -m integracao -q</code>, com cassetes sem segredos.</li>
-          <li><code>docs/relatorio_rejeicoes.md</code> gerado de uma execução real, com contagens por fonte, campo e tipo de erro e as quatro métricas com numerador e denominador.</li>
-          <li><code>docs/atam.md</code> com os seis cenários da seção 14 e os ADRs em <code>docs/adr/</code>.</li>
-        </ol>
-        <h3>15.2 Conferência antes do commit</h3>
-        <pre><code>cd aula_07_validacao_testes
-pytest tests/unit tests/contract -q --block-network
+        <h2>15. Conferência antes do commit</h2>
+        <p>O entregável da semana é o do <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html#s16">material da Aula 07</a>: os testes de cada camada no repositório do projeto, ligados aos requisitos na matriz de rastreabilidade. Antes de cada commit, rode a suíte no próprio terminal; a resposta do agente dizendo que o teste passou não conta como evidência.</p>
+        <pre><code>pytest tests/unit tests/contract -q --block-network
 pytest tests/integration -m integracao -q --durations=10
+pytest tests/qualidade -q
 grep -RniE "authorization|password|secret|token|api[_-]?key" tests/ || echo "nenhum segredo aparente"
 git status --short</code></pre>
-        <p>Se algum teste de integração aparecer como pulado, o Docker não respondeu e a evidência de integração não foi produzida; resolva antes de registrar o resultado no <code>docs/atam.md</code>. O código desta aula alimenta o projeto final: na <a href="../../aula_08_mentoria_e_entrega_do_projeto_final/material/material_aula_08_mentoria_e_entrega_do_projeto_final.html">Aula 08</a>, os contratos e a suíte entram como parte da evidência de qualidade do pipeline integrado.</p>
+        <p>Se algum teste de integração aparecer como pulado, o Docker não respondeu e a evidência de integração não foi produzida; resolva antes de registrar o resultado na matriz. O código desta semana alimenta o projeto final: na <a href="../../aula_08_mentoria_e_entrega_do_projeto_final/material/material_aula_08_mentoria_e_entrega_do_projeto_final.html">Aula 08</a>, a suíte entra como parte da evidência de qualidade do pipeline integrado.</p>
       </section>
 
     </article>
