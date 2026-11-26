@@ -31,7 +31,7 @@
           <h1 class="deck-title">Qualidade e Testes de Dados com pytest</h1>
           <p class="deck-meta">Aula 07 &nbsp;&bull;&nbsp; 28/11/2026 &nbsp;&bull;&nbsp; 8h30 &ndash; 12h10</p>
           <p class="deck-year">2026</p>
-          <p class="deck-subtitle">Qualidade de dados pela ISO/IEC 25012, caixa preta no contrato, TDD na limpeza, relógio injetado, dublês de teste e testes sobre o lote. Cinco blocos curtos, cada um seguido de uma estação da bancada, que roda pytest de verdade no navegador sobre o código e os dados do projeto.</p>
+          <p class="deck-subtitle">Qualidade de dados pela ISO/IEC 25012, caixa preta no contrato, TDD na limpeza, relógio injetado, dublês de teste e testes sobre o lote. Cinco blocos de teoria alternados com seis estações de uma bancada que roda pytest no navegador, sobre o código e os dados do projeto.</p>
         </div>
       </div>
     </div>
@@ -42,10 +42,10 @@
         <div>
           <span class="deck-kicker">Agenda</span>
           <h2 class="deck-title">Cinco blocos e seis estações</h2>
-          <p class="deck-summary">Cada bloco de teoria termina numa estação da bancada. As duas metades somam 3h40 de aula, ou quatro horas-aula de 55 minutos.</p>
+          <p class="deck-summary">Os blocos 2 a 5 terminam em estações da bancada, e a estação 0 abre a aula. As duas metades somam 3h20, e com o intervalo de 20 minutos são 3h40, ou quatro horas-aula de 55 minutos.</p>
         </div>
         <div class="deck-grid">
-          <article class="deck-card"><h3>8h30 &ndash; 10h00</h3><ul><li>8h30 &middot; Abertura e estação 0 (aquecimento)</li><li>8h45 &middot; Bloco 1: qualidade de dados</li><li>9h15 &middot; Bloco 2: caixa preta no contrato</li><li>9h35 &middot; Estação 1: contrato do sensor</li><li>10h00 &middot; Intervalo de 20 minutos</li></ul></article>
+          <article class="deck-card"><h3>8h30 &ndash; 10h00</h3><ul><li>8h30 &middot; Abertura e estação 0 (aquecimento)</li><li>8h45 &middot; Bloco 1: qualidade de dados</li><li>9h10 &middot; Bloco 2: caixa preta no contrato</li><li>9h35 &middot; Estação 1: contrato do sensor</li><li>10h00 &middot; Intervalo de 20 minutos</li></ul></article>
           <article class="deck-card"><h3>10h20 &ndash; 12h10</h3><ul><li>10h20 &middot; Bloco 3: TDD e relógio injetado</li><li>10h40 &middot; Estações 2 e 3: limpeza e relógio</li><li>11h05 &middot; Bloco 4: dublês e integração</li><li>11h20 &middot; Estação 4: coletor da PTAX</li><li>11h35 &middot; Bloco 5 e estação 5: testes sobre o lote</li><li>12h00 &middot; Fechamento</li></ul></article>
         </div>
       </div>
@@ -57,7 +57,7 @@
         <div>
           <span class="deck-kicker">Abertura &middot; Problema</span>
           <h2 class="deck-title">O painel de Poetry na véspera da entrega</h2>
-          <p class="deck-summary">A gold de livros diz que Poetry tem 5 livros com preço médio de £39,40, e mostra uma categoria a mais, "Poetry ", com £23,88. O pipeline rodou sem erro. Nenhum teste reprovou porque nenhum teste olhava para o dado.</p>
+          <p class="deck-summary">A gold de livros diz que Poetry tem 5 livros com preço médio de £39,40, e mostra uma categoria a mais, "Poetry ", com £23,88. O pipeline rodou sem erro. Os testes existentes verificavam o código, e nenhum conferia contagem, chave ou categoria da gold.</p>
         </div>
         <div class="deck-callout">
           <strong>Resultado observável ao fim da aula</strong>
@@ -76,7 +76,7 @@
         </div>
         <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
           <article class="deck-card"><h3>Carregar</h3><p>A primeira abertura baixa cerca de 17 MB. Na medição do professor, o Python ficou pronto em 10,8 s.</p></article>
-          <article class="deck-card"><h3>Rodar</h3><p>Executa os seus testes sobre o código da estação, em 30 a 60 ms.</p></article>
+          <article class="deck-card"><h3>Rodar</h3><p>Executa os seus testes sobre o código da estação, em menos de meio segundo.</p></article>
           <article class="deck-card"><h3>Avaliar</h3><p>Roda os mesmos testes na versão correta e em versões com defeito plantado, os mutantes.</p></article>
         </div>
         <div class="deck-note">O que você escreve fica no <code>localStorage</code> do navegador. O botão Exportar evidência gera o Markdown do entregável.</div>
@@ -103,10 +103,10 @@
           <thead><tr><th>Norma</th><th>Objeto avaliado</th><th>Pergunta típica no projeto</th></tr></thead>
           <tbody>
             <tr><td>ISO/IEC 25010:2023</td><td>o produto de software: adequação funcional, confiabilidade, manutenibilidade e outras características</td><td>o coletor volta a funcionar depois de um 503 da API?</td></tr>
-            <tr><td>ISO/IEC 25012:2008</td><td>o dado: 15 características, divididas entre inerentes ao dado e dependentes do sistema</td><td>a cotação usada na gold é a do dia certo, com as casas decimais certas?</td></tr>
+            <tr><td>ISO/IEC 25012:2008</td><td>o dado: 15 características, vistas pelo ponto de vista inerente, pelo dependente do sistema ou pelos dois</td><td>a cotação usada na gold é a do dia certo, com as casas decimais certas?</td></tr>
           </tbody>
         </table>
-        <div class="deck-note">Um pipeline pode passar em todos os testes de software e ainda entregar dado errado. A Aula 07 testa as duas coisas, e a segunda é a que o projeto final costuma esquecer.</div>
+        <div class="deck-note">Um pipeline pode passar em todos os testes de software e ainda entregar dado errado. A Aula 07 testa as duas coisas; os testes sobre o dado ficam no bloco 5 e na estação 5.</div>
       </div>
     </div>
 
@@ -123,7 +123,7 @@
             <tr><td>Exatidão</td><td>o valor corresponde ao real?</td><td>£51.77 lido como 51.77, e não como erro</td></tr>
             <tr><td>Completude</td><td>falta algum valor ou registro?</td><td>preço vazio numa linha do scraper</td></tr>
             <tr><td>Consistência</td><td>o mesmo fato aparece igual em todo lugar?</td><td>"Poetry" e "Poetry " como duas categorias</td></tr>
-            <tr><td>Atualidade</td><td>o dado é do período certo?</td><td>cotação de 19/11 usada no feriado de 20/11</td></tr>
+            <tr><td>Atualidade</td><td>o dado é do período certo?</td><td>cotação de 13/11 usada em 24/11 porque a janela de busca não tem limite</td></tr>
             <tr><td>Precisão</td><td>tem o detalhe necessário?</td><td>5,6518 guardado como 5,65179999...</td></tr>
             <tr><td>Rastreabilidade</td><td>dá para saber de onde veio e por que saiu?</td><td>linha na quarentena com motivo e posição</td></tr>
           </tbody>
@@ -138,7 +138,7 @@
         <div>
           <span class="deck-kicker">Bloco 1 &middot; Mecanismo</span>
           <h2 class="deck-title">Onde o defeito nasce e onde aparece</h2>
-          <p class="deck-summary">O defeito quase nunca aparece na camada em que nasceu. Ele atravessa as camadas sem erro de execução e só fica visível na agregação.</p>
+          <p class="deck-summary">Nos casos abaixo, o defeito nasce numa camada e fica visível em outra, quase sempre na agregação e quase sempre sem exceção.</p>
         </div>
         <table class="deck-table">
           <thead><tr><th>Defeito</th><th>Nasce em</th><th>Aparece em</th><th>Teste que pega mais cedo</th></tr></thead>
@@ -166,11 +166,11 @@
           <tbody>
             <tr><td>livros considerados</td><td>21 (só a linha sem preço caiu)</td><td>18 na silver, 2 na quarentena, 2 duplicadas</td></tr>
             <tr><td>livros em Poetry</td><td>5, com duas duplicatas</td><td>4</td></tr>
-            <tr><td>preço médio de Poetry</td><td>£39,40</td><td>£37,12 = (51,77 + 52,15 + 20,66 + 23,88) &divide; 4</td></tr>
+            <tr><td>preço médio de Poetry</td><td>£39,40</td><td>£37,12 (37,115) = (51,77 + 52,15 + 20,66 + 23,88) &divide; 4</td></tr>
             <tr><td>categoria "Poetry "</td><td>existe, com 1 livro a £23,88</td><td>não existe</td></tr>
           </tbody>
         </table>
-        <div class="deck-note">A diferença em Poetry é de £2,28 por livro, 6,1 % acima do valor correto. Em reais, com a PTAX da libra de 19/11/2026 (venda R$ 7,7262), são R$ 17,62 de erro no preço médio, e o painel não mostra sinal algum de falha.</div>
+        <div class="deck-note">A diferença em Poetry é de £2,29 por livro, 6,2 % acima do valor correto. Em reais, com a PTAX da libra de 19/11/2026 (venda R$ 7,7262), são R$ 17,67 de erro no preço médio, e o painel não mostra sinal algum de falha.</div>
       </div>
     </div>
 
@@ -220,8 +220,8 @@
         <ol class="deck-steps">
           <li>A ISO/IEC 25010 avalia o software; a ISO/IEC 25012 avalia o dado. O projeto precisa das duas.</li>
           <li>Defeito de dado raramente gera exceção: ele atravessa as camadas e aparece na agregação.</li>
-          <li>No lote da aula, os defeitos plantados mudaram o preço médio de Poetry em 6,1 % sem nenhum erro de execução.</li>
-          <li>Teste de unidade, contrato e integração protegem o código; teste sobre o dado protege cada lote.</li>
+          <li>No lote da aula, os defeitos plantados mudaram o preço médio de Poetry em 6,2 % sem nenhum erro de execução.</li>
+          <li>Testes de unidade, contrato e integração verificam o código a cada mudança; testes sobre o dado verificam cada lote antes da publicação.</li>
         </ol>
       </div>
     </div>
@@ -252,7 +252,7 @@
         <table class="deck-table">
           <thead><tr><th>Campo</th><th>Partições válidas</th><th>Partições inválidas</th></tr></thead>
           <tbody>
-            <tr><td><code>temperatura</code> em °C</td><td>[-10, 60]</td><td>abaixo de -10; acima de 60; NaN; texto</td></tr>
+            <tr><td><code>temperatura</code> em °C</td><td>[-10, 60]</td><td>abaixo de -10; acima de 60; NaN; texto não numérico, como "abc" (a string "24.6" é convertida e entra)</td></tr>
             <tr><td><code>unidade</code></td><td>"C"; "F" (convertida antes da faixa)</td><td>qualquer outro texto, como "K"</td></tr>
             <tr><td><code>umidade</code></td><td>[0, 100]</td><td>abaixo de 0; acima de 100</td></tr>
             <tr><td><code>device_id</code></td><td><code>estufa-[a-c]-NN</code>; <code>germinacao-NN</code></td><td>estufa d; três dígitos; vazio</td></tr>
@@ -276,7 +276,7 @@
           <tbody>
             <tr><td>temperatura mínima</td><td>-10,0 °C</td><td>-10,1 °C</td></tr>
             <tr><td>temperatura máxima</td><td>60,0 °C</td><td>60,1 °C</td></tr>
-            <tr><td>máxima em Fahrenheit</td><td>140 °F = 60,0 °C</td><td>141 °F = 60,56 °C</td></tr>
+            <tr><td>máxima em Fahrenheit</td><td>140 °F = 60,0 °C</td><td>140,1 °F = 60,06 °C</td></tr>
             <tr><td>umidade</td><td>0,0 % e 100,0 %</td><td>-0,1 % e 100,1 %</td></tr>
           </tbody>
         </table>
@@ -295,14 +295,14 @@
         <table class="deck-table">
           <thead><tr><th>Condição</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th></tr></thead>
           <tbody>
-            <tr><td>campos exatamente os quatro</td><td>S</td><td>N</td><td>S</td><td>S</td><td>S</td></tr>
-            <tr><td>unidade em {C, F}</td><td>S</td><td>&ndash;</td><td>N</td><td>S</td><td>S</td></tr>
-            <tr><td>umidade em [0, 100]</td><td>S</td><td>&ndash;</td><td>&ndash;</td><td>N</td><td>S</td></tr>
+            <tr><td>unidade em {C, F}</td><td>S</td><td>N</td><td>S</td><td>S</td><td>S</td></tr>
+            <tr><td>umidade em [0, 100]</td><td>S</td><td>&ndash;</td><td>N</td><td>S</td><td>S</td></tr>
+            <tr><td>nenhum campo a mais</td><td>S</td><td>&ndash;</td><td>&ndash;</td><td>N</td><td>S</td></tr>
             <tr><td>temperatura em °C em [-10, 60]</td><td>S</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>N</td></tr>
-            <tr><td>Ação</td><td>entra</td><td>campo_desconhecido</td><td>unidade_desconhecida</td><td>umidade_fora_da_faixa</td><td>temperatura_fora_da_faixa</td></tr>
+            <tr><td>Ação</td><td>entra</td><td>unidade_desconhecida</td><td>umidade_fora_da_faixa</td><td>campo_desconhecido</td><td>temperatura_fora_da_faixa</td></tr>
           </tbody>
         </table>
-        <div class="deck-note">O traço indica que a condição não importa naquela regra. A ordem das condições segue a ordem em que o Pydantic valida: campos primeiro, a regra entre campos por último.</div>
+        <div class="deck-note">O traço indica que a condição não importa naquela regra. O motivo registrado é o primeiro erro que o Pydantic lista: primeiro os erros de campo, na ordem em que foram declarados (device_id, temperatura, unidade, umidade), depois o campo a mais. A regra de temperatura em °C só roda quando todo o resto passou. Campo faltando gera <code>campo_ausente</code>, e device_id fora do padrão gera <code>sensor_invalido</code>.</div>
       </div>
     </div>
 
@@ -311,11 +311,11 @@
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 2 &middot; Mecanismo</span>
-          <h2 class="deck-title">Quem testa o teste: mutação</h2>
+          <h2 class="deck-title">Teste de mutação</h2>
           <p class="deck-summary">Um teste de mutação planta um defeito pequeno no código, roda a suíte e verifica se algum teste reprova. Se a suíte continua verde, o defeito passaria despercebido em produção.</p>
         </div>
         <ol class="deck-steps">
-          <li>A suíte precisa aprovar a versão correta. Teste que reprova código correto testa a coisa errada.</li>
+          <li>A suíte precisa aprovar a versão correta. Se a suíte reprova a versão correta, o placar de mutantes perde o sentido.</li>
           <li>Cada mutante troca um operador, um número ou uma condição: <code>&lt;=</code> vira <code>&lt;</code>, 60 vira 65, <code>forbid</code> vira <code>ignore</code>.</li>
           <li>Mutante morto: algum teste reprovou. Mutante vivo: a suíte não percebeu a mudança.</li>
           <li>Cada mutante vivo aponta para a partição ou o limite que ainda não tem teste.</li>
@@ -335,12 +335,12 @@
         <table class="deck-table">
           <thead><tr><th>Suíte</th><th>Testes</th><th>Cobertura de linhas e desvios</th><th>Mutantes mortos</th></tr></thead>
           <tbody>
-            <tr><td>só valores típicos (24,6 °C e umidade de 150 %)</td><td>2</td><td>64 %</td><td>0 de 9</td></tr>
+            <tr><td>ponto de partida da estação (uma leitura típica e umidade de 150 %)</td><td>2</td><td>64 %</td><td>0 de 9</td></tr>
             <tr><td>um caso por motivo de rejeição, com valores longe dos limites</td><td>9</td><td>100 %</td><td>3 de 9</td></tr>
             <tr><td>partições e valores-limite completos</td><td>15</td><td>100 %</td><td>9 de 9</td></tr>
           </tbody>
         </table>
-        <div class="deck-note">As três suítes aprovam o contrato correto. A de nove testes executa todas as linhas e todos os desvios e ainda deixa passar seis defeitos, todos de limite. Cobertura mede o que rodou; mutação mede o que a suíte percebe. A suíte completa rodou em 102 ms.</div>
+        <div class="deck-note">As três suítes aprovam o contrato correto. A de nove testes executa todas as linhas e todos os desvios e ainda deixa passar seis defeitos, cinco deles de limite (M1 a M5) e um no padrão do device_id (M7). A cobertura registra as linhas e os desvios executados; o placar de mutantes registra os defeitos detectados. A suíte completa rodou em 102 ms.</div>
       </div>
     </div>
 
@@ -408,7 +408,7 @@ def test_particoes_e_limites(alteracoes, esperado):
         <div>
           <span class="deck-kicker">10h00 &middot; Intervalo</span>
           <h2 class="deck-title">Intervalo, 20 minutos</h2>
-          <p class="deck-summary">Voltamos às 10h20 com TDD na limpeza dos livros e o teste que quebra no sábado. Deixe a bancada aberta: o que você escreveu fica salvo no navegador.</p>
+          <p class="deck-summary">Voltamos às 10h20 com TDD na limpeza dos livros e o relógio injetado na PTAX vigente. Deixe a bancada aberta: o que você escreveu fica salvo no navegador.</p>
         </div>
         <div class="cafe">
           <div class="cafe-relogio" id="cafe-relogio" role="timer">20:00</div>
@@ -475,7 +475,7 @@ def test_particoes_e_limites(alteracoes, esperado):
             <tr><td>bronze</td><td>"Â£51.77", "Â£53.74", "Â£50.10" nos três primeiros livros</td></tr>
           </tbody>
         </table>
-        <div class="deck-note">Duas correções possíveis: definir <code>r.encoding = "utf-8"</code> no coletor, ou aceitar o Â na limpeza. A bronze guarda o que chegou; a silver decide. Um teste com o valor real da bronze pega o problema nas duas hipóteses.</div>
+        <div class="deck-note">Duas correções possíveis: definir <code>r.encoding = "utf-8"</code> no coletor, ou aceitar o Â na limpeza. A bronze guarda o texto como chegou, e a limpeza da silver converte o valor. Um teste com o valor real da bronze pega o problema nas duas hipóteses.</div>
       </div>
     </div>
 
@@ -545,9 +545,9 @@ def test_particoes_e_limites(alteracoes, esperado):
         </div>
         <ol class="deck-steps">
           <li>TDD inverte a ordem: o teste reprova primeiro, e só depois o código existe.</li>
-          <li>Teste de limpeza usa o valor real da bronze, como "Â£51.77", e não o valor que se imagina.</li>
+          <li>Teste de limpeza usa o valor copiado da bronze, como "Â£51.77".</li>
           <li>Dinheiro e cotação são Decimal construído a partir de texto; o teste compara com Decimal.</li>
-          <li>Relógio, aleatoriedade e ambiente entram como parâmetro. Teste que depende do calendário falha no sábado.</li>
+          <li>Relógio, aleatoriedade e ambiente entram como parâmetro. Com o dia como parâmetro, o resultado não depende da data em que o teste roda.</li>
         </ol>
       </div>
     </div>
@@ -578,7 +578,7 @@ def test_particoes_e_limites(alteracoes, esperado):
     <div class="slide slide-sim" data-sim="ex3_relogio">
       <div class="slide-sim-head">
         <span class="deck-kicker">Estação 3 &middot; Bancada</span>
-        <h2>O teste que quebra no sábado</h2>
+        <h2>Relógio injetado na PTAX vigente</h2>
       </div>
     </div>
 
@@ -596,7 +596,7 @@ def test_particoes_e_limites(alteracoes, esperado):
             <tr><td>Dummy</td><td>ocupa um parâmetro que o teste não usa</td><td><code>esperar=lambda s: None</code> num teste que só tem sucesso</td></tr>
             <tr><td>Stub</td><td>devolve uma resposta pronta</td><td><code>http_get</code> que devolve o boletim gravado</td></tr>
             <tr><td>Spy</td><td>responde e registra como foi chamado</td><td><code>Espiao</code> guarda as URLs; <code>esperas.append</code> guarda os segundos</td></tr>
-            <tr><td>Mock</td><td>já nasce com a expectativa e falha sozinho</td><td><code>unittest.mock</code> com <code>assert_called_once_with</code></td></tr>
+            <tr><td>Mock</td><td>nasce com as chamadas esperadas e falha quando elas não acontecem</td><td>em Python, <code>Mock(spec=...)</code>; o uso com <code>assert_called_once_with</code> depois da execução, em rigor, é um spy</td></tr>
             <tr><td>Fake</td><td>implementação simples que funciona de verdade</td><td>um bucket em memória no lugar do MinIO</td></tr>
           </tbody>
         </table>
@@ -624,7 +624,7 @@ grep -RniE "authorization|token|api[_-]?key" tests/cassettes   # antes do commit
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 4 &middot; Integração</span>
-          <h2 class="deck-title">Quando o dublê não basta</h2>
+          <h2 class="deck-title">Integração com serviço real</h2>
           <p class="deck-summary">O dublê só sabe o que o autor do teste supôs. Permissão de bucket, tipo de coluna do ClickHouse e restrição do Postgres só aparecem no serviço real.</p>
         </div>
         <table class="deck-table">
@@ -644,11 +644,12 @@ grep -RniE "authorization|token|api[_-]?key" tests/cassettes   # antes do commit
       <div class="deck-shell is-dense">
         <div>
           <span class="deck-kicker">Bloco 4 &middot; Demonstração ao vivo</span>
-          <h2 class="deck-title">MinIO de verdade dentro do teste</h2>
-          <p class="deck-summary">O professor roda no Codespace o exemplo do <a href="../laboratorio/README.md">laboratório da semana</a>. A bancada não sobe contêiner porque o navegador não tem Docker.</p>
+          <h2 class="deck-title">MinIO em contêiner dentro do teste</h2>
+          <p class="deck-summary">O professor roda no Codespace o exemplo do <a href="../laboratorio/roteiro_pydantic_e_testes.html">laboratório da semana</a>. A bancada não sobe contêiner porque o navegador não tem Docker.</p>
         </div>
-<pre><code>python -m pip install -r laboratorio/requirements-dev.txt
-cp -r laboratorio/exemplo /tmp/exemplo_aula07 && cd /tmp/exemplo_aula07
+<pre><code>cd aulas/data_collection_and_storage/aula_07_qualidade_e_testes_de_dados_com_pytest
+python -m pip install -r laboratorio/requirements-dev.txt
+rm -rf /tmp/exemplo_aula07 && cp -r laboratorio/exemplo /tmp/exemplo_aula07 && cd /tmp/exemplo_aula07
 pytest -m "not integracao" -q     # unidade: sem Docker, sem rede
 pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
         <div class="deck-note">Observe três coisas na saída: o tempo de subida do contêiner em <code>--durations</code>, a porta aleatória que o Testcontainers escolheu e o contêiner sendo removido no fim.</div>
@@ -742,7 +743,7 @@ pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
           <li>Teste sobre o dado roda a cada lote e decide a publicação, e não só a cada mudança de código.</li>
           <li>A reconciliação de contagens pega a linha que some sem passar pela quarentena.</li>
           <li>Recalcular a gold a partir da silver pega erro de agregação que nenhum tipo de dado acusa.</li>
-          <li>O CI protege o código no merge; o teste sobre o dado protege o painel no lote.</li>
+          <li>O CI roda a cada merge e barra código com defeito; o teste sobre o dado roda a cada lote e retém a gold antes da publicação.</li>
         </ol>
       </div>
     </div>
@@ -781,7 +782,7 @@ pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
     <div class="slide">
       <div class="deck-shell">
         <div>
-          <span class="deck-kicker">Fechamento &middot; 12h10</span>
+          <span class="deck-kicker">Fechamento &middot; 12h05</span>
           <h2 class="deck-title">Entregável e o que fica para a semana</h2>
         </div>
         <div class="deck-grid" style="grid-template-columns:repeat(3, minmax(0, 1fr));">
@@ -828,7 +829,7 @@ pytest -q --durations=5           # inclui o MinIO em contêiner</code></pre>
     // Um só iframe para todas as estações: o Python carrega uma vez e o que
     // a turma escreve fica no localStorage da bancada.
     const simFrame = document.getElementById("sim-frame");
-    const SIM_URL = "../bancada/bancada_aula_07.html?embed=1&v=2";
+    const SIM_URL = "../bancada/bancada_aula_07.html?embed=1&v=a2a51ba";
 
     function posicionarBancada(slide) {
       const topo = slide.querySelector(".slide-sim-head").getBoundingClientRect().bottom;

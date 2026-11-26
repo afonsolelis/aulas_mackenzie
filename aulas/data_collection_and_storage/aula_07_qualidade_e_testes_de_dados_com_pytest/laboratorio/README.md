@@ -1,6 +1,6 @@
 # Aula 07 · Laboratório opcional de Pydantic, VCR e Testcontainers
 
-Data Collection and Storage · MBA Engenharia de Dados · 28/11/2026 · 8h30 – 12h10
+Data Collection and Storage · MBA Engenharia de Dados · semana de 28/11 a 05/12/2026
 
 Laboratório opcional para a semana depois da aula de 28/11/2026. Em sala, a Aula 07 usa a bancada de `../bancada/bancada_aula_07.html`, que roda pytest no navegador; este laboratório leva as mesmas técnicas para o código real do projeto, com Docker.
 
@@ -22,7 +22,7 @@ O `exemplo/` mostra o mecanismo. Ele não é a solução do projeto: os contrato
 ## Pré-requisitos
 
 - Codespace aberto no repositório do grupo (a imagem universal traz Docker e Python 3).
-- Pastas das Aulas 03 (scraping de books.toscrape.com + PTAX, com `bronze/books_toscrape/` e `bronze/ptax/` no MinIO) e 06 (sensores → RabbitMQ → transformador → ClickHouse) no repositório.
+- Pastas das Aulas 03 (scraping de books.toscrape.com + PTAX, com `bronze/books_toscrape/` e `bronze/ptax/` no MinIO) e 06 (sensores, RabbitMQ, transformador e ClickHouse) no repositório.
 - `.env` com `S3_ENDPOINT_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` e `S3_REGION=us-east-1`, como nas Aulas 02 a 04.
 - Agente de código de sua preferência (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot) lendo o `AGENTS.md`. No Claude Code, crie antes um `CLAUDE.md` que importe as regras: `echo "@AGENTS.md" > CLAUDE.md`. Outros agentes leem o `AGENTS.md` diretamente ou aceitam o arquivo colado no contexto.
 - Trabalhe um prompt por vez e revise antes do próximo.
@@ -76,7 +76,7 @@ Resultado registrado pelo professor em 03/10/2026 (Python 3.12, Docker 29, image
 | 4. Plano | `specs/plan.md` | C4 em Mermaid; onde cada validação entra; pirâmide de testes |
 | 5. Tarefas | `specs/tasks.md` | cada tarefa ligada a RF/RNF e a um teste |
 | 6. Implementação | `src/`, `tests/` | teste vermelho, código, teste verde; uma tarefa por vez |
-| 7. ATAM | `docs/atam.md`, `docs/adr/` | seis cenários da aula, matriz requisito → decisão → componente → evidência |
+| 7. ATAM | `docs/atam.md`, `docs/adr/` | seis cenários da aula, matriz com requisito, decisão, componente e evidência |
 
 ## Passo 4 · Comandos de teste usados na prática
 
@@ -106,5 +106,5 @@ Pasta `aula_07_validacao_testes/` no repositório do grupo com:
 Credenciais do MinIO, do RabbitMQ, do ClickHouse e qualquer chave de API do agente ficam em `.env` ou no campo seguro do próprio agente, fora do Git. Antes de cada commit, procure nos cassetes:
 
 ```bash
-grep -RniE "authorization|password|secret|token|api[_-]?key" tests/cassettes || echo "nenhum segredo aparente"
+grep -RniE "authorization|password|secret|token|api[_-]?key" tests/ || echo "nenhum segredo aparente"
 ```

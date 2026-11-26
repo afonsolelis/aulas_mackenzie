@@ -6,7 +6,7 @@
   'use strict';
 
   const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.27.7/full/';
-  const VERSAO = '2';
+  const VERSAO = 'a2a51ba';
   const CHAVE = 'bancada_aula07_v1';
   const EMBED = new URLSearchParams(location.search).has('embed');
 
@@ -42,18 +42,18 @@
         'Vermelho: descomente o teste do preço com "Â£51.77" e rode. Leia o erro.',
         'Verde: corrija preco_em_libras com o menor código que faz o teste passar. O preço precisa continuar Decimal.',
         'Refatore se precisar, rode de novo, e repita o ciclo para unidades_em_estoque e nota_em_estrelas, um teste de cada vez.',
-        'Decida o que acontece com texto fora do formato (ValueError) e teste essa decisão.',
+        'Trate o texto fora do formato: espaços nas pontas são aceitos, e texto sem a libra (como "51.77") ou vazio levanta ValueError. Escreva um teste para cada caso. A verificação do professor cobra essas duas regras.',
         'Avaliar mostra duas coisas: se o seu código passa na verificação do professor e quantos mutantes os seus testes pegam.'
       ],
       meta: 'Meta: verificação aprovada e 7 de 7 mutantes mortos.'
     },
     {
       id: 'ex3_relogio', n: 3, aba: 'Relógio',
-      titulo: 'O teste que quebra no sábado',
+      titulo: 'Relógio injetado na PTAX vigente',
       resumo: 'A função lê date.today() e procura o boletim PTAX do dia. O teste passou numa terça-feira, em 24/11/2026. Em dia sem boletim (fim de semana, feriado de 20/11 ou qualquer dia depois de 24/11) ele quebra. O defeito fica no código: o relógio está escondido dentro da função.',
       passos: [
         'Rode o teste e leia o KeyError.',
-        'Mude a assinatura para cotacao_vigente(boletins, hoje): o dia passa a ser parâmetro.',
+        'Mude a assinatura para cotacao_vigente(boletins, hoje), sem valor padrão: o dia passa a ser parâmetro obrigatório.',
         'Implemente a regra: boletim do próprio dia ou do dia mais recente antes dele, até 5 dias para trás. Fora dessa janela, levante SemCotacao (crie a classe como subclasse de LookupError).',
         'Troque o teste antigo por testes com dias escolhidos: dia útil, feriado de 20/11, domingo 22/11, o limite da janela e um dia fora dela.'
       ],
@@ -67,7 +67,7 @@
         'Leia coletor_ptax.py e boletim_ptax.json. Note o formato das datas na URL e os números da resposta.',
         'Use o stub para conferir valores exatos (Decimal) de um dia, e o Espiao para conferir a URL que o coletor montou.',
         'Simule o feriado com {"value": []}.',
-        'Simule falhas: 503 seguido de 200, três 503 e um 404. Troque esperar por uma lista (esperas.append) para registrar os segundos sem esperar de verdade.'
+        'Simule falhas: 503 seguido de 200, três 503 e um 404. Troque esperar por uma lista (esperas.append) para registrar os segundos. Na bancada, o time.sleep padrão levanta erro, porque esperar de verdade travaria a página.'
       ],
       meta: 'Meta: 7 de 7 mutantes mortos.'
     },
@@ -154,7 +154,12 @@
       window.__bancada.carregadoEm = performance.now() - t0;
       document.querySelectorAll('.bc-rodar').forEach(b => { b.disabled = false; });
       return p;
-    })().catch(e => { status('Falha ao carregar o Python: ' + e.message, 'is-erro'); pyCarregando = null; throw e; });
+    })().catch(e => {
+      status('Falha ao carregar o Python: ' + e.message + '. Clique em Rodar pytest para tentar de novo.', 'is-erro');
+      pyCarregando = null;
+      document.querySelectorAll('.bc-rodar').forEach(b => { b.disabled = false; });
+      throw e;
+    });
     return pyCarregando;
   }
 
@@ -178,7 +183,10 @@
       el('p', { text: est.resumo }));
     const grid = el('div', { class: 'sim-grid' });
 
-    const guia = el('div', { class: 'sim-panel sim-col-12 bc-guia' }, el('h2', { text: 'O que fazer' }));
+    // No slide (embed) o guia vem recolhido, para não empurrar o editor para baixo da dobra.
+    const guia = EMBED
+      ? el('details', { class: 'sim-panel sim-col-12 bc-guia' }, el('summary', { text: 'O que fazer e meta da estação' }))
+      : el('div', { class: 'sim-panel sim-col-12 bc-guia' }, el('h2', { text: 'O que fazer' }));
     const ol = el('ol', { class: 'bc-passos' });
     est.passos.forEach(p => ol.append(el('li', { text: p })));
     guia.append(ol, el('p', { class: 'sim-hint', text: est.meta }));
@@ -227,7 +235,8 @@
     grid.append(guia, editor, saida);
     sec.append(head, grid);
     $('vistas').append(sec);
-    abrirArquivo(est.id, estado.abertos[est.id] || ex.arquivos.find(a => a.editavel).nome);
+    const salvo = estado.abertos[est.id];
+    abrirArquivo(est.id, ex.arquivos.some(a => a.nome === salvo) ? salvo : ex.arquivos.find(a => a.editavel).nome);
     pintarPlacar(est.id);
   }
 

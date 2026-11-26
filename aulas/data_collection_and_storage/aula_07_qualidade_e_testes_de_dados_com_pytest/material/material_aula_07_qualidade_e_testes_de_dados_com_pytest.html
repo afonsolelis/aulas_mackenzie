@@ -38,9 +38,9 @@
           <li><a href="#s6">Estação 1: contrato do sensor</a></li>
           <li><a href="#s7">Bloco 3: TDD e relógio injetado</a></li>
           <li><a href="#s8">Estação 2: TDD na limpeza dos livros</a></li>
-          <li><a href="#s9">Estação 3: o teste que quebra no sábado</a></li>
+          <li><a href="#s9">Estação 3: relógio injetado na PTAX vigente</a></li>
           <li><a href="#s10">Bloco 4: dublês de teste e integração</a></li>
-          <li><a href="#s11">Demonstração: MinIO de verdade dentro do teste</a></li>
+          <li><a href="#s11">Demonstração: MinIO em contêiner dentro do teste</a></li>
           <li><a href="#s12">Estação 4: stub e spy no coletor da PTAX</a></li>
           <li><a href="#s13">Bloco 5: testes sobre o lote</a></li>
           <li><a href="#s14">Estação 5: testes sobre o lote antes de publicar a gold</a></li>
@@ -55,20 +55,20 @@
         <h2>1. Onde a aula se encaixa</h2>
         <h3>1.1 O painel de Poetry na véspera da entrega</h3>
         <p>O projeto final da disciplina já tem as peças das aulas anteriores: o scraper de books.toscrape.com e o coletor da PTAX da <a href="../../aula_03_apis_rest_web_scraping_e_ingestao_no_minio/material/material_aula_03_apis_rest_web_scraping_e_ingestao_no_minio.html">Aula 03</a>, a passagem de bronze para silver e gold das Aulas 04 e 05, e o sensor da estufa com o contrato de leitura da <a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/material/material_aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch.html">Aula 06</a>. O pipeline roda do começo ao fim sem erro. Falta saber se o que ele entrega está certo.</p>
-        <p>O caso que abre a aula mostra o problema. Na véspera da entrega, a gold de livros diz que a categoria Poetry tem 5 livros com preço médio de £39,40 e mostra uma categoria a mais, "Poetry " (com um espaço no fim), com um livro a £23,88. O pipeline rodou sem erro, e nenhum teste reprovou, porque nenhum teste olhava para o dado. Os testes que existiam conferiam que as funções rodavam; nenhum conferia o que elas produziam a partir de um lote real.</p>
+        <p>O caso que abre a aula mostra o problema. Na véspera da entrega, a gold de livros diz que a categoria Poetry tem 5 livros com preço médio de £39,40 e mostra uma categoria a mais, "Poetry " (com um espaço no fim), com um livro a £23,88. O pipeline rodou sem erro e nenhum teste reprovou. Os testes que existiam conferiam que as funções rodavam; nenhum conferia o que elas produziam a partir de um lote real.</p>
         <p>A aula percorre, em cinco blocos, as técnicas que pegariam cada um dos defeitos desse painel, e cada técnica é exercitada logo em seguida numa estação da bancada, sobre o código e os dados do próprio projeto.</p>
         <div class="note">
           <strong>Resultado esperado ao fim da aula</strong>
           <p>Seis estações feitas na bancada, com o placar de mutantes de cada uma exportado para <code>aula_07_testes/evidencia_bancada.md</code> no repositório do projeto, e a lista do que falta de teste no repositório do projeto final, organizada pelas camadas da <a href="#s16">seção 16</a>.</p>
         </div>
         <h3>1.2 Agenda</h3>
-        <p>A aula tem cinco blocos de teoria e seis estações. Cada bloco termina numa estação da bancada. As duas metades somam 3h40 de aula, ou quatro horas-aula de 55 minutos (4 &times; 55 = 220 minutos).</p>
+        <p>A aula tem cinco blocos de teoria e seis estações. A estação 0 abre a aula, e os blocos 2 a 5 terminam em estações da bancada. A primeira metade (8h30 às 10h00) tem 90 minutos e a segunda (10h20 às 12h10) tem 110; somadas dão 3h20, e com o intervalo de 20 minutos são 3h40, ou quatro horas-aula de 55 minutos (4 &times; 55 = 220 minutos).</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Horário</th><th>Etapa</th><th>Seção deste material</th></tr></thead>
           <tbody>
             <tr><td>8h30</td><td>Abertura e estação 0 (aquecimento)</td><td><a href="#s1">1</a>, <a href="#s2">2</a> e <a href="#s3">3</a></td></tr>
             <tr><td>8h45</td><td>Bloco 1: qualidade de dados</td><td><a href="#s4">4</a></td></tr>
-            <tr><td>9h15</td><td>Bloco 2: caixa preta no contrato</td><td><a href="#s5">5</a></td></tr>
+            <tr><td>9h10</td><td>Bloco 2: caixa preta no contrato</td><td><a href="#s5">5</a></td></tr>
             <tr><td>9h35</td><td>Estação 1: contrato do sensor</td><td><a href="#s6">6</a></td></tr>
             <tr><td>10h00</td><td>Intervalo de 20 minutos</td><td>&nbsp;</td></tr>
             <tr><td>10h20</td><td>Bloco 3: TDD e relógio injetado</td><td><a href="#s7">7</a></td></tr>
@@ -91,7 +91,7 @@
         <h3>2.1 Os três botões</h3>
         <div class="method-flow">
           <div class="method-step"><strong>Carregar</strong><span>Abra a bancada no início da aula e espere o indicador do topo mostrar "Python pronto". A primeira abertura baixa cerca de 17 MB.</span></div>
-          <div class="method-step"><strong>Rodar pytest</strong><span>Executa os seus testes sobre o código da estação e mostra o relatório do pytest. Uma execução leva de 30 a 60 ms.</span></div>
+          <div class="method-step"><strong>Rodar pytest</strong><span>Executa os seus testes sobre o código da estação e mostra o relatório do pytest. Uma execução leva menos de meio segundo.</span></div>
           <div class="method-step"><strong>Avaliar com mutantes</strong><span>Roda os mesmos testes na versão correta e em versões com defeito plantado. Cada defeito pego conta como mutante morto.</span></div>
         </div>
         <h3>2.2 Passo a passo para começar</h3>
@@ -143,7 +143,7 @@
           <thead><tr><th>Norma</th><th>Objeto avaliado</th><th>Pergunta típica no projeto</th></tr></thead>
           <tbody>
             <tr><td>ISO/IEC 25010:2023</td><td>o produto de software: adequação funcional, confiabilidade, manutenibilidade e outras características</td><td>o coletor volta a funcionar depois de um 503 da API?</td></tr>
-            <tr><td>ISO/IEC 25012:2008</td><td>o dado: 15 características, divididas entre inerentes ao dado e dependentes do sistema</td><td>a cotação usada na gold é a do dia certo, com as casas decimais certas?</td></tr>
+            <tr><td>ISO/IEC 25012:2008</td><td>o dado: 15 características, vistas pelo ponto de vista inerente, pelo dependente do sistema ou pelos dois</td><td>a cotação usada na gold é a do dia certo, com as casas decimais certas?</td></tr>
           </tbody>
         </table></div>
         <p>A distinção tem consequência prática. Um pipeline pode passar em todos os testes de software e ainda entregar dado errado, porque o teste de software pergunta se a função faz o que o autor pretendia, e o autor pode ter pretendido a coisa errada, ou nunca ter visto o valor que chega de verdade. A Aula 07 testa as duas coisas, e a segunda é a que o projeto final costuma esquecer.</p>
@@ -156,12 +156,12 @@
             <tr><td>Exatidão</td><td>o valor corresponde ao real?</td><td>£51.77 lido como 51.77, e não como erro</td></tr>
             <tr><td>Completude</td><td>falta algum valor ou registro?</td><td>preço vazio numa linha do scraper</td></tr>
             <tr><td>Consistência</td><td>o mesmo fato aparece igual em todo lugar?</td><td>"Poetry" e "Poetry " como duas categorias</td></tr>
-            <tr><td>Atualidade</td><td>o dado é do período certo?</td><td>cotação de 19/11 usada no feriado de 20/11</td></tr>
+            <tr><td>Atualidade</td><td>o dado é do período certo?</td><td>cotação de 13/11 usada em 24/11 porque a janela de busca não tem limite</td></tr>
             <tr><td>Precisão</td><td>tem o detalhe necessário?</td><td>5,6518 guardado como 5,65179999...</td></tr>
             <tr><td>Rastreabilidade</td><td>dá para saber de onde veio e por que saiu?</td><td>linha na quarentena com motivo e posição</td></tr>
           </tbody>
         </table></div>
-        <p>A atualidade merece atenção: usar a cotação de 19/11 no feriado de 20/11 é o comportamento correto, e não um defeito. O defeito seria usar a cotação de um dia posterior, ou não encontrar cotação nenhuma e quebrar a conversão. A pergunta da característica é se o dado pertence ao período certo, e a regra que define o período certo precisa estar escrita na spec para que o teste tenha contra o que comparar.</p>
+        <p>Na atualidade, a fronteira entre certo e errado depende da regra. Usar a cotação de 19/11 no feriado de 20/11 é o comportamento correto. O defeito seria usar a cotação de um dia posterior, buscar sem limite de dias e usar a de 13/11 em 24/11, ou não encontrar cotação nenhuma e quebrar a conversão. A pergunta da característica é se o dado pertence ao período certo, e a regra que define o período certo precisa estar escrita na spec para que o teste tenha contra o que comparar.</p>
         <p>Unicidade não aparece entre as 15 características da norma, mas em engenharia de dados costuma virar um teste próprio, como na estação 5: o mesmo livro coletado duas vezes infla contagens e médias sem violar nenhum tipo de dado.</p>
         <h3>4.3 Onde o defeito nasce e onde aparece</h3>
         <p>O mecanismo que torna esses defeitos perigosos é que eles quase nunca aparecem na camada em que nasceram. Um preço com caractere estranho é um texto válido; uma linha duplicada é uma linha válida; uma categoria com espaço é uma string válida. Nenhum deles levanta exceção. Eles atravessam as camadas e só ficam visíveis na agregação, quando alguém olha para o painel.</p>
@@ -183,13 +183,13 @@
           <tbody>
             <tr><td>livros considerados</td><td>21 (só a linha sem preço caiu)</td><td>18 na silver, 2 na quarentena, 2 duplicadas</td></tr>
             <tr><td>livros em Poetry</td><td>5, com duas duplicatas</td><td>4</td></tr>
-            <tr><td>preço médio de Poetry</td><td>£39,40</td><td>£37,12 = (51,77 + 52,15 + 20,66 + 23,88) &divide; 4</td></tr>
+            <tr><td>preço médio de Poetry</td><td>£39,40</td><td>£37,12 (37,115) = (51,77 + 52,15 + 20,66 + 23,88) &divide; 4</td></tr>
             <tr><td>categoria "Poetry "</td><td>existe, com 1 livro a £23,88</td><td>não existe</td></tr>
           </tbody>
         </table></div>
         <p>A conta do painel sem testes usa os três livros de Poetry da página (£51,77, £52,15 e £20,66) e as duas duplicatas, que repetem £51,77 e £20,66: 197,01 &divide; 5 = 39,40. O livro de £23,88 fica de fora de Poetry porque está na categoria "Poetry ". O pipeline testado descarta as duplicatas, remove o espaço da categoria e devolve o livro de £23,88 para Poetry: 148,46 &divide; 4 = 37,115, arredondado para £37,12.</p>
-        <p>A diferença em Poetry é de £39,40 &minus; £37,12 = £2,28 por livro, e 2,28 &divide; 37,12 = 6,1 % acima do valor correto. Em reais, com a PTAX da libra de 19/11/2026 (venda R$ 7,7262), são 2,28 &times; 7,7262 = R$ 17,62 de erro no preço médio. O painel não mostra sinal algum de falha: os números têm o formato certo, as categorias existem e o pipeline terminou com código zero.</p>
-        <p>O exemplo mostra que os defeitos se compensam e se somam de formas que ninguém previu. As duplicatas puxaram a média para cima (repetem um livro caro e um barato, mas o caro pesa mais), e a categoria com espaço tirou da conta um livro barato. O efeito líquido de 6,1 % é a soma de dois defeitos independentes, e nenhum teste de função isolada o teria medido.</p>
+        <p>A diferença em Poetry é de £39,402 &minus; £37,115 = £2,287 por livro, arredondada para £2,29, e 2,287 &divide; 37,115 = 6,2 % acima do valor correto. Em reais, com a PTAX da libra de 19/11/2026 (venda R$ 7,7262), são 2,287 &times; 7,7262 = R$ 17,67 de erro no preço médio. O painel não mostra sinal algum de falha: os números têm o formato certo, as categorias existem e o pipeline terminou com código zero.</p>
+        <p>Os dois defeitos puxam a média em sentidos opostos. A categoria com espaço tirou da conta o livro de £23,88 e puxou a média para cima. As duplicatas repetem um livro de £51,77 e um de £20,66, com média de £36,215, abaixo da média dos três livros restantes (£41,53), e puxaram para baixo. O efeito líquido de 6,2 % é o saldo de dois defeitos que se compensam em parte, e nenhum teste de função isolada o teria medido.</p>
         <h3>4.5 Quatro camadas de teste num pipeline</h3>
         <div class="table-scroll"><table>
           <thead><tr><th>Camada</th><th>O que exercita</th><th>Precisa de</th><th>Tempo medido</th><th>Estação</th></tr></thead>
@@ -211,7 +211,7 @@
           <ul>
             <li>A ISO/IEC 25010 avalia o software; a ISO/IEC 25012 avalia o dado. O projeto precisa das duas.</li>
             <li>Defeito de dado raramente gera exceção: ele atravessa as camadas e aparece na agregação.</li>
-            <li>No lote da aula, os defeitos plantados mudaram o preço médio de Poetry em 6,1 % (R$ 17,62) sem nenhum erro de execução.</li>
+            <li>No lote da aula, os defeitos plantados mudaram o preço médio de Poetry em 6,2 % (R$ 17,67) sem nenhum erro de execução.</li>
             <li>Teste de unidade, contrato e integração protegem o código; teste sobre o dado protege cada lote.</li>
           </ul>
         </div>
@@ -234,7 +234,7 @@
         <div class="table-scroll"><table>
           <thead><tr><th>Campo</th><th>Partições válidas</th><th>Partições inválidas</th></tr></thead>
           <tbody>
-            <tr><td>temperatura em °C</td><td>[-10, 60]</td><td>abaixo de -10; acima de 60; NaN; texto</td></tr>
+            <tr><td>temperatura em °C</td><td>[-10, 60]</td><td>abaixo de -10; acima de 60; NaN; texto não numérico, como "abc" (a string "24.6" é convertida e entra)</td></tr>
             <tr><td>unidade</td><td>"C"; "F" (convertida antes da faixa)</td><td>qualquer outro texto, como "K"</td></tr>
             <tr><td>umidade</td><td>[0, 100]</td><td>abaixo de 0; acima de 100</td></tr>
             <tr><td><code>device_id</code></td><td><code>estufa-[a-c]-NN</code>; <code>germinacao-NN</code></td><td>estufa d; três dígitos; vazio</td></tr>
@@ -249,25 +249,25 @@
           <tbody>
             <tr><td>temperatura mínima</td><td>-10,0 °C</td><td>-10,1 °C</td></tr>
             <tr><td>temperatura máxima</td><td>60,0 °C</td><td>60,1 °C</td></tr>
-            <tr><td>máxima em Fahrenheit</td><td>140 °F = 60,0 °C</td><td>141 °F = 60,56 °C</td></tr>
+            <tr><td>máxima em Fahrenheit</td><td>140 °F = 60,0 °C</td><td>140,1 °F = 60,06 °C</td></tr>
             <tr><td>umidade</td><td>0,0 % e 100,0 %</td><td>-0,1 % e 100,1 %</td></tr>
           </tbody>
         </table></div>
-        <p>O passo do vizinho depende da precisão do campo. O sensor da Aula 06 publica uma casa decimal, então o vizinho fica a 0,1 do limite. Um vizinho a 0,5 do limite deixaria passar um defeito que movesse a fronteira para 60,3 °C. A linha de Fahrenheit testa duas coisas ao mesmo tempo: a fórmula de conversão, (°F &minus; 32) &times; 5 &divide; 9, e a ordem das operações, já que a faixa é aplicada depois de converter. A conta (140 &minus; 32) &times; 5 &divide; 9 = 60,0 coloca 140 °F exatamente no limite superior, e (141 &minus; 32) &times; 5 &divide; 9 = 60,56 coloca 141 °F do lado de fora.</p>
+        <p>O passo do vizinho depende da precisão do campo. O sensor da Aula 06 publica uma casa decimal, então o vizinho fica a 0,1 do limite. Um vizinho a 0,5 do limite deixaria passar um defeito que movesse a fronteira para 60,3 °C. A linha de Fahrenheit testa duas coisas ao mesmo tempo: a fórmula de conversão, (°F &minus; 32) &times; 5 &divide; 9, e a ordem das operações, já que a faixa é aplicada depois de converter. A conta (140 &minus; 32) &times; 5 &divide; 9 = 60,0 coloca 140 °F exatamente no limite superior, e (140,1 &minus; 32) &times; 5 &divide; 9 = 60,06 coloca 140,1 °F do lado de fora, a 0,1 °F do limite.</p>
         <h3>5.4 Tabela de decisão</h3>
         <p>Quando várias condições combinam, a tabela de decisão lista cada combinação e a ação esperada. Cada coluna vira um caso de teste.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Condição</th><th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th></tr></thead>
           <tbody>
-            <tr><td>campos exatamente os quatro</td><td>S</td><td>N</td><td>S</td><td>S</td><td>S</td></tr>
-            <tr><td>unidade em {C, F}</td><td>S</td><td>&ndash;</td><td>N</td><td>S</td><td>S</td></tr>
-            <tr><td>umidade em [0, 100]</td><td>S</td><td>&ndash;</td><td>&ndash;</td><td>N</td><td>S</td></tr>
+            <tr><td>unidade em {C, F}</td><td>S</td><td>N</td><td>S</td><td>S</td><td>S</td></tr>
+            <tr><td>umidade em [0, 100]</td><td>S</td><td>&ndash;</td><td>N</td><td>S</td><td>S</td></tr>
+            <tr><td>nenhum campo a mais</td><td>S</td><td>&ndash;</td><td>&ndash;</td><td>N</td><td>S</td></tr>
             <tr><td>temperatura em °C em [-10, 60]</td><td>S</td><td>&ndash;</td><td>&ndash;</td><td>&ndash;</td><td>N</td></tr>
-            <tr><td>Ação</td><td>entra</td><td><code>campo_desconhecido</code></td><td><code>unidade_desconhecida</code></td><td><code>umidade_fora_da_faixa</code></td><td><code>temperatura_fora_da_faixa</code></td></tr>
+            <tr><td>Ação</td><td>entra</td><td><code>unidade_desconhecida</code></td><td><code>umidade_fora_da_faixa</code></td><td><code>campo_desconhecido</code></td><td><code>temperatura_fora_da_faixa</code></td></tr>
           </tbody>
         </table></div>
-        <p>O traço indica que a condição não importa naquela regra. A ordem das condições segue a ordem em que o Pydantic valida: campos primeiro, a regra entre campos por último. Essa ordem tem consequência para o teste. Uma leitura com campo extra e umidade de 150 % vai para a quarentena com <code>campo_desconhecido</code>, porque é o primeiro erro que o contrato reporta. O teste que quer verificar o motivo <code>umidade_fora_da_faixa</code> precisa partir de uma leitura válida em tudo, menos na umidade. É por isso que o arquivo da estação 1 tem a função <code>leitura(**alteracoes)</code>: ela começa de uma leitura válida e muda só o que o caso pede.</p>
-        <h3>5.5 Quem testa o teste: mutação</h3>
+        <p>O traço indica que a condição não importa naquela regra. A ordem das condições segue a ordem dos erros que o Pydantic devolve: primeiro os erros de campo, na ordem em que os campos foram declarados (device_id, temperatura, unidade, umidade), depois o campo a mais, e a regra entre campos por último, porque o <code>model_validator</code> só roda quando todos os campos passaram. Campo faltando gera <code>campo_ausente</code>, e device_id fora do padrão gera <code>sensor_invalido</code>. Essa ordem tem consequência para o teste. Uma leitura com campo extra e umidade de 150 % vai para a quarentena com <code>umidade_fora_da_faixa</code>, porque é o primeiro erro que o contrato reporta. O teste que quer verificar o motivo <code>umidade_fora_da_faixa</code> precisa partir de uma leitura válida em tudo, menos na umidade. É por isso que o arquivo da estação 1 tem a função <code>leitura(**alteracoes)</code>: ela começa de uma leitura válida e muda só o que o caso pede.</p>
+        <h3>5.5 Teste de mutação</h3>
         <p>Um teste de mutação planta um defeito pequeno no código, roda a suíte e verifica se algum teste reprova. Se a suíte continua verde, o defeito passaria despercebido em produção. O procedimento tem quatro regras.</p>
         <ol>
           <li>A suíte precisa aprovar a versão correta. Teste que reprova código correto testa a coisa errada.</li>
@@ -277,16 +277,16 @@
         </ol>
         <p>Em Python, a ferramenta usual é o mutmut, que gera os mutantes sozinho a partir de regras de troca de operadores e constantes. A bancada usa mutantes escritos à mão, um por defeito que já apareceu em projeto, para que cada um tenha uma explicação. O mutmut gera muitos mais mutantes, e parte deles é equivalente ao código original (muda o texto sem mudar o comportamento), o que exige triagem; os mutantes da bancada não têm esse problema porque foram escolhidos um a um.</p>
         <h3>5.6 Exemplo numérico 2: três suítes contra nove mutantes</h3>
-        <p>Medição do professor em 24/11/2026 com o motor da bancada (pytest 9.2, Pydantic 2.14, no terminal) sobre o contrato do sensor.</p>
+        <p>Medição do professor em 24/11/2026 com o motor da bancada (pytest 9.2, Pydantic 2.14, no terminal) sobre o contrato do sensor. Na bancada do navegador as versões são pytest 8.1.1 e Pydantic 2.10.5, e no laboratório, 9.1.1 e 2.13.5.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Suíte</th><th>Testes</th><th>Cobertura de linhas e desvios</th><th>Mutantes mortos</th></tr></thead>
           <tbody>
-            <tr><td>só valores típicos (24,6 °C e umidade de 150 %)</td><td>2</td><td>64 %</td><td>0 de 9</td></tr>
+            <tr><td>ponto de partida da estação (uma leitura típica e umidade de 150 %)</td><td>2</td><td>64 %</td><td>0 de 9</td></tr>
             <tr><td>um caso por motivo de rejeição, com valores longe dos limites</td><td>9</td><td>100 %</td><td>3 de 9</td></tr>
             <tr><td>partições e valores-limite completos</td><td>15</td><td>100 %</td><td>9 de 9</td></tr>
           </tbody>
         </table></div>
-        <p>As três suítes aprovam o contrato correto. A segunda executa todas as linhas e todos os desvios e ainda deixa passar seis defeitos, todos de limite: 9 &minus; 3 = 6 mutantes vivos com 100 % de cobertura. A terceira acrescenta seis testes à segunda (15 &minus; 9 = 6), e esses seis testes matam exatamente os seis mutantes restantes. Cobertura mede o que rodou; mutação mede o que a suíte percebe. A suíte completa rodou em 102 ms.</p>
+        <p>As três suítes aprovam o contrato correto. A segunda executa todas as linhas e todos os desvios e ainda deixa passar seis defeitos, cinco deles de limite (M1 a M5) e um no padrão do device_id (M7): 9 &minus; 3 = 6 mutantes vivos com 100 % de cobertura. A terceira acrescenta seis testes à segunda (15 &minus; 9 = 6), e esses seis testes matam exatamente os seis mutantes restantes. A segunda suíte tem 100 % de cobertura e mata 3 de 9 mutantes. A suíte completa rodou em 102 ms.</p>
         <p>O mecanismo é direto. Para chegar a 100 % de cobertura, basta que algum teste passe por cada linha do validador de faixa, e um teste com 80 °C faz isso. Mas 80 °C é recusado tanto com o limite em 60 quanto em 65, com <code>&lt;=</code> ou com <code>&lt;</code>. Só um teste com 60,0 °C ou 60,1 °C distingue as versões.</p>
         <h3>5.7 Uma tabela de casos com parametrize</h3>
         <p>O <code>@pytest.mark.parametrize</code> transforma uma lista de casos num conjunto de testes. Cada linha da tabela vira um teste com nome próprio no relatório, e partição e valor-limite cabem nesse formato: a tabela de casos da caixa preta passa a ser o próprio código do teste.</p>
@@ -380,7 +380,7 @@ def test_particoes_e_limites(alteracoes, esperado):
           <li>Refatorar: melhore nomes e estrutura com a suíte verde como rede de segurança.</li>
           <li>Repita com o próximo comportamento. Cada ciclo leva poucos minutos.</li>
         </ol>
-        <p>O passo vermelho tem uma função que costuma ser subestimada: ele prova que o teste é capaz de reprovar. Um teste que nunca foi visto vermelho pode estar passando por engano (um <code>assert</code> sobre a variável errada, um teste que nem é coletado por causa do nome). Ver o teste reprovar pelo motivo esperado é o equivalente, em escala de um caso, ao teste de mutação do bloco 2.</p>
+        <p>O passo vermelho prova que o teste é capaz de reprovar. Um teste que nunca foi visto vermelho pode estar passando por engano (um <code>assert</code> sobre a variável errada, um teste que nem é coletado por causa do nome). Ver o teste reprovar pelo motivo esperado é o equivalente, em escala de um caso, ao teste de mutação do bloco 2.</p>
         <p>Com agente de código, o ciclo continua valendo: peça o teste primeiro, rode, confira que reprova, e só então peça a implementação. Teste escrito depois do código tende a confirmar o que o código já faz, inclusive o defeito. Se o agente escreve a função e o teste no mesmo passo, o teste herda as suposições da função; se o teste vem antes, da spec e do valor real da bronze, ele pode contrariar a função. Todos os prompts da <a href="#prompts">seção 15</a> pedem o teste vermelho antes do código por esse motivo.</p>
         <h3>7.3 Por que o preço chega como Â£51.77</h3>
         <p>Medição de 24/11/2026 na primeira página de books.toscrape.com com a biblioteca <code>requests</code>.</p>
@@ -395,7 +395,7 @@ def test_particoes_e_limites(alteracoes, esperado):
           </tbody>
         </table></div>
         <p>Esse defeito tem nome: mojibake, o texto embaralhado que surge quando bytes gravados numa codificação são lidos em outra. O mecanismo é previsível. Em ISO-8859-1, cada byte é um caractere, e por isso os dois bytes que o UTF-8 usa para a libra viram dois caracteres. O <code>requests</code> segue a regra da especificação HTTP antiga para tipos <code>text/*</code> sem charset declarado, e por isso o resultado é o mesmo em qualquer máquina.</p>
-        <p>Há duas correções possíveis: definir <code>r.encoding = "utf-8"</code> no coletor, ou aceitar o Â na limpeza. A bronze guarda o que chegou; a silver decide. Um teste com o valor real da bronze pega o problema nas duas hipóteses: se o grupo corrigir o coletor, as bronzes antigas continuam com o Â, e a limpeza precisa aceitar os dois formatos enquanto elas existirem.</p>
+        <p>Há duas correções possíveis: definir <code>r.encoding = "utf-8"</code> no coletor, ou aceitar o Â na limpeza. A bronze guarda o texto como chegou, e a limpeza da silver converte o valor. Um teste com o valor real da bronze pega o problema nas duas hipóteses: se o grupo corrigir o coletor, as bronzes antigas continuam com o Â, e a limpeza precisa aceitar os dois formatos enquanto elas existirem.</p>
         <h3>7.4 Exemplo numérico 3: dinheiro em float e em Decimal</h3>
         <div class="table-scroll"><table>
           <thead><tr><th>Expressão em Python</th><th>Resultado</th></tr></thead>
@@ -407,7 +407,7 @@ def test_particoes_e_limites(alteracoes, esperado):
           </tbody>
         </table></div>
         <p>O <code>float</code> guarda números em base 2, e a maioria das frações decimais não tem representação exata nessa base. O valor 5,6518 vira o número binário mais próximo, que é 5,65179999... com 49 casas depois da vírgula quando o <code>Decimal</code> mostra o valor exato guardado. O <code>Decimal</code> construído a partir de texto guarda os dígitos decimais como foram escritos.</p>
-        <p>A API da PTAX entrega a cotação como número JSON, que o Python lê como <code>float</code>. Construir o <code>Decimal</code> direto do <code>float</code> carrega o erro binário para a silver. O teste que compara com <code>Decimal("5.6518")</code> pega isso; o que compara com <code>5.6518</code> não pega, porque a comparação entre <code>Decimal</code> e <code>float</code> acontece no mundo do <code>float</code>. A última linha da tabela mostra o efeito oposto: um preço limpo corretamente como <code>Decimal("51.77")</code> não é igual ao <code>float</code> 51.77, e um teste escrito com o <code>float</code> reprova o código certo.</p>
+        <p>A API da PTAX entrega a cotação como número JSON, que o Python lê como <code>float</code>. Construir o <code>Decimal</code> direto do <code>float</code> carrega o erro binário para a silver. O teste que compara com <code>Decimal("5.6518")</code> pega isso; o que compara com <code>5.6518</code> não pega, porque <code>Decimal(5.6518)</code> e o <code>float</code> 5.6518 são exatamente o mesmo número binário, e o Python compara os valores exatos. Pior: esse teste reprova o código correto, que guarda <code>Decimal("5.6518")</code>. A última linha da tabela mostra o efeito oposto: um preço limpo corretamente como <code>Decimal("51.77")</code> não é igual ao <code>float</code> 51.77, e um teste escrito com o <code>float</code> reprova o código certo.</p>
         <h3>7.5 O relógio escondido dentro da função</h3>
         <p>Boletins PTAX do dólar publicados pelo Banco Central entre 13 e 24/11/2026, consultados na API Olinda.</p>
         <div class="table-scroll"><table>
@@ -417,7 +417,7 @@ def test_particoes_e_limites(alteracoes, esperado):
           </tbody>
         </table></div>
         <p>Os quatro boletins de 16 a 19/11 estão no arquivo da estação 3: 5,7324, 5,7851, 5,8102 e 5,8889 (venda). Não há boletim em 14, 15, 21 e 22/11, fins de semana, nem em 20/11, feriado nacional da Consciência Negra.</p>
-        <p>A versão escondida da função lê <code>hoje = date.today()</code> lá dentro. O teste depende do dia em que roda: passou na terça 24/11 e quebra hoje, sábado 28/11, porque não há boletim no dia. Nenhuma linha do código mudou entre as duas execuções; mudou o calendário. Esse tipo de teste, que passa ou falha conforme algo fora dele, é chamado de teste instável, e o efeito mais danoso dele é ensinar a equipe a ignorar o vermelho.</p>
+        <p>A versão escondida da função lê <code>hoje = date.today()</code> lá dentro. O teste depende do dia em que roda: passou na terça 24/11 e quebra hoje, sábado 28/11, porque não há boletim no dia. Nenhuma linha do código mudou entre as duas execuções; mudou o calendário. Esse tipo de teste, que passa ou falha conforme algo fora dele, é chamado de teste instável. Quando ele reprova sem defeito no código, a equipe passa a rodar de novo até ficar verde, e um defeito real que reprove a mesma suíte corre o risco de ser tratado do mesmo jeito.</p>
         <p>A versão injetada recebe o dia como parâmetro: <code>cotacao_vigente(boletins, hoje)</code>. O teste escolhe o dia: útil, feriado, domingo, limite da janela. O código de produção passa <code>date.today()</code> na chamada, num único lugar. A regra de negócio também fica explícita: no dia sem boletim, vale o boletim do dia útil mais recente antes dele, até um número fixo de dias para trás; fora dessa janela, a função levanta uma exceção própria em vez de inventar uma cotação.</p>
         <div class="note">
           <strong>Pausa para reflexão</strong>
@@ -427,9 +427,9 @@ def test_particoes_e_limites(alteracoes, esperado):
           <strong>Pontos-chave do bloco 3</strong>
           <ul>
             <li>TDD inverte a ordem: o teste reprova primeiro, e só depois o código existe.</li>
-            <li>Teste de limpeza usa o valor real da bronze, como "Â£51.77", e não o valor que se imagina.</li>
+            <li>Teste de limpeza usa o valor copiado da bronze, como "Â£51.77".</li>
             <li>Dinheiro e cotação são <code>Decimal</code> construído a partir de texto; o teste compara com <code>Decimal</code>.</li>
-            <li>Relógio, aleatoriedade e ambiente entram como parâmetro. Teste que depende do calendário falha no sábado.</li>
+            <li>Relógio, aleatoriedade e ambiente entram como parâmetro. Com o dia como parâmetro, o resultado não depende da data em que o teste roda.</li>
           </ul>
         </div>
         <h3>7.6 Para saber mais</h3>
@@ -476,7 +476,7 @@ def test_particoes_e_limites(alteracoes, esperado):
 
       <!-- 9 -->
       <section class="content-block" id="s9">
-        <h2>9. Estação 3: o teste que quebra no sábado</h2>
+        <h2>9. Estação 3: relógio injetado na PTAX vigente</h2>
         <p>Das 10h55 às 11h05, cerca de 10 minutos. A função <code>cotacao_vigente</code> lê <code>date.today()</code> e procura o boletim PTAX do dia. O teste passou numa terça-feira, em 24/11/2026. Em dia sem boletim (fim de semana, o feriado de 20/11 ou qualquer dia depois de 24/11) ele quebra. O defeito fica no código: o relógio está escondido dentro da função.</p>
         <h3>9.1 Passo a passo</h3>
         <ol class="steps">
@@ -516,7 +516,7 @@ def test_particoes_e_limites(alteracoes, esperado):
             <tr><td>Dummy</td><td>ocupa um parâmetro que o teste não usa</td><td><code>esperar=lambda s: None</code> num teste que só tem sucesso</td></tr>
             <tr><td>Stub</td><td>devolve uma resposta pronta</td><td><code>http_get</code> que devolve o boletim gravado</td></tr>
             <tr><td>Spy</td><td>responde e registra como foi chamado</td><td><code>Espiao</code> guarda as URLs; <code>esperas.append</code> guarda os segundos</td></tr>
-            <tr><td>Mock</td><td>já nasce com a expectativa e falha sozinho</td><td><code>unittest.mock</code> com <code>assert_called_once_with</code></td></tr>
+            <tr><td>Mock</td><td>nasce com as chamadas esperadas e falha quando elas não acontecem</td><td>em Python, <code>Mock(spec=...)</code>; o uso com <code>assert_called_once_with</code> depois da execução, em rigor, é um spy</td></tr>
             <tr><td>Fake</td><td>implementação simples que funciona de verdade</td><td>um bucket em memória no lugar do MinIO</td></tr>
           </tbody>
         </table></div>
@@ -526,10 +526,10 @@ def test_particoes_e_limites(alteracoes, esperado):
         <p>Escrever o stub à mão exige copiar a resposta da API para dentro do teste. O vcrpy grava a resposta real na primeira execução, num arquivo chamado cassete, e a reproduz nas seguintes. O pytest-recording integra o vcrpy ao pytest e acrescenta a opção de bloquear a rede.</p>
         <pre><code>pytest tests/contract --record-mode=once -q   # 1ª vez: chama a API e grava o cassete
 pytest tests/contract --block-network -q      # depois: reproduz; qualquer chamada real reprova
-grep -RniE "authorization|token|api[_-]?key" tests/cassettes   # antes do commit</code></pre>
+grep -RniE "authorization|token|api[_-]?key" tests/   # antes do commit</code></pre>
         <p>O <code>boletim_ptax.json</code> da estação 4 faz o papel do cassete: é a resposta real da API Olinda gravada em 24/11/2026. O pytest-recording usa o modo <code>none</code> por padrão, e sem cassete o teste reprova em vez de chamar a rede. Esse padrão é deliberado: um teste que chama a rede escondido fica lento, depende do serviço estar no ar e pode gastar cota de API.</p>
         <p>O cassete tem dois riscos. O primeiro é guardar segredo: cabeçalhos de autorização e tokens ficam gravados junto com a resposta, e por isso o <code>grep</code> antes do commit e o filtro de cabeçalhos na configuração do VCR. O segundo é envelhecer: se a API mudar o formato, o teste continua verde sobre a resposta antiga. A regravação deliberada, de tempos em tempos e sempre com revisão do diff do cassete, é o que pega essa mudança.</p>
-        <h3>10.3 Quando o dublê não basta</h3>
+        <h3>10.3 Integração com serviço real</h3>
         <p>O dublê só sabe o que o autor do teste supôs. Permissão de bucket, tipo de coluna do ClickHouse e restrição do Postgres só aparecem no serviço real. O teste de integração sobe o serviço real num contêiner descartável, roda o código contra ele e destrói o contêiner no fim.</p>
         <div class="table-scroll"><table>
           <thead><tr><th>Medida do professor, 03/10/2026</th><th>Valor</th></tr></thead>
@@ -564,7 +564,7 @@ grep -RniE "authorization|token|api[_-]?key" tests/cassettes   # antes do commit
 
       <!-- 11 -->
       <section class="content-block" id="s11">
-        <h2>11. Demonstração: MinIO de verdade dentro do teste</h2>
+        <h2>11. Demonstração: MinIO em contêiner dentro do teste</h2>
         <p>O professor roda no Codespace o exemplo do <a href="../laboratorio/README.md">laboratório da semana</a>. A bancada não sobe contêiner porque o navegador não tem Docker, e por isso esta camada aparece como demonstração. O exemplo traz o contrato da leitura IoT da Aula 06, nove testes de unidade e um teste que sobe o MinIO com Testcontainers, grava uma rejeição no bucket e a lê de volta.</p>
         <h3>11.1 Passo a passo</h3>
         <ol class="steps">
@@ -575,7 +575,7 @@ grep -RniE "authorization|token|api[_-]?key" tests/cassettes   # antes do commit
           <li>Rode a suíte inteira com o relatório dos testes mais lentos.</li>
         </ol>
         <pre><code>python -m pip install -r laboratorio/requirements-dev.txt
-cp -r laboratorio/exemplo /tmp/exemplo_aula07 &amp;&amp; cd /tmp/exemplo_aula07
+rm -rf /tmp/exemplo_aula07 &amp;&amp; cp -r laboratorio/exemplo /tmp/exemplo_aula07 &amp;&amp; cd /tmp/exemplo_aula07
 pytest -m "not integracao" -q      # unidade: sem Docker, sem rede
 pytest -q --durations=5            # inclui o MinIO em contêiner</code></pre>
         <p>Os comandos partem da pasta da Aula 07 no repositório da disciplina. As dependências são instaladas antes da cópia, porque o <code>requirements-dev.txt</code> fica em <code>laboratorio/</code> e não vai junto para <code>/tmp</code>.</p>
@@ -641,7 +641,7 @@ pytest -q --durations=5            # inclui o MinIO em contêiner</code></pre>
           <div class="method-step"><strong>No merge (CI)</strong><span>A cada push, o GitHub Actions roda unidade e contrato, depois a integração num job separado. Vermelho bloqueia o merge no <code>main</code>. A cobertura entra com <code>pytest --cov=src --cov-fail-under=80</code>.</span></div>
           <div class="method-step"><strong>No lote (pipeline)</strong><span>Depois de processar e antes de publicar a gold, o pipeline roda os testes sobre o dado. Reprovou: a gold anterior continua no ar e o lote fica retido com o relatório.</span></div>
         </div>
-        <p>O portão do merge depende do código; o do lote depende do dado. Um lote pode reprovar com o código intacto, porque a fonte mudou: o site passou a repetir livros, a API passou a devolver campo vazio. A decisão de manter a gold anterior no ar é uma escolha de disponibilidade contra atualidade, e precisa estar registrada na spec do projeto: o painel fica um lote atrasado, com dado correto, em vez de atualizado com dado errado.</p>
+        <p>Um lote pode reprovar com o código intacto, porque a fonte mudou: o site passou a repetir livros, a API passou a devolver campo vazio. A decisão de manter a gold anterior no ar é uma escolha de disponibilidade contra atualidade, e precisa estar registrada na spec do projeto: o painel fica um lote atrasado, com dado correto, em vez de atualizado com dado errado.</p>
         <p>A opção <code>--cov-fail-under</code> exige o plugin pytest-cov. Cobertura de 100 % mostra que cada linha rodou. No bloco 2, uma suíte com 100 % de cobertura do contrato pegou 3 de 9 mutantes. A meta de cobertura entra no gate como piso, ao lado dos testes de limite, e não como prova de que a suíte é suficiente.</p>
         <div class="note">
           <strong>Pausa para reflexão</strong>
@@ -653,7 +653,7 @@ pytest -q --durations=5            # inclui o MinIO em contêiner</code></pre>
             <li>Teste sobre o dado roda a cada lote e decide a publicação, e não só a cada mudança de código.</li>
             <li>A reconciliação de contagens pega a linha que some sem passar pela quarentena: no lote da aula, 18 + 2 + 2 = 22.</li>
             <li>Recalcular a gold a partir da silver pega erro de agregação que nenhum tipo de dado acusa.</li>
-            <li>O CI protege o código no merge; o teste sobre o dado protege o painel no lote.</li>
+            <li>O CI roda a cada merge e barra código com defeito; o teste sobre o dado roda a cada lote e retém a gold antes da publicação.</li>
           </ul>
         </div>
         <h3>13.4 Para saber mais</h3>
@@ -699,7 +699,7 @@ pytest -q --durations=5            # inclui o MinIO em contêiner</code></pre>
       <section class="content-block" id="prompts">
         <h2>15. Prompts CREATE para a semana</h2>
         <p>A bancada exercita as técnicas sobre recortes do projeto. Os seis prompts abaixo levam as mesmas técnicas para o código real do repositório do grupo, com o agente de código de preferência de cada aluno (Claude Code, Codex CLI, Gemini CLI, OpenCode, Cursor ou Copilot). O prompt 0 prepara o ambiente de testes; os prompts 1 a 5 correspondem às estações 1 a 5. Todos seguem o formato CREATE da disciplina: <code>[C] Personagem</code>, <code>[R] Pedido</code>, <code>[E] Exemplos</code>, <code>[A] Ajustes</code>, <code>[T] Tipo de saída</code> e <code>[E] Extras</code>.</p>
-        <p>Quatro regras atravessam todos eles. O teste é escrito e visto vermelho antes do código. Os testes ficam em <code>tests/unit</code>, <code>tests/contract</code> e <code>tests/integration</code>. Cada teste se liga a um requisito da spec do projeto (RF-xx ou RNF-xx em <code>specs/spec.md</code>), como manda o Spec-Driven Development. E a ligação fica registrada na matriz de rastreabilidade <code>aula_07_testes/matriz_rastreabilidade.md</code>, com as colunas requisito, teste, camada, comando e resultado.</p>
+        <p>Quatro regras atravessam todos eles. O teste é escrito e visto vermelho antes do código. Os testes ficam em <code>tests/unit</code>, <code>tests/contract</code>, <code>tests/integration</code> (os que exigem Docker) e <code>tests/qualidade</code> (os testes sobre o dado). Cada teste se liga a um requisito da spec do projeto (RF-xx ou RNF-xx em <code>specs/spec.md</code>), como manda o Spec-Driven Development. E a ligação fica registrada na matriz de rastreabilidade <code>aula_07_testes/matriz_rastreabilidade.md</code>, com as colunas requisito, teste, camada, comando e resultado.</p>
         <ol class="steps">
           <li>Execute um prompt por vez, na ordem, e revise o resultado antes do próximo.</li>
           <li>Rode você mesmo o teste vermelho e o verde; não aceite apenas o relato do agente.</li>
@@ -712,7 +712,7 @@ pytest -q --durations=5            # inclui o MinIO em contêiner</code></pre>
 Você é um engenheiro de dados que organiza suítes de teste em projetos Python de pipeline. Você escreve em português, separa o que foi informado do que está sendo suposto e não inventa requisitos.
 
 [R] Pedido
-No repositório do projeto final do grupo, prepare o ambiente de testes com pytest: (1) crie as pastas tests/unit, tests/contract e tests/integration, cada uma com um conftest.py mínimo; (2) crie ou ajuste o pytest.ini (ou a seção [tool.pytest.ini_options] do pyproject.toml, se já existir) com testpaths = tests, pythonpath apontando para o código do projeto e o marcador integracao registrado; (3) crie aula_07_testes/matriz_rastreabilidade.md com as colunas requisito, teste, camada, comando e resultado, preenchida a partir dos RF e RNF de specs/spec.md, com a coluna teste vazia onde ainda não houver teste; (4) escreva um único teste de fumaça em tests/unit que reprove de propósito, rode-o para mostrar o vermelho e depois corrija para verde.
+No repositório do projeto final do grupo, prepare o ambiente de testes com pytest: (1) crie as pastas tests/unit, tests/contract, tests/integration e tests/qualidade, cada uma com um conftest.py mínimo; (2) crie ou ajuste o pytest.ini (ou a seção [tool.pytest.ini_options] do pyproject.toml, se já existir) com testpaths = tests, pythonpath apontando para o código do projeto e o marcador integracao registrado; (3) crie aula_07_testes/matriz_rastreabilidade.md com as colunas requisito, teste, camada, comando e resultado, preenchida a partir dos RF e RNF de specs/spec.md, com a coluna teste vazia onde ainda não houver teste; (4) escreva um único teste de fumaça em tests/unit que reprove de propósito, rode-o para mostrar o vermelho e depois corrija para verde.
 
 [E] Exemplos
 Linha da matriz:
@@ -740,7 +740,7 @@ Você é um engenheiro de qualidade de dados que testa contratos Pydantic v2 por
 Escreva os testes do contrato de entrada da leitura do sensor da estufa (Aula 06) no repositório do grupo, em tests/contract/test_contrato_sensor.py. Antes de escrever, produza em aula_07_testes/casos_contrato_sensor.md a tabela de partições, a tabela de valores-limite e a tabela de decisão dos motivos de quarentena, derivadas do contrato descrito na spec. Depois, escreva a tabela parametrizada de casos, rode e mostre quais casos reprovam no código atual.
 
 [E] Exemplos
-Linhas esperadas na tabela parametrizada:
+Linhas esperadas na tabela parametrizada, cada uma aplicada sobre uma leitura válida pela função leitura(**alteracoes), como na estação 1 da bancada. Os nomes abaixo são os da bancada; use os campos e os códigos de motivo do contrato do grupo (no contrato da Aula 06, por exemplo, unidade_temperatura e sensor_desconhecido):
 ({"temperatura": 60.0}, None)
 ({"temperatura": 60.1}, "temperatura_fora_da_faixa")
 ({"temperatura": 140.0, "unidade": "F"}, None)  # 60,0 °C
@@ -843,7 +843,7 @@ Gates: (1) pytest tests/unit -q verde sem rede; (2) pytest tests/contract --bloc
 Você é um engenheiro de dados que escreve testes sobre a saída de cada lote e decide se a gold pode ser publicada, usando as características de qualidade da ISO/IEC 25012.
 
 [R] Pedido
-Escreva os testes sobre o dado do pipeline de livros do grupo (bronze, silver, quarentena, gold) e ligue-os a um portão de publicação. Primeiro, escreva os testes em tests/integration/test_qualidade_lote.py (ou na pasta que a spec indicar) sobre um lote pequeno de referência com defeitos plantados, e mostre-os vermelhos contra uma versão do pipeline com a deduplicação desligada. Depois, implemente o portão: o pipeline roda os testes depois de processar e só publica a gold se todos passarem; se reprovar, a gold anterior continua publicada e o lote fica retido com o relatório.
+Escreva os testes sobre o dado do pipeline de livros do grupo (bronze, silver, quarentena, gold) e ligue-os a um portão de publicação. Primeiro, escreva os testes em tests/qualidade/test_qualidade_lote.py (ou na pasta que a spec indicar) sobre um lote pequeno de referência com defeitos plantados, e mostre-os vermelhos contra uma versão do pipeline com a deduplicação desligada. Depois, implemente o portão: o pipeline roda os testes depois de processar e só publica a gold se todos passarem; se reprovar, a gold anterior continua publicada e o lote fica retido com o relatório.
 
 [E] Exemplos
 Asserções, uma por característica:
@@ -914,7 +914,7 @@ Gates: (1) cada asserção reprova contra uma versão do pipeline com o defeito 
             <tr><td>12h00 &ndash; 12h10</td><td>fechamento</td><td>evidência exportada e publicada no repositório</td></tr>
           </tbody>
         </table></div>
-        <p>Quem não atingir a meta de uma estação no tempo segue para a próxima e volta depois: o placar guarda o melhor resultado, e o trabalho fica no navegador. A evidência exportada mostra o placar real de cada estação, e uma estação incompleta registrada com honestidade vale mais que uma meta copiada.</p>
+        <p>Quem não atingir a meta de uma estação no tempo segue para a próxima e volta depois: o placar guarda o melhor resultado, e o trabalho fica no navegador. A evidência exportada mostra o placar real de cada estação.</p>
         <h3>17.1 Entregável: evidência da bancada</h3>
         <ol class="steps">
           <li>Na aba Início da bancada, confira o placar das seis estações.</li>

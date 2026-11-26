@@ -4,32 +4,32 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" />
-  <title>Laboratório opcional da Aula 07 — Pydantic, VCR e Testcontainers</title>
+  <title>Laboratório opcional da Aula 07: Pydantic, VCR e Testcontainers</title>
   <link rel="stylesheet" href="../../../../assets/styles.css" />
 </head>
 <body>
   <main class="page">
     <div class="material-nav">
-      <a href="../../../../index.html">&larr; Hub de Disciplinas</a>
-      <a href="../../../../pages/home_data_collection.html">&larr; Data Collection &amp; Storage</a>
+      <a href="../../../../index.html">Hub de Disciplinas</a>
+      <a href="../../../../pages/home_data_collection.html">Data Collection &amp; Storage</a>
       <a href="../laboratorio/README.md">Roteiro do laboratório</a>
       <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html">Material da Aula 07</a>
-      <a href="../slides/slide_aula_07_qualidade_e_testes_de_dados_com_pytest.html">Ver Slide &rarr;</a>
+      <a href="../slides/slide_aula_07_qualidade_e_testes_de_dados_com_pytest.html">Ver Slide</a>
     </div>
 
     <header class="hero">
       <img class="logo-full" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_e4vyyw.png" alt="Universidade Presbiteriana Mackenzie" />
       <span class="kicker">Data Collection and Storage &middot; MBA Engenharia de Dados</span>
-      <h1>Laboratório opcional da Aula 07 — Pydantic, VCR e Testcontainers</h1>
+      <h1>Laboratório opcional da Aula 07: Pydantic, VCR e Testcontainers</h1>
       <p class="meta">Laboratório opcional &middot; para a semana de 28/11 a 05/12/2026</p>
-      <p>Os pipelines das Aulas 03 e 06 coletam e gravam dados, mas aceitam qualquer coisa que chegue. Nesta aula, cada grupo escreve contratos Pydantic para o livro extraído do HTML, para a cotação PTAX e para a leitura de sensor IoT, desvia os registros inválidos para quarentena no MinIO e para uma DLQ no RabbitMQ e protege tudo com uma suíte de testes em três camadas: unidade, contrato com respostas HTTP gravadas (VCR) e integração com serviços reais em contêiner (Testcontainers). O trabalho segue a mesma sequência SDD da Aula 01, agora com uma especificação de qualidade. As duas primeiras horas são de teoria, em cinco blocos que usam a estufa da Aula 06 como cenário condutor e medem o que cada decisão custa: o desvio que um sensor rotulado errado provoca na média, a taxa de rejeição de um lote com defeitos conhecidos, o tempo de validar uma leitura, o custo de cada camada da pirâmide de testes e o efeito do escopo das fixtures. Depois vem uma hora de prática em SDD.</p>
+      <p>Os pipelines das Aulas 03 e 06 coletam e gravam dados, mas aceitam qualquer coisa que chegue. Neste laboratório, cada grupo escreve contratos Pydantic para o livro extraído do HTML, para a cotação PTAX e para a leitura de sensor IoT, desvia os registros inválidos para quarentena no MinIO e para uma DLQ no RabbitMQ e protege tudo com uma suíte de testes em três camadas: unidade, contrato com respostas HTTP gravadas (VCR) e integração com serviços reais em contêiner (Testcontainers). O trabalho segue a mesma sequência SDD da Aula 01, agora com uma especificação de qualidade. As seções 1 a 10 trazem a base conceitual, com a estufa da Aula 06 como cenário condutor, e medem o que cada decisão custa: o desvio que um sensor rotulado errado provoca na média, a taxa de rejeição de um lote com defeitos conhecidos, o tempo de validar uma leitura, o custo de cada camada da pirâmide de testes e o efeito do escopo das fixtures. As seções 11 a 15 são a prática em SDD.</p>
     </header>
 
     <article class="material">
       <section class="content-block" id="aviso">
         <div class="note">
           <strong>Este roteiro é opcional e fica para a semana</strong>
-          <p>Em sala, a Aula 07 de 28/11/2026 trata de qualidade e testes de dados com pytest, numa <a href="../bancada/bancada_aula_07.html">bancada que roda no navegador</a> (veja o <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html">material da aula</a>). Este roteiro leva as mesmas técnicas para o código real do projeto, com Docker, e fica para a semana: contratos Pydantic, respostas HTTP gravadas com VCR e Testcontainers sobre os pipelines da Aula 03 e do <a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/laboratorio/roteiro_streaming_iot.html">laboratório opcional da Aula 06</a>. Os horários das agendas servem de referência de duração, e o quiz citado no texto original foi retirado.</p>
+          <p>Em sala, a Aula 07 de 28/11/2026 trata de qualidade e testes de dados com pytest, numa <a href="../bancada/bancada_aula_07.html">bancada que roda no navegador</a> (veja o <a href="../material/material_aula_07_qualidade_e_testes_de_dados_com_pytest.html">material da aula</a>). Este roteiro leva as mesmas técnicas para o código real do projeto, com Docker, e fica para a semana: contratos Pydantic, respostas HTTP gravadas com VCR e Testcontainers sobre os pipelines da Aula 03 e do <a href="../../aula_06_eventos_cep_e_coleta_com_kafka_influxdb_e_elasticsearch/laboratorio/roteiro_streaming_iot.html">laboratório opcional da Aula 06</a>. As durações da seção 1.1 servem de estimativa para organizar a semana.</p>
         </div>
       </section>
 
@@ -70,23 +70,23 @@
         </table></div>
         <p>O primeiro caso foi reproduzido em 03/10/2026: com <code>requests.get(...)</code> e sem definir <code>response.encoding = "utf-8"</code>, o texto do primeiro preço da página 1 sai como <code>'Â£51.77'</code>; com a codificação correta, sai <code>'£51.77'</code>. A falha não depende de erro do grupo na Aula 03; depende de um detalhe do servidor que pode mudar a qualquer momento. Por isso a correção do coletor não basta, e o pipeline precisa de um ponto que recuse o dado quando o formato fugir do esperado.</p>
         <div class="note">
-          <strong>Resultado esperado da aula</strong>
+          <strong>Resultado esperado do laboratório</strong>
           <p>Ao final, a pasta <code>aula_07_validacao_testes/</code> do repositório do grupo contém o esqueleto SDD, três contratos Pydantic com JSON Schema publicado, quarentena no MinIO, DLQ no RabbitMQ, uma suíte de testes verde em três camadas, um relatório de rejeições e um <code>docs/atam.md</code> com os seis cenários da seção 14.</p>
         </div>
-        <h3>1.1 Agenda</h3>
+        <h3>1.1 Etapas e duração estimada</h3>
         <div class="table-scroll"><table>
-          <thead><tr><th>Horário</th><th>Bloco</th><th>Conteúdo</th></tr></thead>
+          <thead><tr><th>Duração</th><th>Etapa</th><th>Conteúdo</th></tr></thead>
           <tbody>
-            <tr><td>8h30 &ndash; 8h50</td><td>Teoria 1</td><td>O problema, o cenário da estufa e os três pontos de validação; quanto um sensor rotulado errado desloca a média (seções 1 e 2).</td></tr>
-            <tr><td>8h50 &ndash; 9h15</td><td>Teoria 2</td><td>Contrato de dados, quarentena, DLQ ou falha do lote, métricas de qualidade; um lote com defeitos conhecidos (seções 3 a 5).</td></tr>
-            <tr><td>9h15 &ndash; 9h45</td><td>Teoria 3</td><td>Pydantic v2 aplicado aos contratos; quanto custa validar uma leitura (seção 6).</td></tr>
-            <tr><td>9h45 &ndash; 10h10</td><td>Teoria 4</td><td>Pirâmide de testes e respostas HTTP gravadas em cassetes; quanto custa um teste em cada camada (seções 7 e 8).</td></tr>
-            <tr><td>10h10 &ndash; 10h30</td><td>Teoria 5</td><td>Testcontainers, custo de subida, Docker indisponível e CI; escopo da fixture e tempo da suíte (seções 9 e 10).</td></tr>
-            <tr><td>10h30 &ndash; 11h30</td><td>Prática em SDD</td><td>Preparação, exemplo de referência e prompts 1 a 5 revisados, acompanhando a demonstração (seções 11 a 13).</td></tr>
-            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>Conferência do que existe às 12h10 e do que fica para a semana (seção 15).</td></tr>
+            <tr><td>20 min</td><td>Leitura 1</td><td>O problema, o cenário da estufa e os três pontos de validação; quanto um sensor rotulado errado desloca a média (seções 1 e 2).</td></tr>
+            <tr><td>25 min</td><td>Leitura 2</td><td>Contrato de dados, quarentena, DLQ ou falha do lote, métricas de qualidade; um lote com defeitos conhecidos (seções 3 a 5).</td></tr>
+            <tr><td>30 min</td><td>Leitura 3</td><td>Pydantic v2 aplicado aos contratos; quanto custa validar uma leitura (seção 6).</td></tr>
+            <tr><td>25 min</td><td>Leitura 4</td><td>Pirâmide de testes e respostas HTTP gravadas em cassetes; quanto custa um teste em cada camada (seções 7 e 8).</td></tr>
+            <tr><td>20 min</td><td>Leitura 5</td><td>Testcontainers, custo de subida, Docker indisponível e CI; escopo da fixture e tempo da suíte (seções 9 e 10).</td></tr>
+            <tr><td>1 h</td><td>Prática em SDD</td><td>Preparação, exemplo de referência e prompts 1 a 5 revisados (seções 11 a 13).</td></tr>
+            <tr><td>restante da semana</td><td>Implementação e validação</td><td>Prompt 6, uma tarefa por vez, prompt 7 e conferência antes do commit (seção 15).</td></tr>
           </tbody>
         </table></div>
-        <p>A teoria ocupa duas horas porque as decisões desta aula (onde validar, o que fazer com o inválido, quão estrito ser com cada produtor, em que camada testar) são as que o projeto final herda na Aula 08. A prática fica com uma hora em sala e termina com os prompts 1 a 5 revisados; o prompt 6, com contratos, quarentena, DLQ e testes, e o prompt 7, com a validação ATAM, seguem durante a semana com este material e o roteiro do laboratório.</p>
+        <p>A parte conceitual leva cerca de duas horas porque as decisões deste laboratório (onde validar, o que fazer com o inválido, quão estrito ser com cada produtor, em que camada testar) são as que o projeto final herda na Aula 08. A primeira sessão de prática termina com os prompts 1 a 5 revisados; o prompt 6, com contratos, quarentena, DLQ e testes, e o prompt 7, com a validação ATAM, ocupam o resto da semana.</p>
       </section>
 
       <!-- 2 -->
@@ -322,9 +322,9 @@ from pydantic import TypeAdapter, model_validator
 
 
 class CotacaoPtax(BaseModel):
-    model_config = ConfigDict(extra="ignore", validate_by_name=True)
-
     """Uma linha de bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl (Aula 03)."""
+
+    model_config = ConfigDict(extra="ignore", validate_by_name=True)
 
     moeda: Annotated[str, Field(pattern=r"^[A-Z]{3}$")]
     data_hora_cotacao: Annotated[datetime, Field(alias="dataHoraCotacao")]
@@ -661,7 +661,7 @@ jobs:
           <li>No terminal do Codespace, confirme o Docker: <code>docker version --format '{{.Server.Version}}'</code> e <code>docker run --rm hello-world</code>.</li>
           <li>Na raiz do repositório do grupo, crie a pasta da aula com o esqueleto SDD:
             <pre><code>mkdir -p aula_07_validacao_testes/{docs/adr,docs/contratos,specs,src,tests/unit,tests/contract,tests/integration}</code></pre></li>
-          <li>Copie os arquivos de apoio do <a href="../laboratorio/README.md">laboratório</a>: <code>requirements-dev.txt</code> e <code>AGENTS.md</code>. Ajuste no <code>AGENTS.md</code> o nome da pasta da Aula 06, se for diferente de <code>aula_06_streaming_iot/</code>.</li>
+          <li>Copie os arquivos de apoio do <a href="../laboratorio/README.md">laboratório</a>: <code>requirements-dev.txt</code>, <code>AGENTS.md</code> e <code>exemplo/pytest.ini</code> (este último para a raiz de <code>aula_07_validacao_testes/</code>; ele define <code>pythonpath = .</code>, a pasta de testes e o marcador <code>integracao</code>). Ajuste no <code>AGENTS.md</code> o nome da pasta da Aula 06, se for diferente de <code>aula_06_streaming_iot/</code>.</li>
           <li>Crie o ambiente virtual e instale as dependências:
             <pre><code>cd aula_07_validacao_testes
 python3 -m venv .venv
@@ -844,8 +844,9 @@ RNF-02 · Rastreabilidade das rejeições
 - Confira os campos acima no código e na spec das Aulas 03 e 06 e cite arquivo
   e linha; se o grupo tiver refinado algum nome, use o do grupo e registre a
   diferença. Os códigos de motivo são os da spec da Aula 06 (json_invalido,
-  campo_ausente, unidade_desconhecida, umidade_fora_da_faixa,
-  temperatura_fora_da_faixa, sensor_desconhecido, medido_em_no_futuro).
+  campo_ausente, campo_desconhecido, tipo_invalido, unidade_desconhecida,
+  umidade_fora_da_faixa, temperatura_fora_da_faixa, sensor_desconhecido,
+  medido_em_no_futuro).
 - Para cada contrato, decida e justifique o tratamento de campo desconhecido
   (forbid para produtor do grupo; ignore com alerta para fonte externa) e
   marque a decisão como candidata a ADR.
@@ -1104,7 +1105,7 @@ Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revi
           </tbody>
         </table></div>
         <ol class="steps">
-          <li>Com o ambiente da seção 11 ativo, copie o exemplo para uma pasta temporária: <code>cp -r &lt;aulas_mackenzie&gt;/aulas/data_collection_and_storage/aula_07_validacao_com_pydantic_e_testes_integrados/laboratorio/exemplo /tmp/exemplo_aula07</code>.</li>
+          <li>Com o ambiente da seção 11 ativo, copie o exemplo para uma pasta temporária: <code>cp -r &lt;aulas_mackenzie&gt;/aulas/data_collection_and_storage/aula_07_qualidade_e_testes_de_dados_com_pytest/laboratorio/exemplo /tmp/exemplo_aula07</code>.</li>
           <li>Entre na pasta e rode só a unidade: <code>pytest -m "not integracao" -q</code>. Esperado: 9 testes aprovados (os casos parametrizados contam separadamente).</li>
           <li>Rode tudo com tempos: <code>pytest -q --durations=5</code>. Esperado: 10 aprovados.</li>
           <li>Simule a falta de Docker: <code>DOCKER_HOST=unix:///tmp/nao_existe.sock pytest -q -rs</code>. Esperado: 9 aprovados e 1 pulado com o motivo.</li>
@@ -1139,15 +1140,14 @@ Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revi
 
       <!-- 15 -->
       <section class="content-block" id="s15">
-        <h2>15. Atividade em sala e entregável</h2>
-        <p>Depois das duas horas de teoria, a prática vai das 10h30 às 11h30, no Codespace do repositório do grupo, acompanhando a construção ao vivo feita pelo professor. O grupo reproduz cada etapa com os prompts da seção 12, revisa o artefato antes de seguir e executa os testes no próprio terminal: a resposta do agente dizendo que o teste passou não conta como evidência. Os últimos dez minutos conferem o que existe e o que fica para a semana.</p>
+        <h2>15. Atividade da semana e entregável</h2>
+        <p>A prática acontece no Codespace do repositório do grupo, durante a semana de 28/11 a 05/12/2026. O grupo reproduz cada etapa com os prompts da seção 12, revisa o artefato antes de seguir e executa os testes no próprio terminal: a resposta do agente dizendo que o teste passou não conta como evidência.</p>
         <div class="table-scroll"><table>
-          <thead><tr><th>Horário</th><th>Etapa</th><th>Saída</th></tr></thead>
+          <thead><tr><th>Duração</th><th>Etapa</th><th>Saída</th></tr></thead>
           <tbody>
-            <tr><td>10h30 &ndash; 10h45</td><td>Preparação (seção 11) e exemplo de referência (seção 13)</td><td>Docker respondendo, dependências instaladas, exemplo verde</td></tr>
-            <tr><td>10h45 &ndash; 11h30</td><td>Prompts 1 a 5, com a demonstração</td><td>persona, objetivos, spec, plan e tasks revisados e commitados</td></tr>
-            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento</td><td>lista do que existe e do que fica para a semana</td></tr>
-            <tr><td>Na semana, até a Aula 08 (05/12/2026)</td><td>Prompt 6, uma tarefa por vez, e prompt 7</td><td>contratos, quarentena, DLQ, testes nas três camadas, <code>atam.md</code>, ADRs e relatório de rejeições</td></tr>
+            <tr><td>15 min</td><td>Preparação (seção 11) e exemplo de referência (seção 13)</td><td>Docker respondendo, dependências instaladas, exemplo verde</td></tr>
+            <tr><td>45 min</td><td>Prompts 1 a 5</td><td>persona, objetivos, spec, plan e tasks revisados e commitados</td></tr>
+            <tr><td>restante da semana, até a Aula 08 (05/12/2026)</td><td>Prompt 6, uma tarefa por vez, e prompt 7</td><td>contratos, quarentena, DLQ, testes nas três camadas, <code>atam.md</code>, ADRs e relatório de rejeições</td></tr>
           </tbody>
         </table></div>
         <h3>15.1 Entregável</h3>
@@ -1160,7 +1160,7 @@ Não altere a spec para fazer a avaliação passar. Pare ao final e aguarde revi
           <li><code>docs/relatorio_rejeicoes.md</code> gerado de uma execução real, com contagens por fonte, campo e tipo de erro e as quatro métricas com numerador e denominador.</li>
           <li><code>docs/atam.md</code> com os seis cenários da seção 14 e os ADRs em <code>docs/adr/</code>.</li>
         </ol>
-        <h3>15.3 Conferência antes do commit</h3>
+        <h3>15.2 Conferência antes do commit</h3>
         <pre><code>cd aula_07_validacao_testes
 pytest tests/unit tests/contract -q --block-network
 pytest tests/integration -m integracao -q --durations=10

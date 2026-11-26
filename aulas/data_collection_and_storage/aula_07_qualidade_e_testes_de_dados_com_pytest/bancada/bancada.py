@@ -44,6 +44,12 @@ def _limpar_modulos(pasta):
             del sys.modules[nome]
 
 
+def _sleep_bloqueado(segundos):
+    raise RuntimeError(
+        "time.sleep(%s) travaria a página: no navegador a espera é de verdade. "
+        "Injete esperar no teste, por exemplo esperar=esperas.append." % segundos)
+
+
 def rodar(arquivos, testes=None, verboso=True):
     """Grava `arquivos` ({nome: conteúdo}) numa pasta nova e roda o pytest nela."""
     _contador[0] += 1
@@ -62,10 +68,15 @@ def rodar(arquivos, testes=None, verboso=True):
     anterior = os.getcwd()
     os.chdir(base)
     inicio = time.perf_counter()
+    sleep_original = time.sleep
+    if sys.platform == "emscripten":
+        # No Pyodide o sleep para a thread da página (e os slides junto).
+        time.sleep = _sleep_bloqueado
     try:
         with contextlib.redirect_stdout(saida), contextlib.redirect_stderr(saida):
             codigo = pytest.main(args + alvos, plugins=[coletor])
     finally:
+        time.sleep = sleep_original
         os.chdir(anterior)
         sys.path.remove(base)
         _limpar_modulos(base)

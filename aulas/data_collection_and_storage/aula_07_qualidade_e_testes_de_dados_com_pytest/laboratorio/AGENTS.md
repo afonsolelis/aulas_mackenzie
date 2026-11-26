@@ -35,7 +35,7 @@ Regras para o agente de código nesta pasta, qualquer que seja o agente escolhid
   - Livro: linha de `bronze/books_toscrape/data=AAAA-MM-DD/livros.jsonl` (`upc`, `url`, `titulo`, `categoria`, `avaliacao`, `preco_gbp`, `em_estoque`, `qtd_estoque`, `coletado_em`).
   - CotacaoPtax: linha de `bronze/ptax/moeda=GBP/data=AAAA-MM-DD/cotacoes.jsonl` (`moeda`, `dataHoraCotacao`, `tipoBoletim`, `cotacaoCompra`, `cotacaoVenda`).
   - LeituraBruta: mensagem da Aula 06 (`event_id`, `device_id`, `medido_em`, `temperatura`, `unidade_temperatura` em C ou F, `umidade`); LeituraNormalizada com as colunas de `iot.leituras` (`temperatura_c`, `umidade_pct`, `local`, `tipo_local`).
-- Códigos de motivo da Aula 06: `json_invalido`, `campo_ausente`, `unidade_desconhecida`, `umidade_fora_da_faixa`, `temperatura_fora_da_faixa`, `sensor_desconhecido`, `medido_em_no_futuro`.
+- Códigos de motivo da Aula 06: `json_invalido`, `campo_ausente`, `campo_desconhecido`, `tipo_invalido`, `unidade_desconhecida`, `umidade_fora_da_faixa`, `temperatura_fora_da_faixa`, `sensor_desconhecido`, `medido_em_no_futuro`.
 - Regras que dependem do relógio recebem o instante pelo contexto de validação; testes fixam o instante.
 
 ## Comandos permitidos
@@ -55,7 +55,7 @@ Não execute `git push`, `docker system prune`, `rm -rf` fora de `.pytest_cache/
 
 - Credenciais vêm de variáveis de ambiente ou de `.env` (no `.gitignore`). Nunca em código, teste, cassete, log ou commit.
 - Todo `vcr_config` filtra `authorization`, `cookie` e `set-cookie`.
-- Antes de propor commit, rode: `grep -RniE "authorization|password|secret|token|api[_-]?key" tests/cassettes`.
+- Antes de propor commit, rode: `grep -RniE "authorization|password|secret|token|api[_-]?key" tests/`.
 
 ## Gates antes de declarar uma tarefa pronta
 
