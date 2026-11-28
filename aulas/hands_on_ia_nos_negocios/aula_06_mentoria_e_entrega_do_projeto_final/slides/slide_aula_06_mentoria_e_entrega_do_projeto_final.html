@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png">
+  <title>Aula 06 — Mentoria e Entrega do Projeto Final</title>
+  <link href="../../../../assets/slides.css" rel="stylesheet">
+</head>
+<body>
+  <div class="slide-container">
+
+    <!-- SLIDE 1 - CAPA -->
+    <div class="slide">
+      <div class="deck-shell" data-aula-number="06" data-year="2027">
+        <div>
+          <span class="deck-kicker">IA nos Negócios &middot; Aula 06 &middot; 03/04/2027 &middot; 8h30 &ndash; 12h10</span>
+          <h1 class="deck-title">Mentoria e Entrega do Projeto Final</h1>
+          <p class="deck-summary">Sem conteúdo novo: atendimento individual e entrega do projeto final da disciplina.</p>
+          <p class="deck-meta">Inteligência Artificial para Negócios Digitais &middot; Mackenzie &middot; 2027</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2 - AGENDA -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Agenda</span>
+          <h2 class="deck-title">Agenda da aula</h2>
+        </div>
+        <table class="deck-table">
+          <thead><tr><th>Horário</th><th>Bloco</th></tr></thead>
+          <tbody>
+            <tr><td>8h30 &ndash; 8h45</td><td>Abertura: ordem e tempo de atendimento</td></tr>
+            <tr><td>8h45 &ndash; 10h00</td><td>Atendimentos, primeira parte</td></tr>
+            <tr><td>10h00 &ndash; 10h20</td><td>Intervalo</td></tr>
+            <tr><td>10h20 &ndash; 12h00</td><td>Atendimentos, segunda parte</td></tr>
+            <tr><td>12h00 &ndash; 12h10</td><td>Fechamento e instruções de entrega</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SLIDE 3 - PLACEHOLDER -->
+    <div class="slide">
+      <div class="deck-shell">
+        <div>
+          <span class="deck-kicker">Em construção</span>
+          <h2 class="deck-title">Tópicos da aula</h2>
+          <p class="deck-summary">Esqueleto inicial. Os slides de cada tópico entram a partir daqui.</p>
+        </div>
+        <div class="deck-placeholder">
+          <div class="deck-panel">
+            <strong>Tópicos</strong>
+            <ul>
+              <li>Checklist do projeto</li>
+              <li>Roteiro do atendimento</li>
+              <li>Como entregar</li>
+            </ul>
+          </div>
+          <div class="deck-panel">
+            <strong>Ambiente</strong>
+            <ul>
+              <li>Aula presencial, com prática no computador do aluno e na IA de preferência de cada um.</li>
+              <li>Detalhes no <a href="../material/material_aula_06_mentoria_e_entrega_do_projeto_final.html">material da aula</a>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <img class="slide-logo-mini" src="https://res.cloudinary.com/dyhjjms8y/image/upload/v1766252944/logo_mini_wspmx7.png" alt="Mackenzie">
+
+  <div class="slide-footer">
+    <div class="footer-links">
+      <a href="../../../../index.html" class="back-home">Hub</a>
+      <a href="../../../../pages/home_hands_on_ia_nos_negocios.html" class="back-home">IA nos Negócios</a>
+      <a href="../material/material_aula_06_mentoria_e_entrega_do_projeto_final.html" class="material-link">Material</a>
+    </div>
+    <div class="nav-wrapper">
+      <div class="nav-buttons"><button id="prev-btn" onclick="previousSlide()">&#8592; Anterior</button></div>
+      <div class="slide-counter"><span id="current-slide">1</span> / <span id="total-slides">1</span></div>
+      <div class="nav-buttons"><button id="next-btn" onclick="nextSlide()">Próximo &#8594;</button></div>
+    </div>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()" title="Tela cheia">&#9974;</button>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll(".slide");
+    const totalSlides = slides.length;
+    document.getElementById("total-slides").textContent = totalSlides;
+    function showSlide(i) {
+      slides.forEach(slide => slide.classList.remove("active"));
+      slides[i].classList.add("active");
+      currentSlide = i;
+      document.getElementById("current-slide").textContent = i + 1;
+      document.getElementById("prev-btn").disabled = i === 0;
+      document.getElementById("next-btn").disabled = i === totalSlides - 1;
+    }
+    function nextSlide() { if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1); }
+    function previousSlide() { if (currentSlide > 0) showSlide(currentSlide - 1); }
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+    document.addEventListener("keydown", event => {
+      if (event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        nextSlide();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        previousSlide();
+      } else if (event.key.toLowerCase() === "f") {
+        toggleFullScreen();
+      }
+    });
+    showSlide(0);
+  </script>
+</body>
+</html>
